@@ -1,101 +1,89 @@
 /**
  * LoginScreen
- * - Auth UI for user login.
- * - Uses Bulletproof React structure and conventions.
- *
- * @module LoginScreen
+ * - Modern Apple-like login screen.
+ * - User tiles for selection, clean UX.
  */
 
-import React, { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate, Navigate } from 'react-router-dom';
+import React from 'react';
+import styles from '../features/login/LoginScreen.module.css';
+import { useLoginScreen } from '../features/login/useLoginScreen';
 import { LoginForm } from '../features/login/LoginForm';
-import { useAuth } from '../features/login/useAuth';
-import { login } from '../api/auth/auth';
 
-/**
- * Standardized logger for debugging and traceability.
- * Never logs sensitive data.
- * @constant
- * @type {{info: Function, error: Function}}
- */
-const logger = {
-    info: (...args) => console.log('[LoginScreen]', ...args),
-    error: (...args) => console.error('[LoginScreen]', ...args),
-};
-
-/**
- * LoginScreen
- * Renders the login form and handles login logic.
- *
- * @returns {JSX.Element}
- */
 const LoginScreen = () => {
-    /**
-     * Local error message state.
-     * @type {[string|null, Function]}
-     */
-    const [error, setError] = useState(null);
+    const {
+        isLoadingUsers,
+        usersError,
+        error,
+        selectedUserId,
+        publicUsers,
+        setSelectedUserId,
+        handleLoginSubmit,
+        mutationIsPending,
+        resetError,
+        redirectElement
+    } = useLoginScreen();
 
-    /**
-     * Pull auth state and token setter from context.
-     */
-    const { isAuthenticated, setToken } = useAuth();
+    if (redirectElement) return redirectElement;
 
-    /**
-     * Declarative navigation for successful login.
-     */
-    const navigate = useNavigate();
-
-    /**
-     * useMutation hook for handling login mutation.
-     * - Calls login API.
-     * - On success, sets JWT token and navigates to '/'.
-     * - On error, sets local error message.
-     * @type {ReturnType<typeof useMutation>}
-     */
-    const mutation = useMutation({
-        mutationFn: async ({ userId, passcode }) => {
-            logger.info('login mutationFn called', { userId });
-            return await login(userId, passcode);
-        },
-        onSuccess: async (token) => {
-            logger.info('login mutation onSuccess', { token: !!token });
-            await setToken(token);
-            navigate('/', { replace: true });
-        },
-        onError: (error) => {
-            logger.error('login mutation onError', error);
-            setError(error?.message || 'Login failed');
-        }
-    });
-
-    /**
-     * Handles form submission from LoginForm component.
-     * Clears previous errors, triggers mutation.
-     *
-     * @function
-     * @param {{userId: number, passcode: string}} values
-     */
-    const handleSubmit = (values) => {
-        logger.info('handleSubmit called', values);
-        setError(null);
-        mutation.mutate(values);
-    };
-
-    /**
-     * Early route protection (redirect to home if already authenticated).
-     */
-    if (isAuthenticated) {
-        logger.info('Already authenticated, redirecting to home');
-        return <Navigate to="/" replace />;
+    if (isLoadingUsers) {
+        return (
+            <div className={styles.loginScreen}>
+                <div className={styles.loginTitle}>Login</div>
+                <div>Loading users…</div>
+            </div>
+        );
     }
 
+    if (usersError) {
+        return (
+            <div className={styles.loginScreen}>
+                <div className={styles.loginTitle}>Login</div>
+                <div className={styles.errorMsg}>{usersError}</div>
+            </div>
+        );
+    }
+
+    // Handler for tile click
+    const handleTileClick = (userId) => {
+        setSelectedUserId(userId);
+        resetError && resetError();
+    };
+
     return (
-        <div className="login-screen">
-            <h2>Login</h2>
-            <LoginForm onSubmit={handleSubmit} isLoading={mutation.isPending} />
-            {error && <div className="error-msg">{error}</div>}
+        <div className={styles.loginScreen}>
+            <div className={styles.loginTitle}>Login</div>
+            <div className={styles.usersGrid}>
+                {(publicUsers || []).map(user => (
+                    <div
+                        key={user.userId}
+                        className={`${styles.userTile} ${selectedUserId === String(user.userId) ? styles.selected : ''}`}
+                        onClick={() => handleTileClick(String(user.userId))}
+                        tabIndex={0}
+                        role="button"
+                        aria-pressed={selectedUserId === String(user.userId)}
+                        aria-label={`Select user ${user.name}`}
+                        style={{ outline: 'none' }}
+                    >
+                        <div className={styles.profilePicBlank}>
+                            {/* Placeholder: can insert avatar SVG/icon here in future */}
+                            <span>👤</span>
+                        </div>
+                        <div className={styles.userName}>{user.name}</div>
+                    </div>
+                ))}
+            </div>
+            {selectedUserId &&
+                <div className={styles.loginFormContainer}>
+                    <LoginForm
+                        onSubmit={handleLoginSubmit}
+                        isLoading={mutationIsPending}
+                        error={error}
+                        resetError={resetError}
+                        className={styles.loginForm}
+                    />
+                </div>
+            }
+            {error && <div className={styles.errorMsg}>{error}</div>}
         </div>
     );
 };

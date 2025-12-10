@@ -1,61 +1,43 @@
-/**
- * LoginForm
- * - Stateless controlled form component for login.
- * - Bulletproof React: pure UI only, no side effects.
- *
- * @param {Object} props
- * @param {(values:{userId:number, passcode:string}) => void} props.onSubmit - Submit handler for login.
- * @param {boolean} [props.isLoading] - Loading state for button/UI.
- * @returns {JSX.Element}
- */
 import React, { useState } from 'react';
+import styles from './LoginScreen.module.css';
 
 const logger = {
     info: (...args) => console.log('[LoginForm]', ...args),
     error: (...args) => console.error('[LoginForm]', ...args),
 };
 
-export const LoginForm = ({ onSubmit, isLoading = false }) => {
-    const [userId, setUserId] = useState('');
+/**
+ * Modern minimalist password-only login form.
+ */
+export const LoginForm = ({ onSubmit, isLoading = false, error, resetError }) => {
     const [passcode, setPasscode] = useState('');
 
-    /**
-     * Handles form submit, calls parent handler with form values.
-     * @param {React.FormEvent} e
-     */
     const handleSubmit = (e) => {
         e.preventDefault();
         logger.info('handleSubmit called');
-        if (!userId || !passcode) return;
-        onSubmit({ userId: Number(userId), passcode });
+        if (!passcode) return;
+        onSubmit({ passcode });
     };
 
     return (
-        <form onSubmit={handleSubmit} className="login-form">
-            <label>
-                User ID
-                <input
-                    type="number"
-                    value={userId}
-                    onChange={e => setUserId(e.target.value)}
-                    disabled={isLoading}
-                    autoFocus
-                    required
-                />
-            </label>
-            <label>
-                Passcode
-                <input
-                    type="password"
-                    value={passcode}
-                    onChange={e => setPasscode(e.target.value)}
-                    disabled={isLoading}
-                    required
-                />
-            </label>
-            <button type="submit" disabled={isLoading || !userId || !passcode}>
+        <form onSubmit={handleSubmit} className={styles.loginForm}>
+            <input
+                type="password"
+                value={passcode}
+                onChange={e => {
+                    setPasscode(e.target.value);
+                    if (resetError) resetError();
+                }}
+                disabled={isLoading}
+                required
+                autoFocus
+                placeholder="Password"
+                className={styles.passwordInput}
+            />
+            <button type="submit" disabled={isLoading || !passcode}>
                 {isLoading ? 'Logging in...' : 'Login'}
             </button>
+            {error && <div className={styles.errorMsg}>{error}</div>}
         </form>
     );
 };
