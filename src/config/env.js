@@ -2,7 +2,7 @@
  * Centralized environment configuration.
  *
  * Purpose:
- *  - Resolve current environment and select corresponding API URL and API password.
+ *  - Resolve current environment and select corresponding API URL.
  *  - Provide a small helper to build full API URLs from relative paths.
  *
  * Conventions:
@@ -13,7 +13,6 @@
  *  - isProd: boolean
  *  - isLocal: boolean
  *  - API_URL: resolved base API URL (string)
- *  - API_PASSWORD: resolved API password (string|undefined)
  *  - buildApiUrl(path): helper to combine API_URL with relative path
  */
 
@@ -33,18 +32,11 @@ function normalizeBaseUrl(value) {
     return String(value).replace(/\/+$/, '');
 }
 
-/**
- * Raw environment variables (CRA exposes REACT_APP_ prefixed vars).
- * @type {string|undefined}
- */
+/* Raw environment variables (CRA exposes REACT_APP_ prefixed vars) */
 const RAW_ENV = process.env.REACT_APP_ENVIRONMENT;
 const OVERRIDE_URL = process.env.REACT_APP_API_URL;
 const LOCAL_URL = process.env.REACT_APP_API_URL_LOCAL;
 const PROD_URL = process.env.REACT_APP_API_URL_PROD;
-
-const OVERRIDE_PW = process.env.REACT_APP_API_PASSWORD;
-const LOCAL_PW = process.env.REACT_APP_API_PASSWORD_LOCAL;
-const PROD_PW = process.env.REACT_APP_API_PASSWORD_PROD;
 
 /**
  * Current environment string. Expected values: "local" or "prod".
@@ -90,26 +82,6 @@ export const API_URL = normalizeBaseUrl(resolvedApiUrl);
 logger.info('API_URL set to', API_URL);
 
 /**
- * Resolved API password (sensitive).
- *
- * Resolution order:
- *  1. REACT_APP_API_PASSWORD (global override)
- *  2. REACT_APP_API_PASSWORD_PROD or REACT_APP_API_PASSWORD_LOCAL depending on ENV
- *  3. undefined if not set
- *
- * SECURITY: do not log the value. Only log presence.
- *
- * @type {string|undefined}
- */
-export const API_PASSWORD = (typeof OVERRIDE_PW === 'string' && OVERRIDE_PW.length > 0)
-    ? OVERRIDE_PW
-    : (isProd
-        ? (typeof PROD_PW === 'string' && PROD_PW.length > 0 ? PROD_PW : undefined)
-        : (typeof LOCAL_PW === 'string' && LOCAL_PW.length > 0 ? LOCAL_PW : undefined));
-
-logger.info('API_PASSWORD present:', API_PASSWORD ? true : false);
-
-/**
  * Build a full API URL from a relative path.
  *
  * Examples:
@@ -132,6 +104,5 @@ export default {
     isProd,
     isLocal,
     API_URL,
-    API_PASSWORD,
     buildApiUrl,
 };

@@ -14,6 +14,13 @@
 const path = require('path');
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 
+const keytar = require('keytar');
+
+const SERVICE_NAME = 'SabriLTD-Inventory';
+const ACCOUNT_NAME = 'InventoryAuthToken';
+
+
+
 console.log('[electron-main] Starting main process', { argv: process.argv.slice(1) });
 
 /**
@@ -131,6 +138,52 @@ ipcMain.handle('transfer-albums', async (event, data) => {
     } catch (err) {
         console.error('[electron-main] transfer-albums error', err);
         return { success: false, message: err.message || String(err) };
+    }
+});
+
+ipcMain.handle('token-store', async (event, { token }) => {
+    /**
+     * Stores the token securely using Keytar.
+     * @param {string} token
+     * @returns {boolean} True if stored successfully, else false.
+     */
+    try {
+        await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, token);
+        console.log('[electron-main] token-store: token stored');
+        return { success: true };
+    } catch (err) {
+        console.error('[electron-main] token-store error', err);
+        return { success: false, message: err.message };
+    }
+});
+
+ipcMain.handle('token-get', async () => {
+    /**
+     * Retrieves the auth token from Keytar.
+     * @returns {string|null} The token or null if not found.
+     */
+    try {
+        const token = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);
+        console.log('[electron-main] token-get: token retrieved');
+        return { success: true, token };
+    } catch (err) {
+        console.error('[electron-main] token-get error', err);
+        return { success: false, message: err.message };
+    }
+});
+
+ipcMain.handle('token-delete', async () => {
+    /**
+     * Deletes the auth token from Keytar.
+     * @returns {boolean} True if deleted successfully.
+     */
+    try {
+        await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME);
+        console.log('[electron-main] token-delete: token deleted');
+        return { success: true };
+    } catch (err) {
+        console.error('[electron-main] token-delete error', err);
+        return { success: false, message: err.message };
     }
 });
 
