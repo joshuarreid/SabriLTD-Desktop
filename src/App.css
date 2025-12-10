@@ -1,16 +1,53 @@
-.App {
-    text-align: center;
-    color: #fff;
-}
+/* Global styles: white background, black text/borders, pastel magenta accents for a modern look */
 
 body, html {
-    background-color: #2c2c2c;
+    background-color: #fff;
+    color: #191919;
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
 }
 
+/* Main app layout */
+.App {
+    text-align: center;
+    color: #191919;
+    background: #fff;
+}
+
+/* App header */
 .App-header {
     padding: 40px;
+    border-bottom: 1px solid #191919;
+    background: #fff;
 }
+
+/* Pastel magenta accent example for headings/links */
+a, .accent {
+    color: #b000b9;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+a:hover,
+.accent:hover {
+    color: #e0b3ff;
+    text-decoration: underline;
+}
+
+/* Universal input focus/selection accent for all forms */
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #b000b9;
+    outline: none;
+    box-shadow: 0 0 0 2px #e0b3ff;
+}
+
+::-webkit-input-placeholder { color: #bbb; }
+::-moz-placeholder { color: #bbb; }
+:-ms-input-placeholder { color: #bbb; }
+::placeholder { color: #bbb; }

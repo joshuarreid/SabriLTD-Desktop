@@ -29,37 +29,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return res;
     },
 
-    /**
-     * Start a transfer operation in the main process and return the result.
-     * The renderer can also subscribe to transfer progress via onTransferProgress.
-     */
-    transferAlbums: async (payload) => {
-        console.log('[preload] transferAlbums ->', payload && { albumsCount: Array.isArray(payload.albums) ? payload.albums.length : 0, destination: payload.destination });
-        const res = await ipcRenderer.invoke('transfer-albums', payload);
-        console.log('[preload] transferAlbums <-', res);
-        return res;
-    },
-
-    /**
-     * Subscribe to transfer progress notifications from the main process.
-     * Returns an unsubscribe function.
-     * Usage:
-     *   const off = window.electronAPI.onTransferProgress(pct => console.log(pct));
-     *   off(); // to unsubscribe
-     */
-    onTransferProgress: (cb) => {
-        console.log('[preload] onTransferProgress subscribe');
-        const listener = (event, progress) => {
-            try {
-                cb(progress);
-            } catch (err) {
-                console.error('[preload] onTransferProgress callback error', err);
-            }
-        };
-        ipcRenderer.on('transfer-progress', listener);
-        return () => {
-            ipcRenderer.removeListener('transfer-progress', listener);
-            console.log('[preload] onTransferProgress unsubscribe');
-        };
-    }
 });
