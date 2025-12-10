@@ -25,10 +25,6 @@ function App() {
             <Router>
                 <QueryClientProvider client={queryClient}>
                     <div className="App">
-                        <header className="App-header">
-                            <h1>Electron + CRA Template</h1>
-                            <p>Use the Ping button below to verify preload -&gt; main IPC.</p>
-                        </header>
                         <Routes>
                             <Route path="/login" element={<LoginScreen />} />
                             <Route element={<ProtectedRoute />}>
