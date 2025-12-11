@@ -1,0 +1,55 @@
+.userTile {
+    width: 128px;
+    height: 148px;
+    background: #fafafd;
+    border: 1.5px solid #e8e8e8;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    cursor: pointer;
+    transition:
+            border 160ms linear,
+            box-shadow 160ms linear,
+            transform 454ms cubic-bezier(.22,.95,.15,1),
+            opacity 414ms cubic-bezier(.22,.95,.15,1);
+    position: relative;
+    user-select: none;
+    box-sizing: border-box;
+    outline: none;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.userTile:focus {
+    box-shadow: 0 0 0 3px #e0b3ff66;
+    transform: translateY(-4px);
+}
+.selected {
+    border-color: #b000b9;
+    box-shadow: 0 0 0 2px #e0b3ff44;
+}
+.profilePicBlank {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #e0b3ff37;
+    border: 2.5px solid #e0b3ff;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #777;
+    flex-shrink: 0;
+}
+.userName {
+    color: #222;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-size: 1rem;
+    text-align: center;
+    margin-top: auto;
+    padding: 0 6px;
+    word-break: break-word;
+}

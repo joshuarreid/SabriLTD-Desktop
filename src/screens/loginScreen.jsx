@@ -1,21 +1,23 @@
 /**
  * LoginScreen
- * - User select grid paginates with minimal chevron arrows (no circle, light grey), always 4 tiles per row/page.
- * - Password form proportionate, responsive, all business logic isolated in useLoginScreen hook.
- * - Follows Bulletproof React conventions.
+ * - Handles paginated user select and password step.
+ * - Uses UserGrid (pagination, selection), LoginForm (password), BrandLogo, and style colocation.
+ * - Step logic, API/data-handling, and state delegated to useLoginScreen.
  *
  * @module LoginScreen
  */
 
 import React, { useState } from 'react';
 import styles from '../features/login/styles/LoginScreen.module.css';
-import { useLoginScreen } from '../features/login/hooks/useLoginScreen';
+import {useLoginScreen} from "../features/login/hooks/useLoginScreen";
+import { UserGrid } from '../features/login/components/UserGrid';
 import { LoginForm } from '../features/login/components/LoginForm';
+
 import BrandLogo from '../assets/logos/sabriltd-logo.png';
+
 
 /**
  * Standardized logger for debugging and traceability.
- * Never logs sensitive data.
  * @constant
  */
 const logger = {
@@ -24,49 +26,15 @@ const logger = {
 };
 
 /**
- * Minimal chevron arrow for user grid paging (no circle, light grey).
- * Vertically centered, side of grid, no text.
- *
- * @function UserGridArrowButton
- * @param {Object} props
- * @param {boolean} props.left - If true, left arrow; else right.
- * @param {function} props.onClick - Pager callback handler.
- * @param {boolean} props.disabled - True disables button.
- * @returns {JSX.Element}
- */
-const UserGridArrowButton = ({ left = false, onClick, disabled = false }) => (
-    <button
-        type="button"
-        className={`${styles.userGridArrowButton} ${left ? styles.userGridArrowLeft : styles.userGridArrowRight}`}
-        onClick={onClick}
-        disabled={disabled}
-        aria-label={left ? "Previous users" : "Next users"}
-    >
-        <svg width="32" height="32" viewBox="0 0 32 32" focusable="false" aria-hidden="true">
-            <polyline
-                className={styles.chevron}
-                points={left ? "20,10 12,16 20,22" : "12,10 20,16 12,22"}
-                fill="none"
-                stroke="#9c9c9c"
-                strokeWidth="3.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-        </svg>
-    </button>
-);
-
-const USERS_PER_PAGE = 4;
-
-/**
  * LoginScreen presentational component.
- * - Handles paginated user grid (4 per page, arrows).
- * - Shows password panel with proportionate form.
- * - All data, state flow in useLoginScreen.
+ * - Handles step logic, loading/error feedback, delegates to modular UI components.
  *
+ * @function LoginScreen
  * @returns {JSX.Element}
  */
-const LoginScreen = () => {
+export const LoginScreen = () => {
+    logger.info('LoginScreen mounted');
+
     const {
         isLoadingUsers,
         usersError,
@@ -83,66 +51,17 @@ const LoginScreen = () => {
         resetError,
     } = useLoginScreen();
 
-    logger.info('render', { step, selectedUserId });
-
     const [userPage, setUserPage] = useState(0);
 
     // Pagination logic for user grid
+    const USERS_PER_PAGE = 4;
     const totalUsers = publicUsers?.length || 0;
     const pageCount = Math.ceil(totalUsers / USERS_PER_PAGE);
 
-    /**
-     * Slices users for current page, pads with nulls to keep grid row layout.
-     * @type {Array}
-     */
-    const pageUsers = (publicUsers || []).slice(
-        userPage * USERS_PER_PAGE,
-        userPage * USERS_PER_PAGE + USERS_PER_PAGE
-    );
-    const paddedUsers = [...pageUsers];
-    while (paddedUsers.length < USERS_PER_PAGE) {
-        paddedUsers.push(null);
-    }
-
+    // Get the user object for the selected userId, if available
     const currentUser = (publicUsers || []).find(
         (u) => String(u.userId) === String(selectedUserId)
     );
-
-    /**
-     * Tile UI handlers.
-     */
-    const handleTileClick = (userId) => {
-        logger.info('tile clicked', { userId });
-        selectUser(String(userId));
-        resetError && resetError();
-    };
-    const handleTileDoubleClick = (userId) => {
-        logger.info('tile double-clicked', { userId });
-        selectUser(String(userId));
-        resetError && resetError();
-        continueToPassword();
-    };
-    const handleTileKeyDown = (e, userId) => {
-        const idStr = String(userId);
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            logger.info('tile keydown Enter', { userId, selected: selectedUserId === idStr });
-            if (selectedUserId === idStr) {
-                continueToPassword();
-            } else {
-                selectUser(idStr);
-                resetError && resetError();
-            }
-        } else if (e.key === ' ') {
-            e.preventDefault();
-            logger.info('tile keydown Space (select)', { userId });
-            selectUser(idStr);
-            resetError && resetError();
-        }
-    };
-
-    const handlePagePrev = () => setUserPage((p) => Math.max(p - 1, 0));
-    const handlePageNext = () => setUserPage((p) => Math.min(p + 1, pageCount - 1));
 
     if (redirectElement) return redirectElement;
 
@@ -153,54 +72,27 @@ const LoginScreen = () => {
                 <div className={styles.loginTitle}>
                     {step === 'select' ? 'Select a user' : 'Enter password'}
                 </div>
-                <div className={`${styles.panelsWrap} ${step === 'select' ? styles.panelsWrapWide : ''}`} aria-live="polite">
+                <div
+                    className={`${styles.panelsWrap} ${step === 'select' ? styles.panelsWrapWide : ''}`}
+                    aria-live="polite"
+                >
                     {/* User select panel */}
                     <section
-                        className={`${styles.panel} ${styles.selectPanel} ${step === 'select' ? styles.panelActive : styles.panelInactive}`}
+                        className={`${styles.panel} ${styles.selectPanel} ${
+                            step === 'select' ? styles.panelActive : styles.panelInactive
+                        }`}
                         aria-hidden={step !== 'select'}
                     >
                         <div className={styles.panelInner}>
-                            <div className={styles.userGridPagerWrapper}>
-                                {/* Left arrow */}
-                                {userPage > 0
-                                    ? <UserGridArrowButton left onClick={handlePagePrev} />
-                                    : <span className={styles.userGridArrowSpacer} />}
-                                {/* User grid */}
-                                <div className={styles.usersGrid} role="list">
-                                    {paddedUsers.map((user, idx) =>
-                                        user ? (
-                                            <div
-                                                key={user.userId}
-                                                role="listitem"
-                                                className={`${styles.userTile} ${selectedUserId === String(user.userId) ? styles.selected : ''}`}
-                                                onClick={() => handleTileClick(String(user.userId))}
-                                                onDoubleClick={() => handleTileDoubleClick(String(user.userId))}
-                                                onKeyDown={(e) => handleTileKeyDown(e, String(user.userId))}
-                                                tabIndex={0}
-                                                aria-pressed={selectedUserId === String(user.userId)}
-                                                aria-label={`Select user ${user.name}`}
-                                            >
-                                                <div className={styles.profilePicBlank} aria-hidden>
-                                                    <span>👤</span>
-                                                </div>
-                                                <div className={styles.userName}>{user.name}</div>
-                                            </div>
-                                        ) : (
-                                            <div
-                                                key={`empty-${idx}`}
-                                                className={styles.userTile}
-                                                aria-hidden="true"
-                                                tabIndex={-1}
-                                                style={{ visibility: 'hidden' }}
-                                            />
-                                        )
-                                    )}
-                                </div>
-                                {/* Right arrow */}
-                                {userPage < pageCount - 1
-                                    ? <UserGridArrowButton onClick={handlePageNext} />
-                                    : <span className={styles.userGridArrowSpacer} />}
-                            </div>
+                            <UserGrid
+                                users={publicUsers || []}
+                                selectedUserId={selectedUserId}
+                                onSelectUser={selectUser}
+                                onContinue={continueToPassword}
+                                page={userPage}
+                                pageCount={pageCount}
+                                setPage={setUserPage}
+                            />
                             <div className={styles.actionsRow}>
                                 <button
                                     type="button"
@@ -216,7 +108,9 @@ const LoginScreen = () => {
                     </section>
                     {/* Password panel */}
                     <section
-                        className={`${styles.panel} ${styles.passwordPanel} ${step === 'password' ? styles.panelActive : styles.panelInactive}`}
+                        className={`${styles.panel} ${styles.passwordPanel} ${
+                            step === 'password' ? styles.panelActive : styles.panelInactive
+                        }`}
                         aria-hidden={step !== 'password'}
                     >
                         <div className={styles.panelInner}>
@@ -245,9 +139,7 @@ const LoginScreen = () => {
                         <span style={{ fontSize: '1.2em', color: '#b000b9' }}>Loading users…</span>
                     </div>
                 )}
-                {usersError && (
-                    <div className={styles.errorMsg}>{usersError}</div>
-                )}
+                {usersError && <div className={styles.errorMsg}>{usersError}</div>}
                 {error && <div className={styles.errorMsg}>{error}</div>}
             </div>
         </div>
