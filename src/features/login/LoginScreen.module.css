@@ -1,46 +1,173 @@
-/* Modern minimalist login with user tiles and focused accent */
+/* Modern minimalist login with smooth panel transitions
+ *
+ * Fixes:
+ * - Add .panelsWrapWide to expand the panels area on the select step so the
+ *   usersGrid has enough horizontal space for one-row layouts (4 users).
+ * - Ensure panels allow visible overflow (so action buttons are not clipped).
+ * - PanelInner added to preserve original select layout spacing (grid top-aligned,
+ *   continue button visible immediately below the grid).
+ */
 
+/* Responsive form width: between 320px and 520px, using viewport as guidance */
+:root {
+    --form-width: clamp(320px, 42vw, 520px);
+    --wide-form-width: clamp(560px, 70vw, 880px); /* used on select step to fit more tiles */
+    --tile-size: 128px; /* locked tile size (width) */
+    --tile-height: 148px; /* locked tile height */
+    --panel-transition: 360ms cubic-bezier(.2,.9,.2,1);
+}
+
+/* Container */
 .loginScreen {
     background: #fff;
     color: #191919;
     border-radius: 24px;
     box-shadow: 0 6px 32px 0 rgba(60, 60, 60, 0.08);
-    margin: 56px auto;
-    padding: 40px 32px 32px 32px;
-    max-width: 700px;
-    min-height: 340px;
+    margin: 20px auto;
+    padding: 36px 28px;
+    min-height: 60vh;
+    max-width: 980px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-sizing: border-box;
 }
 
+/* Title */
 .loginTitle {
-    font-size: 2rem;
+    font-size: clamp(1.6rem, 2.2vw, 2rem);
     font-weight: 700;
-    margin-bottom: 36px;
+    margin-bottom: 8px;
     letter-spacing: -0.02em;
     text-align: center;
 }
 
-.usersGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(108px, 1fr));
-    gap: 16px;
-    margin-bottom: 30px;
-    width: 100%;
+/* Panels wrapper: fixed area so layout doesn't jump during animation */
+.panelsWrap {
+    width: var(--form-width);
+    max-width: 94vw;
+    min-height: 260px; /* ensure consistent height while animating */
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    overflow: visible; /* allow buttons and shadows to be visible */
 }
 
+/* Wide variant used on select step so grid can fit more columns on one row */
+.panelsWrapWide {
+    width: var(--wide-form-width);
+}
+
+/* Base panel style: stacked and animatable
+   NOTE: panels now stretch horizontally and stack content from the top.
+*/
+.panel {
+    position: absolute;
+    inset: 0; /* fill panelsWrap */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;       /* allow children (grid / form) to take full width */
+    justify-content: flex-start; /* stack content from top like the original select layout */
+    padding: 18px 10px;         /* comfortable top padding so grid isn't flush against title */
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: transparent; /* keep underlying card background visible */
+    pointer-events: auto;
+    will-change: transform, opacity;
+    transition: transform var(--panel-transition), opacity var(--panel-transition);
+    overflow: visible;
+}
+
+/* Inner constraint keeps content centered within the panel while allowing full-width children */
+.panelInner {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center; /* center narrow children like actions row */
+    justify-content: flex-start;
+    box-sizing: border-box;
+}
+
+/* When active, sit in place and be visible */
+.panelActive {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+    z-index: 2;
+}
+
+/* When inactive, slide slightly and fade */
+.panelInactive {
+    transform: translateX(10%) scale(0.98);
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none; /* prevent interactions while hidden */
+}
+
+/* Slight variation for select panel entering from left for nicer motion */
+.selectPanel.panelInactive {
+    transform: translateX(-10%) scale(0.98);
+}
+
+/* Small screens: tighten the slide distances */
+@media (max-width: 420px) {
+    .panelInactive {
+        transform: translateY(6%) scale(0.995);
+    }
+    .selectPanel.panelInactive {
+        transform: translateY(6%) scale(0.995);
+    }
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .panel, .panelActive, .panelInactive {
+        transition: none;
+        transform: none;
+        opacity: 1;
+    }
+}
+
+/* Users grid (locked tile size) */
+/* Ensure the grid centers within the available panelsWrap width.
+   Using auto-fit with a fixed tile size allows the grid to create as many columns as fit.
+*/
+.usersGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, var(--tile-size));
+    gap: 16px;
+    margin: 8px 0 0 0; /* small top margin to separate from the title above panelsWrap */
+    width: 100%;
+    justify-items: center;
+    justify-content: center;
+    padding: 6px 0;
+    box-sizing: border-box;
+}
+
+/* Each tile has a locked visual size */
 .userTile {
+    width: var(--tile-size);
+    height: var(--tile-height);
     background: #fafafd;
     border: 1.5px solid #e8e8e8;
     border-radius: 18px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 18px 8px 14px 8px;
+    padding: 12px 8px;
     cursor: pointer;
-    transition: border 0.2s, box-shadow 0.2s;
+    transition: border 0.18s, box-shadow 0.18s, transform 0.12s;
     position: relative;
+    user-select: none;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.userTile:focus {
+    box-shadow: 0 0 0 3px #e0b3ff66;
+    transform: translateY(-2px);
 }
 
 .userTile.selected {
@@ -52,91 +179,126 @@
     filter: brightness(0.98);
 }
 
+/* Profile placeholder (locked to match tile proportions) */
 .profilePicBlank {
-    width: 54px;
-    height: 54px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: #e0b3ff37;
     border: 2.5px solid #e0b3ff;
-    margin-bottom: 9px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
-    color: #aaa;
-    user-select: none;
+    font-size: 1.3rem;
+    color: #777;
+    flex-shrink: 0;
 }
 
 .userName {
     color: #222;
     font-weight: 600;
     letter-spacing: -0.01em;
-    font-size: 1.09rem;
+    font-size: 1rem;
     text-align: center;
+    margin-top: auto;
+    padding: 0 6px;
+    word-break: break-word;
 }
 
+/* Form container uses responsive width variable (inside panelInner we keep full width) */
 .loginFormContainer {
-    margin-top: 18px;
+    margin-top: 8px;
     width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
+/* Login form layout */
 .loginForm {
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-top: 0;
+    align-items: stretch;
 }
 
-.loginForm label {
-    font-weight: 500;
-    font-size: 1.01rem;
-    margin-bottom: 4px;
-    color: #333;
-}
-
-.loginForm input[type="password"] {
-    font-size: 1.12rem;
-    padding: 12px 10px;
+/* Input styling tuned to be proportionate */
+.passwordInput {
+    font-size: clamp(1rem, 1.6vw, 1.12rem);
+    padding: 12px 12px;
     border: 1.5px solid #e8e8e8;
     border-radius: 12px;
     background: #fafafd;
     color: #191919;
     transition: border 0.17s, box-shadow 0.17s;
     outline: none;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.loginForm input[type="password"]:focus {
+.passwordInput:focus {
     border-color: #b000b9;
     box-shadow: 0 0 0 3px #e0b3ff4c;
     background: #fff;
 }
 
-.loginForm button {
+/* Submit & continue buttons */
+.submitButton, .continueButton {
     background: #191919;
     color: #fff;
     border: none;
     border-radius: 12px;
-    padding: 10px 0;
-    font-size: 1.07rem;
+    padding: 12px 14px;
+    font-size: 1.02rem;
     font-weight: 600;
-    margin-top: 6px;
     cursor: pointer;
-    transition: background 0.18s, filter 0.18s;
+    transition: background 0.18s, filter 0.18s, transform 0.12s;
     box-shadow: 0 1px 12px #e0b3ff11;
 }
 
-.loginForm button:disabled {
-    opacity: 0.61;
+.submitButton:active, .continueButton:active {
+    transform: translateY(1px);
+}
+
+.submitButton:disabled, .continueButton:disabled {
+    opacity: 0.62;
     cursor: not-allowed;
     background: #bdbdbd;
 }
 
-.loginForm button:hover:not(:disabled) {
+.submitButton:hover:not(:disabled), .continueButton:hover:not(:disabled) {
     background: #b000b9;
     color: #fff;
 }
 
+/* Back button */
+.backButton {
+    background: transparent;
+    border: none;
+    color: #191919;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px;
+}
+
+/* Actions rows */
+.actionsRow {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.actionsRowActions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 12px;
+}
+
+/* Error messaging */
 .errorMsg {
     color: #b000b9;
     background: #faf6ff;
@@ -149,41 +311,27 @@
     text-align: center;
 }
 
-.loginForm input[type="password"] {
-    font-size: 1.23rem;
-    padding: 15px 8px 9px 8px;
-    border: none;
-    border-bottom: 2.5px solid #e8e8e8;
-    background: transparent;
-    color: #191919;
-    border-radius: 0;
-    box-shadow: none;
-    transition: border-color 0.19s;
-    outline: none;
-    margin-bottom: 18px;
-    letter-spacing: 0.04em;
+/* Accessibility: ensure hover focus styles are visible */
+@media (hover: none) {
+    .userTile:focus {
+        transform: none;
+    }
 }
 
-.loginForm input[type="password"]:focus {
-    border-color: #b000b9;
-    background: #fff;
-}
-
-.loginForm label {
-    display: none; /* Remove label from UI for minimalist look */
-}
-
-.loginForm input[type="password"]::placeholder {
-    color: #bbb;
-    font-weight: 400;
-}
-
-/* You can add this for optional error message */
-.loginForm .errorMsg {
-    margin-top: 5px;
-    color: #b000b9;
-    background: transparent;
-    font-weight: 500;
-    font-size: 0.98rem;
-    text-align: center;
+/* Small screens: tighten padding and slightly reduce tile size */
+@media (max-width: 420px) {
+    .loginScreen {
+        padding: 20px;
+        margin: 12px;
+    }
+    :root {
+        --tile-size: 112px;
+        --tile-height: 132px;
+    }
+    .panelsWrap {
+        min-height: 220px;
+    }
+    .panelsWrapWide {
+        width: 100%;
+    }
 }
