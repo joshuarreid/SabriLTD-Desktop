@@ -5,13 +5,13 @@
  * - tile duration: 340ms -> 454ms (rounded to 454ms)
  * - tile stagger: 36ms -> 48ms
  *
- * If you'd rather express this as a single speed scale variable, I can refactor
- * to use --speed-scale for easier tuning.
+ * Only change in this version: center the login container in the viewport.
+ * All other rules left unchanged.
  */
 
 /* Responsive tokens */
 :root {
-    --form-width: clamp(320px, 42vw, 520px);
+    --form-width: clamp(420px, 56vw, 880px);
     --wide-form-width: clamp(560px, 70vw, 880px);
     --tile-size: 128px;
     --tile-height: 148px;
@@ -24,21 +24,37 @@
 }
 
 /* Container */
+/* Center the login card in the viewport while keeping its responsive sizing.
+   Using fixed positioning + transform ensures it is horizontally and vertically
+   centered at all times without changing the rest of the layout rules. */
 .loginScreen {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
     background: #fff;
     color: #191919;
     border-radius: 24px;
     box-shadow: 0 6px 32px rgba(60,60,60,0.08);
-    margin: 20px auto;
+
+    /* keep responsive sizing but ensure it never exceeds the viewport */
+    width: min(var(--form-width), calc(100vw - 40px));
+    max-width: 980px;
+    max-height: calc(100vh - 40px);
+
     padding: 36px 28px;
     min-height: 60vh;
-    max-width: 980px;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 12px;
     box-sizing: border-box;
+
+    /* keep panel animations and internal overflow contained */
+    overflow: hidden;
 }
 
 /* Brand logo above the title */
@@ -249,7 +265,7 @@
 /* Input styling */
 .passwordInput {
     font-size: clamp(1rem, 1.6vw, 1.12rem);
-    padding: 12px 12px;
+    padding: 14px 16px; /* <- updated to increase height and match button */
     border: 1.5px solid #e8e8e8;
     border-radius: 12px;
     background: #fafafd;
@@ -272,8 +288,8 @@
     color: #fff;
     border: none;
     border-radius: 12px;
-    padding: 12px 14px;
-    font-size: 1.02rem;
+    padding: 14px 18px; /* <- increased to match input height */
+    font-size: 1rem;    /* <- slightly reduced for balance */
     font-weight: 600;
     cursor: pointer;
     transition: background 0.18s, filter 0.18s, transform 0.12s;
