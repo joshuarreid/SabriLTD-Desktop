@@ -252,6 +252,42 @@
     justify-content: center;
 }
 
+/* Constrain the form inside the password panel so inputs & buttons do not stretch full panel width.
+   - Adds horizontal padding inside the password panel.
+   - Sets a sensible max-width so the input/button remain proportionate on wide screens.
+*/
+.passwordPanel .loginFormContainer {
+    padding: 0 48px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.passwordPanel .loginForm {
+    width: 100%;
+    max-width: 540px; /* keeps form proportionate on wide panels */
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch; /* inputs/buttons will fill the constrained width */
+    box-sizing: border-box;
+}
+
+/* Ensure the back button sits underneath the constrained form (aligned with input/button)
+   - Constrains actions row to the same max-width as the login form and centers it.
+*/
+.passwordPanel .actionsRowActions {
+    width: 100%;
+    max-width: 540px;
+    margin: 12px auto 0;
+    display: flex;
+    justify-content: flex-start; /* keep the back button aligned to the left of the form */
+    box-sizing: border-box;
+    padding: 0;
+}
+
 /* Login form layout */
 .loginForm {
     width: 100%;
@@ -294,6 +330,16 @@
     cursor: pointer;
     transition: background 0.18s, filter 0.18s, transform 0.12s;
     box-shadow: 0 1px 12px #e0b3ff11;
+}
+
+/* Ensure submit button uses constrained form width when inside password panel */
+.passwordPanel .submitButton {
+    width: 100%;
+}
+
+/* Continue button in selection panel remains its intrinsic size (no change) */
+.continueButton {
+    /* no width set so it remains naturally sized in the select panel */
 }
 
 .submitButton:active, .continueButton:active {
@@ -372,5 +418,21 @@
     }
     .panelsWrapWide {
         width: 100%;
+    }
+
+    /* Reduce password panel horizontal padding on small screens */
+    .passwordPanel .loginFormContainer {
+        padding: 0 16px;
+    }
+    .passwordPanel .loginForm {
+        max-width: 100%;
+    }
+
+    /* Keep the back button aligned with the reduced-width form on small devices */
+    .passwordPanel .actionsRowActions {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 8px;
     }
 }
