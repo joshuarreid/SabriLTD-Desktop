@@ -1,9 +1,10 @@
 /**
  * LoginScreen
  * - Presentational component rendering two stacked panels (select / password).
- * - Adds a wide-panel class for the select step so the tile grid can stay on one row.
+ * - Enhances keyboard & mouse accessibility: double-clicking a tile or pressing
+ *   Enter when a tile is already selected will behave like clicking "Continue".
  *
- * @module LoginScreen
+ * UI-only: all business logic & side-effects live in useLoginScreen hook.
  */
 
 import React from 'react';
@@ -24,11 +25,11 @@ const logger = {
 /**
  * LoginScreen (presentational)
  *
- * Notes:
- * - Panels are always mounted to allow CSS transitions.
- * - We add a `panelsWrapWide` modifier class while on the select step so the
- *   usersGrid has enough horizontal space (prevents wrapping to two rows).
+ * - Panels are always mounted to allow CSS animations.
+ * - Keyboard & mouse interactions are purely presentational: they call handlers
+ *   supplied by the hook.
  *
+ * @component
  * @returns {JSX.Element}
  */
 const LoginScreen = () => {
@@ -81,6 +82,59 @@ const LoginScreen = () => {
         (u) => String(u.userId) === String(selectedUserId)
     );
 
+    /**
+     * Handle single click on a user tile: select the user and clear errors.
+     *
+     * @param {string} userId
+     */
+    const handleTileClick = (userId) => {
+        logger.info('tile clicked', { userId });
+        selectUser(String(userId));
+        resetError && resetError();
+    };
+
+    /**
+     * Handle double click on a user tile: select then immediately continue.
+     *
+     * @param {string} userId
+     */
+    const handleTileDoubleClick = (userId) => {
+        logger.info('tile double-clicked', { userId });
+        selectUser(String(userId));
+        resetError && resetError();
+        continueToPassword();
+    };
+
+    /**
+     * Keyboard handler for tiles:
+     * - Enter: if the tile is already selected -> continue; otherwise select it.
+     * - Space: select (space typically activates a control; we map it to select).
+     *
+     * @param {React.KeyboardEvent} e
+     * @param {string|number} userId
+     */
+    const handleTileKeyDown = (e, userId) => {
+        const idStr = String(userId);
+
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            logger.info('tile keydown Enter', { userId, selected: selectedUserId === idStr });
+            if (selectedUserId === idStr) {
+                // pressing Enter when tile already selected -> act like Continue
+                continueToPassword();
+            } else {
+                selectUser(idStr);
+                resetError && resetError();
+            }
+        } else if (e.key === ' ') {
+            // Space: select (but do not navigate)
+            e.preventDefault();
+            logger.info('tile keydown Space (select)', { userId });
+            selectUser(idStr);
+            resetError && resetError();
+        }
+    };
+
     return (
         <div className={styles.loginScreen}>
             <div className={styles.loginTitle}>
@@ -89,9 +143,7 @@ const LoginScreen = () => {
 
             {/* panelsWrap receives a wide modifier when on the "select" step so the grid can be wider */}
             <div
-                className={`${styles.panelsWrap} ${
-                    step === 'select' ? styles.panelsWrapWide : ''
-                }`}
+                className={`${styles.panelsWrap} ${step === 'select' ? styles.panelsWrapWide : ''}`}
                 aria-live="polite"
             >
                 {/* Select panel */}
@@ -110,17 +162,9 @@ const LoginScreen = () => {
                                     className={`${styles.userTile} ${
                                         selectedUserId === String(user.userId) ? styles.selected : ''
                                     }`}
-                                    onClick={() => {
-                                        selectUser(String(user.userId));
-                                        resetError && resetError();
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            selectUser(String(user.userId));
-                                            resetError && resetError();
-                                        }
-                                    }}
+                                    onClick={() => handleTileClick(String(user.userId))}
+                                    onDoubleClick={() => handleTileDoubleClick(String(user.userId))}
+                                    onKeyDown={(e) => handleTileKeyDown(e, String(user.userId))}
                                     tabIndex={0}
                                     aria-pressed={selectedUserId === String(user.userId)}
                                     aria-label={`Select user ${user.name}`}
@@ -169,11 +213,7 @@ const LoginScreen = () => {
                         </div>
 
                         <div className={styles.actionsRowActions}>
-                            <button
-                                type="button"
-                                onClick={backToSelect}
-                                className={styles.backButton}
-                            >
+                            <button type="button" onClick={backToSelect} className={styles.backButton}>
                                 ← Back
                             </button>
                         </div>
