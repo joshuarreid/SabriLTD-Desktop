@@ -7,7 +7,7 @@
  */
 
 import React, { useState } from 'react';
-import styles from './LoginScreen.module.css';
+import styles from '../styles/LoginScreen.module.css';
 
 /**
  * Standardized logger for debugging and traceability.

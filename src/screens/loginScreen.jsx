@@ -8,9 +8,9 @@
  */
 
 import React from 'react';
-import styles from '../features/login/LoginScreen.module.css';
-import { useLoginScreen } from '../features/login/useLoginScreen';
-import { LoginForm } from '../features/login/LoginForm';
+import styles from '../features/login/styles/LoginScreen.module.css';
+import { useLoginScreen } from '../features/login/hooks/useLoginScreen';
+import { LoginForm } from '../features/login/components/LoginForm';
 
 /**
  * Standardized logger for debugging and traceability.
