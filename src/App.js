@@ -6,6 +6,7 @@ import './App.css';
 import { queryClient } from "./config/queryClient";
 import LoginScreen from './screens/loginScreen.jsx';
 import { AuthProvider, useAuth } from './features/login/hooks/useAuth';
+import ProtectedLayout from './layouts/ProtectedLayout';
 
 /**
  * ProtectedRoute
@@ -19,7 +20,19 @@ const ProtectedRoute = () => {
     return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
+/**
+ * App
+ * - Main application entry.
+ * @component
+ * @returns {JSX.Element}
+ */
+const logger = {
+    info: (...args) => console.log('[App]', ...args),
+    error: (...args) => console.error('[App]', ...args),
+};
+
 function App() {
+    logger.info('App rendered');
     return (
         <AuthProvider>
             <Router>
@@ -28,14 +41,13 @@ function App() {
                         <Routes>
                             <Route path="/login" element={<LoginScreen />} />
                             <Route element={<ProtectedRoute />}>
-                                {/* Protected routes go here */}
                                 <Route
                                     path="/"
                                     element={
-                                        <div>
+                                        <ProtectedLayout>
                                             <PingButton />
                                             {/* more protected routes/components */}
-                                        </div>
+                                        </ProtectedLayout>
                                     }
                                 />
                                 {/* Add more protected routes as needed */}
