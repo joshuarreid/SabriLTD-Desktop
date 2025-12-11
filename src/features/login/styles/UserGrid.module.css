@@ -1,0 +1,39 @@
+.userGridPagerWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+    min-height: 148px;
+}
+.usersGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 128px);
+    gap: 16px;
+    margin: 0 auto;
+    width: auto;
+    justify-items: center;
+    align-items: center;
+    padding: 6px 0;
+    box-sizing: border-box;
+    position: relative;
+}
+.userGridArrowSpacer {
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+}
+.userTile {
+    /* Visually hidden padding slot */
+}
+@media (max-width: 640px) {
+    .usersGrid {
+        grid-template-columns: repeat(2, 128px);
+        gap: 12px;
+    }
+    .userGridArrowSpacer {
+        width: 26px;
+        height: 26px;
+    }
+}
