@@ -10,9 +10,9 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
-import { login } from '../../api/auth/auth';
-import { getPublicUsers } from '../../api/user/user';
-import { userKeys } from '../../api/user/userQueryKeys';
+import { login } from '../../../api/auth/auth';
+import { getPublicUsers } from '../../../api/user/user';
+import { userKeys } from '../../../api/user/userQueryKeys';
 
 /**
  * Standardized logger for debugging and traceability.
