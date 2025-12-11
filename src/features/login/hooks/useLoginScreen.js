@@ -1,16 +1,18 @@
 /**
  * useLoginScreen
  * - Custom hook for login screen logic and state.
- * - Fetches username list, manages selection, mutation, redirect, and errors.
+ * - Fetches username list, manages selection, mutation, redirect, errors, and UI step flow.
+ *
+ * @module useLoginScreen
  */
 
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from './useAuth';
-import { login } from '../../api/auth/auth';
-import { getPublicUsers } from '../../api/user/user';
-import { userKeys } from '../../api/user/userQueryKeys';
+import { login } from '../../../api/auth/auth';
+import { getPublicUsers } from '../../../api/user/user';
+import { userKeys } from '../../../api/user/userQueryKeys';
 
 /**
  * Standardized logger for debugging and traceability.
@@ -25,11 +27,21 @@ const logger = {
 /**
  * Custom hook for login modal/screen logic.
  *
+ * Responsibilities moved out of LoginScreen.jsx:
+ *  - UI step flow (select | password)
+ *  - user selection handler
+ *  - continue/back handlers
+ *
+ * Side effects:
+ *  - Fetch public users
+ *  - Perform login mutation and navigation
+ *
  * @returns {object} All state and handlers for the login screen
  */
 export const useLoginScreen = () => {
     const [error, setError] = useState(null);
     const [selectedUserId, setSelectedUserId] = useState('');
+    const [step, setStep] = useState('select');
     const navigate = useNavigate();
     const { isAuthenticated, setToken } = useAuth();
 
@@ -53,41 +65,71 @@ export const useLoginScreen = () => {
         },
         onSuccess: async (token) => {
             logger.info('login mutation onSuccess', { token: !!token });
-            await setToken(token);
-            navigate('/', { replace: true });
+            try {
+                await setToken(token);
+                navigate('/', { replace: true });
+            } catch (navError) {
+                logger.error('navigation after login failed', navError);
+                setError('Login succeeded but navigation failed.');
+            }
         },
-        onError: (error) => {
-            logger.error('login mutation onError', error);
-            setError(error?.message || 'Login failed');
+        onError: (err) => {
+            logger.error('login mutation onError', err);
+            setError(err?.message || 'Login failed');
         }
     });
 
     /**
-     * Handler for changing the selected user in the dropdown or tile.
-     * @param {string} userId
+     * Handler for selecting a user (from tile or select).
+     *
+     * @param {string} userId - ID of the selected user
+     * @returns {void}
      */
-    const handleUserSelect = useCallback((eOrUserId) => {
-        // Handles both event from <select> and direct userId from tile
-        let newUserId;
-        if (typeof eOrUserId === 'string') {
-            newUserId = eOrUserId;
-        } else if (eOrUserId && eOrUserId.target) {
-            newUserId = eOrUserId.target.value;
+    const selectUser = useCallback((userId) => {
+        logger.info('selectUser called', { userId });
+        setSelectedUserId(userId);
+        setError(null);
+    }, []);
+
+    /**
+     * Continue to the password step.
+     * - Validates that a user is selected first.
+     *
+     * @returns {void}
+     */
+    const continueToPassword = useCallback(() => {
+        if (!selectedUserId) {
+            logger.info('continueToPassword prevented — no user selected');
+            return;
         }
-        setSelectedUserId(newUserId);
+        logger.info('continueToPassword', { selectedUserId });
+        setError(null);
+        setStep('password');
+    }, [selectedUserId]);
+
+    /**
+     * Go back to user selection step.
+     *
+     * @returns {void}
+     */
+    const backToSelect = useCallback(() => {
+        logger.info('backToSelect called');
+        setStep('select');
         setError(null);
     }, []);
 
     /**
      * Handles form submission for login.
+     *
      * @param {{passcode: string}} formValues
+     * @returns {void}
      */
     const handleLoginSubmit = useCallback(
         ({ passcode }) => {
             setError(null);
             mutation.mutate({ passcode });
         },
-        [selectedUserId, mutation]
+        [mutation]
     );
 
     /** Used for LoginForm to reset error state on user input */
@@ -97,17 +139,27 @@ export const useLoginScreen = () => {
     const redirectElement = isAuthenticated ? <Navigate to="/" replace /> : null;
 
     return {
+        // auth / redirects
         isAuthenticated,
+        redirectElement,
+
+        // fetch status / data
         isLoadingUsers,
         usersError: hasUsersError ? usersFetchError?.message || 'Could not load user list.' : null,
-        error,
         publicUsers,
+
+        // selection & UI flow
         selectedUserId,
-        setSelectedUserId, // <-- FIX: Add this so tiles can call it!
-        handleUserSelect,
+        setSelectedUserId, // kept for compatibility if needed
+        step,
+        selectUser,
+        continueToPassword,
+        backToSelect,
+
+        // login flow
         handleLoginSubmit,
         mutationIsPending: mutation.isPending,
+        error,
         resetError,
-        redirectElement,
     };
 };

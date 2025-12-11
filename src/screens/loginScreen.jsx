@@ -1,89 +1,147 @@
 /**
  * LoginScreen
- * - Modern Apple-like login screen.
- * - User tiles for selection, clean UX.
+ * - Handles paginated user select and password step.
+ * - Uses UserGrid (pagination, selection), LoginForm (password), BrandLogo, and style colocation.
+ * - Step logic, API/data-handling, and state delegated to useLoginScreen.
+ *
+ * @module LoginScreen
  */
 
-import React from 'react';
-import styles from '../features/login/LoginScreen.module.css';
-import { useLoginScreen } from '../features/login/useLoginScreen';
-import { LoginForm } from '../features/login/LoginForm';
+import React, { useState } from 'react';
+import styles from '../features/login/styles/LoginScreen.module.css';
+import {useLoginScreen} from "../features/login/hooks/useLoginScreen";
+import { UserGrid } from '../features/login/components/UserGrid';
+import { LoginForm } from '../features/login/components/LoginForm';
 
-const LoginScreen = () => {
+import BrandLogo from '../assets/logos/sabriltd-logo.png';
+
+
+/**
+ * Standardized logger for debugging and traceability.
+ * @constant
+ */
+const logger = {
+    info: (...args) => console.log('[LoginScreen]', ...args),
+    error: (...args) => console.error('[LoginScreen]', ...args),
+};
+
+/**
+ * LoginScreen presentational component.
+ * - Handles step logic, loading/error feedback, delegates to modular UI components.
+ *
+ * @function LoginScreen
+ * @returns {JSX.Element}
+ */
+export const LoginScreen = () => {
+    logger.info('LoginScreen mounted');
+
     const {
         isLoadingUsers,
         usersError,
         error,
-        selectedUserId,
         publicUsers,
-        setSelectedUserId,
-        handleLoginSubmit,
+        selectedUserId,
         mutationIsPending,
+        redirectElement,
+        step,
+        selectUser,
+        continueToPassword,
+        backToSelect,
+        handleLoginSubmit,
         resetError,
-        redirectElement
     } = useLoginScreen();
+
+    const [userPage, setUserPage] = useState(0);
+
+    // Pagination logic for user grid
+    const USERS_PER_PAGE = 4;
+    const totalUsers = publicUsers?.length || 0;
+    const pageCount = Math.ceil(totalUsers / USERS_PER_PAGE);
+
+    // Get the user object for the selected userId, if available
+    const currentUser = (publicUsers || []).find(
+        (u) => String(u.userId) === String(selectedUserId)
+    );
 
     if (redirectElement) return redirectElement;
 
-    if (isLoadingUsers) {
-        return (
-            <div className={styles.loginScreen}>
-                <div className={styles.loginTitle}>Login</div>
-                <div>Loading users…</div>
-            </div>
-        );
-    }
-
-    if (usersError) {
-        return (
-            <div className={styles.loginScreen}>
-                <div className={styles.loginTitle}>Login</div>
-                <div className={styles.errorMsg}>{usersError}</div>
-            </div>
-        );
-    }
-
-    // Handler for tile click
-    const handleTileClick = (userId) => {
-        setSelectedUserId(userId);
-        resetError && resetError();
-    };
-
     return (
         <div className={styles.loginScreen}>
-            <div className={styles.loginTitle}>Login</div>
-            <div className={styles.usersGrid}>
-                {(publicUsers || []).map(user => (
-                    <div
-                        key={user.userId}
-                        className={`${styles.userTile} ${selectedUserId === String(user.userId) ? styles.selected : ''}`}
-                        onClick={() => handleTileClick(String(user.userId))}
-                        tabIndex={0}
-                        role="button"
-                        aria-pressed={selectedUserId === String(user.userId)}
-                        aria-label={`Select user ${user.name}`}
-                        style={{ outline: 'none' }}
-                    >
-                        <div className={styles.profilePicBlank}>
-                            {/* Placeholder: can insert avatar SVG/icon here in future */}
-                            <span>👤</span>
-                        </div>
-                        <div className={styles.userName}>{user.name}</div>
-                    </div>
-                ))}
-            </div>
-            {selectedUserId &&
-                <div className={styles.loginFormContainer}>
-                    <LoginForm
-                        onSubmit={handleLoginSubmit}
-                        isLoading={mutationIsPending}
-                        error={error}
-                        resetError={resetError}
-                        className={styles.loginForm}
-                    />
+            <div className={styles.loginCard}>
+                <img src={BrandLogo} alt="SabriLTD" className={styles.brandLogo} />
+                <div className={styles.loginTitle}>
+                    {step === 'select' ? 'Select a user' : 'Enter password'}
                 </div>
-            }
-            {error && <div className={styles.errorMsg}>{error}</div>}
+                <div
+                    className={`${styles.panelsWrap} ${step === 'select' ? styles.panelsWrapWide : ''}`}
+                    aria-live="polite"
+                >
+                    {/* User select panel */}
+                    <section
+                        className={`${styles.panel} ${styles.selectPanel} ${
+                            step === 'select' ? styles.panelActive : styles.panelInactive
+                        }`}
+                        aria-hidden={step !== 'select'}
+                    >
+                        <div className={styles.panelInner}>
+                            <UserGrid
+                                users={publicUsers || []}
+                                selectedUserId={selectedUserId}
+                                onSelectUser={selectUser}
+                                onContinue={continueToPassword}
+                                page={userPage}
+                                pageCount={pageCount}
+                                setPage={setUserPage}
+                            />
+                            <div className={styles.actionsRow}>
+                                <button
+                                    type="button"
+                                    onClick={continueToPassword}
+                                    disabled={!selectedUserId}
+                                    className={styles.continueButton}
+                                    aria-disabled={!selectedUserId}
+                                >
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                    {/* Password panel */}
+                    <section
+                        className={`${styles.panel} ${styles.passwordPanel} ${
+                            step === 'password' ? styles.panelActive : styles.panelInactive
+                        }`}
+                        aria-hidden={step !== 'password'}
+                    >
+                        <div className={styles.panelInner}>
+                            <div className={styles.subTitle}>
+                                {currentUser ? `Signing in as ${currentUser.name}` : 'Signing in'}
+                            </div>
+                            <div className={styles.loginFormContainer}>
+                                <LoginForm
+                                    onSubmit={handleLoginSubmit}
+                                    isLoading={mutationIsPending}
+                                    error={error}
+                                    resetError={resetError}
+                                />
+                            </div>
+                            <div className={styles.actionsRowActions}>
+                                <button type="button" onClick={backToSelect} className={styles.backButton}>
+                                    ← Back
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                {/* Loading and error states */}
+                {isLoadingUsers && (
+                    <div className={styles.panelInner}>
+                        <span style={{ fontSize: '1.2em', color: '#b000b9' }}>Loading users…</span>
+                    </div>
+                )}
+                {usersError && <div className={styles.errorMsg}>{usersError}</div>}
+                {error && <div className={styles.errorMsg}>{error}</div>}
+            </div>
         </div>
     );
 };

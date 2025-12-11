@@ -1,0 +1,426 @@
+:root {
+    --chevron-color: #9c9c9c;
+    --chevron-size: 32px;
+    --chevron-hover: #191919;
+    --form-width: clamp(560px, 56vw, 720px);
+    --wide-form-width: clamp(720px, 70vw, 980px);
+    --tile-size: 128px;
+    --tile-height: 148px;
+    --panel-duration: 560ms;
+    --panel-ease: cubic-bezier(.22,.95,.15,1);
+    --tile-duration: 454ms;
+    --tile-stagger: 48ms;
+    --password-panel-max-width: 460px;
+}
+
+.loginScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    color: #191919;
+    box-sizing: border-box;
+}
+
+.loginCard {
+    background: #fff;
+    color: #191919;
+    border-radius: 24px;
+    box-shadow: 0 6px 32px rgba(60,60,60,0.08);
+    padding: 36px 28px;
+    min-height: 60vh;
+    max-width: 980px;
+    width: min(var(--form-width), 96vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    box-sizing: border-box;
+}
+
+.brandLogo {
+    display: block;
+    width: clamp(56px, 9vw, 84px);
+    height: auto;
+    margin: 0 auto 6px auto;
+    user-select: none;
+    -webkit-user-drag: none;
+    object-fit: contain;
+}
+
+.loginTitle {
+    font-size: clamp(1.6rem, 2.2vw, 2rem);
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+    text-align: center;
+}
+
+/* Panels wrapper for animation and width */
+.panelsWrap {
+    width: 100%;
+    max-width: var(--form-width);
+    min-height: 260px;
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    overflow: visible;
+}
+.panelsWrapWide {
+    width: 100%;
+    max-width: var(--wide-form-width);
+}
+
+.panel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 18px 10px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: transparent;
+    will-change: transform, opacity;
+    transition: transform var(--panel-duration) var(--panel-ease), opacity var(--panel-duration) var(--panel-ease);
+    overflow: visible;
+}
+.panelActive {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+    z-index: 2;
+}
+.panelInactive {
+    transform: translateX(100%) scale(0.997);
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+.selectPanel.panelInactive {
+    transform: translateX(-100%) scale(0.997);
+}
+.passwordPanel.panelInactive {
+    transform: translateX(100%) scale(0.997);
+}
+
+/* Centered panel content */
+.panelInner {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 180px;
+}
+
+/* === User grid paging arrows (side of grid, vertically centered) === */
+.userGridPagerWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+    min-height: var(--tile-height);
+}
+
+/* Minimal chevron arrow, no circle */
+.userGridArrowButton {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0 8px;
+    margin: 0 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.16s, opacity 0.16s;
+    height: var(--chevron-size);
+    width: var(--chevron-size);
+}
+.userGridArrowButton:disabled {
+    opacity: 0.24;
+    cursor: not-allowed;
+}
+
+.userGridArrowLeft,
+.userGridArrowRight {
+    /* For placement if needed, otherwise handled via flex container */
+}
+
+.userGridArrowSpacer {
+    width: var(--chevron-size);
+    height: var(--chevron-size);
+    display: inline-block;
+}
+
+.userGridArrowButton svg {
+    display: block;
+    height: var(--chevron-size);
+    width: var(--chevron-size);
+}
+
+.chevron {
+    stroke: var(--chevron-color);
+    transition: stroke 0.16s;
+}
+.userGridArrowButton:not(:disabled):hover .chevron {
+    stroke: var(--chevron-hover);
+}
+
+/* Responsive for arrows */
+@media (max-width: 640px) {
+    .userGridArrowButton {
+        height: 26px;
+        width: 26px;
+        padding: 0 4px;
+    }
+    .userGridArrowSpacer {
+        width: 26px;
+        height: 26px;
+    }
+    .userGridArrowButton svg {
+        height: 26px;
+        width: 26px;
+    }
+}
+
+/* === USER GRID (always 4 per row, padded if fewer users) === */
+.usersGrid {
+    display: grid;
+    grid-template-columns: repeat(4, var(--tile-size));
+    gap: 16px;
+    margin: 0 auto;
+    width: auto;
+    justify-items: center;
+    align-items: center;
+    padding: 6px 0;
+    box-sizing: border-box;
+    position: relative;
+}
+
+@media (max-width: 640px) {
+    .loginCard {
+        width: 98vw;
+        min-width: 0;
+        padding: 12px;
+    }
+    .panelsWrap {
+        max-width: 98vw;
+    }
+    .usersGrid {
+        grid-template-columns: repeat(2, var(--tile-size));
+        gap: 12px;
+    }
+}
+
+/* User tile */
+.userTile {
+    width: var(--tile-size);
+    height: var(--tile-height);
+    background: #fafafd;
+    border: 1.5px solid #e8e8e8;
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    cursor: pointer;
+    transition:
+            border 160ms linear,
+            box-shadow 160ms linear,
+            transform var(--tile-duration) var(--panel-ease),
+            opacity calc(var(--tile-duration) - 40ms) var(--panel-ease);
+    position: relative;
+    user-select: none;
+    box-sizing: border-box;
+    outline: none;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.userTile:focus {
+    box-shadow: 0 0 0 3px #e0b3ff66;
+    transform: translateY(-4px);
+}
+.userTile.selected {
+    border-color: #b000b9;
+    box-shadow: 0 0 0 2px #e0b3ff44;
+}
+.panelInactive .userTile {
+    opacity: 0;
+    transform: translateY(10px) scale(0.997);
+}
+.profilePicBlank {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #e0b3ff37;
+    border: 2.5px solid #e0b3ff;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #777;
+    flex-shrink: 0;
+}
+.userName {
+    color: #222;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-size: 1rem;
+    text-align: center;
+    margin-top: auto;
+    padding: 0 6px;
+    word-break: break-word;
+}
+
+/* Password Panel: Constrain input + button width and align Back button correctly */
+.passwordPanel .loginFormContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin-top: 8px;
+}
+.passwordPanel .loginForm {
+    width: 100%;
+    max-width: var(--password-panel-max-width, 460px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+
+.passwordPanel .passwordInput,
+.passwordPanel .submitButton {
+    width: 100%;
+    max-width: var(--password-panel-max-width, 460px);
+    margin: 0 auto;
+}
+
+.passwordPanel .actionsRowActions {
+    width: 100%;
+    max-width: var(--password-panel-max-width, 460px);
+    margin: 12px auto 0;
+    display: flex;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+@media (max-width: 640px) {
+    .passwordPanel .loginForm,
+    .passwordPanel .actionsRowActions {
+        max-width: 100%;
+        padding: 0 4px;
+    }
+}
+
+.loginFormContainer {
+    margin-top: 8px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.loginForm {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 0;
+    align-items: stretch;
+}
+.passwordInput {
+    font-size: clamp(1rem, 1.6vw, 1.12rem);
+    padding: 12px 12px;
+    border: 1.5px solid #e8e8e8;
+    border-radius: 12px;
+    background: #fafafd;
+    color: #191919;
+    transition: border 0.17s, box-shadow 0.17s;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+.passwordInput:focus {
+    border-color: #b000b9;
+    box-shadow: 0 0 0 3px #e0b3ff4c;
+    background: #fff;
+}
+.submitButton, .continueButton {
+    background: #191919;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 1.02rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s, filter 0.18s, transform 0.12s;
+    box-shadow: 0 1px 12px #e0b3ff11;
+}
+.submitButton:active, .continueButton:active {
+    transform: translateY(1px);
+}
+.submitButton:disabled, .continueButton:disabled {
+    opacity: 0.62;
+    cursor: not-allowed;
+    background: #bdbdbd;
+}
+.submitButton:hover:not(:disabled), .continueButton:hover:not(:disabled) {
+    background: #b000b9;
+    color: #fff;
+}
+.backButton {
+    background: transparent;
+    border: none;
+    color: #191919;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px;
+}
+.actionsRow {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+.actionsRowActions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 12px;
+}
+.errorMsg {
+    color: #b000b9;
+    background: #faf6ff;
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 12px;
+    font-weight: 500;
+    font-size: 0.96rem;
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+@media (prefers-reduced-motion: reduce) {
+    .panel, .panelActive, .panelInactive,
+    .userTile,
+    .userGridArrowButton {
+        transition: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+}

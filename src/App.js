@@ -5,7 +5,7 @@ import PingButton from './components/PingButton';
 import './App.css';
 import { queryClient } from "./config/queryClient";
 import LoginScreen from './screens/loginScreen.jsx';
-import { AuthProvider, useAuth } from './features/login/useAuth';
+import { AuthProvider, useAuth } from './features/login/hooks/useAuth';
 
 /**
  * ProtectedRoute
