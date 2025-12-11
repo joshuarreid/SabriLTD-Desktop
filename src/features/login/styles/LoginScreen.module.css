@@ -1,103 +1,104 @@
 /* Modern minimalist login with directional horizontal slide transition
  *
- * Updates:
- * - Make the login card fixed, always centered in the viewport.
- * - Card size is responsive (proportionate to viewport) using clamp() tokens.
- * - Ensure the card never causes page scroll by keeping it inside the viewport and
- *   sizing internal elements responsively so there's no horizontal or vertical scroll.
- * - Tiles scale down on smaller viewports so they remain on a single row where possible.
- * - Keep smooth directional slide transition and staggered tile exit.
+ * Adjustment: slow animation speed to 75% playback (i.e. increase durations by ~33%).
+ * - panel duration: 420ms -> 560ms
+ * - tile duration: 340ms -> 454ms (rounded to 454ms)
+ * - tile stagger: 36ms -> 48ms
+ *
+ * If you'd rather express this as a single speed scale variable, I can refactor
+ * to use --speed-scale for easier tuning.
  */
 
 /* Responsive tokens */
 :root {
-    /* Card sizing (proportionate to viewport) */
-    --card-width: clamp(360px, 56vw, 920px);
-    --card-height: clamp(420px, 72vh, 760px);
-    --title-height: 64px;
+    --form-width: clamp(320px, 42vw, 520px);
+    --wide-form-width: clamp(560px, 70vw, 880px);
+    --tile-size: 128px;
+    --tile-height: 148px;
 
-    /* Tiles scale with viewport to avoid overflow */
-    --tile-size: clamp(84px, 12.5vw, 128px);
-    --tile-height: calc(var(--tile-size) * 1.15);
-
-    /* Transition timing (slowed to 75% playback) */
+    /* slowed to 75% playback (durations increased by ~1.333) */
     --panel-duration: 560ms;
     --panel-ease: cubic-bezier(.22,.95,.15,1);
     --tile-duration: 454ms;
     --tile-stagger: 48ms;
 }
 
-/* Make the card fixed and centered in the viewport so it never creates page scroll */
+/* Container */
 .loginScreen {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: var(--card-width);
-    height: var(--card-height);
-    max-width: calc(100vw - 24px);
-    max-height: calc(100vh - 24px);
     background: #fff;
     color: #191919;
     border-radius: 24px;
     box-shadow: 0 6px 32px rgba(60,60,60,0.08);
-    padding: 28px 22px;
+    margin: 20px auto;
+    padding: 36px 28px;
+    min-height: 60vh;
+    max-width: 980px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 12px;
     box-sizing: border-box;
-    overflow: hidden; /* prevent page scrollbars from this component */
 }
 
-/* Title - keep space predictable */
+/* Brand logo above the title */
+.brandLogo {
+    display: block;
+    width: clamp(56px, 9vw, 84px); /* responsive but small */
+    height: auto;
+    margin: 0 auto 6px auto;
+    user-select: none;
+    -webkit-user-drag: none;
+    object-fit: contain;
+}
+
+/* Title */
 .loginTitle {
     font-size: clamp(1.6rem, 2.2vw, 2rem);
     font-weight: 700;
-    height: var(--title-height);
-    line-height: var(--title-height);
-    margin: 0;
+    margin-bottom: 8px;
     letter-spacing: -0.02em;
     text-align: center;
-    width: 100%;
-    box-sizing: border-box;
-    padding-top: 4px;
 }
 
-/* Panels wrapper: fixed internal area so panels animate inside without causing overflow */
+/* Panels wrapper */
 .panelsWrap {
-    width: 100%;
-    /* Reserve the remaining height beneath the title */
-    height: calc(100% - var(--title-height) - 20px);
+    width: var(--form-width);
+    max-width: 94vw;
+    min-height: 260px;
     position: relative;
+    display: block;
     box-sizing: border-box;
-    overflow: hidden; /* keep all panel animations inside the card */
+    overflow: visible;
 }
 
-/* On selection step we can allow the panelsWrap to grow wide within the card */
 .panelsWrapWide {
-    /* 100% of card width is sufficient; keep within card to avoid page overflow */
-    width: 100%;
+    width: var(--wide-form-width);
 }
 
-/* Base panel style: absolutely stacked and animatable */
+/* Panels - base */
 .panel {
     position: absolute;
-    inset: 0; /* fill panelsWrap */
+    inset: 0;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    padding: 12px;
+    padding: 18px 10px;
     box-sizing: border-box;
     border-radius: 12px;
     background: transparent;
     will-change: transform, opacity;
     transition: transform var(--panel-duration) var(--panel-ease), opacity var(--panel-duration) var(--panel-ease);
-    overflow: hidden;
+    overflow: visible;
 }
 
-/* Active/inactive panel directional behaviour (slide left on exit, enter from right) */
+/*
+ Directional behaviour:
+ - When a panel is active it sits at translateX(0).
+ - The "entering" panel should come from the RIGHT (translateX(100%) -> 0).
+ - The "exiting" panel moves to the LEFT (0 -> translateX(-100%)).
+ */
 .panelActive {
     transform: translateX(0) scale(1);
     opacity: 1;
@@ -105,12 +106,14 @@
 }
 
 .panelInactive {
+    /* Default: hidden off-screen to the right to avoid flashes when both inactive */
     transform: translateX(100%) scale(0.997);
     opacity: 0;
     z-index: 1;
     pointer-events: none;
 }
 
+/* Specific directional rules */
 .selectPanel.panelInactive {
     transform: translateX(-100%) scale(0.997);
 }
@@ -119,10 +122,9 @@
     transform: translateX(100%) scale(0.997);
 }
 
-/* Inner wrapper to preserve select layout (grid then actions) */
+/* Panel inner content wrapper */
 .panelInner {
     width: 100%;
-    height: 100%;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -131,22 +133,17 @@
     box-sizing: border-box;
 }
 
-/* Users grid
-   - Use fixed tile column sizes derived from --tile-size so tiles don't stretch.
-   - Ensure grid centers inside the available width and scales to avoid wrapping.
-*/
+/* Users grid */
 .usersGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(var(--tile-size), var(--tile-size)));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fit, var(--tile-size));
+    gap: 16px;
+    margin: 8px 0 0 0;
     width: 100%;
     justify-items: center;
     justify-content: center;
-    align-content: start;
-    padding-top: 6px;
+    padding: 6px 0;
     box-sizing: border-box;
-    /* Keep grid from growing taller than available panel space */
-    max-height: calc(100% - 72px); /* leave room for button / small spacing */
 }
 
 /* Tiles with softer exit animations */
@@ -159,7 +156,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px 8px;
+    padding: 12px 8px;
     cursor: pointer;
     transition:
             border 160ms linear,
@@ -170,29 +167,31 @@
     user-select: none;
     box-sizing: border-box;
     outline: none;
+
+    /* visible state */
     opacity: 1;
     transform: translateY(0) scale(1);
-    flex-shrink: 0;
 }
 
-/* Focus / selected styles */
+/* Slight lift on focus */
 .userTile:focus {
     box-shadow: 0 0 0 3px #e0b3ff66;
     transform: translateY(-4px);
 }
 
+/* Selected style */
 .userTile.selected {
     border-color: #b000b9;
     box-shadow: 0 0 0 2px #e0b3ff44;
 }
 
-/* When exiting, tiles fade and drop slightly */
+/* When parent panel is inactive (exiting), animate tiles out gently */
 .panelInactive .userTile {
     opacity: 0;
     transform: translateY(10px) scale(0.997);
 }
 
-/* Stagger for cascading feel */
+/* Stagger for a cascading feel */
 .usersGrid > .userTile:nth-child(1)  { transition-delay: calc(var(--tile-stagger) * 0); }
 .usersGrid > .userTile:nth-child(2)  { transition-delay: calc(var(--tile-stagger) * 0.6); }
 .usersGrid > .userTile:nth-child(3)  { transition-delay: calc(var(--tile-stagger) * 1.1); }
@@ -204,8 +203,8 @@
 
 /* Profile placeholder */
 .profilePicBlank {
-    width: calc(var(--tile-size) * 0.44);
-    height: calc(var(--tile-size) * 0.44);
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: #e0b3ff37;
     border: 2.5px solid #e0b3ff;
@@ -213,64 +212,28 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(1rem, 2.6vw, 1.3rem);
+    font-size: 1.3rem;
     color: #777;
     flex-shrink: 0;
 }
 
-/* User name stays pinned to bottom but scales */
 .userName {
     color: #222;
     font-weight: 600;
     letter-spacing: -0.01em;
-    font-size: clamp(0.92rem, 1.4vw, 1rem);
+    font-size: 1rem;
     text-align: center;
     margin-top: auto;
     padding: 0 6px;
     word-break: break-word;
 }
 
-/* Actions row - keep visible and pinned under grid */
-.actionsRow {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-top: 6px;
-    box-sizing: border-box;
-    flex-shrink: 0;
-}
-
-/* Continue / submit buttons */
-.submitButton, .continueButton {
-    background: #191919;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 18px;
-    font-size: 1.02rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.18s, filter 0.18s, transform 0.12s;
-    box-shadow: 0 1px 12px #e0b3ff11;
-}
-
-.submitButton:disabled, .continueButton:disabled {
-    opacity: 0.62;
-    cursor: not-allowed;
-    background: #bdbdbd;
-}
-
-.submitButton:hover:not(:disabled), .continueButton:hover:not(:disabled) {
-    background: #b000b9;
-}
-
-/* Password form container */
+/* Login form container */
 .loginFormContainer {
     margin-top: 8px;
     width: 100%;
     display: flex;
     justify-content: center;
-    box-sizing: border-box;
 }
 
 /* Login form layout */
@@ -281,7 +244,6 @@
     gap: 12px;
     margin-top: 0;
     align-items: stretch;
-    box-sizing: border-box;
 }
 
 /* Input styling */
@@ -298,7 +260,41 @@
     box-sizing: border-box;
 }
 
-/* Back button */
+.passwordInput:focus {
+    border-color: #b000b9;
+    box-shadow: 0 0 0 3px #e0b3ff4c;
+    background: #fff;
+}
+
+/* Buttons */
+.submitButton, .continueButton {
+    background: #191919;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 1.02rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s, filter 0.18s, transform 0.12s;
+    box-shadow: 0 1px 12px #e0b3ff11;
+}
+
+.submitButton:active, .continueButton:active {
+    transform: translateY(1px);
+}
+
+.submitButton:disabled, .continueButton:disabled {
+    opacity: 0.62;
+    cursor: not-allowed;
+    background: #bdbdbd;
+}
+
+.submitButton:hover:not(:disabled), .continueButton:hover:not(:disabled) {
+    background: #b000b9;
+    color: #fff;
+}
+
 .backButton {
     background: transparent;
     border: none;
@@ -308,7 +304,21 @@
     padding: 8px;
 }
 
-/* Error messaging */
+/* Action rows */
+.actionsRow {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+.actionsRowActions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 12px;
+}
+
+/* Error */
 .errorMsg {
     color: #b000b9;
     background: #faf6ff;
@@ -321,7 +331,7 @@
     text-align: center;
 }
 
-/* Reduced motion respect */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
     .panel, .panelActive, .panelInactive,
     .userTile {
@@ -331,23 +341,20 @@
     }
 }
 
-/* Small screens - shrink tiles and card so everything fits without scrolling */
-@media (max-width: 520px) {
-    :root {
-        --card-width: calc(100vw - 24px);
-        --card-height: calc(100vh - 24px);
-        --title-height: 56px;
-        --tile-size: clamp(68px, 14vw, 96px);
-        --tile-height: calc(var(--tile-size) * 1.15);
-    }
-
+/* Small screens */
+@media (max-width: 420px) {
     .loginScreen {
-        padding: 18px 12px;
-        border-radius: 14px;
+        padding: 20px;
+        margin: 12px;
     }
-
-    .usersGrid {
-        gap: 10px;
-        max-height: calc(100% - 74px);
+    :root {
+        --tile-size: 112px;
+        --tile-height: 132px;
+    }
+    .panelsWrap {
+        min-height: 220px;
+    }
+    .panelsWrapWide {
+        width: 100%;
     }
 }

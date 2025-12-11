@@ -13,6 +13,17 @@ import { useLoginScreen } from '../features/login/hooks/useLoginScreen';
 import { LoginForm } from '../features/login/components/LoginForm';
 
 /**
+ * Small brand logo for the login card.
+ * - Replace the import path if your project uses a different resolver.
+ * - Common options:
+ *   - 'src/assets/logos/sabriltd-logo.png' (absolute alias)
+ *   - '../../assets/logos/sabriltd-logo.png' (relative)
+ *
+ * If your build uses an alias for `src/` you can keep that. If not, adjust relative path.
+ */
+import BrandLogo from '../assets/logos/sabriltd-logo.png';
+
+/**
  * Standardized logger for debugging and traceability.
  * Never logs sensitive data.
  * @constant
@@ -137,6 +148,9 @@ const LoginScreen = () => {
 
     return (
         <div className={styles.loginScreen}>
+            {/* Brand logo centered above the title */}
+            <img src={BrandLogo} alt="SabriLTD" className={styles.brandLogo} />
+
             <div className={styles.loginTitle}>
                 {step === 'select' ? 'Select a user' : 'Enter password'}
             </div>
