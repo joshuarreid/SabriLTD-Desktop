@@ -1,0 +1,34 @@
+.userGridArrowButton {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0 8px;
+    margin: 0 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.16s, opacity 0.16s;
+    height: 32px;
+    width: 32px;
+}
+.userGridArrowButton:disabled {
+    opacity: 0.24;
+    cursor: not-allowed;
+}
+.left { }
+.right { }
+.chevron {
+    stroke: #9c9c9c;
+    transition: stroke 0.16s;
+}
+.userGridArrowButton:not(:disabled):hover .chevron {
+    stroke: #191919;
+}
+@media (max-width: 640px) {
+    .userGridArrowButton {
+        height: 26px;
+        width: 26px;
+        padding: 0 4px;
+    }
+}

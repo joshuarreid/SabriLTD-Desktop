@@ -12,7 +12,7 @@
  * electron-log when packaging.
  */
 const path = require('path');
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, screen } = require('electron');
 
 const keytar = require('keytar');
 
@@ -46,9 +46,18 @@ const isDev = (() => {
  */
 function createMainWindow() {
     console.log('[electron-main] createMainWindow - creating BrowserWindow');
+
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+    console.log('[electron-main] primary display workAreaSize', { width, height });
+
+    console.log('[electron-main] createMainWindow - creating BrowserWindow');
     const mainWindow = new BrowserWindow({
-        width: 1100,
-        height: 760,
+        width,
+        height,
+        useContentSize: true,
+        fullscreen: false,
+        fullscreenable: false,
+        autoHideMenuBar: false,
         show: false,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
