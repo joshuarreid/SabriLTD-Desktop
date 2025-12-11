@@ -1,15 +1,15 @@
 :root {
-    --form-width: clamp(560px, 56vw, 720px);     /* increase width to fit 4 tiles */
-    --wide-form-width: clamp(720px, 70vw, 980px);/* for selection panel step */
+    --form-width: clamp(560px, 56vw, 720px);     /* Wide enough for 4 tiles */
+    --wide-form-width: clamp(720px, 70vw, 980px);/* Wider for selection step */
     --tile-size: 128px;
     --tile-height: 148px;
     --panel-duration: 560ms;
     --panel-ease: cubic-bezier(.22,.95,.15,1);
     --tile-duration: 454ms;
     --tile-stagger: 48ms;
+    --password-panel-max-width: 460px;
 }
 
-/* FULLSCREEN BACKDROP + FLEX CENTERED CARD */
 .loginScreen {
     position: fixed;
     top: 0;
@@ -24,7 +24,6 @@
     box-sizing: border-box;
 }
 
-/* CARD WRAPPER - PUT ALL CONTENT INSIDE THIS */
 .loginCard {
     background: #fff;
     color: #191919;
@@ -42,7 +41,6 @@
     box-sizing: border-box;
 }
 
-/* Brand logo above the title */
 .brandLogo {
     display: block;
     width: clamp(56px, 9vw, 84px);
@@ -61,7 +59,6 @@
     text-align: center;
 }
 
-/* Panels wrapper stays flex-centered */
 .panelsWrap {
     width: 100%;
     max-width: var(--form-width);
@@ -76,7 +73,6 @@
     max-width: var(--wide-form-width);
 }
 
-/* Panels - base (unchanged) */
 .panel {
     position: absolute;
     inset: 0;
@@ -124,7 +120,7 @@
 /* USERS GRID: ALWAYS 4 per row unless mobile */
 .usersGrid {
     display: grid;
-    grid-template-columns: repeat(4, var(--tile-size)); /* Show 4 tiles per row */
+    grid-template-columns: repeat(4, var(--tile-size)); /* 4 tiles per row */
     gap: 16px;
     margin: 8px 0 0 0;
     width: 100%;
@@ -134,7 +130,7 @@
     box-sizing: border-box;
 }
 
-/* Responsive: 2 per row on small screens */
+/* Responsive: 2 per row on small/medium screens */
 @media (max-width: 640px) {
     .loginCard {
         width: 98vw;
@@ -154,7 +150,7 @@
     }
 }
 
-/* The rest unchanged ... */
+/* User tiles */
 .userTile {
     width: var(--tile-size);
     height: var(--tile-height);
@@ -214,6 +210,54 @@
     padding: 0 6px;
     word-break: break-word;
 }
+
+/* Password Panel: Constrain input + button width and align Back button correctly */
+.passwordPanel .loginFormContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin-top: 8px;
+}
+
+.passwordPanel .loginForm {
+    width: 100%;
+    max-width: var(--password-panel-max-width, 460px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+
+/* Individual input and button width */
+.passwordPanel .passwordInput,
+.passwordPanel .submitButton {
+    width: 100%;
+    max-width: var(--password-panel-max-width, 460px);
+    margin: 0 auto;
+}
+
+/* Back button row constrained and left-aligned under the form */
+.passwordPanel .actionsRowActions {
+    width: 100%;
+    max-width: var(--password-panel-max-width, 460px);
+    margin: 12px auto 0;
+    display: flex;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+@media (max-width: 640px) {
+    .passwordPanel .loginForm,
+    .passwordPanel .actionsRowActions {
+        max-width: 100%;
+        padding: 0 4px;
+    }
+}
+
 .loginFormContainer {
     margin-top: 8px;
     width: 100%;
