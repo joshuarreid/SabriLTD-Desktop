@@ -1,6 +1,9 @@
 :root {
-    --form-width: clamp(560px, 56vw, 720px);     /* Wide enough for 4 tiles */
-    --wide-form-width: clamp(720px, 70vw, 980px);/* Wider for selection step */
+    --chevron-color: #9c9c9c;
+    --chevron-size: 32px;
+    --chevron-hover: #191919;
+    --form-width: clamp(560px, 56vw, 720px);
+    --wide-form-width: clamp(720px, 70vw, 980px);
     --tile-size: 128px;
     --tile-height: 148px;
     --panel-duration: 560ms;
@@ -59,6 +62,7 @@
     text-align: center;
 }
 
+/* Panels wrapper for animation and width */
 .panelsWrap {
     width: 100%;
     max-width: var(--form-width);
@@ -106,6 +110,7 @@
     transform: translateX(100%) scale(0.997);
 }
 
+/* Centered panel content */
 .panelInner {
     width: 100%;
     display: flex;
@@ -117,20 +122,93 @@
     min-height: 180px;
 }
 
-/* USERS GRID: ALWAYS 4 per row unless mobile */
-.usersGrid {
-    display: grid;
-    grid-template-columns: repeat(4, var(--tile-size)); /* 4 tiles per row */
-    gap: 16px;
-    margin: 8px 0 0 0;
-    width: 100%;
-    justify-items: center;
+/* === User grid paging arrows (side of grid, vertically centered) === */
+.userGridPagerWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     justify-content: center;
-    padding: 6px 0;
-    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+    min-height: var(--tile-height);
 }
 
-/* Responsive: 2 per row on small/medium screens */
+/* Minimal chevron arrow, no circle */
+.userGridArrowButton {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0 8px;
+    margin: 0 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.16s, opacity 0.16s;
+    height: var(--chevron-size);
+    width: var(--chevron-size);
+}
+.userGridArrowButton:disabled {
+    opacity: 0.24;
+    cursor: not-allowed;
+}
+
+.userGridArrowLeft,
+.userGridArrowRight {
+    /* For placement if needed, otherwise handled via flex container */
+}
+
+.userGridArrowSpacer {
+    width: var(--chevron-size);
+    height: var(--chevron-size);
+    display: inline-block;
+}
+
+.userGridArrowButton svg {
+    display: block;
+    height: var(--chevron-size);
+    width: var(--chevron-size);
+}
+
+.chevron {
+    stroke: var(--chevron-color);
+    transition: stroke 0.16s;
+}
+.userGridArrowButton:not(:disabled):hover .chevron {
+    stroke: var(--chevron-hover);
+}
+
+/* Responsive for arrows */
+@media (max-width: 640px) {
+    .userGridArrowButton {
+        height: 26px;
+        width: 26px;
+        padding: 0 4px;
+    }
+    .userGridArrowSpacer {
+        width: 26px;
+        height: 26px;
+    }
+    .userGridArrowButton svg {
+        height: 26px;
+        width: 26px;
+    }
+}
+
+/* === USER GRID (always 4 per row, padded if fewer users) === */
+.usersGrid {
+    display: grid;
+    grid-template-columns: repeat(4, var(--tile-size));
+    gap: 16px;
+    margin: 0 auto;
+    width: auto;
+    justify-items: center;
+    align-items: center;
+    padding: 6px 0;
+    box-sizing: border-box;
+    position: relative;
+}
+
 @media (max-width: 640px) {
     .loginCard {
         width: 98vw;
@@ -144,13 +222,9 @@
         grid-template-columns: repeat(2, var(--tile-size));
         gap: 12px;
     }
-    :root {
-        --tile-size: 112px;
-        --tile-height: 132px;
-    }
 }
 
-/* User tiles */
+/* User tile */
 .userTile {
     width: var(--tile-size);
     height: var(--tile-height);
@@ -219,7 +293,6 @@
     padding: 0;
     margin-top: 8px;
 }
-
 .passwordPanel .loginForm {
     width: 100%;
     max-width: var(--password-panel-max-width, 460px);
@@ -231,7 +304,6 @@
     box-sizing: border-box;
 }
 
-/* Individual input and button width */
 .passwordPanel .passwordInput,
 .passwordPanel .submitButton {
     width: 100%;
@@ -239,7 +311,6 @@
     margin: 0 auto;
 }
 
-/* Back button row constrained and left-aligned under the form */
 .passwordPanel .actionsRowActions {
     width: 100%;
     max-width: var(--password-panel-max-width, 460px);
@@ -346,7 +417,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
     .panel, .panelActive, .panelInactive,
-    .userTile {
+    .userTile,
+    .userGridArrowButton {
         transition: none !important;
         transform: none !important;
         opacity: 1 !important;
