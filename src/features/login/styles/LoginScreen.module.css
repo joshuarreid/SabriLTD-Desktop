@@ -1,66 +1,51 @@
-/* Modern minimalist login with directional horizontal slide transition
- *
- * Adjustment: slow animation speed to 75% playback (i.e. increase durations by ~33%).
- * - panel duration: 420ms -> 560ms
- * - tile duration: 340ms -> 454ms (rounded to 454ms)
- * - tile stagger: 36ms -> 48ms
- *
- * Only change in this version: center the login container in the viewport.
- * All other rules left unchanged.
- */
-
-/* Responsive tokens */
 :root {
-    --form-width: clamp(420px, 56vw, 880px);
+    --form-width: clamp(320px, 42vw, 520px);
     --wide-form-width: clamp(560px, 70vw, 880px);
     --tile-size: 128px;
     --tile-height: 148px;
-
-    /* slowed to 75% playback (durations increased by ~1.333) */
     --panel-duration: 560ms;
     --panel-ease: cubic-bezier(.22,.95,.15,1);
     --tile-duration: 454ms;
     --tile-stagger: 48ms;
 }
 
-/* Container */
-/* Center the login card in the viewport while keeping its responsive sizing.
-   Using fixed positioning + transform ensures it is horizontally and vertically
-   centered at all times without changing the rest of the layout rules. */
+/* FULLSCREEN BACKDROP + FLEX CENTERED CARD */
 .loginScreen {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;    /* vertical center */
+    justify-content: center;/* horizontal center */
+    background: #fff;
+    color: #191919;
+    box-sizing: border-box;
+}
 
+/* CARD WRAPPER - PUT ALL CONTENT INSIDE THIS */
+.loginCard {
     background: #fff;
     color: #191919;
     border-radius: 24px;
     box-shadow: 0 6px 32px rgba(60,60,60,0.08);
-
-    /* keep responsive sizing but ensure it never exceeds the viewport */
-    width: min(var(--form-width), calc(100vw - 40px));
-    max-width: 980px;
-    max-height: calc(100vh - 40px);
-
     padding: 36px 28px;
     min-height: 60vh;
-
+    max-width: 980px;
+    width: min(var(--form-width, 420px), 96vw);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 12px;
     box-sizing: border-box;
-
-    /* keep panel animations and internal overflow contained */
-    overflow: hidden;
 }
 
 /* Brand logo above the title */
 .brandLogo {
     display: block;
-    width: clamp(56px, 9vw, 84px); /* responsive but small */
+    width: clamp(56px, 9vw, 84px);
     height: auto;
     margin: 0 auto 6px auto;
     user-select: none;
@@ -68,7 +53,6 @@
     object-fit: contain;
 }
 
-/* Title */
 .loginTitle {
     font-size: clamp(1.6rem, 2.2vw, 2rem);
     font-weight: 700;
@@ -77,10 +61,10 @@
     text-align: center;
 }
 
-/* Panels wrapper */
+/* Panels wrapper stays flex-centered */
 .panelsWrap {
-    width: var(--form-width);
-    max-width: 94vw;
+    width: 100%;
+    max-width: var(--form-width);
     min-height: 260px;
     position: relative;
     display: block;
@@ -89,10 +73,10 @@
 }
 
 .panelsWrapWide {
-    width: var(--wide-form-width);
+    width: 100%;
+    max-width: var(--wide-form-width);
 }
 
-/* Panels - base */
 .panel {
     position: absolute;
     inset: 0;
@@ -108,51 +92,39 @@
     transition: transform var(--panel-duration) var(--panel-ease), opacity var(--panel-duration) var(--panel-ease);
     overflow: visible;
 }
-
-/*
- Directional behaviour:
- - When a panel is active it sits at translateX(0).
- - The "entering" panel should come from the RIGHT (translateX(100%) -> 0).
- - The "exiting" panel moves to the LEFT (0 -> translateX(-100%)).
- */
 .panelActive {
     transform: translateX(0) scale(1);
     opacity: 1;
     z-index: 2;
 }
-
 .panelInactive {
-    /* Default: hidden off-screen to the right to avoid flashes when both inactive */
     transform: translateX(100%) scale(0.997);
     opacity: 0;
     z-index: 1;
     pointer-events: none;
 }
-
-/* Specific directional rules */
 .selectPanel.panelInactive {
     transform: translateX(-100%) scale(0.997);
 }
-
 .passwordPanel.panelInactive {
     transform: translateX(100%) scale(0.997);
 }
 
-/* Panel inner content wrapper */
+/* Panel inner content is always flex-centered vertically/horizontally */
 .panelInner {
     width: 100%;
     display: flex;
     flex-direction: column;
     gap: 12px;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     box-sizing: border-box;
+    min-height: 180px;
 }
 
-/* Users grid */
 .usersGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, var(--tile-size));
+    grid-template-columns: repeat(4, var(--tile-size)); /* Always 4 tiles per row */
     gap: 16px;
     margin: 8px 0 0 0;
     width: 100%;
@@ -162,7 +134,6 @@
     box-sizing: border-box;
 }
 
-/* Tiles with softer exit animations */
 .userTile {
     width: var(--tile-size);
     height: var(--tile-height);
@@ -183,41 +154,23 @@
     user-select: none;
     box-sizing: border-box;
     outline: none;
-
-    /* visible state */
     opacity: 1;
     transform: translateY(0) scale(1);
 }
 
-/* Slight lift on focus */
 .userTile:focus {
     box-shadow: 0 0 0 3px #e0b3ff66;
     transform: translateY(-4px);
 }
-
-/* Selected style */
 .userTile.selected {
     border-color: #b000b9;
     box-shadow: 0 0 0 2px #e0b3ff44;
 }
-
-/* When parent panel is inactive (exiting), animate tiles out gently */
 .panelInactive .userTile {
     opacity: 0;
     transform: translateY(10px) scale(0.997);
 }
 
-/* Stagger for a cascading feel */
-.usersGrid > .userTile:nth-child(1)  { transition-delay: calc(var(--tile-stagger) * 0); }
-.usersGrid > .userTile:nth-child(2)  { transition-delay: calc(var(--tile-stagger) * 0.6); }
-.usersGrid > .userTile:nth-child(3)  { transition-delay: calc(var(--tile-stagger) * 1.1); }
-.usersGrid > .userTile:nth-child(4)  { transition-delay: calc(var(--tile-stagger) * 1.6); }
-.usersGrid > .userTile:nth-child(5)  { transition-delay: calc(var(--tile-stagger) * 2.1); }
-.usersGrid > .userTile:nth-child(6)  { transition-delay: calc(var(--tile-stagger) * 2.6); }
-.usersGrid > .userTile:nth-child(7)  { transition-delay: calc(var(--tile-stagger) * 3.1); }
-.usersGrid > .userTile:nth-child(8)  { transition-delay: calc(var(--tile-stagger) * 3.6); }
-
-/* Profile placeholder */
 .profilePicBlank {
     width: 56px;
     height: 56px;
@@ -232,7 +185,6 @@
     color: #777;
     flex-shrink: 0;
 }
-
 .userName {
     color: #222;
     font-weight: 600;
@@ -244,7 +196,6 @@
     word-break: break-word;
 }
 
-/* Login form container */
 .loginFormContainer {
     margin-top: 8px;
     width: 100%;
@@ -252,43 +203,6 @@
     justify-content: center;
 }
 
-/* Constrain the form inside the password panel so inputs & buttons do not stretch full panel width.
-   - Adds horizontal padding inside the password panel.
-   - Sets a sensible max-width so the input/button remain proportionate on wide screens.
-*/
-.passwordPanel .loginFormContainer {
-    padding: 0 48px;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    margin-top: 8px;
-}
-
-.passwordPanel .loginForm {
-    width: 100%;
-    max-width: 540px; /* keeps form proportionate on wide panels */
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch; /* inputs/buttons will fill the constrained width */
-    box-sizing: border-box;
-}
-
-/* Ensure the back button sits underneath the constrained form (aligned with input/button)
-   - Constrains actions row to the same max-width as the login form and centers it.
-*/
-.passwordPanel .actionsRowActions {
-    width: 100%;
-    max-width: 540px;
-    margin: 12px auto 0;
-    display: flex;
-    justify-content: flex-start; /* keep the back button aligned to the left of the form */
-    box-sizing: border-box;
-    padding: 0;
-}
-
-/* Login form layout */
 .loginForm {
     width: 100%;
     display: flex;
@@ -297,11 +211,9 @@
     margin-top: 0;
     align-items: stretch;
 }
-
-/* Input styling */
 .passwordInput {
     font-size: clamp(1rem, 1.6vw, 1.12rem);
-    padding: 14px 16px; /* <- updated to increase height and match button */
+    padding: 12px 12px;
     border: 1.5px solid #e8e8e8;
     border-radius: 12px;
     background: #fafafd;
@@ -311,52 +223,35 @@
     width: 100%;
     box-sizing: border-box;
 }
-
 .passwordInput:focus {
     border-color: #b000b9;
     box-shadow: 0 0 0 3px #e0b3ff4c;
     background: #fff;
 }
-
-/* Buttons */
 .submitButton, .continueButton {
     background: #191919;
     color: #fff;
     border: none;
     border-radius: 12px;
-    padding: 14px 18px; /* <- increased to match input height */
-    font-size: 1rem;    /* <- slightly reduced for balance */
+    padding: 12px 14px;
+    font-size: 1.02rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.18s, filter 0.18s, transform 0.12s;
     box-shadow: 0 1px 12px #e0b3ff11;
 }
-
-/* Ensure submit button uses constrained form width when inside password panel */
-.passwordPanel .submitButton {
-    width: 100%;
-}
-
-/* Continue button in selection panel remains its intrinsic size (no change) */
-.continueButton {
-    /* no width set so it remains naturally sized in the select panel */
-}
-
 .submitButton:active, .continueButton:active {
     transform: translateY(1px);
 }
-
 .submitButton:disabled, .continueButton:disabled {
     opacity: 0.62;
     cursor: not-allowed;
     background: #bdbdbd;
 }
-
 .submitButton:hover:not(:disabled), .continueButton:hover:not(:disabled) {
     background: #b000b9;
     color: #fff;
 }
-
 .backButton {
     background: transparent;
     border: none;
@@ -365,8 +260,6 @@
     cursor: pointer;
     padding: 8px;
 }
-
-/* Action rows */
 .actionsRow {
     width: 100%;
     display: flex;
@@ -379,8 +272,6 @@
     justify-content: flex-start;
     margin-top: 12px;
 }
-
-/* Error */
 .errorMsg {
     color: #b000b9;
     background: #faf6ff;
@@ -392,8 +283,6 @@
     letter-spacing: 0.01em;
     text-align: center;
 }
-
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
     .panel, .panelActive, .panelInactive,
     .userTile {
@@ -402,12 +291,14 @@
         opacity: 1 !important;
     }
 }
-
-/* Small screens */
 @media (max-width: 420px) {
     .loginScreen {
-        padding: 20px;
-        margin: 12px;
+        padding: 8px;
+    }
+    .loginCard {
+        padding: 14px;
+        min-height: 40vh;
+        width: 96vw;
     }
     :root {
         --tile-size: 112px;
@@ -416,23 +307,9 @@
     .panelsWrap {
         min-height: 220px;
     }
-    .panelsWrapWide {
-        width: 100%;
-    }
 
-    /* Reduce password panel horizontal padding on small screens */
-    .passwordPanel .loginFormContainer {
-        padding: 0 16px;
-    }
-    .passwordPanel .loginForm {
-        max-width: 100%;
-    }
-
-    /* Keep the back button aligned with the reduced-width form on small devices */
-    .passwordPanel .actionsRowActions {
-        max-width: 100%;
-        margin-left: auto;
-        margin-right: auto;
-        padding: 0 8px;
+    .usersGrid {
+        grid-template-columns: repeat(2, var(--tile-size)); /* 2 per row on mobile */
+        gap: 12px;
     }
 }
