@@ -51,7 +51,7 @@ const LoginScreen = () => {
 
     return (
         <div className={styles.loginScreen}>
-            <div className={styles.loginTitle}>Login</div>
+            <div className={styles.loginTitle}>Select a user</div>
             <div className={styles.usersGrid}>
                 {(publicUsers || []).map(user => (
                     <div
