@@ -1,20 +1,26 @@
-/* Modern minimalist login with smooth panel transitions
+/* Modern minimalist login with directional horizontal slide transition
  *
- * Fixes:
- * - Add .panelsWrapWide to expand the panels area on the select step so the
- *   usersGrid has enough horizontal space for one-row layouts (4 users).
- * - Ensure panels allow visible overflow (so action buttons are not clipped).
- * - PanelInner added to preserve original select layout spacing (grid top-aligned,
- *   continue button visible immediately below the grid).
+ * Adjustment: slow animation speed to 75% playback (i.e. increase durations by ~33%).
+ * - panel duration: 420ms -> 560ms
+ * - tile duration: 340ms -> 454ms (rounded to 454ms)
+ * - tile stagger: 36ms -> 48ms
+ *
+ * If you'd rather express this as a single speed scale variable, I can refactor
+ * to use --speed-scale for easier tuning.
  */
 
-/* Responsive form width: between 320px and 520px, using viewport as guidance */
+/* Responsive tokens */
 :root {
     --form-width: clamp(320px, 42vw, 520px);
-    --wide-form-width: clamp(560px, 70vw, 880px); /* used on select step to fit more tiles */
-    --tile-size: 128px; /* locked tile size (width) */
-    --tile-height: 148px; /* locked tile height */
-    --panel-transition: 360ms cubic-bezier(.2,.9,.2,1);
+    --wide-form-width: clamp(560px, 70vw, 880px);
+    --tile-size: 128px;
+    --tile-height: 148px;
+
+    /* slowed to 75% playback (durations increased by ~1.333) */
+    --panel-duration: 560ms;
+    --panel-ease: cubic-bezier(.22,.95,.15,1);
+    --tile-duration: 454ms;
+    --tile-stagger: 48ms;
 }
 
 /* Container */
@@ -22,7 +28,7 @@
     background: #fff;
     color: #191919;
     border-radius: 24px;
-    box-shadow: 0 6px 32px 0 rgba(60, 60, 60, 0.08);
+    box-shadow: 0 6px 32px rgba(60,60,60,0.08);
     margin: 20px auto;
     padding: 36px 28px;
     min-height: 60vh;
@@ -44,101 +50,84 @@
     text-align: center;
 }
 
-/* Panels wrapper: fixed area so layout doesn't jump during animation */
+/* Panels wrapper */
 .panelsWrap {
     width: var(--form-width);
     max-width: 94vw;
-    min-height: 260px; /* ensure consistent height while animating */
+    min-height: 260px;
     position: relative;
     display: block;
     box-sizing: border-box;
-    overflow: visible; /* allow buttons and shadows to be visible */
+    overflow: visible;
 }
 
-/* Wide variant used on select step so grid can fit more columns on one row */
 .panelsWrapWide {
     width: var(--wide-form-width);
 }
 
-/* Base panel style: stacked and animatable
-   NOTE: panels now stretch horizontally and stack content from the top.
-*/
+/* Panels - base */
 .panel {
     position: absolute;
-    inset: 0; /* fill panelsWrap */
+    inset: 0;
     display: flex;
     flex-direction: column;
-    align-items: stretch;       /* allow children (grid / form) to take full width */
-    justify-content: flex-start; /* stack content from top like the original select layout */
-    padding: 18px 10px;         /* comfortable top padding so grid isn't flush against title */
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 18px 10px;
     box-sizing: border-box;
     border-radius: 12px;
-    background: transparent; /* keep underlying card background visible */
-    pointer-events: auto;
+    background: transparent;
     will-change: transform, opacity;
-    transition: transform var(--panel-transition), opacity var(--panel-transition);
+    transition: transform var(--panel-duration) var(--panel-ease), opacity var(--panel-duration) var(--panel-ease);
     overflow: visible;
 }
 
-/* Inner constraint keeps content centered within the panel while allowing full-width children */
-.panelInner {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center; /* center narrow children like actions row */
-    justify-content: flex-start;
-    box-sizing: border-box;
-}
-
-/* When active, sit in place and be visible */
+/*
+ Directional behaviour:
+ - When a panel is active it sits at translateX(0).
+ - The "entering" panel should come from the RIGHT (translateX(100%) -> 0).
+ - The "exiting" panel moves to the LEFT (0 -> translateX(-100%)).
+ */
 .panelActive {
     transform: translateX(0) scale(1);
     opacity: 1;
     z-index: 2;
 }
 
-/* When inactive, slide slightly and fade */
 .panelInactive {
-    transform: translateX(10%) scale(0.98);
+    /* Default: hidden off-screen to the right to avoid flashes when both inactive */
+    transform: translateX(100%) scale(0.997);
     opacity: 0;
     z-index: 1;
-    pointer-events: none; /* prevent interactions while hidden */
+    pointer-events: none;
 }
 
-/* Slight variation for select panel entering from left for nicer motion */
+/* Specific directional rules */
 .selectPanel.panelInactive {
-    transform: translateX(-10%) scale(0.98);
+    transform: translateX(-100%) scale(0.997);
 }
 
-/* Small screens: tighten the slide distances */
-@media (max-width: 420px) {
-    .panelInactive {
-        transform: translateY(6%) scale(0.995);
-    }
-    .selectPanel.panelInactive {
-        transform: translateY(6%) scale(0.995);
-    }
+.passwordPanel.panelInactive {
+    transform: translateX(100%) scale(0.997);
 }
 
-/* Respect user motion preferences */
-@media (prefers-reduced-motion: reduce) {
-    .panel, .panelActive, .panelInactive {
-        transition: none;
-        transform: none;
-        opacity: 1;
-    }
+/* Panel inner content wrapper */
+.panelInner {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-start;
+    box-sizing: border-box;
 }
 
-/* Users grid (locked tile size) */
-/* Ensure the grid centers within the available panelsWrap width.
-   Using auto-fit with a fixed tile size allows the grid to create as many columns as fit.
-*/
+/* Users grid */
 .usersGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, var(--tile-size));
     gap: 16px;
-    margin: 8px 0 0 0; /* small top margin to separate from the title above panelsWrap */
+    margin: 8px 0 0 0;
     width: 100%;
     justify-items: center;
     justify-content: center;
@@ -146,7 +135,7 @@
     box-sizing: border-box;
 }
 
-/* Each tile has a locked visual size */
+/* Tiles with softer exit animations */
 .userTile {
     width: var(--tile-size);
     height: var(--tile-height);
@@ -158,28 +147,50 @@
     align-items: center;
     padding: 12px 8px;
     cursor: pointer;
-    transition: border 0.18s, box-shadow 0.18s, transform 0.12s;
+    transition:
+            border 160ms linear,
+            box-shadow 160ms linear,
+            transform var(--tile-duration) var(--panel-ease),
+            opacity calc(var(--tile-duration) - 40ms) var(--panel-ease);
     position: relative;
     user-select: none;
     box-sizing: border-box;
     outline: none;
+
+    /* visible state */
+    opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
+/* Slight lift on focus */
 .userTile:focus {
     box-shadow: 0 0 0 3px #e0b3ff66;
-    transform: translateY(-2px);
+    transform: translateY(-4px);
 }
 
+/* Selected style */
 .userTile.selected {
     border-color: #b000b9;
     box-shadow: 0 0 0 2px #e0b3ff44;
 }
 
-.userTile:active {
-    filter: brightness(0.98);
+/* When parent panel is inactive (exiting), animate tiles out gently */
+.panelInactive .userTile {
+    opacity: 0;
+    transform: translateY(10px) scale(0.997);
 }
 
-/* Profile placeholder (locked to match tile proportions) */
+/* Stagger for a cascading feel */
+.usersGrid > .userTile:nth-child(1)  { transition-delay: calc(var(--tile-stagger) * 0); }
+.usersGrid > .userTile:nth-child(2)  { transition-delay: calc(var(--tile-stagger) * 0.6); }
+.usersGrid > .userTile:nth-child(3)  { transition-delay: calc(var(--tile-stagger) * 1.1); }
+.usersGrid > .userTile:nth-child(4)  { transition-delay: calc(var(--tile-stagger) * 1.6); }
+.usersGrid > .userTile:nth-child(5)  { transition-delay: calc(var(--tile-stagger) * 2.1); }
+.usersGrid > .userTile:nth-child(6)  { transition-delay: calc(var(--tile-stagger) * 2.6); }
+.usersGrid > .userTile:nth-child(7)  { transition-delay: calc(var(--tile-stagger) * 3.1); }
+.usersGrid > .userTile:nth-child(8)  { transition-delay: calc(var(--tile-stagger) * 3.6); }
+
+/* Profile placeholder */
 .profilePicBlank {
     width: 56px;
     height: 56px;
@@ -206,7 +217,7 @@
     word-break: break-word;
 }
 
-/* Form container uses responsive width variable (inside panelInner we keep full width) */
+/* Login form container */
 .loginFormContainer {
     margin-top: 8px;
     width: 100%;
@@ -224,7 +235,7 @@
     align-items: stretch;
 }
 
-/* Input styling tuned to be proportionate */
+/* Input styling */
 .passwordInput {
     font-size: clamp(1rem, 1.6vw, 1.12rem);
     padding: 12px 12px;
@@ -244,7 +255,7 @@
     background: #fff;
 }
 
-/* Submit & continue buttons */
+/* Buttons */
 .submitButton, .continueButton {
     background: #191919;
     color: #fff;
@@ -273,7 +284,6 @@
     color: #fff;
 }
 
-/* Back button */
 .backButton {
     background: transparent;
     border: none;
@@ -283,14 +293,13 @@
     padding: 8px;
 }
 
-/* Actions rows */
+/* Action rows */
 .actionsRow {
     width: 100%;
     display: flex;
     justify-content: center;
     margin-top: 12px;
 }
-
 .actionsRowActions {
     width: 100%;
     display: flex;
@@ -298,7 +307,7 @@
     margin-top: 12px;
 }
 
-/* Error messaging */
+/* Error */
 .errorMsg {
     color: #b000b9;
     background: #faf6ff;
@@ -311,14 +320,17 @@
     text-align: center;
 }
 
-/* Accessibility: ensure hover focus styles are visible */
-@media (hover: none) {
-    .userTile:focus {
-        transform: none;
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .panel, .panelActive, .panelInactive,
+    .userTile {
+        transition: none !important;
+        transform: none !important;
+        opacity: 1 !important;
     }
 }
 
-/* Small screens: tighten padding and slightly reduce tile size */
+/* Small screens */
 @media (max-width: 420px) {
     .loginScreen {
         padding: 20px;
