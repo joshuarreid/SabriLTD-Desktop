@@ -1,6 +1,6 @@
 :root {
-    --form-width: clamp(320px, 42vw, 520px);
-    --wide-form-width: clamp(560px, 70vw, 880px);
+    --form-width: clamp(560px, 56vw, 720px);     /* increase width to fit 4 tiles */
+    --wide-form-width: clamp(720px, 70vw, 980px);/* for selection panel step */
     --tile-size: 128px;
     --tile-height: 148px;
     --panel-duration: 560ms;
@@ -17,8 +17,8 @@
     width: 100vw;
     height: 100vh;
     display: flex;
-    align-items: center;    /* vertical center */
-    justify-content: center;/* horizontal center */
+    align-items: center;
+    justify-content: center;
     background: #fff;
     color: #191919;
     box-sizing: border-box;
@@ -33,7 +33,7 @@
     padding: 36px 28px;
     min-height: 60vh;
     max-width: 980px;
-    width: min(var(--form-width, 420px), 96vw);
+    width: min(var(--form-width), 96vw);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -71,12 +71,12 @@
     box-sizing: border-box;
     overflow: visible;
 }
-
 .panelsWrapWide {
     width: 100%;
     max-width: var(--wide-form-width);
 }
 
+/* Panels - base (unchanged) */
 .panel {
     position: absolute;
     inset: 0;
@@ -110,7 +110,6 @@
     transform: translateX(100%) scale(0.997);
 }
 
-/* Panel inner content is always flex-centered vertically/horizontally */
 .panelInner {
     width: 100%;
     display: flex;
@@ -122,9 +121,10 @@
     min-height: 180px;
 }
 
+/* USERS GRID: ALWAYS 4 per row unless mobile */
 .usersGrid {
     display: grid;
-    grid-template-columns: repeat(4, var(--tile-size)); /* Always 4 tiles per row */
+    grid-template-columns: repeat(4, var(--tile-size)); /* Show 4 tiles per row */
     gap: 16px;
     margin: 8px 0 0 0;
     width: 100%;
@@ -134,6 +134,27 @@
     box-sizing: border-box;
 }
 
+/* Responsive: 2 per row on small screens */
+@media (max-width: 640px) {
+    .loginCard {
+        width: 98vw;
+        min-width: 0;
+        padding: 12px;
+    }
+    .panelsWrap {
+        max-width: 98vw;
+    }
+    .usersGrid {
+        grid-template-columns: repeat(2, var(--tile-size));
+        gap: 12px;
+    }
+    :root {
+        --tile-size: 112px;
+        --tile-height: 132px;
+    }
+}
+
+/* The rest unchanged ... */
 .userTile {
     width: var(--tile-size);
     height: var(--tile-height);
@@ -157,7 +178,6 @@
     opacity: 1;
     transform: translateY(0) scale(1);
 }
-
 .userTile:focus {
     box-shadow: 0 0 0 3px #e0b3ff66;
     transform: translateY(-4px);
@@ -170,7 +190,6 @@
     opacity: 0;
     transform: translateY(10px) scale(0.997);
 }
-
 .profilePicBlank {
     width: 56px;
     height: 56px;
@@ -195,14 +214,12 @@
     padding: 0 6px;
     word-break: break-word;
 }
-
 .loginFormContainer {
     margin-top: 8px;
     width: 100%;
     display: flex;
     justify-content: center;
 }
-
 .loginForm {
     width: 100%;
     display: flex;
@@ -289,27 +306,5 @@
         transition: none !important;
         transform: none !important;
         opacity: 1 !important;
-    }
-}
-@media (max-width: 420px) {
-    .loginScreen {
-        padding: 8px;
-    }
-    .loginCard {
-        padding: 14px;
-        min-height: 40vh;
-        width: 96vw;
-    }
-    :root {
-        --tile-size: 112px;
-        --tile-height: 132px;
-    }
-    .panelsWrap {
-        min-height: 220px;
-    }
-
-    .usersGrid {
-        grid-template-columns: repeat(2, var(--tile-size)); /* 2 per row on mobile */
-        gap: 12px;
     }
 }
