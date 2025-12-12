@@ -1,11 +1,3 @@
-/**
- * useLoginScreen
- * - Custom hook for login screen logic and state.
- * - Fetches username list, manages selection, mutation, redirect, errors, and UI step flow.
- *
- * @module useLoginScreen
- */
-
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, Navigate } from 'react-router-dom';
@@ -25,16 +17,9 @@ const logger = {
 };
 
 /**
- * Custom hook for login modal/screen logic.
- *
- * Responsibilities moved out of LoginScreen.jsx:
- *  - UI step flow (select | password)
- *  - user selection handler
- *  - continue/back handlers
- *
- * Side effects:
- *  - Fetch public users
- *  - Perform login mutation and navigation
+ * useLoginScreen
+ * - Custom hook for login screen logic and state.
+ * - Fetches username list (cached up to 24h), manages selection, mutation, redirect, errors, and UI step flow.
  *
  * @returns {object} All state and handlers for the login screen
  */
@@ -45,16 +30,17 @@ export const useLoginScreen = () => {
     const navigate = useNavigate();
     const { isAuthenticated, setToken } = useAuth();
 
-    // Public users query
+    // Public users query - cache 24h (staleTime), cacheTime optional (default 5min)
     const {
         data: publicUsers,
         isPending: isLoadingUsers,
         isError: hasUsersError,
         error: usersFetchError,
     } = useQuery({
-        queryKey: userKeys.public(),
+        queryKey: userKeys.public(), // Use public() for now (no filters)
         queryFn: getPublicUsers,
-        staleTime: 1000 * 60 * 5,
+        staleTime: 24 * 60 * 60 * 1000, // 24 hours in ms
+        cacheTime: 25 * 60 * 60 * 1000, // 25 hours, so data isn't immediately evicted after staling (optional)
     });
 
     // Login mutation
@@ -79,24 +65,13 @@ export const useLoginScreen = () => {
         }
     });
 
-    /**
-     * Handler for selecting a user (from tile or select).
-     *
-     * @param {string} userId - ID of the selected user
-     * @returns {void}
-     */
+    // ...rest of hook remains the same...
     const selectUser = useCallback((userId) => {
         logger.info('selectUser called', { userId });
         setSelectedUserId(userId);
         setError(null);
     }, []);
 
-    /**
-     * Continue to the password step.
-     * - Validates that a user is selected first.
-     *
-     * @returns {void}
-     */
     const continueToPassword = useCallback(() => {
         if (!selectedUserId) {
             logger.info('continueToPassword prevented — no user selected');
@@ -107,23 +82,12 @@ export const useLoginScreen = () => {
         setStep('password');
     }, [selectedUserId]);
 
-    /**
-     * Go back to user selection step.
-     *
-     * @returns {void}
-     */
     const backToSelect = useCallback(() => {
         logger.info('backToSelect called');
         setStep('select');
         setError(null);
     }, []);
 
-    /**
-     * Handles form submission for login.
-     *
-     * @param {{passcode: string}} formValues
-     * @returns {void}
-     */
     const handleLoginSubmit = useCallback(
         ({ passcode }) => {
             setError(null);
@@ -132,31 +96,21 @@ export const useLoginScreen = () => {
         [mutation]
     );
 
-    /** Used for LoginForm to reset error state on user input */
     const resetError = useCallback(() => setError(null), []);
-
-    // Early redirect if already authenticated
     const redirectElement = isAuthenticated ? <Navigate to="/" replace /> : null;
 
     return {
-        // auth / redirects
         isAuthenticated,
         redirectElement,
-
-        // fetch status / data
         isLoadingUsers,
         usersError: hasUsersError ? usersFetchError?.message || 'Could not load user list.' : null,
         publicUsers,
-
-        // selection & UI flow
         selectedUserId,
-        setSelectedUserId, // kept for compatibility if needed
+        setSelectedUserId,
         step,
         selectUser,
         continueToPassword,
         backToSelect,
-
-        // login flow
         handleLoginSubmit,
         mutationIsPending: mutation.isPending,
         error,
