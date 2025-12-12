@@ -1,5 +1,6 @@
 import React from 'react';
-import {FiSettings } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
+import { FiSettings } from 'react-icons/fi';
 import { IoIosSearch } from "react-icons/io";
 import { IoFolderOpenOutline } from "react-icons/io5";
 import styles from '../styles/navigationbar.module.css';
@@ -42,24 +43,40 @@ const NavIconButton = ({ icon, label, onClick }) => (
 /**
  * NavigationBarIcons
  * - Renders action icons: search, jobs, gear/settings.
- * - Uses react-icons Feather icons for consistency and modern look.
+ * - Uses react-icons icons for consistency and modern look.
+ * - Settings icon navigates to /settings on click.
  */
-const NavigationBarIcons = () => (
-    <div className={styles.iconGroup}>
-        <NavIconButton
-            icon={<IoIosSearch size={24} className={styles.iconSvg} />}
-            label="Search"
-        />
-        <NavIconButton
-            icon={<IoFolderOpenOutline size={24} className={styles.iconSvg} />}
-            label="Jobs"
-        />
-        <NavIconButton
-            icon={<FiSettings size={24} className={styles.iconSvg} />}
-            label="Settings"
-        />
-    </div>
-);
+const NavigationBarIcons = () => {
+    const navigate = useNavigate();
+
+    /**
+     * Handles navigation to settings page.
+     * @function
+     * @returns {void}
+     */
+    const handleSettingsClick = React.useCallback(() => {
+        logger.info("Settings icon clicked, navigating to /settings");
+        navigate('/settings');
+    }, [navigate]);
+
+    return (
+        <div className={styles.iconGroup}>
+            <NavIconButton
+                icon={<IoIosSearch size={24} className={styles.iconSvg} />}
+                label="Search"
+            />
+            <NavIconButton
+                icon={<IoFolderOpenOutline size={24} className={styles.iconSvg} />}
+                label="Jobs"
+            />
+            <NavIconButton
+                icon={<FiSettings size={24} className={styles.iconSvg} />}
+                label="Settings"
+                onClick={handleSettingsClick}
+            />
+        </div>
+    );
+};
 
 const NavigationBar = () => {
     logger.info('NavigationBar rendered');

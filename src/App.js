@@ -8,6 +8,7 @@ import LoginScreen from './screens/loginScreen.jsx';
 import { AuthProvider, useAuth } from './features/login/hooks/useAuth';
 import ProtectedLayout from './layouts/ProtectedLayout';
 import UserProfileScreen from './screens/UserProfileScreen.jsx';
+import SettingsScreen from './screens/SettingsScreen.jsx'; // <-- Add this import
 
 /**
  * ProtectedRoute
@@ -57,6 +58,15 @@ function App() {
                                     element={
                                         <ProtectedLayout>
                                             <UserProfileScreen />
+                                        </ProtectedLayout>
+                                    }
+                                />
+                                {/* Settings route wrapped in ProtectedLayout */}
+                                <Route
+                                    path="/settings"
+                                    element={
+                                        <ProtectedLayout>
+                                            <SettingsScreen />
                                         </ProtectedLayout>
                                     }
                                 />
