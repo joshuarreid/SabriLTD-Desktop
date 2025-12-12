@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import styles from "../features/profile/styles/userprofilescreen.module.css";
-import modalStyles from "./usereditprofilemodal.module.css";
-import SaveStatus from "../components/save/SaveStatus";
+import styles from "../../features/profile/styles/userprofilescreen.module.css";
+import modalStyles from "./edituserprofilemodal.module.css";
+import SaveStatus from "../save/SaveStatus";
 
 /**
- * UserEditProfileModal
+ * EditUserProfileModal
  * Modal for editing a user's basic profile (name & email).
  *
  * @param {object} props
@@ -18,11 +18,11 @@ import SaveStatus from "../components/save/SaveStatus";
  * @returns {JSX.Element|null}
  */
 const logger = {
-    info: (...args) => console.log("[UserEditProfileModal]", ...args),
-    error: (...args) => console.error("[UserEditProfileModal]", ...args),
+    info: (...args) => console.log("[EditUserProfileModal]", ...args),
+    error: (...args) => console.error("[EditUserProfileModal]", ...args),
 };
 
-const UserEditProfileModal = ({
+const EditUserProfileModal = ({
                                   user,
                                   open,
                                   isSaving,
@@ -168,4 +168,4 @@ const UserEditProfileModal = ({
     );
 };
 
-export default UserEditProfileModal;
+export default EditUserProfileModal;
