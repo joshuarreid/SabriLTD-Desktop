@@ -1,8 +1,8 @@
 /**
  * TanStack Query keys for User-related queries.
  *
- * Provides a consistent, stable structure for cache keys related to public user endpoints.
- * Use these keys for managing query caches such as public user listing.
+ * Provides a consistent, stable structure for cache keys related to public user endpoints and current user.
+ * Use these keys for managing query caches such as public user listing and current user (/me).
  *
  * @see https://tanstack.com/query/v4/docs/react/guides/query-keys
  */
@@ -21,7 +21,7 @@ const USER = ['user'];
 
 /**
  * userKeys
- * - Standardized key for public user list query.
+ * - Standardized key for user queries.
  *
  * @namespace
  */
@@ -32,4 +32,10 @@ export const userKeys = {
      * @returns {Array}
      */
     public: () => [...USER, 'public-list'],
+    /**
+     * Query key for fetching the current authenticated user (via /me).
+     * Used for hooks and UI to cache 'me' status safely.
+     * @returns {Array}
+     */
+    me: () => [...USER, 'me'],
 };

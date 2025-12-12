@@ -1,5 +1,5 @@
 /**
- * Auth context and hook for managing login state and token, using Keytar.
+ * Auth context and hook for managing login state and token, using Keytar via Electron Preload Bridge.
  * This is a context-layer abstraction for auth session.
  */
 
@@ -8,42 +8,45 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const AuthContext = createContext();
 
 /**
- * Reads the stored auth token via secure IPC/keytar.
+ * Reads the stored auth token via secure IPC/keytar using Electron preload bridge.
  * @returns {Promise<string|null>}
  */
 const loadToken = async () => {
-    if (window.electron && window.electron.invoke) {
-        const { success, token } = await window.electron.invoke('token-get');
+    if (window.electronAPI && window.electronAPI.tokenGet) {
+        const { success, token } = await window.electronAPI.tokenGet();
         return success ? token : null;
     }
     return null;
 };
 
 /**
- * Sets the auth token using keytar via IPC.
+ * Sets the auth token using keytar via Electron preload bridge.
  * @param {string} token
  * @returns {Promise<boolean>}
  */
 const saveToken = async (token) => {
-    if (window.electron && window.electron.invoke) {
-        const { success } = await window.electron.invoke('token-store', { token });
+    if (window.electronAPI && window.electronAPI.tokenStore) {
+        const { success } = await window.electronAPI.tokenStore(token);
         return !!success;
     }
     return false;
 };
 
 /**
- * Clears the auth token using keytar via IPC.
+ * Clears the auth token using keytar via Electron preload bridge.
  * @returns {Promise<void>}
  */
 const clearToken = async () => {
-    if (window.electron && window.electron.invoke) {
-        await window.electron.invoke('token-delete');
+    if (window.electronAPI && window.electronAPI.tokenDelete) {
+        await window.electronAPI.tokenDelete();
     }
 };
 
 /**
  * AuthProvider - Supplies login state and actions.
+ * @param {object} props
+ * @param {React.ReactNode} props.children
+ * @returns {JSX.Element}
  */
 export const AuthProvider = ({ children }) => {
     const [token, setTokenState] = useState(null);
@@ -57,7 +60,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     /**
-     * Sets new JWT token and persists in Keytar.
+     * Sets new JWT token and persists in Keytar via preload bridge.
      * @param {string} tok
      */
     const setToken = async (tok) => {
