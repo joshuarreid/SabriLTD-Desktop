@@ -1,4 +1,13 @@
+/**
+ * UserDropdown
+ * - Modern minimalist dropdown with avatar/profile icon and menu.
+ * - Handles navigation to profile screen and logout.
+ *
+ * @module UserDropdown
+ */
+
 import React, { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from '../styles/userdropdown.module.css';
 import { useAuth } from '../../login/hooks/useAuth';
 
@@ -62,8 +71,7 @@ const renderAvatar = (user) => {
 };
 
 /**
- * UserDropdown
- * - Modern minimalist dropdown with avatar/profile icon and menu.
+ * UserDropdown component
  *
  * @component
  * @param {object} props
@@ -73,6 +81,7 @@ const renderAvatar = (user) => {
 const UserDropdown = ({ user }) => {
     const [open, setOpen] = useState(false);
     const dropdownRef = useRef(null);
+    const navigate = useNavigate();
     const { logout } = useAuth();
 
     /**
@@ -109,6 +118,7 @@ const UserDropdown = ({ user }) => {
 
     /**
      * Handles 'Profile' menu click and closes dropdown after action.
+     * Navigates to /profile.
      * @function
      * @param {React.MouseEvent} e
      */
@@ -116,7 +126,7 @@ const UserDropdown = ({ user }) => {
         e.preventDefault();
         logger.info('Profile selected');
         setOpen(false);
-        // Add profile navigation logic here.
+        navigate('/profile');
     };
 
     /**
@@ -131,8 +141,6 @@ const UserDropdown = ({ user }) => {
         setOpen(false);
         try {
             await logout();
-            // Add redirect logic here if needed, e.g.:
-            // navigate('/login', { replace: true });
         } catch (err) {
             logger.error('Logout failed', err);
         }
