@@ -1,10 +1,19 @@
-/**
- * Auth context and hook for managing login state and token, using Keytar via Electron Preload Bridge.
- * This is a context-layer abstraction for auth session.
- */
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { userKeys } from '../../../api/user/userQueryKeys';
 
+/**
+ * Logger for useAuth module.
+ */
+const logger = {
+    info: (...args) => console.log('[useAuth]', ...args),
+    error: (...args) => console.error('[useAuth]', ...args),
+};
+
+/**
+ * AuthContext - React Context for authentication and session.
+ * @type {React.Context}
+ */
 const AuthContext = createContext();
 
 /**
@@ -52,6 +61,8 @@ export const AuthProvider = ({ children }) => {
     const [token, setTokenState] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const queryClient = useQueryClient();
+
     useEffect(() => {
         loadToken().then((tok) => {
             setTokenState(tok);
@@ -64,16 +75,20 @@ export const AuthProvider = ({ children }) => {
      * @param {string} tok
      */
     const setToken = async (tok) => {
+        logger.info('setToken called');
         await saveToken(tok);
         setTokenState(tok);
     };
 
     /**
-     * Logs out the user, removes token.
+     * Logs out the user, removes token, and clears user-related cache.
+     * @async
      */
     const logout = async () => {
+        logger.info('logout called');
         await clearToken();
         setTokenState(null);
+        queryClient.removeQueries(userKeys.me()); // clear user cache when logging out
     };
 
     // Memoized context value

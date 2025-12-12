@@ -34,9 +34,10 @@ const logger = {
 function App() {
     logger.info('App rendered');
     return (
+        <QueryClientProvider client={queryClient}>
         <AuthProvider>
             <Router>
-                <QueryClientProvider client={queryClient}>
+
                     <div className="App">
                         <Routes>
                             <Route path="/login" element={<LoginScreen />} />
@@ -54,9 +55,9 @@ function App() {
                             </Route>
                         </Routes>
                     </div>
-                </QueryClientProvider>
             </Router>
         </AuthProvider>
+        </QueryClientProvider>
     );
 }
 
