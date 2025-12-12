@@ -49,13 +49,22 @@
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.16s, box-shadow 0.15s;
+    transition: background 0.16s, box-shadow 0.15s, opacity 0.13s;
     box-shadow: 0 1.5px 7px rgba(226,76,75,0.13);
     outline: none;
 }
 .deleteButton:hover,
 .deleteButton:focus {
     background: #be2627;
+}
+.deleteButton[disabled],
+.deleteButton[aria-disabled="true"] {
+    background: #e1d4e5 !important;
+    color: #c3bbc7 !important;
+    opacity: 0.68;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none;
 }
 .cancelButton {
     background: #f7f4fa;

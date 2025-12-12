@@ -18,8 +18,14 @@ import styles from "./confirmationmodal.module.css";
  * @param {boolean} [props.isCancelLoading] - If true, disables cancel button and shows loading.
  * @param {string} [props.confirmClass] - Custom class for the Confirm button.
  * @param {string} [props.cancelClass] - Custom class for the Cancel button.
+ * @param {boolean} [props.confirmDisabled] - If true, disables confirm/delete button (e.g. for current user).
  * @returns {JSX.Element|null}
  */
+const logger = {
+    info: (...args) => console.log('[ConfirmationModal]', ...args),
+    error: (...args) => console.error('[ConfirmationModal]', ...args),
+};
+
 const ConfirmationModal = ({
                                open,
                                onCancel,
@@ -32,7 +38,10 @@ const ConfirmationModal = ({
                                isCancelLoading = false,
                                confirmClass,
                                cancelClass,
+                               confirmDisabled = false,
                            }) => {
+    logger.info('ConfirmationModal rendered', { open });
+
     if (!open) return null;
 
     return (
@@ -63,8 +72,10 @@ const ConfirmationModal = ({
                     <button
                         className={confirmClass || styles.deleteButton}
                         onClick={onConfirm}
-                        disabled={isConfirmLoading}
+                        disabled={isConfirmLoading || confirmDisabled}
                         type="button"
+                        aria-disabled={isConfirmLoading || confirmDisabled}
+                        tabIndex={0}
                     >
                         {isConfirmLoading ? "..." : confirmText}
                     </button>
@@ -73,6 +84,8 @@ const ConfirmationModal = ({
                         onClick={onCancel}
                         disabled={isCancelLoading}
                         type="button"
+                        aria-disabled={isCancelLoading}
+                        tabIndex={0}
                     >
                         {cancelText}
                     </button>
