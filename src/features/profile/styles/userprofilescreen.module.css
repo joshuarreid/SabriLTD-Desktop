@@ -85,6 +85,16 @@
     background: #a77ccb;
 }
 
+.saveButton[disabled],
+.saveButton[aria-disabled="true"] {
+    background: #eee !important;
+    color: #bbb !important;
+    cursor: not-allowed !important;
+    border: none;
+    opacity: 0.68;
+    box-shadow: none;
+}
+
 .resetButton {
     background: #f3f0fa;
     color: #a89bb6;
@@ -101,6 +111,14 @@
 .resetButton:focus {
     background: #ececf0;
     color: #704587;
+}
+
+.resetButton[disabled],
+.resetButton[aria-disabled="true"] {
+    background: #f3f0fa !important;
+    color: #ccc !important;
+    opacity: 0.7;
+    cursor: not-allowed !important;
 }
 
 .centered {
@@ -121,4 +139,32 @@
     margin: 1em 0 0 0;
     text-align: center;
     word-break: break-word;
+}
+
+.saveFeedback {
+    margin-top: 1.1em;
+    min-height: 30px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.8em;
+}
+
+.saveState {
+    display: flex;
+    align-items: center;
+    font-size: 1.06em;
+    font-weight: 500;
+    gap: 0.6em;
+    color: #444;
+}
+
+.iconSpin {
+    animation: spinAnim 0.9s linear infinite;
+}
+
+@keyframes spinAnim {
+    100% {
+        transform: rotate(360deg);
+    }
 }
