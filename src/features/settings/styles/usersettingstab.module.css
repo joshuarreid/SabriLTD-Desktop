@@ -1,21 +1,22 @@
 .profilePanel {
-    max-width: 1200px;
+    max-width: 1260px;
     margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    padding-top: 32px;
 }
 
 .headerSection {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding-bottom: 28px;
 }
 
 .sectionTitle {
-    font-size: 1.5rem;
+    font-size: 1.28rem;
     font-weight: 700;
-    color: #302b4b;
+    color: #29224c;
+    margin-bottom: 0;
+    letter-spacing: 0.01em;
 }
 
 .addUserBtn {
@@ -23,63 +24,51 @@
     color: #fff;
     border: none;
     border-radius: 8px;
-    padding: 0.7em 1.5em;
-    font-size: 0.9rem;
+    padding: 0.5em 1.35em;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background 0.15s;
+    box-shadow: 0 2px 6px 0 rgba(132,71,229,0.06);
 }
 
 .addUserBtn:hover {
-    background-color: #532c96;
+    background-color: #6b30c6;
 }
 
 .gridContainer {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(216px, 1fr));
+    gap: 22px;
     width: 100%;
 }
 
-/* User Card Styles */
 .userCard {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 13px;
+    box-shadow: 0 3px 11px rgba(80,60,180,0.07);
     display: flex;
     flex-direction: column;
-    padding: 16px;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
+    min-width: 0;
+    min-height: 185px;
+    padding: 0 0 16px 0;
     position: relative;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: box-shadow 0.18s, transform 0.16s;
+    border: 1.5px solid #f5f2fa;
 }
 
 .userCard:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 30px 0 rgba(130,71,229,0.10), 0 1.5px 4px rgba(0,0,0,0.01);
+    transform: translateY(-2px) scale(1.017);
+    border-color: #ede1fb;
 }
 
-.cardHeader {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.avatar {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background-color: #f7f7f7;
-    color: #8a84b3;
-    font-size: 1.5rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-transform: uppercase;
+.cardMenu {
+    position: absolute;
+    top: 15px;
+    right: 17px;
+    z-index: 3;
 }
 
 .menuWrapper {
@@ -89,56 +78,123 @@
 .menuBtn {
     background: none;
     border: none;
-    font-size: 1.2rem;
+    font-size: 1.19rem;
+    color: #b3abc8;
+    padding: 4px 5px;
     cursor: pointer;
-    color: #8a84b3;
-    transition: color 0.2s ease;
+    transition: color 0.14s;
+    border-radius: 6px;
 }
 
-.menuBtn:hover {
+.menuBtn:hover,
+.menuBtn:focus-visible {
     color: #473c64;
+    background: #ece9fc;
 }
 
 .dropdownMenu {
     position: absolute;
-    top: 24px;
-    right: 0;
+    top: 28px;
+    right: 0px;
     background: #fff;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    border-radius: 6px;
-    padding: 0.5em 0;
+    box-shadow: 0 4px 18px 0 rgba(58,56,85,0.14);
+    border-radius: 7px;
+    padding: 0.3em 0;
     display: flex;
     flex-direction: column;
-    z-index: 100;
+    min-width: 94px;
+    z-index: 20;
+    border: 1px solid #ececf6;
 }
 
 .dropdownItem {
     background: none;
     border: none;
-    font-size: 0.95rem;
-    padding: 0.5em;
-    text-align: left;
-    cursor: pointer;
     color: #473c64;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    font-size: 1rem;
+    padding: 0.56em 1.18em;
+    text-align: left;
+    transition: background 0.16s, color 0.16s;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.dropdownItem:hover {
+    background: #f8f5fd;
+    color: #8247e5;
 }
 
-.dropdownItem:hover {
-    background-color: #f7f7fa;
-    color: #302b4b;
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f2f0f7;
+    color: #9d95bc;
+    font-size: 1.32rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 26px auto 0 auto;
+    box-shadow: 0 2px 8px rgba(130,71,229,0.04);
+    letter-spacing: 0.03em;
+    user-select: none;
+    border: 1.5px solid #e7e2f9;
 }
 
 .userInfo {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 19px;
+    width: 100%;
+    padding: 0 14px;
 }
 
 .userName {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 600;
-    color: #473c64;
+    color: #362d58;
+    margin-bottom: 4px;
+    text-align: center;
+    word-break: break-word;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.userEmail {
+    font-size: 0.95rem;
+    color: #868099;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 5px;
+    word-break: break-all;
+    max-width: 98%;
+    opacity: 0.95;
 }
 
 .userRole {
-    font-size: 0.95rem;
-    color: #89889a;
+    font-size: 0.93rem;
+    color: #b8b2cc;
+    text-align: center;
+    margin-top: 1px;
+    font-weight: 500;
+    opacity: 0.82;
+    letter-spacing: 0.01em;
+}
+
+.noUsers {
+    text-align: center;
+    font-size: 1.18rem;
+    color: #a6a4b4;
+    margin-top: 18px;
+}
+
+.loading,
+.error {
+    font-size: 1.13rem;
+    color: #593ebc;
+    padding: 2em 0;
+    text-align: center;
 }
