@@ -3,6 +3,7 @@ import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
 import { CiEdit } from "react-icons/ci";
 import { BsTrash3 } from "react-icons/bs";
+import UserEditProfileModal from "../../../components/UserEditProfileModal";
 
 /**
  * logger for UserSettingsTab component.
@@ -32,11 +33,16 @@ const UserSettingsTab = () => {
         isError,
         error,
         handleEditUser,
+        handleSaveEdit,
         handleRemoveUser,
         openAddUser,
+        editingId,
+        editStatus,
     } = useUserSettingsTab();
 
     const [activeMenu, setActiveMenu] = useState(null);
+    const [editingUser, setEditingUser] = useState(null);
+    const [editModalError, setEditModalError] = useState(null);
 
     /**
      * Toggles the action dropdown menu for a user card.
@@ -47,12 +53,40 @@ const UserSettingsTab = () => {
     };
 
     /**
+     * Opens the edit modal for a user.
+     * @param {object} user
+     */
+    const openEditModal = (user) => {
+        setEditingUser(user);
+        setEditModalError(null);
+        setActiveMenu(null);
+    };
+
+    /**
+     * Handles a save action from the modal.
+     * @param {number} userId
+     * @param {{ name: string, email: string }} payload
+     */
+    const handleModalSave = (userId, payload) => {
+        setEditModalError(null);
+        handleSaveEdit(
+            userId,
+            payload,
+            (error) => {
+                if (error) setEditModalError(error.message || "Failed to update.");
+                else setEditingUser(null);
+            }
+        );
+    };
+
+    /**
      * Handles edit action for a user and closes the action menu.
+     * (Now replaced with modal open)
      * @param {number} userId
      */
     const handleEdit = (userId) => {
-        handleEditUser(userId);
-        setActiveMenu(null);
+        const toEdit = users.find((u) => u.userId === userId);
+        openEditModal(toEdit);
     };
 
     /**
@@ -139,6 +173,15 @@ const UserSettingsTab = () => {
                     </div>
                 ))}
             </div>
+            <UserEditProfileModal
+                user={editingUser}
+                open={!!editingUser}
+                isSaving={editStatus === "saving"}
+                saveState={editStatus}
+                onSave={handleModalSave}
+                onClose={() => setEditingUser(null)}
+                error={editModalError}
+            />
         </div>
     );
 };

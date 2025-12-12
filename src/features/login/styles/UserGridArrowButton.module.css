@@ -1,3 +1,8 @@
+/**
+ * UserGridArrowButton - SabriLTD theme
+ * - Minimalist arrow with purple-accented hover, focus, and shadow states.
+ */
+
 .userGridArrowButton {
     background: transparent;
     border: none;
@@ -8,23 +13,35 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.16s, opacity 0.16s;
+    transition: color 0.16s, opacity 0.17s, box-shadow 0.13s;
     height: 32px;
     width: 32px;
+    border-radius: 7px;
 }
+
 .userGridArrowButton:disabled {
     opacity: 0.24;
     cursor: not-allowed;
 }
+
 .left { }
 .right { }
+
 .chevron {
-    stroke: #9c9c9c;
-    transition: stroke 0.16s;
+    stroke: #b3abc8;
+    transition: stroke 0.18s;
 }
-.userGridArrowButton:not(:disabled):hover .chevron {
-    stroke: #191919;
+
+.userGridArrowButton:not(:disabled):hover,
+.userGridArrowButton:not(:disabled):focus-visible {
+    background: #f5f0ff;
 }
+
+.userGridArrowButton:not(:disabled):hover .chevron,
+.userGridArrowButton:not(:disabled):focus-visible .chevron {
+    stroke: #8247e5;
+}
+
 @media (max-width: 640px) {
     .userGridArrowButton {
         height: 26px;

@@ -1,0 +1,30 @@
+.modalOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(36,14,41,0.12);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalCard {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 8px 40px 0 rgba(130,71,229,0.14), 0 4px 10px 0 rgba(36,14,41,0.06);
+    padding: 2.1rem 2.2rem 1.6rem 2.2rem;
+    min-width: 340px;
+    min-height: 130px;
+    max-width: 99vw;
+    max-height: 98vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    outline: none;
+    animation: modalIn 0.24s cubic-bezier(.21,.95,.19,1.04);
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(40px) scale(.97);}
+    to   { opacity: 1; transform: none;}
+}

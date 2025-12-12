@@ -1,20 +1,30 @@
+/**
+ * User Profile Screen - SabriLTD theme
+ *
+ * - Panel/card uses #fafafd background, subtle purple drop-shadow, and rounded edges for warmth
+ * - Titles/text use #23263b/#362d58 for clarity and unity
+ * - Input fields, buttons, and error/success match the rest of SabriLTD UI
+ * - Main accent: #8247e5 (primary), #f5f0ff and #f8f5fd (panel/diffuse), #b3abc8 (muted icon/error)
+ */
+
 .profileContainer {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 60vh;
-    background: #fff;
+    background: #faf9fb;
 }
 
 .profileCard {
     width: 350px;
     background: #fafafd;
     border-radius: 14px;
-    box-shadow: 0 4px 24px rgba(36,14,41,0.11);
+    box-shadow: 0 4px 24px rgba(130, 71, 229, 0.08);
     padding: 2rem 2rem 1.5rem 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
+    border: 1.5px solid #ececf0;
 }
 
 .profileTitle {
@@ -23,6 +33,7 @@
     font-size: 1.45rem;
     font-weight: 700;
     text-align: center;
+    letter-spacing: 0.01em;
 }
 
 .profileForm {
@@ -40,25 +51,28 @@
 
 .formGroup label {
     font-size: 1rem;
-    color: #777;
-    margin-bottom: 0.34em;
+    color: #978bb4;
+    margin-bottom: 0.28em;
+    font-weight: 500;
+    letter-spacing: 0.01em;
 }
 
 .input {
     padding: 9px 13px;
     border-radius: 8px;
-    border: 1.2px solid #ececf0;
+    border: 1.5px solid #ececf0;
     font-size: 1.05rem;
     font-weight: 500;
     background: #f6f6ff;
     color: #23263b;
-    transition: border-color 0.18s;
+    transition: border-color 0.18s, box-shadow 0.13s, background 0.13s;
 }
 
 .input:focus {
-    border-color: #b000b9;
+    border-color: #8247e5;
     outline: none;
     background: #fff;
+    box-shadow: 0 0 0 2px #f5f0ff;
 }
 
 .formActions {
@@ -69,7 +83,7 @@
 }
 
 .saveButton {
-    background: #b000b9;
+    background: #8247e5;
     color: #fff;
     padding: 9px 22px;
     border-radius: 8px;
@@ -77,18 +91,19 @@
     font-weight: 600;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.16s;
+    transition: background 0.15s, box-shadow 0.14s;
+    box-shadow: 0 2px 6px 0 rgba(132,71,229,0.06);
 }
 
 .saveButton:hover,
 .saveButton:focus {
-    background: #a77ccb;
+    background: #6b30c6;
 }
 
 .saveButton[disabled],
 .saveButton[aria-disabled="true"] {
-    background: #eee !important;
-    color: #bbb !important;
+    background: #ede1fb !important;
+    color: #b8b2cc !important;
     cursor: not-allowed !important;
     border: none;
     opacity: 0.68;
@@ -104,13 +119,13 @@
     font-weight: 500;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    transition: background 0.13s, color 0.15s;
 }
 
 .resetButton:hover,
 .resetButton:focus {
     background: #ececf0;
-    color: #704587;
+    color: #8247e5;
 }
 
 .resetButton[disabled],
@@ -132,7 +147,7 @@
 
 .errorMsg {
     color: #b000b9;
-    background: #f9eaff;
+    background: #f8f5fd;
     padding: 0.65em 1em;
     border-radius: 7px;
     font-weight: 500;
@@ -156,7 +171,7 @@
     font-size: 1.06em;
     font-weight: 500;
     gap: 0.6em;
-    color: #444;
+    color: #362d58;
 }
 
 .iconSpin {
