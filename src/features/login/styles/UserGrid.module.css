@@ -1,3 +1,9 @@
+/**
+ * UserGrid - SabriLTD theme
+ * - Uses white/pastel bg, subtle purple shadow, and border for clarity and warmth
+ * - Modular, responsive grid with unified padding and radii
+ */
+
 .userGridPagerWrapper {
     display: flex;
     flex-direction: row;
@@ -6,7 +12,9 @@
     width: 100%;
     position: relative;
     min-height: 148px;
+    background: transparent;
 }
+
 .usersGrid {
     display: grid;
     grid-template-columns: repeat(4, 128px);
@@ -18,7 +26,9 @@
     padding: 6px 0;
     box-sizing: border-box;
     position: relative;
+    background: none;
 }
+
 .userGridArrowSpacer {
     width: 32px;
     height: 32px;
@@ -27,6 +37,7 @@
 .userTile {
     /* Visually hidden padding slot */
 }
+
 @media (max-width: 640px) {
     .usersGrid {
         grid-template-columns: repeat(2, 128px);

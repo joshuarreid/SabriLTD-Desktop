@@ -114,13 +114,23 @@ export const useUserSettingsTab = () => {
      * Submits an update to a user.
      * @param {number} userId
      * @param {{name: string, email: string}} user
+     * @param {function} [callback] - Optional, callback(error) on complete.
      */
-    const handleSaveEdit = (userId, user) => {
+    const handleSaveEdit = (userId, user, callback) => {
         logger.info('Saving edit for user', userId, user.name);
-        updateUserMutation.mutate({ userId, user }, {
-            onSuccess: () => setEditingId(null),
-            onError: () => setEditingId(null),
-        });
+        updateUserMutation.mutate(
+            { userId, user },
+            {
+                onSuccess: () => {
+                    setEditingId(null);
+                    if (callback) callback(null);
+                },
+                onError: (err) => {
+                    setEditingId(null);
+                    if (callback) callback(err);
+                },
+            }
+        );
     };
 
     /**
