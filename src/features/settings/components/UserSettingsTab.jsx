@@ -1,31 +1,24 @@
 import React from "react";
 import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
-
-/**
- * logger for UserSettingsTab component.
- * @type {{info: Function, error: Function}}
- */
-const logger = {
-    info: (...args) => console.log('[UserSettingsTab]', ...args),
-    error: (...args) => console.error('[UserSettingsTab]', ...args),
-};
+import SaveStatus from "../../../components/save/SaveStatus";
 
 /**
  * UserRowEditor
- * Inline editable row for a user (edit name and email).
+ * - Inline editable row for user (edit name and email).
  *
  * @param {object} props
  * @param {{userId: number, name: string, email: string}} props.user
  * @param {function({name:string,email:string}):void} props.onSave
  * @param {function():void} props.onCancel
+ * @param {string} props.saveStatus
  * @returns {JSX.Element}
  */
-function UserRowEditor({ user, onSave, onCancel }) {
+function UserRowEditor({ user, onSave, onCancel, saveStatus }) {
     const [draft, setDraft] = React.useState({ name: user.name, email: user.email });
 
     /**
-     * updateDraft
+     * Updates a single field in the draft state.
      * @param {string} field
      * @param {string} value
      */
@@ -50,8 +43,12 @@ function UserRowEditor({ user, onSave, onCancel }) {
                 />
             </td>
             <td className={styles.actionButtonsCell}>
-                <button className={styles.saveBtn} onClick={() => onSave(draft)}>Save</button>
-                <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
+                <button className={styles.saveBtn} onClick={() => onSave(draft)}>
+                    Save
+                </button>
+                <button className={styles.cancelBtn} onClick={onCancel}>
+                    Cancel
+                </button>
             </td>
         </>
     );
@@ -59,14 +56,15 @@ function UserRowEditor({ user, onSave, onCancel }) {
 
 /**
  * NewUserRow
- * Row for adding a new user.
+ * - Row for adding a new user.
  *
  * @param {object} props
  * @param {function():void} props.onCancel
  * @param {function({name:string,email:string}):void} props.onAdd
+ * @param {string} props.saveStatus
  * @returns {JSX.Element}
  */
-function NewUserRow({ onCancel, onAdd }) {
+function NewUserRow({ onCancel, onAdd, saveStatus }) {
     const [draft, setDraft] = React.useState({ name: "", email: "" });
     const updateDraft = (field, value) => setDraft((prev) => ({ ...prev, [field]: value }));
 
@@ -91,10 +89,16 @@ function NewUserRow({ onCancel, onAdd }) {
                 />
             </td>
             <td className={styles.actionButtonsCell}>
-                <button className={styles.saveBtn} disabled={!draft.name || !draft.email} onClick={() => onAdd(draft)}>
+                <button
+                    className={styles.saveBtn}
+                    disabled={!draft.name || !draft.email}
+                    onClick={() => onAdd(draft)}
+                >
                     Add
                 </button>
-                <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
+                <button className={styles.cancelBtn} onClick={onCancel}>
+                    Cancel
+                </button>
             </td>
         </>
     );
@@ -102,15 +106,12 @@ function NewUserRow({ onCancel, onAdd }) {
 
 /**
  * UserSettingsTab
- * Table UX for adding, editing, and removing users (edit name/email, delete with confirm, add user).
- * Grey out delete for current user.
+ * - User management table with add/edit/delete UX and status indicators.
  *
  * @component
  * @returns {JSX.Element}
  */
 const UserSettingsTab = () => {
-    logger.info("UserSettingsTab rendered");
-
     const {
         users,
         me,
@@ -128,13 +129,14 @@ const UserSettingsTab = () => {
         confirmRemoveUser,
         cancelRemoveUser,
         cancelEditOrAdd,
+        editStatus,
+        addStatus,
     } = useUserSettingsTab();
 
     if (isPending) {
         return <div className={styles.loadingRow}>Loading users…</div>;
     }
     if (isError) {
-        logger.error('User load error', error);
         return <div className={styles.errorRow}>Failed to load users.</div>;
     }
 
@@ -161,6 +163,7 @@ const UserSettingsTab = () => {
                                     user={u}
                                     onSave={(payload) => handleSaveEdit(u.userId, payload)}
                                     onCancel={cancelEditOrAdd}
+                                    saveStatus={editStatus}
                                 />
                             </tr>
                         ) : removingId === u.userId ? (
@@ -211,13 +214,17 @@ const UserSettingsTab = () => {
                             <NewUserRow
                                 onCancel={cancelEditOrAdd}
                                 onAdd={handleAddUser}
+                                saveStatus={addStatus}
                             />
                         </tr>
                     )}
                     </tbody>
                 </table>
             </div>
-            <div className={styles.userTableActionsFooter}>
+            <div className={styles.userTableFooterRow}>
+                <span className={styles.statusIndicatorWrapper}>
+                    <SaveStatus status={addingUser ? addStatus : editStatus} />
+                </span>
                 <button
                     className={styles.addBtn}
                     onClick={openAddUser}

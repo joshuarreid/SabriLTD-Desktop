@@ -14,15 +14,9 @@ const logger = {
 
 /**
  * useUserSettingsTab
- * Encapsulates business logic and state for user table in settings.
+ * Encapsulates business logic/state for users table in settings.
  *
- * @returns {object} {
- *   users, me, isPending, isError, error,
- *   editingId, removingId, addingUser,
- *   openAddUser, handleAddUser, handleEditUser,
- *   handleSaveEdit, handleRemoveUser,
- *   confirmRemoveUser, cancelRemoveUser, cancelEditOrAdd
- * }
+ * @returns {object} - State and handlers for managing users.
  */
 export const useUserSettingsTab = () => {
     logger.info("useUserSettingsTab initialized");
@@ -38,16 +32,26 @@ export const useUserSettingsTab = () => {
         queryFn: getMe,
     });
 
-    // Mutation hooks
+    // Mutations and their save status
     const queryClient = useQueryClient();
+
+    const [editStatus, setEditStatus] = useState('idle');
+    const [addStatus, setAddStatus] = useState('idle');
 
     const updateUserMutation = useMutation({
         mutationFn: ({ userId, user }) => updateUser(userId, user),
+        onMutate: () => setEditStatus('saving'),
         onSuccess: () => {
             logger.info('User updated, invalidating user lists');
+            setEditStatus('saved');
             queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+            setTimeout(() => setEditStatus('idle'), 1800);
         },
-        onError: (err) => logger.error('updateUser failed', err),
+        onError: (err) => {
+            logger.error('updateUser failed', err);
+            setEditStatus('error');
+            setTimeout(() => setEditStatus('idle'), 1800);
+        },
     });
 
     const deleteUserMutation = useMutation({
@@ -61,11 +65,18 @@ export const useUserSettingsTab = () => {
 
     const createUserMutation = useMutation({
         mutationFn: (user) => createUser(user),
+        onMutate: () => setAddStatus('saving'),
         onSuccess: () => {
             logger.info('User created, invalidating user lists');
+            setAddStatus('saved');
             queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+            setTimeout(() => setAddStatus('idle'), 1800);
         },
-        onError: (err) => logger.error('createUser failed', err),
+        onError: (err) => {
+            logger.error('createUser failed', err);
+            setAddStatus('error');
+            setTimeout(() => setAddStatus('idle'), 1800);
+        },
     });
 
     // Local state for UI editing/UX
@@ -75,7 +86,7 @@ export const useUserSettingsTab = () => {
 
     /**
      * openAddUser
-     * Opens "add new user" UX row.
+     * Opens add new user UX row.
      */
     const openAddUser = () => setAddingUser(true);
 
@@ -93,7 +104,7 @@ export const useUserSettingsTab = () => {
 
     /**
      * handleEditUser
-     * Opens row editor for a user.
+     * Open row editor for user.
      * @param {number} userId
      */
     const handleEditUser = (userId) => setEditingId(userId);
@@ -108,6 +119,7 @@ export const useUserSettingsTab = () => {
         logger.info('Saving edit for user', userId, user.name);
         updateUserMutation.mutate({ userId, user }, {
             onSuccess: () => setEditingId(null),
+            onError: () => setEditingId(null),
         });
     };
 
@@ -120,13 +132,13 @@ export const useUserSettingsTab = () => {
 
     /**
      * confirmRemoveUser
-     * Confirms user delete and calls mutation.
+     * Confirm user delete and call mutation.
      * @param {number} userId
      */
     const confirmRemoveUser = (userId) => {
         logger.info('Confirm delete for user', userId);
         deleteUserMutation.mutate(userId, {
-            onSuccess: () => setRemovingId(null),
+            onSuccess: () => setRemovingId(null)
         });
     };
 
@@ -143,6 +155,8 @@ export const useUserSettingsTab = () => {
     const cancelEditOrAdd = () => {
         setEditingId(null);
         setAddingUser(false);
+        setEditStatus('idle');
+        setAddStatus('idle');
     };
 
     return {
@@ -162,5 +176,7 @@ export const useUserSettingsTab = () => {
         confirmRemoveUser,
         cancelRemoveUser,
         cancelEditOrAdd,
+        editStatus,
+        addStatus,
     };
 };

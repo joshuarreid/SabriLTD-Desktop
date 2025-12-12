@@ -196,9 +196,27 @@
     justify-content: space-between;
 }
 
-.userTableActionsFooter {
+.userTableFooterRow {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 18px;
     margin-top: 10px;
-    text-align: right;
+    min-height: 40px;
+    flex-direction: row;
+}
+
+.statusIndicatorWrapper {
+    display: flex;
+    align-items: center;
+    min-width: 80px;
+    height: 40px;
+    margin-right: 6px;
+    /* margin-right spaces it from Add User, keep gap controlled */
+}
+
+.userTableActionsFooter { /* legacy, don't use */
+    display: none;
 }
 
 .loadingRow, .errorRow {
