@@ -2,19 +2,21 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 60px;
+    height: 64px;
     padding: 0 2rem;
     background: #fff;
-    border-bottom: 1px solid #e5e5e5;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    border-bottom: 1px solid #ececf0;
+    box-shadow: 0 2px 10px rgba(36,14,41,0.07);
+    font-family: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif;
+    letter-spacing: 0.01em;
 }
 
 .logoContainer {
     display: flex;
     align-items: center;
     height: 100%;
-    padding-right: 16px;
-    border-right: 1px solid #e0e0e0;
+    padding-right: 22px;
+    border-right: 1px solid #ececf0;
 }
 
 .logo {
@@ -24,10 +26,56 @@
     user-select: none;
 }
 
+.rightSection {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.iconGroup {
+    display: flex;
+    align-items: center;
+    gap: 26px;           /* keep larger gap between the icons */
+    margin-right: 4px;   /* **reduce to 4px** so it's almost flush to the user dropdown */
+}
+
+.iconButton {
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    padding: 0.5em 0.61em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.16s, color 0.15s;
+    min-width: 36px;
+    min-height: 36px;
+    outline: none;
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+    background: #f3eafd18; /* ultra-subtle hover ring */
+}
+
+.iconSvg {
+    color: #23263b;
+    stroke-width: 1.5;
+    transition: color 0.15s, stroke-width 0.19s;
+}
+
+.iconButton:hover .iconSvg,
+.iconButton:focus-visible .iconSvg {
+    color: #b000b9;
+    stroke-width: 1.7;
+}
+
 .user {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     height: 100%;
     min-width: 160px;
+    margin-left: 0;
 }
