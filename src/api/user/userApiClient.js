@@ -239,7 +239,7 @@ export default class UserApiClient extends ApiClient {
                 logger.error('deleteUser failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const response = await this.delete(`/${userId}`, {
+            const response = await this.delete(`/${userId}`, {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

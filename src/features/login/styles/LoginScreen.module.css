@@ -1,7 +1,7 @@
 :root {
-    --chevron-color: #9c9c9c;
+    --chevron-color: #b3abc8;
     --chevron-size: 32px;
-    --chevron-hover: #191919;
+    --chevron-hover: #8247e5;
     --form-width: clamp(560px, 56vw, 720px);
     --wide-form-width: clamp(720px, 70vw, 980px);
     --tile-size: 128px;
@@ -22,16 +22,16 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    color: #191919;
+    background: #faf9fb;
+    color: #23263b;
     box-sizing: border-box;
 }
 
 .loginCard {
     background: #fff;
-    color: #191919;
+    color: #23263b;
     border-radius: 24px;
-    box-shadow: 0 6px 32px rgba(60,60,60,0.08);
+    box-shadow: 0 6px 24px rgba(130,71,229,0.09);
     padding: 36px 28px;
     min-height: 60vh;
     max-width: 980px;
@@ -42,6 +42,7 @@
     justify-content: flex-start;
     gap: 12px;
     box-sizing: border-box;
+    border: 1.5px solid #ececf0;
 }
 
 .brandLogo {
@@ -58,8 +59,9 @@
     font-size: clamp(1.6rem, 2.2vw, 2rem);
     font-weight: 700;
     margin-bottom: 8px;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     text-align: center;
+    color: #23263b;
 }
 
 /* Panels wrapper for animation and width */
@@ -144,18 +146,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.16s, opacity 0.16s;
+    transition: color 0.18s, opacity 0.18s;
     height: var(--chevron-size);
     width: var(--chevron-size);
 }
 .userGridArrowButton:disabled {
     opacity: 0.24;
     cursor: not-allowed;
-}
-
-.userGridArrowLeft,
-.userGridArrowRight {
-    /* For placement if needed, otherwise handled via flex container */
 }
 
 .userGridArrowSpacer {
@@ -172,7 +169,7 @@
 
 .chevron {
     stroke: var(--chevron-color);
-    transition: stroke 0.16s;
+    transition: stroke 0.17s;
 }
 .userGridArrowButton:not(:disabled):hover .chevron {
     stroke: var(--chevron-hover);
@@ -229,7 +226,7 @@
     width: var(--tile-size);
     height: var(--tile-height);
     background: #fafafd;
-    border: 1.5px solid #e8e8e8;
+    border: 1.5px solid #ececf0;
     border-radius: 18px;
     display: flex;
     flex-direction: column;
@@ -249,12 +246,13 @@
     transform: translateY(0) scale(1);
 }
 .userTile:focus {
-    box-shadow: 0 0 0 3px #e0b3ff66;
+    box-shadow: 0 0 0 3px #e2d1fa;
+    border-color: #8247e5;
     transform: translateY(-4px);
 }
 .userTile.selected {
-    border-color: #b000b9;
-    box-shadow: 0 0 0 2px #e0b3ff44;
+    border-color: #8247e5;
+    box-shadow: 0 0 0 2px #f5f0ff;
 }
 .panelInactive .userTile {
     opacity: 0;
@@ -264,18 +262,19 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: #e0b3ff37;
-    border: 2.5px solid #e0b3ff;
+    background: #f2f0f7;
+    border: 2.5px solid #ede1fb;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.3rem;
-    color: #777;
+    color: #b3abc8;
     flex-shrink: 0;
+    transition: border-color 0.16s;
 }
 .userName {
-    color: #222;
+    color: #362d58;
     font-weight: 600;
     letter-spacing: -0.01em;
     font-size: 1rem;
@@ -346,22 +345,22 @@
 .passwordInput {
     font-size: clamp(1rem, 1.6vw, 1.12rem);
     padding: 12px 12px;
-    border: 1.5px solid #e8e8e8;
+    border: 1.5px solid #ececf0;
     border-radius: 12px;
-    background: #fafafd;
-    color: #191919;
-    transition: border 0.17s, box-shadow 0.17s;
+    background: #f6f6ff;
+    color: #23263b;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.14s;
     outline: none;
     width: 100%;
     box-sizing: border-box;
 }
 .passwordInput:focus {
-    border-color: #b000b9;
-    box-shadow: 0 0 0 3px #e0b3ff4c;
+    border-color: #8247e5;
+    box-shadow: 0 0 0 2px #f5f0ff;
     background: #fff;
 }
 .submitButton, .continueButton {
-    background: #191919;
+    background: #8247e5;
     color: #fff;
     border: none;
     border-radius: 12px;
@@ -369,8 +368,8 @@
     font-size: 1.02rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.18s, filter 0.18s, transform 0.12s;
-    box-shadow: 0 1px 12px #e0b3ff11;
+    transition: background 0.15s, filter 0.16s, transform 0.12s;
+    box-shadow: 0 2px 6px #ede1fb;
 }
 .submitButton:active, .continueButton:active {
     transform: translateY(1px);
@@ -378,19 +377,27 @@
 .submitButton:disabled, .continueButton:disabled {
     opacity: 0.62;
     cursor: not-allowed;
-    background: #bdbdbd;
+    background: #ede1fb;
+    color: #b8b2cc;
 }
 .submitButton:hover:not(:disabled), .continueButton:hover:not(:disabled) {
-    background: #b000b9;
+    background: #6b30c6;
     color: #fff;
 }
 .backButton {
     background: transparent;
     border: none;
-    color: #191919;
+    color: #8247e5;
     font-weight: 600;
     cursor: pointer;
     padding: 8px;
+    border-radius: 7px;
+    transition: background 0.16s, color 0.13s;
+}
+.backButton:hover,
+.backButton:focus {
+    background: #f5f0ff;
+    color: #6b30c6;
 }
 .actionsRow {
     width: 100%;
@@ -406,7 +413,7 @@
 }
 .errorMsg {
     color: #b000b9;
-    background: #faf6ff;
+    background: #f8f5fd;
     border-radius: 8px;
     padding: 8px;
     margin-top: 12px;
