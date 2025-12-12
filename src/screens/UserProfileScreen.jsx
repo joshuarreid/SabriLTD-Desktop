@@ -1,35 +1,34 @@
-/**
- * UserProfileScreen
- * - Displays a form for viewing and editing the current user's profile (name & email).
- * - Fetches current user using useCurrentUser hook.
- *
- * @module UserProfileScreen
- */
-
 import React from 'react';
-
 import styles from '../features/profile/styles/userprofilescreen.module.css';
 import {useUserProfile} from "../features/profile/hooks/useUserProfile";
 
 /**
- * Logger for UserProfileScreen component.
- * @constant
+ * Icon for "Saving changes" (orange spinner).
  */
-const logger = {
-    info: (...args) => console.log('[UserProfileScreen]', ...args),
-    error: (...args) => console.error('[UserProfileScreen]', ...args),
-};
+const SavingSpinner = () => (
+    <svg className={styles.iconSpin} width="22" height="22" viewBox="0 0 22 22">
+        <circle
+            cx="11" cy="11" r="9"
+            stroke="#e2762c"
+            strokeWidth="3"
+            fill="none"
+            strokeLinecap="round"
+            strokeDasharray="12 20"
+        />
+    </svg>
+);
 
 /**
- * UserProfileScreen
- * - Presents a user profile form for current user with name/email.
- * - No mutation is wired up yet.
- *
- * @component
- * @returns {JSX.Element}
+ * Icon for "Saved" (green check).
  */
+const SavedCheck = () => (
+    <svg width="22" height="22" viewBox="0 0 22 22">
+        <circle cx="11" cy="11" r="10" fill="#4bbe4b" />
+        <polyline points="6,12 10,16 16,7" fill="none" stroke="#fff" strokeWidth="2" />
+    </svg>
+);
+
 export const UserProfileScreen = () => {
-    logger.info('UserProfileScreen mounted');
     const {
         user,
         loading,
@@ -39,6 +38,9 @@ export const UserProfileScreen = () => {
         handleChange,
         handleSubmit,
         handleReset,
+        isSaving,
+        hasChanges,
+        saveState,
     } = useUserProfile();
 
     if (loading) {
@@ -56,7 +58,6 @@ export const UserProfileScreen = () => {
         );
     }
 
-    // Hide screen if user not resolved for some edge case
     if (!user) return null;
 
     return (
@@ -89,17 +90,39 @@ export const UserProfileScreen = () => {
                         />
                     </div>
                     {formError && <div className={styles.errorMsg}>{formError}</div>}
+
                     <div className={styles.formActions}>
-                        <button type="submit" className={styles.saveButton}>
-                            Save changes
+                        <button
+                            type="submit"
+                            className={styles.saveButton}
+                            disabled={!hasChanges || isSaving}
+                            aria-disabled={!hasChanges || isSaving}
+                        >
+                            Update
                         </button>
                         <button
                             type="button"
                             className={styles.resetButton}
                             onClick={handleReset}
+                            disabled={isSaving}
+                            aria-disabled={isSaving}
                         >
                             Reset
                         </button>
+                    </div>
+                    <div className={styles.saveFeedback}>
+                        {/* Saving feedback */}
+                        {saveState === "saving" && (
+                            <span className={styles.saveState}>
+                                <SavingSpinner /> Saving changes
+                            </span>
+                        )}
+                        {/* Saved feedback, only if nothing left to save and last op was success */}
+                        {saveState === "saved" && !hasChanges && (
+                            <span className={styles.saveState}>
+                                <SavedCheck /> Saved
+                            </span>
+                        )}
                     </div>
                 </form>
             </div>
