@@ -1,0 +1,226 @@
+.profilePanel {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.sectionTitle {
+    font-size: 1.36rem;
+    font-weight: 700;
+    color: #302b4b;
+    margin-bottom: 0.18em;
+}
+
+.sectionSubtitle {
+    color: #948ec3;
+    font-size: 1.01rem;
+    margin-bottom: 1.3em;
+}
+
+.userTableContainer {
+    background: #f7f7fa;
+    border-radius: 9px;
+    border: 1px solid #ececf0;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    padding: 0.5em 0.65em;
+}
+
+.userTable {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: none;
+}
+
+.userTable th,
+.userTable td {
+    padding: 0.55em 0.8em;
+    text-align: left;
+    font-size: 1.08rem;
+    font-weight: 400;
+    color: #473c64;
+}
+
+.userTable th {
+    background: transparent;
+    color: #8A84B3;
+    font-weight: 600;
+}
+
+.userTable tr {
+    background: none;
+}
+
+.userTable tr:not(:last-of-type) {
+    border-bottom: 1px solid #ebe9f4;
+}
+
+.userTable input {
+    font-size: 1rem;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1.2px solid #ececf1;
+    background: #fbfaff;
+    color: #3a3456;
+    min-width: 120px;
+    margin-right: 0.14em;
+    outline: none;
+    transition: border-color 0.18s;
+}
+
+.userTable input:focus {
+    border-color: #8247e5;
+    background: #fff;
+}
+
+.actionButtonsCell {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-width: 160px;
+}
+
+.actionCol {
+    min-width: 150px;
+    text-align: right;
+}
+
+.editBtn,
+.deleteBtn,
+.addBtn,
+.saveBtn,
+.cancelBtn,
+.dangerBtn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 4px 14px;
+    border-radius: 7px;
+    font-size: 1em;
+    font-weight: 500;
+    transition: background 0.14s, color 0.13s;
+    margin-right: 4px;
+}
+
+.editBtn {
+    color: #8247e5;
+}
+
+.editBtn:hover,
+.editBtn:focus-visible {
+    background: #ece9fc;
+}
+
+.deleteBtn {
+    color: #db3675;
+}
+
+.deleteBtn:disabled {
+    color: #b0b0c7;
+    cursor: not-allowed;
+    background: #f1f1f1;
+}
+
+.deleteBtn:hover:not(:disabled),
+.deleteBtn:focus-visible:not(:disabled) {
+    background: #fde7ee;
+}
+
+.addBtn {
+    color: #fff;
+    background: #8247e5;
+}
+
+.addBtn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.addBtn:hover,
+.addBtn:focus-visible {
+    background: #b000b9;
+}
+
+.saveBtn {
+    background: #56cc93;
+    color: #fff;
+}
+
+.saveBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.saveBtn:hover,
+.saveBtn:focus-visible {
+    background: #43b07a;
+}
+
+.cancelBtn {
+    background: #ececf5;
+    color: #7a749d;
+}
+
+.cancelBtn:hover,
+.cancelBtn:focus-visible {
+    background: #dad4f3;
+    color: #665ba6;
+}
+
+.dangerBtn {
+    background: #db3675;
+    color: #fff;
+}
+
+.dangerBtn:disabled {
+    background: #ede6ef;
+    color: #b0b0c7;
+    cursor: not-allowed;
+}
+
+.dangerBtn:hover,
+.dangerBtn:focus-visible {
+    background: #b0006e;
+}
+
+.confirmRemoveRow td {
+    padding: 1.15em 1em;
+    background: #fff8fa;
+    border-bottom: 1px solid #f6daea;
+}
+
+.confirmBox {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    justify-content: space-between;
+}
+
+.userTableFooterRow {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 18px;
+    margin-top: 10px;
+    min-height: 40px;
+    flex-direction: row;
+}
+
+.statusIndicatorWrapper {
+    display: flex;
+    align-items: center;
+    min-width: 80px;
+    height: 40px;
+    margin-right: 6px;
+    /* margin-right spaces it from Add User, keep gap controlled */
+}
+
+.userTableActionsFooter { /* legacy, don't use */
+    display: none;
+}
+
+.loadingRow, .errorRow {
+    padding: 2em;
+    color: #b000b9;
+    text-align: center;
+}
