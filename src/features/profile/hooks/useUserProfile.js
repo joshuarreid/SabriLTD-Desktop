@@ -2,15 +2,16 @@
  * useUserProfile
  * - Custom hook for user profile edit form logic.
  * - Consumes useCurrentUser for initial population.
- * - Handles local form state, change/reset/submit.
- * - No mutation API yet.
+ * - Handles local form state, update mutation, cache invalidation, and error handling.
  *
  * @module useUserProfile
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import {useCurrentUser} from "../../navigationbar/hooks/useCurrentUser";
-
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useCurrentUser } from "../../navigationbar/hooks/useCurrentUser";
+import { updateUser } from "../../../api/user/user";
+import { userKeys } from "../../../api/user/userQueryKeys";
 
 /**
  * Logger for useUserProfile module.
@@ -23,7 +24,7 @@ const logger = {
 
 /**
  * useUserProfile
- * - Handles local form state and validation for editing user profile.
+ * - Handles local form state, update mutation, and query cache invalidation for editing user profile.
  * - Resynchronizes form state any time user changes.
  *
  * @returns {{
@@ -35,6 +36,7 @@ const logger = {
  *   handleChange: function,
  *   handleSubmit: function,
  *   handleReset: function,
+ *   isSaving: boolean
  * }}
  */
 export const useUserProfile = () => {
@@ -48,9 +50,9 @@ export const useUserProfile = () => {
     const [profile, setProfile] = useState({ name: '', email: '' });
     const [formError, setFormError] = useState(null);
 
-    /**
-     * Effect: Keep local form state in sync with loaded user.
-     */
+    /** @type {import('@tanstack/react-query').QueryClient} */
+    const queryClient = useQueryClient();
+
     useEffect(() => {
         if (user) {
             setProfile({ name: user.name, email: user.email });
@@ -71,22 +73,50 @@ export const useUserProfile = () => {
     }, []);
 
     /**
-     * Handles form submission.
+     * useMutation for user update.
+     * Calls updateUser API and then invalidates all user-related caches.
+     */
+    const { mutate: updateProfile, isPending: isSaving } = useMutation({
+        mutationFn: async (fields) => {
+            logger.info('updateProfile mutationFn called', { userId: user.userId, fields });
+            return await updateUser(user.userId, fields);
+        },
+        onSuccess: async (data) => {
+            logger.info('Profile updated successfully', { data });
+            // Invalidate all relevant user queries after update
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: userKeys.me() }),
+                queryClient.invalidateQueries({ queryKey: userKeys.detail(user.userId) }),
+                queryClient.invalidateQueries({ queryKey: userKeys.lists() }),
+                queryClient.invalidateQueries({ queryKey: userKeys.public() }),
+                queryClient.invalidateQueries({ queryKey: userKeys.publicList() }),
+            ]);
+            setFormError(null);
+        },
+        onError: (err) => {
+            logger.error('Profile update failed', err);
+            setFormError(err?.message || 'Failed to update profile. Please try again.');
+        }
+    });
+
+    /**
+     * Handles form submission, updates profile via API, and invalidates caches.
      * @param {React.FormEvent} e
      */
     const handleSubmit = useCallback((e) => {
         e.preventDefault();
         logger.info('handleSubmit', profile);
 
-        // Example validation (expand based on business rules)
+        // Simple validation
         if (!profile.name.trim() || !profile.email.trim()) {
             setFormError('Both name and email are required.');
             return;
         }
-        // No API mutation wired up yet; show log only
-        logger.info('Pretend to submit profile changes:', profile);
-        setFormError('Profile updating is not yet implemented.');
-    }, [profile]);
+
+        updateProfile(profile);
+        // Only depend on profile & updateProfile to avoid stale refs.
+        // user change triggers useEffect to reset profile instead.
+    }, [profile, updateProfile]);
 
     /**
      * Resets the form to the current user values.
@@ -107,5 +137,6 @@ export const useUserProfile = () => {
         handleChange,
         handleSubmit,
         handleReset,
+        isSaving,
     };
 };
