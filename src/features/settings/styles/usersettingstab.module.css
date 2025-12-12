@@ -218,3 +218,40 @@
     padding: 2em 0;
     text-align: center;
 }
+
+/* Confirmation Modal Styles */
+.confirmOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(36,14,41,0.12);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.confirmCard {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 6px 32px rgba(130,71,229,0.10), 0 1.5px 6px rgba(60,60,60,0.04);
+    padding: 2rem 1.7rem 1.2rem 1.7rem;
+    min-width: 340px;
+    max-width: 99vw;
+    text-align: center;
+}
+.confirmTitle {
+    font-size: 1.18rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #362d58;
+    letter-spacing: 0.01em;
+}
+.confirmText {
+    font-size: 1rem;
+    color: #444;
+    margin-bottom: 18px;
+}
+.confirmActions {
+    display: flex;
+    justify-content: center;
+    gap: 1.7em;
+}

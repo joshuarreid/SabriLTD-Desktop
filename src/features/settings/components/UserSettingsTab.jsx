@@ -3,7 +3,8 @@ import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
 import { CiEdit } from "react-icons/ci";
 import { BsTrash3 } from "react-icons/bs";
-import UserEditProfileModal from "../../../components/UserEditProfileModal";
+import EditUserProfileModal from "../../../components/editusermodal/EditUserProfileModal";
+import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal";
 
 /**
  * logger for UserSettingsTab component.
@@ -36,11 +37,13 @@ const UserSettingsTab = () => {
         handleSaveEdit,
         handleAddUser,
         handleRemoveUser,
-        openAddUser,
+        confirmRemoveUser,
+        cancelRemoveUser,
         editingId,
         editStatus,
         addingUser,
         addStatus,
+        removingId // userId being deleted (for confirmation)
     } = useUserSettingsTab();
 
     const [activeMenu, setActiveMenu] = useState(null);
@@ -49,6 +52,11 @@ const UserSettingsTab = () => {
     const [modalUser, setModalUser] = useState(null);
     const [pendingClose, setPendingClose] = useState(false);
     const closeTimeoutRef = useRef();
+
+    // Find the user being confirmed for deletion
+    const removingUser = removingId
+        ? users.find((u) => u.userId === removingId)
+        : null;
 
     /**
      * Toggles the action dropdown menu for a user card.
@@ -237,7 +245,7 @@ const UserSettingsTab = () => {
 
             {/* Edit Modal */}
             {modalMode === "edit" && (
-                <UserEditProfileModal
+                <EditUserProfileModal
                     user={modalUser}
                     open={!!modalUser}
                     isSaving={editStatus === "saving"}
@@ -255,7 +263,7 @@ const UserSettingsTab = () => {
 
             {/* Add Modal */}
             {modalMode === "add" && (
-                <UserEditProfileModal
+                <EditUserProfileModal
                     user={modalUser}
                     open={!!modalUser}
                     isSaving={addStatus === "saving"}
@@ -270,6 +278,21 @@ const UserSettingsTab = () => {
                     error={editModalError}
                 />
             )}
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmationModal
+                open={!!removingUser}
+                onCancel={cancelRemoveUser}
+                onConfirm={() => confirmRemoveUser(removingUser.userId)}
+                title="Are you sure?"
+                description={
+                    removingUser
+                        ? `Are you sure you want to delete user '${removingUser.name}'? This action cannot be undone.`
+                        : ""
+                }
+                confirmText="Delete"
+                cancelText="Cancel"
+            />
         </div>
     );
 };
