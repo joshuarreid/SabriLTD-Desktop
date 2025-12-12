@@ -7,6 +7,7 @@ import { queryClient } from "./config/queryClient";
 import LoginScreen from './screens/loginScreen.jsx';
 import { AuthProvider, useAuth } from './features/login/hooks/useAuth';
 import ProtectedLayout from './layouts/ProtectedLayout';
+import UserProfileScreen from './screens/UserProfileScreen.jsx';
 
 /**
  * ProtectedRoute
@@ -35,9 +36,8 @@ function App() {
     logger.info('App rendered');
     return (
         <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-            <Router>
-
+            <AuthProvider>
+                <Router>
                     <div className="App">
                         <Routes>
                             <Route path="/login" element={<LoginScreen />} />
@@ -51,12 +51,21 @@ function App() {
                                         </ProtectedLayout>
                                     }
                                 />
+                                {/* The profile route wrapped in ProtectedLayout to keep nav bar */}
+                                <Route
+                                    path="/profile"
+                                    element={
+                                        <ProtectedLayout>
+                                            <UserProfileScreen />
+                                        </ProtectedLayout>
+                                    }
+                                />
                                 {/* Add more protected routes as needed */}
                             </Route>
                         </Routes>
                     </div>
-            </Router>
-        </AuthProvider>
+                </Router>
+            </AuthProvider>
         </QueryClientProvider>
     );
 }
