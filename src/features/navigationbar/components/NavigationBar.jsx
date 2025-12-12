@@ -6,7 +6,8 @@ import { useCurrentUser } from '../hooks/useCurrentUser';
 
 /**
  * NavigationBar
- * - Top app bar displaying logo and current user dropdown.
+ * - Top app bar showing logo (left) and UserDropdown with current user (right).
+ *   Uses /me endpoint via useCurrentUser hook for user info.
  *
  * @component
  * @returns {JSX.Element}
@@ -16,18 +17,11 @@ const logger = {
     error: (...args) => console.error('[NavigationBar]', ...args),
 };
 
-/**
- * NavigationBar component for SabriLTD Inventory.
- * - Logs output of useCurrentUser for debugging visibility issues.
- * - Renders Logo, and UserDropdown if user is found.
- *
- * @returns {JSX.Element}
- */
 const NavigationBar = () => {
     logger.info('NavigationBar rendered');
-    const { user, loading } = useCurrentUser();
+    const { user, loading, error } = useCurrentUser();
 
-    logger.info('NavigationBar: useCurrentUser output', { user, loading });
+    logger.info('NavigationBar: useCurrentUser output', { user, loading, error });
 
     return (
         <nav className={styles.navbar} role="navigation">
@@ -35,10 +29,14 @@ const NavigationBar = () => {
                 <Logo />
             </div>
             <div className={styles.user}>
-                {!loading && user ? <UserDropdown user={user} /> : (
-                    <span style={{ color: 'red' }}>
-                        {loading ? 'Loading user...' : 'NO USER FOUND'}
-                    </span>
+                {loading ? (
+                    <span style={{ color: 'gray' }}>Loading user...</span>
+                ) : error ? (
+                    <span style={{ color: 'red' }}>User error</span>
+                ) : user ? (
+                    <UserDropdown user={user} />
+                ) : (
+                    <span style={{ color: 'red' }}>NO USER FOUND</span>
                 )}
             </div>
         </nav>

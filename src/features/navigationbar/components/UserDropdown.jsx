@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import styles from '../styles/userdropdown.module.css';
+import { useAuth } from '../../login/hooks/useAuth';
 
 /**
  * UserDropdown
- * - Shows current user and dropdown for user actions.
+ * - Renders current user name/email and a dropdown menu with Profile and Logout.
  *
  * @component
  * @param {object} props
- * @param {object} props.user - The currently authenticated user.
+ * @param {object} props.user - The currently authenticated user from /me endpoint.
  * @returns {JSX.Element}
  */
 const logger = {
@@ -17,9 +18,10 @@ const logger = {
 
 const UserDropdown = ({ user }) => {
     const [open, setOpen] = useState(false);
+    const { logout } = useAuth();
 
     /**
-     * Toggles the dropdown open/closed.
+     * Toggles dropdown menu.
      */
     const toggleDropdown = () => {
         logger.info('Dropdown toggled', !open);
@@ -27,12 +29,27 @@ const UserDropdown = ({ user }) => {
     };
 
     /**
-     * Placeholder for switching users.
-     * @param {Event} e
+     * Handles 'Profile' menu click.
+     * @param {React.MouseEvent} e
      */
-    const handleSwitchUser = (e) => {
-        logger.info('Switch user clicked');
-        // Implement switch user logic here
+    const handleProfile = (e) => {
+        e.preventDefault();
+        logger.info('Profile selected');
+        // Add navigation to profile page/modal if applicable
+    };
+
+    /**
+     * Handles 'Logout' menu click.
+     * @param {React.MouseEvent} e
+     */
+    const handleLogout = async (e) => {
+        e.preventDefault();
+        logger.info('Logout selected');
+        try {
+            await logout();
+        } catch (err) {
+            logger.error('Logout failed', err);
+        }
     };
 
     if (!user) return null;
@@ -49,8 +66,8 @@ const UserDropdown = ({ user }) => {
             </button>
             {open && (
                 <div className={styles.dropdownMenu}>
-                    <button onClick={handleSwitchUser}>Switch User</button>
-                    {/* Add more menu items here */}
+                    <button onClick={handleProfile}>Profile</button>
+                    <button onClick={handleLogout}>Logout</button>
                 </div>
             )}
         </div>

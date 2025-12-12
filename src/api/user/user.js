@@ -30,6 +30,26 @@ export async function getPublicUsers() {
 }
 
 /**
+ * Fetches the current authenticated user by token using /me endpoint.
+ *
+ * @async
+ * @function getMe
+ * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} User object
+ * @throws {Error} If the request fails (network, 401, 500, etc).
+ */
+export async function getMe() {
+    logger.info('getMe called');
+    try {
+        const response = await apiClient.fetchMe();
+        // Defensive: API wraps payload as { status, data, ... }
+        return response?.data || null;
+    } catch (error) {
+        logger.error('getMe failed', error);
+        throw error;
+    }
+}
+
+/**
  * User module logger (standardized).
  *
  * @constant
