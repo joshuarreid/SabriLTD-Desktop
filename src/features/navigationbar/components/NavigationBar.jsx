@@ -6,7 +6,7 @@ import { IoFolderOpenOutline } from "react-icons/io5";
 import styles from '../styles/navigationbar.module.css';
 import Logo from './Logo';
 import UserDropdown from './UserDropdown';
-import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useCurrentUser } from '../../../hooks/useCurrentUser';
 
 /**
  * logger for NavigationBar component.

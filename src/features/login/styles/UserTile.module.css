@@ -1,58 +1,95 @@
+/**
+ * UserTile - SabriLTD Minimalist Modern Style
+ * - No harsh glow, reduced shadow
+ * - Crisp white card, subtle border
+ * - Avatar uses gentle pastel ring (SabriLTD accent), but is flat and modern
+ * - Hover/selected states are clear but never overpowering
+ * - Typography, layout, sizing: unchanged, keeping accessibility and density
+ */
+
 .userTile {
     width: 128px;
     height: 148px;
-    background: #fafafd;
-    border: 1.5px solid #e8e8e8;
-    border-radius: 18px;
+    background: #fff;
+    border: 1.4px solid #ececf0;
+    border-radius: 17px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 16px 8px 12px 8px;
+    padding: 19px 8px 12px 8px;
     cursor: pointer;
     transition:
-            border 160ms linear,
-            box-shadow 160ms linear,
-            transform 454ms cubic-bezier(.22,.95,.15,1),
-            opacity 414ms cubic-bezier(.22,.95,.15,1);
+            border 150ms cubic-bezier(.22,.95,.15,1),
+            box-shadow 140ms cubic-bezier(.22,.95,.15,1),
+            background 140ms cubic-bezier(.22,.95,.15,1),
+            transform 180ms cubic-bezier(.22,.95,.15,1),
+            opacity 180ms cubic-bezier(.22,.95,.15,1);
     position: relative;
     user-select: none;
     box-sizing: border-box;
-    outline: none;
     opacity: 1;
+    /* Minimal, modern shadow only for slight elevation */
+    box-shadow: 0 2px 8px 0 rgba(130,71,229,0.04), 0 1.5px 4px rgba(36,14,41,0.03);
+    outline: none;
     transform: translateY(0) scale(1);
-}
-.userTile:focus {
-    box-shadow: 0 0 0 3px #e0b3ff66;
-    transform: translateY(-4px);
-}
-.selected {
-    border-color: #b000b9;
-    box-shadow: 0 0 0 2px #e0b3ff44;
+    filter: blur(0px);
 }
 
-/* Modern minimalist avatar */
+.userTile:not(.selected):not(:focus):hover {
+    background: #f8f5fd;
+    border-color: #bca7e2;
+    box-shadow: 0 5px 18px 0 rgba(130,71,229,0.06), 0 2px 4px rgba(44,47,59,0.04);
+    transform: translateY(-1px) scale(1.008);
+    z-index: 2;
+}
+
+.userTile:focus {
+    border-color: #bca7e2;
+    background: #f8f5fd;
+    outline: none;
+    z-index: 3;
+    /* No glow, just pastel border */
+}
+
+.selected {
+    border-color: #8247e5 !important;
+    background: #f5f0ff !important;
+    z-index: 5;
+    /* No shadow ring; only a color border change */
+}
+
 .avatar {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #e0e7ef 65%, #f1f5fa 100%);
-    color: #353f57;
+    background: #f4f2fb;
+    color: #8b88a3;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: 1.3rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    font-weight: 700;
+    font-size: 1.31rem;
+    margin-bottom: 14px;
+    /* Subtle SabriLTD accent ring, flat modern effect */
+    border: 1.7px solid #ede1fb;
     user-select: none;
-    margin-bottom: 12px;
-    border: 2.5px solid #e0b3ff44;
-    transition: border-color 0.18s, box-shadow 0.18s;
+    letter-spacing: 0.07em;
+    box-shadow: none;
+    transition: border-color 150ms, background 130ms;
 }
+
+.selected .avatar {
+    border-color: #8247e5;
+    background: #f5f0ff;
+    color: #8247e5;
+}
+
 .avatarIcon {
-    color: #b5b6bc;
+    color: #b8b2cc;
 }
+
 .userName {
-    color: #222;
+    color: #362d58;
     font-weight: 600;
     letter-spacing: -0.01em;
     font-size: 1rem;
@@ -60,4 +97,24 @@
     margin-top: auto;
     padding: 0 6px;
     word-break: break-word;
+    opacity: 0.98;
+}
+
+@media (max-width: 480px) {
+    .userTile {
+        border-radius: 12px;
+        width: 100px;
+        height: 110px;
+        padding: 12px 4px 8px 4px;
+    }
+    .avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 1.05rem;
+        margin-bottom: 7px;
+    }
+    .userName {
+        font-size: 0.94rem;
+        padding: 0 2px;
+    }
 }

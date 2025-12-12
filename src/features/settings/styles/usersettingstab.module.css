@@ -1,226 +1,257 @@
 .profilePanel {
-    max-width: 800px;
+    max-width: 1260px;
     margin: 0 auto;
+    padding-top: 32px;
+}
+
+.headerSection {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 28px;
 }
 
 .sectionTitle {
-    font-size: 1.36rem;
+    font-size: 1.28rem;
     font-weight: 700;
-    color: #302b4b;
-    margin-bottom: 0.18em;
+    color: #29224c;
+    margin-bottom: 0;
+    letter-spacing: 0.01em;
 }
 
-.sectionSubtitle {
-    color: #948ec3;
-    font-size: 1.01rem;
-    margin-bottom: 1.3em;
-}
-
-.userTableContainer {
-    background: #f7f7fa;
-    border-radius: 9px;
-    border: 1px solid #ececf0;
-    overflow-x: auto;
-    margin-bottom: 16px;
-    padding: 0.5em 0.65em;
-}
-
-.userTable {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: none;
-}
-
-.userTable th,
-.userTable td {
-    padding: 0.55em 0.8em;
-    text-align: left;
-    font-size: 1.08rem;
-    font-weight: 400;
-    color: #473c64;
-}
-
-.userTable th {
-    background: transparent;
-    color: #8A84B3;
-    font-weight: 600;
-}
-
-.userTable tr {
-    background: none;
-}
-
-.userTable tr:not(:last-of-type) {
-    border-bottom: 1px solid #ebe9f4;
-}
-
-.userTable input {
-    font-size: 1rem;
-    padding: 7px 10px;
-    border-radius: 6px;
-    border: 1.2px solid #ececf1;
-    background: #fbfaff;
-    color: #3a3456;
-    min-width: 120px;
-    margin-right: 0.14em;
-    outline: none;
-    transition: border-color 0.18s;
-}
-
-.userTable input:focus {
-    border-color: #8247e5;
-    background: #fff;
-}
-
-.actionButtonsCell {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    min-width: 160px;
-}
-
-.actionCol {
-    min-width: 150px;
-    text-align: right;
-}
-
-.editBtn,
-.deleteBtn,
-.addBtn,
-.saveBtn,
-.cancelBtn,
-.dangerBtn {
+.addUserBtn {
+    background-color: #8247e5;
+    color: #fff;
     border: none;
-    background: none;
+    border-radius: 8px;
+    padding: 0.5em 1.35em;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
-    padding: 4px 14px;
-    border-radius: 7px;
-    font-size: 1em;
-    font-weight: 500;
-    transition: background 0.14s, color 0.13s;
-    margin-right: 4px;
+    transition: background 0.15s;
+    box-shadow: 0 2px 6px 0 rgba(132,71,229,0.06);
 }
 
-.editBtn {
-    color: #8247e5;
+.addUserBtn:hover {
+    background-color: #6b30c6;
 }
 
-.editBtn:hover,
-.editBtn:focus-visible {
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(216px, 1fr));
+    gap: 22px;
+    width: 100%;
+}
+
+.userCard {
+    background: #fff;
+    border-radius: 13px;
+    box-shadow: 0 3px 11px rgba(80,60,180,0.07);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    min-height: 185px;
+    padding: 0 0 16px 0;
+    position: relative;
+    transition: box-shadow 0.18s, transform 0.16s;
+    border: 1.5px solid #f5f2fa;
+}
+
+.userCard:hover {
+    box-shadow: 0 10px 30px 0 rgba(130,71,229,0.10), 0 1.5px 4px rgba(0,0,0,0.01);
+    transform: translateY(-2px) scale(1.017);
+    border-color: #ede1fb;
+}
+
+.cardMenu {
+    position: absolute;
+    top: 15px;
+    right: 17px;
+    z-index: 3;
+}
+
+.menuWrapper {
+    position: relative;
+}
+
+.menuBtn {
+    background: none;
+    border: none;
+    font-size: 1.19rem;
+    color: #b3abc8;
+    padding: 4px 5px;
+    cursor: pointer;
+    transition: color 0.14s;
+    border-radius: 6px;
+}
+
+.menuBtn:hover,
+.menuBtn:focus-visible {
+    color: #473c64;
     background: #ece9fc;
 }
 
-.deleteBtn {
-    color: #db3675;
+.dropdownMenu {
+    position: absolute;
+    top: 28px;
+    right: 0px;
+    background: #fff;
+    box-shadow: 0 4px 18px 0 rgba(58,56,85,0.13);
+    border-radius: 8px;
+    padding: 6px 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+    z-index: 20;
+    border: 1px solid #ececf6;
 }
 
-.deleteBtn:disabled {
-    color: #b0b0c7;
-    cursor: not-allowed;
-    background: #f1f1f1;
-}
-
-.deleteBtn:hover:not(:disabled),
-.deleteBtn:focus-visible:not(:disabled) {
-    background: #fde7ee;
-}
-
-.addBtn {
-    color: #fff;
-    background: #8247e5;
-}
-
-.addBtn:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
-}
-
-.addBtn:hover,
-.addBtn:focus-visible {
-    background: #b000b9;
-}
-
-.saveBtn {
-    background: #56cc93;
-    color: #fff;
-}
-
-.saveBtn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.saveBtn:hover,
-.saveBtn:focus-visible {
-    background: #43b07a;
-}
-
-.cancelBtn {
-    background: #ececf5;
-    color: #7a749d;
-}
-
-.cancelBtn:hover,
-.cancelBtn:focus-visible {
-    background: #dad4f3;
-    color: #665ba6;
-}
-
-.dangerBtn {
-    background: #db3675;
-    color: #fff;
-}
-
-.dangerBtn:disabled {
-    background: #ede6ef;
-    color: #b0b0c7;
-    cursor: not-allowed;
-}
-
-.dangerBtn:hover,
-.dangerBtn:focus-visible {
-    background: #b0006e;
-}
-
-.confirmRemoveRow td {
-    padding: 1.15em 1em;
-    background: #fff8fa;
-    border-bottom: 1px solid #f6daea;
-}
-
-.confirmBox {
+.dropdownItem {
+    background: none;
+    border: none;
+    color: #362d58;
+    font-size: 1rem;
+    min-width: 120px;
+    padding: 8px 20px 8px 18px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    justify-content: space-between;
+    gap: 10px;
+    transition: background 0.16s, color 0.16s;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
 }
-
-.userTableFooterRow {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 18px;
-    margin-top: 10px;
-    min-height: 40px;
-    flex-direction: row;
+.dropdownItem:hover {
+    background: #f8f5fd;
+    color: #8247e5;
 }
-
-.statusIndicatorWrapper {
+.dropdownIcon {
     display: flex;
     align-items: center;
-    min-width: 80px;
-    height: 40px;
-    margin-right: 6px;
-    /* margin-right spaces it from Add User, keep gap controlled */
+    justify-content: center;
+    margin-right: 4px;
+    font-size: 1.13rem;
+    color: #b3abc8;
+    width: 22px;
+    min-width: 22px;
+}
+.dropdownItem span:last-child {
+    /* ensures text is not cramped to icon on small screens/stateless icons */
+    padding-left: 1px;
+    white-space: nowrap;
+    flex: 1;
 }
 
-.userTableActionsFooter { /* legacy, don't use */
-    display: none;
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #f2f0f7;
+    color: #9d95bc;
+    font-size: 1.32rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 26px auto 0 auto;
+    box-shadow: 0 2px 8px rgba(130,71,229,0.04);
+    letter-spacing: 0.03em;
+    user-select: none;
+    border: 1.5px solid #e7e2f9;
 }
 
-.loadingRow, .errorRow {
-    padding: 2em;
-    color: #b000b9;
+.userInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 19px;
+    width: 100%;
+    padding: 0 14px;
+}
+
+.userName {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #362d58;
+    margin-bottom: 4px;
     text-align: center;
+    word-break: break-word;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.userEmail {
+    font-size: 0.95rem;
+    color: #868099;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 5px;
+    word-break: break-all;
+    max-width: 98%;
+    opacity: 0.95;
+}
+
+.userRole {
+    font-size: 0.93rem;
+    color: #b8b2cc;
+    text-align: center;
+    margin-top: 1px;
+    font-weight: 500;
+    opacity: 0.82;
+    letter-spacing: 0.01em;
+}
+
+.noUsers {
+    text-align: center;
+    font-size: 1.18rem;
+    color: #a6a4b4;
+    margin-top: 18px;
+}
+
+.loading,
+.error {
+    font-size: 1.13rem;
+    color: #593ebc;
+    padding: 2em 0;
+    text-align: center;
+}
+
+/* Confirmation Modal Styles */
+.confirmOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(36,14,41,0.12);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.confirmCard {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 6px 32px rgba(130,71,229,0.10), 0 1.5px 6px rgba(60,60,60,0.04);
+    padding: 2rem 1.7rem 1.2rem 1.7rem;
+    min-width: 340px;
+    max-width: 99vw;
+    text-align: center;
+}
+.confirmTitle {
+    font-size: 1.18rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #362d58;
+    letter-spacing: 0.01em;
+}
+.confirmText {
+    font-size: 1rem;
+    color: #444;
+    margin-bottom: 18px;
+}
+.confirmActions {
+    display: flex;
+    justify-content: center;
+    gap: 1.7em;
 }
