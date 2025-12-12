@@ -1,0 +1,18 @@
+.saveState {
+    display: flex;
+    align-items: center;
+    font-size: 1.06em;
+    font-weight: 500;
+    gap: 0.6em;
+    color: #444;
+}
+
+.iconSpin {
+    animation: spinAnim 0.9s linear infinite;
+}
+
+@keyframes spinAnim {
+    100% {
+        transform: rotate(360deg);
+    }
+}

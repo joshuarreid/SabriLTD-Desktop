@@ -1,33 +1,16 @@
 import React from 'react';
 import styles from '../features/profile/styles/userprofilescreen.module.css';
-import {useUserProfile} from "../features/profile/hooks/useUserProfile";
+import { useUserProfile } from "../features/profile/hooks/useUserProfile";
+import SaveStatus from "../components/save/SaveStatus";
 
 /**
- * Icon for "Saving changes" (orange spinner).
+ * UserProfileScreen
+ * - Displays a form for viewing and editing the current user's profile (name & email).
+ * - Renders Update/Reset buttons, validation, and a SaveStatus indicator.
+ *
+ * @component
+ * @returns {JSX.Element}
  */
-const SavingSpinner = () => (
-    <svg className={styles.iconSpin} width="22" height="22" viewBox="0 0 22 22">
-        <circle
-            cx="11" cy="11" r="9"
-            stroke="#e2762c"
-            strokeWidth="3"
-            fill="none"
-            strokeLinecap="round"
-            strokeDasharray="12 20"
-        />
-    </svg>
-);
-
-/**
- * Icon for "Saved" (green check).
- */
-const SavedCheck = () => (
-    <svg width="22" height="22" viewBox="0 0 22 22">
-        <circle cx="11" cy="11" r="10" fill="#4bbe4b" />
-        <polyline points="6,12 10,16 16,7" fill="none" stroke="#fff" strokeWidth="2" />
-    </svg>
-);
-
 export const UserProfileScreen = () => {
     const {
         user,
@@ -111,18 +94,7 @@ export const UserProfileScreen = () => {
                         </button>
                     </div>
                     <div className={styles.saveFeedback}>
-                        {/* Saving feedback */}
-                        {saveState === "saving" && (
-                            <span className={styles.saveState}>
-                                <SavingSpinner /> Saving changes
-                            </span>
-                        )}
-                        {/* Saved feedback, only if nothing left to save and last op was success */}
-                        {saveState === "saved" && !hasChanges && (
-                            <span className={styles.saveState}>
-                                <SavedCheck /> Saved
-                            </span>
-                        )}
+                        <SaveStatus status={saveState} />
                     </div>
                 </form>
             </div>
