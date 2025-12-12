@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { useCurrentUser } from "../../navigationbar/hooks/useCurrentUser";
+import { useCurrentUser } from "../../../hooks/useCurrentUser";
 import { updateUser } from "../../../api/user/user";
 import { userKeys } from "../../../api/user/userQueryKeys";
 
