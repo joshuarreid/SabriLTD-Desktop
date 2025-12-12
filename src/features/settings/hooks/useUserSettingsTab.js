@@ -13,14 +13,17 @@ const logger = {
 };
 
 /**
- * Helper to invalidate all relevant user queries after a mutation.
+ * invalidateAllUserKeys
+ * Invalidates all user query keys after any user mutation (add, update, delete).
+ * Includes: all, lists, list, detail, me (if it's the current user), public, publicList.
  *
+ * @async
+ * @function invalidateAllUserKeys
  * @param {object} queryClient - The TanStack Query client.
  * @param {object} user - The affected user object (if available).
  */
 const invalidateAllUserKeys = async (queryClient, user) => {
     logger.info('Invalidating all relevant user query keys');
-    // Always invalidate these
     await queryClient.invalidateQueries({ queryKey: userKeys.all });
     await queryClient.invalidateQueries({ queryKey: userKeys.lists() });
     await queryClient.invalidateQueries({ queryKey: userKeys.list() });
@@ -31,10 +34,8 @@ const invalidateAllUserKeys = async (queryClient, user) => {
     }
     await queryClient.invalidateQueries({ queryKey: userKeys.public() });
     await queryClient.invalidateQueries({ queryKey: userKeys.publicList() });
-    // If this is to affect the current user, also invalidate me()
-    if (user && typeof user.userId !== "undefined") {
-        await queryClient.invalidateQueries({ queryKey: userKeys.me() });
-    }
+    // Always invalidate 'me'; will fetch correctly if the updated/deleted user is the current user
+    await queryClient.invalidateQueries({ queryKey: userKeys.me() });
 };
 
 /**
@@ -63,12 +64,14 @@ export const useUserSettingsTab = () => {
     const [editStatus, setEditStatus] = useState('idle');
     const [addStatus, setAddStatus] = useState('idle');
 
+    /**
+     * Update user mutation with full cache invalidation on success.
+     */
     const updateUserMutation = useMutation({
         mutationFn: ({ userId, user }) => updateUser(userId, user),
         onMutate: () => setEditStatus('saving'),
         onSuccess: async (_updatedUser, { userId, user }) => {
             logger.info('User updated, invalidating user keys');
-            // Note: user param might not have full info, fallback to userId
             await invalidateAllUserKeys(queryClient, { ...user, userId });
             setEditStatus('saved');
             setTimeout(() => setEditStatus('idle'), 1800);
@@ -80,6 +83,9 @@ export const useUserSettingsTab = () => {
         },
     });
 
+    /**
+     * Delete user mutation with full cache invalidation on success.
+     */
     const deleteUserMutation = useMutation({
         mutationFn: (userId) => deleteUser(userId),
         onSuccess: async (_data, userId) => {
@@ -89,6 +95,9 @@ export const useUserSettingsTab = () => {
         onError: (err) => logger.error('deleteUser failed', err),
     });
 
+    /**
+     * Create user mutation with full cache invalidation on success.
+     */
     const createUserMutation = useMutation({
         mutationFn: (user) => createUser(user),
         onMutate: () => setAddStatus('saving'),
@@ -113,34 +122,53 @@ export const useUserSettingsTab = () => {
     /**
      * openAddUser
      * Opens add new user UX row.
+     *
+     * @function openAddUser
+     * @returns {void}
      */
     const openAddUser = () => setAddingUser(true);
 
     /**
      * handleAddUser
      * Handles creation of a new user.
-     * @param {{name:string,email:string}} user
+     *
+     * @function handleAddUser
+     * @param {{name: string, email: string}} user - User object to create (name & email).
+     * @param {function} [callback] - Optional, callback(error) after mutation completes.
+     * @returns {void}
      */
-    const handleAddUser = (user) => {
+    const handleAddUser = (user, callback) => {
         logger.info('Creating user:', user.name);
         createUserMutation.mutate(user, {
-            onSuccess: () => setAddingUser(false),
+            onSuccess: () => {
+                setAddingUser(false);
+                if (callback) callback(null);
+            },
+            onError: (error) => {
+                if (callback) callback(error);
+            }
         });
     };
 
     /**
      * handleEditUser
      * Open row editor for user.
-     * @param {number} userId
+     *
+     * @function handleEditUser
+     * @param {number} userId - The user ID to edit.
+     * @returns {void}
      */
     const handleEditUser = (userId) => setEditingId(userId);
 
     /**
      * handleSaveEdit
      * Submits an update to a user.
-     * @param {number} userId
-     * @param {{name: string, email: string}} user
-     * @param {function} [callback] - Optional, callback(error) on complete.
+     *
+     * @function handleSaveEdit
+     * @param {number} userId - The user ID to update.
+     * @param {{name: string, email: string}} user - The fields to update.
+     * @param {function} [callback] - Optional, callback(error) after mutation completes.
+     * @returns {void}
      */
     const handleSaveEdit = (userId, user, callback) => {
         logger.info('Saving edit for user', userId, user.name);
@@ -162,14 +190,20 @@ export const useUserSettingsTab = () => {
     /**
      * handleRemoveUser
      * Triggers UI to confirm removal for user.
-     * @param {number} userId
+     *
+     * @function handleRemoveUser
+     * @param {number} userId - The user ID to remove.
+     * @returns {void}
      */
     const handleRemoveUser = (userId) => setRemovingId(userId);
 
     /**
      * confirmRemoveUser
      * Confirm user delete and call mutation.
-     * @param {number} userId
+     *
+     * @function confirmRemoveUser
+     * @param {number} userId - The user ID to confirm remove.
+     * @returns {void}
      */
     const confirmRemoveUser = (userId) => {
         logger.info('Confirm delete for user', userId);
@@ -181,12 +215,18 @@ export const useUserSettingsTab = () => {
     /**
      * cancelRemoveUser
      * Cancels delete for user.
+     *
+     * @function cancelRemoveUser
+     * @returns {void}
      */
     const cancelRemoveUser = () => setRemovingId(null);
 
     /**
      * cancelEditOrAdd
      * Cancels user edit or add UX.
+     *
+     * @function cancelEditOrAdd
+     * @returns {void}
      */
     const cancelEditOrAdd = () => {
         setEditingId(null);

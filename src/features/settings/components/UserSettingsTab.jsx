@@ -34,16 +34,19 @@ const UserSettingsTab = () => {
         error,
         handleEditUser,
         handleSaveEdit,
+        handleAddUser,
         handleRemoveUser,
         openAddUser,
         editingId,
         editStatus,
+        addingUser,
+        addStatus,
     } = useUserSettingsTab();
 
     const [activeMenu, setActiveMenu] = useState(null);
-    const [editingUser, setEditingUser] = useState(null);
     const [editModalError, setEditModalError] = useState(null);
-    // Tracks whether user hit save and we're watching for saved status
+    const [modalMode, setModalMode] = useState(null); // 'edit' | 'add'
+    const [modalUser, setModalUser] = useState(null);
     const [pendingClose, setPendingClose] = useState(false);
     const closeTimeoutRef = useRef();
 
@@ -60,14 +63,25 @@ const UserSettingsTab = () => {
      * @param {object} user
      */
     const openEditModal = (user) => {
-        setEditingUser(user);
+        setModalUser(user);
+        setModalMode("edit");
         setEditModalError(null);
         setPendingClose(false);
         setActiveMenu(null);
     };
 
     /**
-     * Handles a save action from the modal.
+     * Opens the add modal for a new user.
+     */
+    const openAddModal = () => {
+        setModalUser({ name: "", email: "" });
+        setModalMode("add");
+        setEditModalError(null);
+        setPendingClose(false);
+    };
+
+    /**
+     * Handles a save action from the modal (edit).
      * @param {number} userId
      * @param {{ name: string, email: string }} payload
      */
@@ -80,6 +94,25 @@ const UserSettingsTab = () => {
             (error) => {
                 if (error) {
                     setEditModalError(error.message || "Failed to update.");
+                    setPendingClose(false);
+                }
+            }
+        );
+    };
+
+    /**
+     * Handles save for add user modal.
+     * @param {null} ignoredUserId (for parity; not used)
+     * @param {{ name: string, email: string }} payload
+     */
+    const handleModalAdd = (_ignored, payload) => {
+        setEditModalError(null);
+        setPendingClose(true);
+        handleAddUser(
+            payload,
+            (error) => {
+                if (error) {
+                    setEditModalError(error.message || "Failed to create user.");
                     setPendingClose(false);
                 }
             }
@@ -106,22 +139,25 @@ const UserSettingsTab = () => {
     };
 
     /**
-     * Delayed close effect: If we just saved, let modal show 'Saved' for 1s, then close.
+     * Delayed close effect for modal; shows 'Saved' for ~1s before closing.
+     * Distinguishes between add and edit flows.
      */
     useEffect(() => {
-        if (pendingClose && editStatus === "saved") {
+        const status = modalMode === "add" ? addStatus : editStatus;
+        if (pendingClose && status === "saved") {
             closeTimeoutRef.current = setTimeout(() => {
-                setEditingUser(null);
+                setModalUser(null);
+                setModalMode(null);
                 setPendingClose(false);
-                logger.info("Edit modal closed after post-save delay");
-            }, 750);
+                logger.info("Edit/add modal closed after post-save delay");
+            }, 1000);
         }
         return () => {
             if (closeTimeoutRef.current) {
                 clearTimeout(closeTimeoutRef.current);
             }
         };
-    }, [pendingClose, editStatus]);
+    }, [pendingClose, editStatus, addStatus, modalMode]);
 
     if (isPending) {
         return <div className={styles.loading}>Loading users...</div>;
@@ -139,7 +175,7 @@ const UserSettingsTab = () => {
         <div className={styles.profilePanel}>
             <div className={styles.headerSection}>
                 <h2 className={styles.sectionTitle}>Manage Users</h2>
-                <button className={styles.addUserBtn} onClick={openAddUser}>
+                <button className={styles.addUserBtn} onClick={openAddModal}>
                     + Add User
                 </button>
             </div>
@@ -198,15 +234,42 @@ const UserSettingsTab = () => {
                     </div>
                 ))}
             </div>
-            <UserEditProfileModal
-                user={editingUser}
-                open={!!editingUser}
-                isSaving={editStatus === "saving"}
-                saveState={editStatus}
-                onSave={handleModalSave}
-                onClose={() => setEditingUser(null)}
-                error={editModalError}
-            />
+
+            {/* Edit Modal */}
+            {modalMode === "edit" && (
+                <UserEditProfileModal
+                    user={modalUser}
+                    open={!!modalUser}
+                    isSaving={editStatus === "saving"}
+                    saveState={editStatus}
+                    onSave={handleModalSave}
+                    onClose={() => {
+                        setModalUser(null);
+                        setModalMode(null);
+                        setEditModalError(null);
+                        setPendingClose(false);
+                    }}
+                    error={editModalError}
+                />
+            )}
+
+            {/* Add Modal */}
+            {modalMode === "add" && (
+                <UserEditProfileModal
+                    user={modalUser}
+                    open={!!modalUser}
+                    isSaving={addStatus === "saving"}
+                    saveState={addStatus}
+                    onSave={handleModalAdd}
+                    onClose={() => {
+                        setModalUser(null);
+                        setModalMode(null);
+                        setEditModalError(null);
+                        setPendingClose(false);
+                    }}
+                    error={editModalError}
+                />
+            )}
         </div>
     );
 };
