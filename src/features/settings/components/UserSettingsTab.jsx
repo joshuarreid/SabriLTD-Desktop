@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
 import { CiEdit } from "react-icons/ci";
@@ -43,6 +43,9 @@ const UserSettingsTab = () => {
     const [activeMenu, setActiveMenu] = useState(null);
     const [editingUser, setEditingUser] = useState(null);
     const [editModalError, setEditModalError] = useState(null);
+    // Tracks whether user hit save and we're watching for saved status
+    const [pendingClose, setPendingClose] = useState(false);
+    const closeTimeoutRef = useRef();
 
     /**
      * Toggles the action dropdown menu for a user card.
@@ -59,6 +62,7 @@ const UserSettingsTab = () => {
     const openEditModal = (user) => {
         setEditingUser(user);
         setEditModalError(null);
+        setPendingClose(false);
         setActiveMenu(null);
     };
 
@@ -69,12 +73,15 @@ const UserSettingsTab = () => {
      */
     const handleModalSave = (userId, payload) => {
         setEditModalError(null);
+        setPendingClose(true);
         handleSaveEdit(
             userId,
             payload,
             (error) => {
-                if (error) setEditModalError(error.message || "Failed to update.");
-                else setEditingUser(null);
+                if (error) {
+                    setEditModalError(error.message || "Failed to update.");
+                    setPendingClose(false);
+                }
             }
         );
     };
@@ -97,6 +104,24 @@ const UserSettingsTab = () => {
         handleRemoveUser(userId);
         setActiveMenu(null);
     };
+
+    /**
+     * Delayed close effect: If we just saved, let modal show 'Saved' for 1s, then close.
+     */
+    useEffect(() => {
+        if (pendingClose && editStatus === "saved") {
+            closeTimeoutRef.current = setTimeout(() => {
+                setEditingUser(null);
+                setPendingClose(false);
+                logger.info("Edit modal closed after post-save delay");
+            }, 750);
+        }
+        return () => {
+            if (closeTimeoutRef.current) {
+                clearTimeout(closeTimeoutRef.current);
+            }
+        };
+    }, [pendingClose, editStatus]);
 
     if (isPending) {
         return <div className={styles.loading}>Loading users...</div>;
