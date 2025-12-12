@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
+import { CiEdit } from "react-icons/ci";
+import { BsTrash3 } from "react-icons/bs";
 
 /**
  * logger for UserSettingsTab component.
  * Logs lifecycle events and user interactions for traceability.
- *
  * @type {{info: Function, error: Function}}
  */
 const logger = {
@@ -15,8 +16,9 @@ const logger = {
 
 /**
  * UserSettingsTab
- * - Renders users as vertically stacked, centered cards in a responsive grid, each with a three-dots menu for edit/delete.
- * - Fetches and manages users automatically via useUserSettingsTab hook.
+ * Renders users as vertically stacked, centered cards in a responsive grid,
+ * each with a three-dots menu for edit/delete.
+ * Fetches and manages users automatically via useUserSettingsTab hook.
  *
  * @component
  * @returns {JSX.Element}
@@ -38,7 +40,6 @@ const UserSettingsTab = () => {
 
     /**
      * Toggles the action dropdown menu for a user card.
-     *
      * @param {number} userId
      */
     const toggleMenu = (userId) => {
@@ -47,7 +48,6 @@ const UserSettingsTab = () => {
 
     /**
      * Handles edit action for a user and closes the action menu.
-     *
      * @param {number} userId
      */
     const handleEdit = (userId) => {
@@ -57,7 +57,6 @@ const UserSettingsTab = () => {
 
     /**
      * Handles delete action for a user and closes the action menu.
-     *
      * @param {number} userId
      */
     const handleDelete = (userId) => {
@@ -107,14 +106,20 @@ const UserSettingsTab = () => {
                                             onClick={() => handleEdit(user.userId)}
                                             type="button"
                                         >
-                                            Edit
+                      <span className={styles.dropdownIcon}>
+                        <CiEdit size={18} />
+                      </span>
+                                            <span>Edit</span>
                                         </button>
                                         <button
                                             className={styles.dropdownItem}
                                             onClick={() => handleDelete(user.userId)}
                                             type="button"
                                         >
-                                            Delete
+                      <span className={styles.dropdownIcon}>
+                        <BsTrash3 size={17} />
+                      </span>
+                                            <span>Delete</span>
                                         </button>
                                     </div>
                                 )}
