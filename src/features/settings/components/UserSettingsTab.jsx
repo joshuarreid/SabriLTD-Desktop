@@ -3,18 +3,20 @@ import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
 
 /**
- * logger for UserSettingsTab component
+ * logger for UserSettingsTab component.
+ * Logs lifecycle events and user interactions for traceability.
+ *
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log('[UserSettingsTab]', ...args),
-    error: (...args) => console.error('[UserSettingsTab]', ...args),
+    info: (...args) => console.log("[UserSettingsTab]", ...args),
+    error: (...args) => console.error("[UserSettingsTab]", ...args),
 };
 
 /**
  * UserSettingsTab
- * - Renders users as cards in a responsive grid, each with a menu for edit/delete.
- * - Fetches and manages users automatically.
+ * - Renders users as vertically stacked, centered cards in a responsive grid, each with a three-dots menu for edit/delete.
+ * - Fetches and manages users automatically via useUserSettingsTab hook.
  *
  * @component
  * @returns {JSX.Element}
@@ -34,23 +36,46 @@ const UserSettingsTab = () => {
 
     const [activeMenu, setActiveMenu] = useState(null);
 
-    /** Toggle card menu */
+    /**
+     * Toggles the action dropdown menu for a user card.
+     *
+     * @param {number} userId
+     */
     const toggleMenu = (userId) => {
         setActiveMenu(activeMenu === userId ? null : userId);
     };
 
-    /** Handle add/edit/delete actions */
+    /**
+     * Handles edit action for a user and closes the action menu.
+     *
+     * @param {number} userId
+     */
     const handleEdit = (userId) => {
         handleEditUser(userId);
         setActiveMenu(null);
     };
+
+    /**
+     * Handles delete action for a user and closes the action menu.
+     *
+     * @param {number} userId
+     */
     const handleDelete = (userId) => {
         handleRemoveUser(userId);
         setActiveMenu(null);
     };
 
-    if (isPending) return <div>Loading users...</div>;
-    if (isError) return <div>Error: {error?.message || "Failed to load users."}</div>;
+    if (isPending) {
+        return <div className={styles.loading}>Loading users...</div>;
+    }
+
+    if (isError) {
+        return (
+            <div className={styles.error}>
+                Error: {error?.message || "Failed to load users."}
+            </div>
+        );
+    }
 
     return (
         <div className={styles.profilePanel}>
@@ -62,33 +87,49 @@ const UserSettingsTab = () => {
             </div>
             <div className={styles.gridContainer}>
                 {(users ?? []).map((user) => (
-                    <div
-                        key={user.userId}
-                        className={styles.userCard}
-                    >
-                        <div className={styles.cardHeader}>
-                            <div className={styles.avatar}>
-                                {user.avatar || user.name?.[0]?.toUpperCase() || "?"}
-                            </div>
+                    <div key={user.userId} className={styles.userCard}>
+                        {/* Actions menu in top right */}
+                        <div className={styles.cardMenu}>
                             <div className={styles.menuWrapper}>
                                 <button
                                     className={styles.menuBtn}
                                     onClick={() => toggleMenu(user.userId)}
                                     aria-label="Open actions"
+                                    tabIndex={0}
+                                    type="button"
                                 >
                                     ⋮
                                 </button>
                                 {activeMenu === user.userId && (
                                     <div className={styles.dropdownMenu}>
-                                        <button className={styles.dropdownItem} onClick={() => handleEdit(user.userId)}>Edit</button>
-                                        <button className={styles.dropdownItem} onClick={() => handleDelete(user.userId)}>Delete</button>
+                                        <button
+                                            className={styles.dropdownItem}
+                                            onClick={() => handleEdit(user.userId)}
+                                            type="button"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className={styles.dropdownItem}
+                                            onClick={() => handleDelete(user.userId)}
+                                            type="button"
+                                        >
+                                            Delete
+                                        </button>
                                     </div>
                                 )}
                             </div>
                         </div>
+                        {/* Centered avatar, then stacked info */}
+                        <div className={styles.avatar}>
+                            {user.avatar || user.name?.[0]?.toUpperCase() || "?"}
+                        </div>
                         <div className={styles.userInfo}>
                             <div className={styles.userName}>{user.name}</div>
-                            <div className={styles.userRole}>{user.role || user.email || "User"}</div>
+                            {user.email && (
+                                <div className={styles.userEmail}>{user.email}</div>
+                            )}
+                            <div className={styles.userRole}>{user.role || "User"}</div>
                         </div>
                     </div>
                 ))}
