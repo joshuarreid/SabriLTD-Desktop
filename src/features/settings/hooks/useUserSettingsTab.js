@@ -13,6 +13,31 @@ const logger = {
 };
 
 /**
+ * Helper to invalidate all relevant user queries after a mutation.
+ *
+ * @param {object} queryClient - The TanStack Query client.
+ * @param {object} user - The affected user object (if available).
+ */
+const invalidateAllUserKeys = async (queryClient, user) => {
+    logger.info('Invalidating all relevant user query keys');
+    // Always invalidate these
+    await queryClient.invalidateQueries({ queryKey: userKeys.all });
+    await queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+    await queryClient.invalidateQueries({ queryKey: userKeys.list() });
+    if (user?.userId !== undefined && user?.userId !== null) {
+        await queryClient.invalidateQueries({ queryKey: userKeys.detail(user.userId) });
+        await queryClient.invalidateQueries({ queryKey: userKeys.update(user.userId) });
+        await queryClient.invalidateQueries({ queryKey: userKeys.remove(user.userId) });
+    }
+    await queryClient.invalidateQueries({ queryKey: userKeys.public() });
+    await queryClient.invalidateQueries({ queryKey: userKeys.publicList() });
+    // If this is to affect the current user, also invalidate me()
+    if (user && typeof user.userId !== "undefined") {
+        await queryClient.invalidateQueries({ queryKey: userKeys.me() });
+    }
+};
+
+/**
  * useUserSettingsTab
  * Encapsulates business logic/state for users table in settings.
  *
@@ -41,10 +66,11 @@ export const useUserSettingsTab = () => {
     const updateUserMutation = useMutation({
         mutationFn: ({ userId, user }) => updateUser(userId, user),
         onMutate: () => setEditStatus('saving'),
-        onSuccess: () => {
-            logger.info('User updated, invalidating user lists');
+        onSuccess: async (_updatedUser, { userId, user }) => {
+            logger.info('User updated, invalidating user keys');
+            // Note: user param might not have full info, fallback to userId
+            await invalidateAllUserKeys(queryClient, { ...user, userId });
             setEditStatus('saved');
-            queryClient.invalidateQueries({ queryKey: userKeys.lists() });
             setTimeout(() => setEditStatus('idle'), 1800);
         },
         onError: (err) => {
@@ -56,9 +82,9 @@ export const useUserSettingsTab = () => {
 
     const deleteUserMutation = useMutation({
         mutationFn: (userId) => deleteUser(userId),
-        onSuccess: () => {
-            logger.info('User deleted, invalidating user lists');
-            queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+        onSuccess: async (_data, userId) => {
+            logger.info('User deleted, invalidating user keys');
+            await invalidateAllUserKeys(queryClient, { userId });
         },
         onError: (err) => logger.error('deleteUser failed', err),
     });
@@ -66,10 +92,10 @@ export const useUserSettingsTab = () => {
     const createUserMutation = useMutation({
         mutationFn: (user) => createUser(user),
         onMutate: () => setAddStatus('saving'),
-        onSuccess: () => {
-            logger.info('User created, invalidating user lists');
+        onSuccess: async (createdUser) => {
+            logger.info('User created, invalidating user keys');
+            await invalidateAllUserKeys(queryClient, createdUser);
             setAddStatus('saved');
-            queryClient.invalidateQueries({ queryKey: userKeys.lists() });
             setTimeout(() => setAddStatus('idle'), 1800);
         },
         onError: (err) => {
