@@ -1,41 +1,95 @@
 /**
- * TanStack Query keys for User-related queries.
+ * Query keys for User-related TanStack queries & mutations.
  *
- * Provides a consistent, stable structure for cache keys related to public user endpoints and current user.
- * Use these keys for managing query caches such as public user listing and current user (/me).
+ * Canonical, canonicalized shape to avoid cache bugs and ensure uniform query shape across the app.
  *
- * @see https://tanstack.com/query/v4/docs/react/guides/query-keys
+ * @see https://tanstack.com/query/latest/docs/framework/react/guides/query-keys
  */
-
-const logger = {
-    info: (...args) => console.log('[userQueryKeys]', ...args),
-    error: (...args) => console.error('[userQueryKeys]', ...args),
-};
 
 /**
  * Top-level user query cache key.
  * @constant
  * @type {Array}
  */
-const USER = ['user'];
+export const USER = ['user'];
 
 /**
- * userKeys
- * - Standardized key for user queries.
+ * Canonical User query/mutation cache keys.
  *
- * @namespace
+ * Usage examples:
+ *   userKeys.lists()                       // ['user', 'lists']
+ *   userKeys.list({ status: 'active' })    // ['user', 'lists', { filters: { status: 'active' } }]
+ *   userKeys.detail(101)                   // ['user', 'detail', 101]
+ *   userKeys.me()                          // ['user', 'me']
+ *   userKeys.public()                      // ['user', 'public']
+ *   userKeys.publicList({ q: 'Jane' })     // ['user', 'public-list', { filters: { q: 'Jane' } }]
+ *   userKeys.create()                      // ['user', 'create']
+ *   userKeys.update(101)                   // ['user', 'detail', 101, 'update']
+ *   userKeys.remove(101)                   // ['user', 'detail', 101, 'remove']
  */
 export const userKeys = {
     /**
-     * Query key for fetching the public (unauthenticated) user list.
-     * Used for UI login screens, selectors, etc.
-     * @returns {Array}
+     * The root key for all user queries.
+     * @type {Array}
      */
-    public: () => [...USER, 'public-list'],
+    all: USER,
+
     /**
-     * Query key for fetching the current authenticated user (via /me).
-     * Used for hooks and UI to cache 'me' status safely.
+     * Key for all user lists (different filter, pagination variants).
      * @returns {Array}
      */
-    me: () => [...USER, 'me'],
+    lists: () => [...userKeys.all, 'lists'],
+
+    /**
+     * Key for a filtered user list.
+     * @param {object} filters
+     * @returns {Array}
+     */
+    list: (filters = {}) => [...userKeys.lists(), { filters }],
+
+    /**
+     * Key for a single user detail by id.
+     * @param {number|string} userId
+     * @returns {Array}
+     */
+    detail: (userId) => [...userKeys.all, 'detail', userId],
+
+    /**
+     * Key for querying the current authenticated user ("me").
+     * @returns {Array}
+     */
+    me: () => [...userKeys.all, 'me'],
+
+    /**
+     * Key for the minimal public users collection (no auth, no filters).
+     * @returns {Array}
+     */
+    public: () => [...userKeys.all, 'public'],
+
+    /**
+     * Key for the minimal public users collection with optional filters.
+     * @param {object} filters
+     * @returns {Array}
+     */
+    publicList: (filters = {}) => [...userKeys.all, 'public-list', { filters }],
+
+    /**
+     * Key for the create user mutation.
+     * @returns {Array}
+     */
+    create: () => [...userKeys.all, 'create'],
+
+    /**
+     * Key for the update user mutation.
+     * @param {number|string} userId
+     * @returns {Array}
+     */
+    update: (userId) => [...userKeys.detail(userId), 'update'],
+
+    /**
+     * Key for the delete user mutation.
+     * @param {number|string} userId
+     * @returns {Array}
+     */
+    remove: (userId) => [...userKeys.detail(userId), 'remove'],
 };

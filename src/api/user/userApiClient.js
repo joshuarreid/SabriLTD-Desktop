@@ -1,7 +1,7 @@
 /**
  * UserApiClient
  * - Specialized API client for user endpoints.
- * - Implements public user list fetching, get current user (/me), and follows Bulletproof React conventions.
+ * - Implements public user list fetching, user CRUD endpoints, and follows Bulletproof React conventions.
  *
  * @module UserApiClient
  */
@@ -43,7 +43,7 @@ const getTokenFromElectron = async () => {
 
 /**
  * UserApiClient
- * Handles API requests to user endpoints, including public listing and /me endpoint.
+ * Handles API requests to user endpoints, including CRUD, public listing, and /me endpoint.
  *
  * @class
  * @extends ApiClient
@@ -99,7 +99,6 @@ export default class UserApiClient extends ApiClient {
                 logger.error('fetchMe failed: No token available');
                 throw new Error('No authentication token found');
             }
-            // Headers must be passed as the third options argument (see ApiClient.get signature)
             const response = await this.get('/me', {}, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -109,6 +108,146 @@ export default class UserApiClient extends ApiClient {
             return response;
         } catch (error) {
             logger.error('fetchMe failed', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Fetches the list of all users (requires authentication).
+     * @async
+     * @returns {Promise<Object>} API response with array of user objects
+     * @throws {Error} If the request fails (network, 401, 500, etc).
+     */
+    async fetchAllUsers() {
+        logger.info('fetchAllUsers called');
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error('fetchAllUsers failed: No token available');
+                throw new Error('No authentication token found');
+            }
+            const response = await this.get('/', {}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            logger.info('fetchAllUsers success', { count: Array.isArray(response?.data) ? response.data.length : 0 });
+            return response;
+        } catch (error) {
+            logger.error('fetchAllUsers failed', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Fetches a specific user by user ID (requires authentication).
+     * @async
+     * @param {number} userId - The user ID to retrieve.
+     * @returns {Promise<Object>} API response with user object
+     * @throws {Error} If user does not exist or request fails.
+     */
+    async fetchUserById(userId) {
+        logger.info('fetchUserById called', { userId });
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error('fetchUserById failed: No token available');
+                throw new Error('No authentication token found');
+            }
+            const response = await this.get(`/${userId}`, {}, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            logger.info('fetchUserById success', { userId: response?.data?.userId });
+            return response;
+        } catch (error) {
+            logger.error('fetchUserById failed', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Creates a new user (requires authentication).
+     * @async
+     * @param {Object} payload - The user object { name, email }
+     * @returns {Promise<Object>} API response with newly created user
+     * @throws {Error} If request fails, email is duplicate, or validation fails.
+     */
+    async createUser(payload) {
+        logger.info('createUser called', { name: payload?.name });
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error('createUser failed: No token available');
+                throw new Error('No authentication token found');
+            }
+            const response = await this.post('/', payload, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            logger.info('createUser success', { userId: response?.data?.userId });
+            return response;
+        } catch (error) {
+            logger.error('createUser failed', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Updates an existing user by userId (requires authentication).
+     * @async
+     * @param {number} userId - The user ID to update
+     * @param {Object} payload - Updated user fields { name, email }
+     * @returns {Promise<Object>} API response with updated user
+     * @throws {Error} If not found, validation fails, or request fails.
+     */
+    async updateUser(userId, payload) {
+        logger.info('updateUser called', { userId });
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error('updateUser failed: No token available');
+                throw new Error('No authentication token found');
+            }
+            const response = await this.put(`/${userId}`, payload, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            logger.info('updateUser success', { userId: response?.data?.userId });
+            return response;
+        } catch (error) {
+            logger.error('updateUser failed', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Deletes a user by userId (requires authentication).
+     * @async
+     * @param {number} userId - The user ID to delete.
+     * @returns {Promise<Object>} API success response or throws
+     * @throws {Error} If user is not found or request fails.
+     */
+    async deleteUser(userId) {
+        logger.info('deleteUser called', { userId });
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error('deleteUser failed: No token available');
+                throw new Error('No authentication token found');
+            }
+            const response = await this.delete(`/${userId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            logger.info('deleteUser success', { userId });
+            return response;
+        } catch (error) {
+            logger.error('deleteUser failed', error);
             throw error;
         }
     }
