@@ -1,68 +1,72 @@
 import React from "react";
 import styles from "../styles/storagesettingstab.module.css";
+import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab";
+import { LuWarehouse } from "react-icons/lu";
 
 /**
- * StorageSettingsTab Wireframe
- * Visual wireframe for storage settings with a "Buildings" section styled as a horizontal scrollable card list.
+ * logger for StorageSettingsTab component.
+ * Logs lifecycle events and user interactions for traceability.
+ * @type {{info: Function, error: Function}}
+ */
+const logger = {
+    info: (...args) => console.log("[StorageSettingsTab]", ...args),
+    error: (...args) => console.error("[StorageSettingsTab]", ...args),
+};
+
+/**
+ * StorageSettingsTab
+ * Storage settings UI wireframe with a "Buildings" horizontal scroll section,
+ * using LuWarehouse as the building icon.
  *
  * @component
  * @returns {JSX.Element}
  */
-const demoBuildings = [
-    {
-        id: 1,
-        name: "HQ - Main",
-        address: "123 Main St.",
-        manager: "Jane Doe",
-    },
-    {
-        id: 2,
-        name: "HQ - Warehouse",
-        address: "101 Storage Rd.",
-        manager: "John Smith",
-    },
-    {
-        id: 3,
-        name: "Remote Office",
-        address: "55 West St.",
-        manager: "Sam Green",
-    },
-    {
-        id: 4,
-        name: "Research Annex",
-        address: "77 Science Park",
-        manager: "Ava Robinson",
-    },
-];
+const StorageSettingsTab = () => {
+    logger.info("StorageSettingsTab rendered");
+    const {
+        buildings,
+        isPending,
+        isError,
+        error,
+        // openAddBuilding // would be used for actual add logic
+    } = useStorageSettingsTab();
 
-const StorageSettingsTab = () => (
-    <div className={styles.tabRoot}>
-        <div className={styles.sectionHeaderRow}>
-            <h2 className={styles.sectionTitle}>Buildings</h2>
-            <button className={styles.allButton}>See All</button>
-        </div>
-        <div className={styles.cardsScrollRow}>
-            {demoBuildings.map((building) => (
-                <div key={building.id} className={styles.buildingCard}>
-                    <div className={styles.buildingThumbnail} />
-                    <div className={styles.buildingInfo}>
-                        <div className={styles.buildingName}>{building.name}</div>
-                        <div className={styles.buildingAddress}>{building.address}</div>
-                        <div className={styles.buildingManager}>
-                            <span className={styles.managerLabel}>Manager:</span>{" "}
-                            <span>{building.manager}</span>
-                        </div>
-                    </div>
-                </div>
-            ))}
-            {/* Optionally, a "Add Building" card */}
-            <div className={styles.buildingCardAdd}>
-                <span className={styles.addIcon}>+</span>
-                <div className={styles.addLabel}>Add Building</div>
+    return (
+        <div className={styles.tabRoot}>
+            <div className={styles.sectionHeaderRow}>
+                <h2 className={styles.sectionTitle}>Buildings</h2>
+                <button className={styles.addUserBtn /* see .module.css */}>
+                    + Add Building
+                </button>
             </div>
+            {isPending ? (
+                <div className={styles.loading}>Loading buildings…</div>
+            ) : isError ? (
+                <div className={styles.error}>
+                    Error: {error?.message || "Failed to load buildings."}
+                </div>
+            ) : (
+                <div className={styles.cardsScrollRow}>
+                    {(buildings ?? []).map((building) => (
+                        <div key={building.buildingId} className={styles.buildingCard}>
+                            <div className={styles.buildingIconWrap}>
+                                <LuWarehouse className={styles.buildingIcon} />
+                            </div>
+                            <div className={styles.buildingInfo}>
+                                <div className={styles.buildingName}>{building.name}</div>
+                                <div className={styles.buildingAddress}>{building.address}</div>
+                                <div className={styles.buildingManager}>
+                                    <span className={styles.managerLabel}>Manager:</span>{" "}
+                                    <span>{building.manager}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+            {/* Additional storage settings wireframe sections can go below */}
         </div>
-        {/* Additional storage settings wireframe sections can go below */}
-    </div>
-);
+    );
+};
 
 export default StorageSettingsTab;

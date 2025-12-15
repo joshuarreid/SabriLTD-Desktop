@@ -20,17 +20,22 @@
     margin: 0;
 }
 
-.allButton {
-    background: none;
+/* Copied/adjusted from .addUserBtn for "Add Building" button */
+.addUserBtn {
+    background-color: #8247e5;
+    color: #fff;
     border: none;
-    color: #7d46e5;
+    border-radius: 8px;
+    padding: 0.5em 1.35em;
+    font-size: 0.95rem;
     font-weight: 600;
-    font-size: 1rem;
     cursor: pointer;
-    padding: 0 2px;
-    transition: color 0.15s;
+    transition: background 0.15s;
+    box-shadow: 0 2px 6px 0 rgba(132,71,229,0.06);
 }
-.allButton:hover { color: #5f2dad; }
+.addUserBtn:hover {
+    background-color: #6b30c6;
+}
 
 .cardsScrollRow {
     display: flex;
@@ -41,8 +46,7 @@
     scrollbar-color: #e4dbee #fff;
 }
 
-.buildingCard,
-.buildingCardAdd {
+.buildingCard {
     background: #fff;
     border-radius: 18px;
     box-shadow: 0 5px 18px 0 rgba(100,71,145,0.07);
@@ -59,21 +63,28 @@
     margin-bottom: 5px;
 }
 
-.buildingCard:hover,
-.buildingCardAdd:hover {
+.buildingCard:hover {
     box-shadow: 0 11px 28px 0 rgba(130,71,229,0.16), 0 1.5px 3px rgba(0,0,0,0.01);
     transform: translateY(-2px) scale(1.017);
     border-color: #e0d2f9;
 }
 
-.buildingThumbnail {
-    width: 90%;
-    height: 96px;
-    margin-top: 23px;
-    border-radius: 13px;
-    background: linear-gradient(93deg, #f3eafb 42%, #e7ecfd 100%);
-    margin-bottom: 16px;
+.buildingIconWrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    min-height: 96px;
 }
+.buildingIcon {
+    font-size: 3.3rem;
+    color: #a993ee;
+    opacity: 0.88;
+}
+
+.buildingThumbnail { display: none; }
 
 .buildingInfo {
     display: flex;
@@ -110,24 +121,18 @@
     color: #7d46e5;
 }
 
-.buildingCardAdd {
-    justify-content: center;
-    cursor: pointer;
-    border-style: dashed;
-    border-color: #cebdf3;
-    opacity: 0.94;
-}
-
-.addIcon {
-    font-size: 2.65rem;
-    color: #a993ee;
-    font-weight: 400;
-    margin-top: 16px;
-}
 .addLabel {
     color: #8d7cd7;
     font-weight: 600;
     font-size: 1.06rem;
     margin-top: 10px;
     letter-spacing: .02em;
+}
+
+.loading,
+.error {
+    font-size: 1.13rem;
+    color: #593ebc;
+    padding: 2em 0;
+    text-align: center;
 }
