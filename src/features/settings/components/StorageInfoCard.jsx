@@ -1,13 +1,15 @@
 import React from "react";
-import styles from "../styles/storagesettingstab.module.css";
+import styles from "../styles/storageinfocard.module.css";
 import { PiSelectionForegroundThin, PiOfficeChairBold } from "react-icons/pi";
 import { MdShelves } from "react-icons/md";
 import { FaBoxOpen } from "react-icons/fa";
 import { BiSolidCabinet } from "react-icons/bi";
+import { FaMinus } from "react-icons/fa";
+import { FaMinusCircle } from "react-icons/fa";
 
 /**
  * StorageInfoCard
- * Renders a single storage location card with dynamic icon selection.
+ * Renders a single storage location card with dynamic icon selection and delete icon (no edit icon).
  *
  * @component
  * @param {object} props
@@ -54,6 +56,16 @@ const StorageInfoCard = ({ storage }) => {
     logger.info("StorageInfoCard rendered", { storageId: storage?.storageId });
     return (
         <div className={styles.storageCard}>
+            <div className={styles.storageCardActions}>
+                <button
+                    type="button"
+                    className={styles.storageCardActionBtn}
+                    aria-label="Delete storage location"
+                    tabIndex={0}
+                >
+                    <FaMinusCircle size={13} />
+                </button>
+            </div>
             <div className={styles.storageHeader}>
                 <span className={styles.storageIconWrap}>
                     {getStorageIcon(storage.name)}
