@@ -1,0 +1,133 @@
+.tabRoot {
+    width: 100%;
+    max-width: 1290px;
+    margin: 0 auto;
+    background: #f6f6f9;
+    padding-top: 38px;
+}
+
+.sectionHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px 20px 18px;
+}
+
+.sectionTitle {
+    font-size: 1.28rem;
+    font-weight: 700;
+    color: #29224c;
+    margin: 0;
+}
+
+.allButton {
+    background: none;
+    border: none;
+    color: #7d46e5;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0 2px;
+    transition: color 0.15s;
+}
+.allButton:hover { color: #5f2dad; }
+
+.cardsScrollRow {
+    display: flex;
+    overflow-x: auto;
+    padding: 2px 16px 28px 16px;
+    gap: 22px;
+    scrollbar-width: thin;
+    scrollbar-color: #e4dbee #fff;
+}
+
+.buildingCard,
+.buildingCardAdd {
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 5px 18px 0 rgba(100,71,145,0.07);
+    min-width: 246px;
+    max-width: 256px;
+    min-height: 242px;
+    padding: 0 0 21px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: box-shadow 0.17s, transform 0.17s;
+    border: 1.5px solid #efeaf8;
+    position: relative;
+    margin-bottom: 5px;
+}
+
+.buildingCard:hover,
+.buildingCardAdd:hover {
+    box-shadow: 0 11px 28px 0 rgba(130,71,229,0.16), 0 1.5px 3px rgba(0,0,0,0.01);
+    transform: translateY(-2px) scale(1.017);
+    border-color: #e0d2f9;
+}
+
+.buildingThumbnail {
+    width: 90%;
+    height: 96px;
+    margin-top: 23px;
+    border-radius: 13px;
+    background: linear-gradient(93deg, #f3eafb 42%, #e7ecfd 100%);
+    margin-bottom: 16px;
+}
+
+.buildingInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 93%;
+    min-height: 80px;
+}
+
+.buildingName {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #342266;
+    text-align: center;
+    margin-bottom: 3px;
+    word-break: break-word;
+}
+.buildingAddress {
+    font-size: .97rem;
+    color: #938bac;
+    text-align: center;
+    margin-bottom: 7px;
+}
+.buildingManager {
+    font-size: 0.9rem;
+    color: #a681bc;
+    background: #f1f0f7;
+    border-radius: 7px;
+    padding: 3px 10px 2px 10px;
+    margin-top: 2px;
+}
+.managerLabel {
+    font-weight: 500;
+    color: #7d46e5;
+}
+
+.buildingCardAdd {
+    justify-content: center;
+    cursor: pointer;
+    border-style: dashed;
+    border-color: #cebdf3;
+    opacity: 0.94;
+}
+
+.addIcon {
+    font-size: 2.65rem;
+    color: #a993ee;
+    font-weight: 400;
+    margin-top: 16px;
+}
+.addLabel {
+    color: #8d7cd7;
+    font-weight: 600;
+    font-size: 1.06rem;
+    margin-top: 10px;
+    letter-spacing: .02em;
+}
