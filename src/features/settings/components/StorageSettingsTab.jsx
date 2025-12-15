@@ -33,38 +33,40 @@ const StorageSettingsTab = () => {
 
     return (
         <div className={styles.tabRoot}>
-            <div className={styles.sectionHeaderRow}>
-                <h2 className={styles.sectionTitle}>Buildings</h2>
-                <button className={styles.addUserBtn /* see .module.css */}>
-                    + Add Building
-                </button>
-            </div>
-            {isPending ? (
-                <div className={styles.loading}>Loading buildings…</div>
-            ) : isError ? (
-                <div className={styles.error}>
-                    Error: {error?.message || "Failed to load buildings."}
+            <div className={styles.buildingContainer}>
+                <div className={styles.sectionHeaderRow}>
+                    <h2 className={styles.sectionTitle}>Buildings</h2>
+                    <button className={styles.addUserBtn /* see .module.css */}>
+                        + Add Building
+                    </button>
                 </div>
-            ) : (
-                <div className={styles.cardsScrollRow}>
-                    {(buildings ?? []).map((building) => (
-                        <div key={building.buildingId} className={styles.buildingCard}>
-                            <div className={styles.buildingIconWrap}>
-                                <LuWarehouse className={styles.buildingIcon} />
-                            </div>
-                            <div className={styles.buildingInfo}>
-                                <div className={styles.buildingName}>{building.name}</div>
-                                <div className={styles.buildingAddress}>{building.address}</div>
-                                <div className={styles.buildingManager}>
-                                    <span className={styles.managerLabel}>Manager:</span>{" "}
-                                    <span>{building.manager}</span>
+                {isPending ? (
+                    <div className={styles.loading}>Loading buildings…</div>
+                ) : isError ? (
+                    <div className={styles.error}>
+                        Error: {error?.message || "Failed to load buildings."}
+                    </div>
+                ) : (
+                    <div className={styles.cardsScrollRow}>
+                        {(buildings ?? []).map((building) => (
+                            <div key={building.buildingId} className={styles.buildingCard}>
+                                <div className={styles.buildingIconWrap}>
+                                    <LuWarehouse className={styles.buildingIcon} />
+                                </div>
+                                <div className={styles.buildingInfo}>
+                                    <div className={styles.buildingName}>{building.name}</div>
+                                    <div className={styles.buildingAddress}>{building.address}</div>
+                                    <div className={styles.buildingManager}>
+                                        <span className={styles.managerLabel}>Manager:</span>{" "}
+                                        <span>{building.manager}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-            {/* Additional storage settings wireframe sections can go below */}
+                        ))}
+                    </div>
+                )}
+                {/* Additional storage settings wireframe sections can go below */}
+            </div>
         </div>
     );
 };
