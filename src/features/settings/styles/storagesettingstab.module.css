@@ -1,10 +1,3 @@
-/**
- * Cleaned-up Building Container for StorageSettingsTab.
- * - Light background, subtler border radius, better padding, and shadow
- * - Content width responsive on breakpoints, but always pleasant/proportional within the main page
- * - Based on reference image 2 and Bulletproof React conventions
- */
-
 .tabRoot {
     width: 100%;
     max-width: none;
@@ -14,7 +7,6 @@
 }
 
 .buildingContainer {
-    /* Modern subtle background, less boxy, more inviting */
     max-width: 1300px;
     margin: 0 auto 3rem auto;
     background: #f7f7fa;
@@ -23,21 +15,7 @@
     padding: 36px 40px 34px 40px;
     display: flex;
     flex-direction: column;
-    /* Responsive for wide screens */
     min-width: 0;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-    .buildingContainer {
-        padding: 32px 16px 30px 16px;
-    }
-}
-@media (max-width: 700px) {
-    .buildingContainer {
-        border-radius: 13px;
-        padding: 18px 4px 20px 4px;
-    }
 }
 
 .sectionHeaderRow {
@@ -48,7 +26,6 @@
     padding-left: 0;
     padding-right: 0;
 }
-
 .sectionTitle {
     font-size: 1.23rem;
     font-weight: 700;
@@ -83,6 +60,7 @@
     width: 100%;
 }
 
+/* Building Card style keeps margin bottom for proportional spacing */
 .buildingCard {
     background: #fff;
     border-radius: 16px;
@@ -94,16 +72,22 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: box-shadow 0.13s, transform 0.13s;
+    transition: box-shadow 0.13s, transform 0.13s, border-color 0.12s;
     border: 1.5px solid #f4f2f9;
     position: relative;
     margin-bottom: 5px;
+    outline: none;
+    cursor: pointer;
 }
-
-.buildingCard:hover {
-    box-shadow: 0 15px 36px 0 rgba(130,71,229,0.17), 0 1.5px 3px rgba(0,0,0,0.01);
-    transform: translateY(-2px) scale(1.01);
-    border-color: #ece4fa;
+.buildingCard:hover,
+.buildingCard:focus-visible {
+    box-shadow: 0 13px 30px 0 rgba(130,71,229,0.17), 0 1.5px 3px rgba(0,0,0,0.01);
+    border-color: #dad3f6;
+}
+.selectedCard {
+    border: 2.3px solid #9F6AE3;
+    box-shadow: 0 7px 26px rgba(130,71,229,0.16), 0 1.5px 5px rgba(0,0,0,0.01);
+    background: #f5edff;
 }
 
 .buildingIconWrap {
@@ -115,13 +99,11 @@
     margin-bottom: 7px;
     min-height: 76px;
 }
-
 .buildingIcon {
     font-size: 2.5rem;
     color: #a993ee;
     opacity: 0.87;
 }
-
 .buildingInfo {
     display: flex;
     flex-direction: column;
@@ -161,40 +143,82 @@
     margin-right: 2px;
 }
 
-/* Add card style */
-.buildingCardAdd {
-    background: #f9f6fe;
-    border-radius: 16px;
-    border: 1.5px dashed #b7a7ed;
-    min-width: 160px;
-    max-width: 190px;
-    min-height: 176px;
-    box-shadow: none;
+/* -- STORAGE LOCATIONS PANEL AND CARDS -- */
+.storageLocationsContainer {
+    margin-top: 34px;
+    background: #f9f8fc;
+    box-shadow: 0 5px 34px 0 rgba(120,112,205,0.07);
+    border-radius: 19px;
+    padding: 32px 36px 38px 36px;
+}
+.storageLocationsHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 18px;
+}
+.storageLocationsTitle {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #222133;
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+
+.storageSectionPanel {
+    min-height: 185px;
+    width: 100%;
+}
+.storageGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(283px, 1fr));
+    gap: 20px;
+    margin-top: 4px;
+}
+.storageCard {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(163,124,233,0.04);
+    padding: 22px 23px 18px 23px;
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
+    border: 1.5px solid #e5dff7;
+    transition: box-shadow 0.13s, border-color 0.13s;
+}
+.storageCard:hover,
+.storageCard:focus-visible {
+    border-color: #ac97e7;
+    box-shadow: 0 6px 16px 0 rgba(130,71,229,0.13), 0 1.5px 4px rgba(0,0,0,0.01);
+}
+.storageHeader {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    opacity: 0.96;
-    cursor: pointer;
-    transition: background 0.14s, border-color 0.13s;
+    margin-bottom: 8px;
 }
-.buildingCardAdd:hover {
-    background: #f3edfa;
-    border-color: #8c77d4;
-    box-shadow: 0 5px 18px 0 rgba(132,71,229,0.07);
+.storageIconWrap {
+    display: flex;
+    margin-right: 11px;
 }
-.addIcon {
-    font-size: 2.3rem;
+.storageIcon {
+    font-size: 1.5rem;
     color: #a993ee;
-    font-weight: 600;
-    margin-top: 12px;
 }
-.addLabel {
-    color: #8d7cd7;
+.storageName {
+    font-size: 1.07rem;
     font-weight: 600;
-    font-size: 1.02rem;
-    margin-top: 10px;
-    letter-spacing: .01em;
+    color: #342266;
+}
+.storageDesc {
+    font-size: .97rem;
+    color: #6e6298;
+    margin-top: 2px;
+}
+.noStorageMsg {
+    color: #b2a7d2;
+    font-size: 1.12rem;
+    text-align: center;
+    padding: 42px 0 0 0;
 }
 
 .loading,
