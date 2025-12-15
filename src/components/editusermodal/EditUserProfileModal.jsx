@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import styles from "../../features/profile/styles/userprofilescreen.module.css";
 import modalStyles from "./edituserprofilemodal.module.css";
 import SaveStatus from "../save/SaveStatus";
+import { useEditUserProfileModal } from "./useEditUserProfileModal";
 
 /**
  * EditUserProfileModal
- * Modal for editing a user's basic profile (name & email).
+ * Modal for editing or adding a user's basic profile (name & email).
  *
  * @param {object} props
- * @param {object} props.user - User object to edit {userId, name, email}.
+ * @param {object} props.user - User object to edit {userId, name, email}. Use {name: '', email: ''} for add mode.
  * @param {boolean} props.open - Modal open state.
  * @param {boolean} props.isSaving - If the save action is pending.
  * @param {function} props.onSave - Receives (userId, {name, email}) on submit.
@@ -31,57 +32,15 @@ const EditUserProfileModal = ({
                                   error,
                                   saveState = "idle"
                               }) => {
-    /**
-     * Local draft object for editing name/email.
-     * @type {[object, function]}
-     */
-    const [draft, setDraft] = useState({ name: "", email: "" });
-
-    /**
-     * Form-local error state.
-     * @type {[string | null, function]}
-     */
-    const [formError, setFormError] = useState(null);
-
-    useEffect(() => {
-        if (user) setDraft({ name: user.name || "", email: user.email || "" });
-        setFormError(null);
-        logger.info("Initialized modal draft for user", user);
-    }, [user, open]);
+    const {
+        draft,
+        formError,
+        setFormError,
+        handleChange,
+        handleSubmit
+    } = useEditUserProfileModal(user, isSaving);
 
     if (!open || !user) return null;
-
-    /**
-     * Handles input field changes.
-     * @param {object} e - React.ChangeEvent
-     */
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setDraft((prev) => ({ ...prev, [name]: value }));
-        setFormError(null);
-    };
-
-    /**
-     * Validates and submits the edit form.
-     * @param {React.FormEvent} e
-     */
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!draft.name.trim() || !draft.email.trim()) {
-            setFormError("Both name and email are required.");
-            logger.error("Validation error on save: missing name/email");
-            return;
-        }
-        if (
-            draft.name.trim() === (user.name || "") &&
-            draft.email.trim() === (user.email || "")
-        ) {
-            setFormError("No changes to save.");
-            return;
-        }
-        logger.info("Saving user edit", { id: user.userId, ...draft });
-        onSave(user.userId, { name: draft.name.trim(), email: draft.email.trim() });
-    };
 
     /**
      * Handles cancel (closes modal and resets error).
@@ -91,6 +50,12 @@ const EditUserProfileModal = ({
         logger.info("Modal cancelled");
         onClose();
     };
+
+    /**
+     * Determines if in add or edit mode.
+     * Add mode is when there is no userId and both name/email are empty.
+     */
+    const isAddUser = !user.userId && (!user.name || user.name === "") && (!user.email || user.email === "");
 
     return (
         <div
@@ -108,9 +73,12 @@ const EditUserProfileModal = ({
                 aria-labelledby="edit-modal-title"
             >
                 <h2 className={styles.profileTitle} id="edit-modal-title">
-                    Edit User
+                    {isAddUser ? "Add User" : "Edit User"}
                 </h2>
-                <form className={styles.profileForm} onSubmit={handleSubmit}>
+                <form
+                    className={styles.profileForm}
+                    onSubmit={(e) => handleSubmit(e, onSave)}
+                >
                     <div className={styles.formGroup}>
                         <label htmlFor="edit-name">Name</label>
                         <input
