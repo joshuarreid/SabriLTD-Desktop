@@ -18,6 +18,7 @@ import { FaRegTrashCan } from "react-icons/fa6";
  * @param {function} [props.onDelete] - Called when user confirms user deletion. Receives userId.
  * @param {string|null} props.error - Error message string (optional).
  * @param {'saving'|'saved'|'idle'|'error'} [props.saveState] - Current save state for SaveStatus indicator.
+ * @param {object} [props.currentUser] - Current authenticated user object ({userId, ...}), to prevent self-delete.
  * @returns {JSX.Element|null}
  */
 const logger = {
@@ -33,7 +34,8 @@ const EditUserProfileModal = ({
                                   onClose,
                                   onDelete,
                                   error,
-                                  saveState = "idle"
+                                  saveState = "idle",
+                                  currentUser
                               }) => {
     const {
         draft,
@@ -61,7 +63,7 @@ const EditUserProfileModal = ({
 
     /**
      * Determines if in add or edit mode.
-     * Add mode: no userId and all fields are blank
+     * Add mode: no userId and all fields are blank.
      */
     const isAddUser =
         !user.userId &&
@@ -69,15 +71,29 @@ const EditUserProfileModal = ({
         (!user.email || user.email === "");
 
     /**
+     * Determines if the user being edited is the current user.
+     * @type {boolean}
+     */
+    const isCurrentUser =
+        !!user &&
+        !!currentUser &&
+        String(user.userId) === String(currentUser.userId);
+
+    /**
      * Opens confirmation dialog for delete.
+     * @function handleTrashClick
+     * @param {React.MouseEvent} e
      */
     const handleTrashClick = (e) => {
         e.stopPropagation();
-        setDeleteConfirmOpen(true);
+        if (!isCurrentUser && !isSaving) {
+            setDeleteConfirmOpen(true);
+        }
     };
 
     /**
      * Closes the delete confirmation.
+     * @function handleDeleteCancel
      */
     const handleDeleteCancel = () => {
         setDeleteConfirmOpen(false);
@@ -85,10 +101,11 @@ const EditUserProfileModal = ({
 
     /**
      * Confirms deletion, notifies parent.
+     * @function handleDeleteConfirm
      */
     const handleDeleteConfirm = () => {
         setDeleteConfirmOpen(false);
-        if (onDelete && user.userId) {
+        if (onDelete && user.userId && !isCurrentUser) {
             logger.info("User delete confirmed", user.userId);
             onDelete(user.userId);
         }
@@ -115,10 +132,23 @@ const EditUserProfileModal = ({
                         type="button"
                         className={styles.trashButton}
                         onClick={handleTrashClick}
-                        title="Delete user"
-                        aria-label="Delete user"
-                        disabled={isSaving}
-                        tabIndex={0}
+                        title={
+                            isCurrentUser
+                                ? "Cannot delete your own user profile"
+                                : "Delete user"
+                        }
+                        aria-label={
+                            isCurrentUser
+                                ? "Cannot delete your own user profile"
+                                : "Delete user"
+                        }
+                        disabled={isSaving || isCurrentUser}
+                        tabIndex={isCurrentUser ? -1 : 0}
+                        style={
+                            isCurrentUser
+                                ? { opacity: 0.44, cursor: "not-allowed" }
+                                : undefined
+                        }
                     >
                         <FaRegTrashCan size={20} />
                     </button>
@@ -199,6 +229,7 @@ const EditUserProfileModal = ({
                                     type="button"
                                     className={styles.confirmDelete}
                                     onClick={handleDeleteConfirm}
+                                    disabled={isCurrentUser}
                                 >
                                     Delete
                                 </button>
