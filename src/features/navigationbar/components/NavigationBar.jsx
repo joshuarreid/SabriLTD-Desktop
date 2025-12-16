@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FiSettings } from 'react-icons/fi';
 import { IoIosSearch } from "react-icons/io";
 import { IoFolderOpenOutline } from "react-icons/io5";
@@ -25,16 +25,18 @@ const logger = {
  * @param {JSX.Element} props.icon
  * @param {string} props.label - Accessible label for the icon
  * @param {function} [props.onClick]
+ * @param {boolean} [props.selected] - Whether this button is currently selected/active
  * @returns {JSX.Element}
  */
-const NavIconButton = ({ icon, label, onClick }) => (
+const NavIconButton = ({ icon, label, onClick, selected = false }) => (
     <button
-        className={styles.iconButton}
+        className={`${styles.iconButton}${selected ? ' ' + styles.selectedIconButton : ''}`}
         aria-label={label}
         title={label}
         type="button"
         tabIndex={0}
         onClick={onClick}
+        data-selected={selected ? "true" : undefined}
     >
         {icon}
     </button>
@@ -44,10 +46,11 @@ const NavIconButton = ({ icon, label, onClick }) => (
  * NavigationBarIcons
  * - Renders action icons: search, jobs, gear/settings.
  * - Uses react-icons icons for consistency and modern look.
- * - Settings icon navigates to /settings on click.
+ * - Highlights selected/active icon based on current route using useLocation.
  */
 const NavigationBarIcons = () => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     /**
      * Handles navigation to settings page.
@@ -59,25 +62,39 @@ const NavigationBarIcons = () => {
         navigate('/settings');
     }, [navigate]);
 
+    // Simple route matching (customize if adding more advanced nav)
+    const isSettings = location.pathname.startsWith('/settings');
+    const isJobs = location.pathname.startsWith('/jobs');
+    const isSearch = location.pathname.startsWith('/search');
+
     return (
         <div className={styles.iconGroup}>
             <NavIconButton
                 icon={<IoIosSearch size={24} className={styles.iconSvg} />}
                 label="Search"
+                selected={isSearch}
             />
             <NavIconButton
                 icon={<IoFolderOpenOutline size={24} className={styles.iconSvg} />}
                 label="Jobs"
+                selected={isJobs}
             />
             <NavIconButton
                 icon={<FiSettings size={24} className={styles.iconSvg} />}
                 label="Settings"
                 onClick={handleSettingsClick}
+                selected={isSettings}
             />
         </div>
     );
 };
 
+/**
+ * NavigationBar
+ * Main navigation bar for the application, including icons and user dropdown.
+ * @component
+ * @returns {JSX.Element}
+ */
 const NavigationBar = () => {
     logger.info('NavigationBar rendered');
     const { user, loading, error } = useCurrentUser();
