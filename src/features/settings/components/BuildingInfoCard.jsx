@@ -56,11 +56,6 @@ const BuildingInfoCard = ({ building, selected, onClick, onEdit }) => {
             </div>
             <div className={styles.buildingInfo}>
                 <div className={styles.buildingName}>{building.name}</div>
-                <div className={styles.buildingAddress}>{building.address}</div>
-                <div className={styles.buildingManager}>
-                    <span className={styles.managerLabel}>Manager:</span>{" "}
-                    <span>{building.manager}</span>
-                </div>
             </div>
         </button>
     );

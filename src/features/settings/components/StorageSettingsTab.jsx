@@ -3,12 +3,12 @@ import styles from "../styles/storagesettingstab.module.css";
 import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab";
 import BuildingInfoCard from "./BuildingInfoCard";
 import StorageInfoCard from "./StorageInfoCard";
+import EditBuildingModal from "../../../components/editbuildingmodal/EditBuildingModal";
+
 
 /**
  * StorageSettingsTab
  * UI for managing buildings and their storage locations.
- * - Buildings and storage locations are visually grouped in distinct containers matching the project color theme.
- * - Selected building is highlighted and shows storage locations underneath.
  *
  * @component
  * @returns {JSX.Element}
@@ -17,6 +17,8 @@ const logger = {
     info: (...args) => console.log("[StorageSettingsTab]", ...args),
     error: (...args) => console.error("[StorageSettingsTab]", ...args),
 };
+
+const EMPTY_BUILDING = { name: "", address: "", manager: "" };
 
 const StorageSettingsTab = () => {
     logger.info("StorageSettingsTab mounted");
@@ -27,16 +29,53 @@ const StorageSettingsTab = () => {
         isError,
         error,
         isLoadingWithStorage,
+        addStatus,
+        editStatus,
+        addingBuilding,
+        editingId,
+        openAddBuilding,
+        handleAddBuilding,
+        handleEditBuilding,
+        handleSaveEdit,
+        cancelEditOrAdd,
     } = useStorageSettingsTab();
 
     const [selectedBuildingId, setSelectedBuildingId] = useState(null);
+    const [editBuildingModalOpen, setEditBuildingModalOpen] = useState(false);
+    const [currEditBuilding, setCurrEditBuilding] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
 
-    // Always select the first building on load/change unless a building is already selected
+    // Select the first building whenever the building list changes
     useEffect(() => {
         if ((buildings ?? []).length > 0 && !selectedBuildingId) {
             setSelectedBuildingId(buildings[0].buildingId);
         }
     }, [buildings, selectedBuildingId]);
+
+    // For edit: Open modal if editingId changes
+    useEffect(() => {
+        if (editingId != null) {
+            const building = buildings.find(b => b.buildingId === editingId);
+            setCurrEditBuilding(building);
+            setIsEditMode(true);
+            setEditBuildingModalOpen(true);
+        } else if (!addingBuilding) {
+            setEditBuildingModalOpen(false);
+            setCurrEditBuilding(null);
+        }
+    }, [editingId, buildings, addingBuilding]);
+
+    // For add: Open modal if addingBuilding becomes true
+    useEffect(() => {
+        if (addingBuilding) {
+            setCurrEditBuilding(EMPTY_BUILDING);
+            setIsEditMode(false);
+            setEditBuildingModalOpen(true);
+        } else if (!editingId) {
+            setEditBuildingModalOpen(false);
+            setCurrEditBuilding(null);
+        }
+    }, [addingBuilding, editingId]);
 
     // Find the selected building (with storage) for the lower panel
     const selectedBuildingWithStorage = React.useMemo(() => {
@@ -46,12 +85,47 @@ const StorageSettingsTab = () => {
         );
     }, [buildingsWithStorage, selectedBuildingId]);
 
+    /**
+     * Handles building add/save event from modal
+     * @param {number|null} buildingId
+     * @param {{name: string, address: string, manager: string}} payload
+     */
+    const handleBuildingModalSave = (buildingId, payload) => {
+        logger.info("handleBuildingModalSave", { buildingId, payload });
+        if (!buildingId) {
+            handleAddBuilding(payload, (error) => {
+                // Modal and state will be reset by addStatus
+            });
+        } else {
+            handleSaveEdit(buildingId, payload, (error) => {
+                // Modal and state will be reset by editStatus
+            });
+        }
+    };
+
+    /**
+     * Handles modal close/cancel
+     */
+    const handleModalClose = () => {
+        logger.info("Building modal closed or cancelled");
+        cancelEditOrAdd();
+        setEditBuildingModalOpen(false);
+        setCurrEditBuilding(null);
+        setIsEditMode(false);
+    };
+
     return (
         <div className={styles.tabRoot}>
             <div className={styles.buildingContainer}>
                 <div className={styles.sectionHeaderRow}>
                     <h2 className={styles.sectionTitle}>Buildings</h2>
-                    <button className={styles.addUserBtn}>+ Add Building</button>
+                    <button
+                        className={styles.addUserBtn}
+                        type="button"
+                        onClick={openAddBuilding}
+                    >
+                        + Add Building
+                    </button>
                 </div>
                 <div className={styles.cardsScrollRow}>
                     {(buildings ?? []).map((building) => (
@@ -60,6 +134,7 @@ const StorageSettingsTab = () => {
                             building={building}
                             selected={selectedBuildingId === building.buildingId}
                             onClick={() => setSelectedBuildingId(building.buildingId)}
+                            onEdit={() => handleEditBuilding(building.buildingId)}
                         />
                     ))}
                 </div>
@@ -79,6 +154,15 @@ const StorageSettingsTab = () => {
                     </div>
                 </div>
             </div>
+            <EditBuildingModal
+                building={currEditBuilding}
+                open={editBuildingModalOpen}
+                isSaving={isEditMode ? editStatus === "saving" : addStatus === "saving"}
+                error={null}
+                saveState={isEditMode ? editStatus : addStatus}
+                onSave={handleBuildingModalSave}
+                onClose={handleModalClose}
+            />
         </div>
     );
 };
