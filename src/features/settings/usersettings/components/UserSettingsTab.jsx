@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
 import { useCurrentUser } from "../../../../hooks/useCurrentUser";
-import { CiEdit } from "react-icons/ci";
 import { BsTrash3 } from "react-icons/bs";
 
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
@@ -20,8 +19,8 @@ const logger = {
 
 /**
  * UserSettingsTab
- * Renders users as vertically stacked, centered cards in a responsive grid,
- * each with a three-dots menu for edit/delete.
+ * Renders users as vertically stacked, centered cards in a responsive grid.
+ * Clicking a card opens the edit modal.
  * Fetches and manages users automatically via useUserSettingsTab hook.
  *
  * @component
@@ -46,13 +45,12 @@ const UserSettingsTab = () => {
         addingUser,
         addStatus,
         removingId,
-        deleteUserMutation, // Exposed by useUserSettingsTab for delete status
+        deleteUserMutation,
     } = useUserSettingsTab();
 
     // Get current user
     const { user: currentUser } = useCurrentUser();
 
-    const [activeMenu, setActiveMenu] = useState(null);
     const [editModalError, setEditModalError] = useState(null);
     const [modalMode, setModalMode] = useState(null); // 'edit' | 'add'
     const [modalUser, setModalUser] = useState(null);
@@ -91,14 +89,6 @@ const UserSettingsTab = () => {
     }, [deleteUserMutation?.status, cancelRemoveUser]);
 
     /**
-     * Toggles the action dropdown menu for a user card.
-     * @param {number} userId
-     */
-    const toggleMenu = (userId) => {
-        setActiveMenu(activeMenu === userId ? null : userId);
-    };
-
-    /**
      * Opens the edit modal for a user.
      * @param {object} user
      */
@@ -107,7 +97,6 @@ const UserSettingsTab = () => {
         setModalMode("edit");
         setEditModalError(null);
         setPendingClose(false);
-        setActiveMenu(null);
     };
 
     /**
@@ -160,35 +149,11 @@ const UserSettingsTab = () => {
     };
 
     /**
-     * Handles edit action for a user and closes the action menu.
-     * (Now replaced with modal open)
-     * @param {number} userId
-     */
-    const handleEdit = (userId) => {
-        const toEdit = users.find((u) => u.userId === userId);
-        openEditModal(toEdit);
-    };
-
-    /**
-     * Handles delete action for a user and closes the action menu.
+     * Handles delete action for a user.
      * @param {number} userId
      */
     const handleDelete = (userId) => {
-        // Delegate removal to removingId, so modal (not action menu) controls confirmation
         handleRemoveUser(userId);
-        setActiveMenu(null);
-    };
-
-    /**
-     * Handles the deletion confirmed from modal's inline delete.
-     * @param {number} userId
-     */
-    const handleModalDeleteConfirm = (userId) => {
-        handleRemoveUser(userId);
-        setModalUser(null);
-        setModalMode(null);
-        setEditModalError(null);
-        setPendingClose(false);
     };
 
     /**
@@ -234,58 +199,21 @@ const UserSettingsTab = () => {
             </div>
             <div className={styles.gridContainer}>
                 {(users ?? []).map((user) => {
-                    const isCurrentUser = currentUser && user.userId === currentUser.userId;
                     return (
-                        <div key={user.userId} className={styles.userCard}>
-                            {/* Actions menu in top right */}
-                            <div className={styles.cardMenu}>
-                                <div className={styles.menuWrapper}>
-                                    <button
-                                        className={styles.menuBtn}
-                                        onClick={() => toggleMenu(user.userId)}
-                                        aria-label="Open actions"
-                                        tabIndex={0}
-                                        type="button"
-                                    >
-                                        ⋮
-                                    </button>
-                                    {activeMenu === user.userId && (
-                                        <div className={styles.dropdownMenu}>
-                                            <button
-                                                className={styles.dropdownItem}
-                                                onClick={() => handleEdit(user.userId)}
-                                                type="button"
-                                            >
-                                                <span className={styles.dropdownIcon}>
-                                                    <CiEdit size={18} />
-                                                </span>
-                                                <span>Edit</span>
-                                            </button>
-                                            <button
-                                                className={styles.dropdownItem}
-                                                onClick={() => handleDelete(user.userId)}
-                                                type="button"
-                                                disabled={isCurrentUser}
-                                                style={
-                                                    isCurrentUser
-                                                        ? {
-                                                            opacity: 0.5,
-                                                            pointerEvents: "none",
-                                                            cursor: "not-allowed"
-                                                        }
-                                                        : {}
-                                                }
-                                            >
-                                                <span className={styles.dropdownIcon}>
-                                                    <BsTrash3 size={17} />
-                                                </span>
-                                                <span>Delete</span>
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            {/* Centered avatar, then stacked info */}
+                        <div
+                            key={user.userId}
+                            className={styles.userCard}
+                            tabIndex={0}
+                            onClick={() => openEditModal(user)}
+                            onKeyPress={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    openEditModal(user);
+                                }
+                            }}
+                            role="button"
+                            aria-label={`Edit user ${user.name}`}
+                        >
                             <div className={styles.avatar}>
                                 {user.avatar || user.name?.[0]?.toUpperCase() || "?"}
                             </div>
@@ -334,7 +262,6 @@ const UserSettingsTab = () => {
                         setPendingClose(false);
                     }}
                     error={editModalError}
-                    // No onDelete prop for add modal
                 />
             )}
 

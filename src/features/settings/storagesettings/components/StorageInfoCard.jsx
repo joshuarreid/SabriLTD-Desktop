@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "../styles/storageinfocard.module.css";
-import { PiSelectionForegroundThin, PiOfficeChairBold } from "react-icons/pi";
+import { PiSelectionForegroundBold, PiOfficeChairBold } from "react-icons/pi";
 import { MdShelves } from "react-icons/md";
 import { FaBoxOpen } from "react-icons/fa";
 import { BiSolidCabinet } from "react-icons/bi";
@@ -21,7 +21,7 @@ const logger = {
  * @returns {JSX.Element}
  */
 function getStorageIcon(name) {
-    if (!name) return <PiSelectionForegroundThin className={styles.storageIcon} />;
+    if (!name) return <PiSelectionForegroundBold className={styles.storageIcon} />;
     const lower = name.toLowerCase();
     if (lower.includes("shelf") || lower.includes("shelves")) {
         return <MdShelves className={styles.storageIcon} />;
@@ -40,7 +40,7 @@ function getStorageIcon(name) {
     if (lower.includes("office")) {
         return <PiOfficeChairBold className={styles.storageIcon} />;
     }
-    return <PiSelectionForegroundThin className={styles.storageIcon} />;
+    return <PiSelectionForegroundBold className={styles.storageIcon} />;
 }
 
 /**
