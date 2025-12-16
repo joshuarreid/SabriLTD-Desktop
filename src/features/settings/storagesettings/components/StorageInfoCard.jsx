@@ -26,6 +26,9 @@ function getStorageIcon(name) {
     if (lower.includes("shelf") || lower.includes("shelves")) {
         return <MdShelves className={styles.storageIcon} />;
     }
+    if (lower.includes("cabinet") || lower.includes("cabinets")) {
+        return <BiSolidCabinet className={styles.storageIcon} />;
+    }
     if (
         lower.includes("box") ||
         lower.includes("bin") ||
@@ -33,9 +36,6 @@ function getStorageIcon(name) {
         lower.includes("bins")
     ) {
         return <FaBoxOpen className={styles.storageIcon} />;
-    }
-    if (lower.includes("cabinet") || lower.includes("cabinets")) {
-        return <BiSolidCabinet className={styles.storageIcon} />;
     }
     if (lower.includes("office")) {
         return <PiOfficeChairBold className={styles.storageIcon} />;
