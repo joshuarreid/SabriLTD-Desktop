@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
 import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab";
 import BuildingSettings from "./BuildingSettings";
@@ -22,9 +22,27 @@ const StorageSettingsTab = () => {
     // All business logic packed in custom hook
     const hookValues = useStorageSettingsTab();
 
-    // Split state: these are only used for local building/storage add/edit modal state in this shell,
-    // but all API data/business logic remains in the hook.
-    // BuildingSettings and StorageSettings will use the same hook object.
+    /**
+     * On initial load, selects the first building if none is already selected.
+     * This ensures storage locations can populate for the initial tab state.
+     */
+    useEffect(() => {
+        if (
+            hookValues.buildings &&
+            hookValues.buildings.length > 0 &&
+            !hookValues.selectedBuildingId
+        ) {
+            logger.info(
+                "Selecting first building on initial load:",
+                hookValues.buildings[0].buildingId
+            );
+            hookValues.setSelectedBuildingId(hookValues.buildings[0].buildingId);
+        }
+    }, [
+        hookValues.buildings,
+        hookValues.selectedBuildingId,
+        hookValues.setSelectedBuildingId,
+    ]);
 
     return (
         <div className={styles.tabRoot}>

@@ -2,6 +2,7 @@ import React from "react";
 import styles from "./editstoragemodal.module.css";
 import SaveStatus from "../save/SaveStatus";
 import { useEditStorageModal } from "./useEditStorageModal";
+import { FaRegTrashCan } from "react-icons/fa6";
 
 /**
  * EditStorageModal
@@ -15,6 +16,7 @@ import { useEditStorageModal } from "./useEditStorageModal";
  * @param {boolean} props.isSaving - If the save action is pending.
  * @param {function} props.onSave - Receives (storageId, {name, description, buildingId}) on submit.
  * @param {function} props.onClose - Called on modal backdrop or cancel.
+ * @param {function} [props.onDelete] - Called when user confirms storage deletion. Receives storageId.
  * @param {string|null} props.error - Error message string (optional).
  * @param {'saving'|'saved'|'idle'|'error'} [props.saveState] - Current save state for SaveStatus indicator.
  * @returns {JSX.Element|null}
@@ -31,6 +33,7 @@ const EditStorageModal = ({
                               isSaving,
                               onSave,
                               onClose,
+                              onDelete,
                               error,
                               saveState = "idle",
                           }) => {
@@ -65,7 +68,21 @@ const EditStorageModal = ({
         (!storage.description || storage.description === "");
 
     /**
+     * Handles trash click (calls onDelete prop immediately, allowing outer logic to show a single confirmation modal).
+     * @function handleTrashClick
+     * @param {React.MouseEvent} e
+     */
+    const handleTrashClick = (e) => {
+        e.stopPropagation();
+        if (onDelete && storage.storageId) {
+            logger.info("Trash/delete triggered via EditStorageModal for storageId:", storage.storageId);
+            onDelete(storage.storageId);
+        }
+    };
+
+    /**
      * Passes selectedBuildingId into handleSubmit for proper payload wiring.
+     * @function handleSubmitWithBuildingId
      */
     const handleSubmitWithBuildingId = (e) => {
         e.preventDefault();
@@ -87,6 +104,20 @@ const EditStorageModal = ({
                 aria-modal="true"
                 aria-labelledby="edit-storage-modal-title"
             >
+                {/* Trash icon in top-right (only for edit mode, not add mode) */}
+                {!isAddStorage && (
+                    <button
+                        type="button"
+                        className={styles.trashButton}
+                        onClick={handleTrashClick}
+                        title="Delete storage"
+                        aria-label="Delete storage"
+                        disabled={isSaving}
+                        tabIndex={0}
+                    >
+                        <FaRegTrashCan size={20} />
+                    </button>
+                )}
                 <h2 className={styles.storageTitle} id="edit-storage-modal-title">
                     {isAddStorage ? "Add Storage Location" : "Edit Storage Location"}
                 </h2>
@@ -118,7 +149,6 @@ const EditStorageModal = ({
                             disabled={isSaving}
                         />
                     </div>
-                    {/* Building ID field removed. Value wired via selectedBuildingId on submit. */}
                     {(formError || error) && (
                         <div className={styles.errorMsg}>{formError || error}</div>
                     )}
