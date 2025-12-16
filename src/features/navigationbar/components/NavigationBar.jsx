@@ -1,20 +1,20 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { FiSettings } from 'react-icons/fi';
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { IoIosSearch } from "react-icons/io";
 import { IoFolderOpenOutline } from "react-icons/io5";
-import styles from '../styles/navigationbar.module.css';
-import Logo from './Logo';
-import UserDropdown from './UserDropdown';
-import { useCurrentUser } from '../../../hooks/useCurrentUser';
+import Logo from "./Logo";
+import UserDropdown from "./UserDropdown";
+import SettingsDropdown from "./SettingsDropdown";
+import { useCurrentUser } from "../../../hooks/useCurrentUser";
+import styles from "../styles/navigationbar.module.css";
 
 /**
  * logger for NavigationBar component.
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log('[NavigationBar]', ...args),
-    error: (...args) => console.error('[NavigationBar]', ...args),
+    info: (...args) => console.log("[NavigationBar]", ...args),
+    error: (...args) => console.error("[NavigationBar]", ...args),
 };
 
 /**
@@ -30,7 +30,7 @@ const logger = {
  */
 const NavIconButton = ({ icon, label, onClick, selected = false }) => (
     <button
-        className={`${styles.iconButton}${selected ? ' ' + styles.selectedIconButton : ''}`}
+        className={`${styles.iconButton}${selected ? " " + styles.selectedIconButton : ""}`}
         aria-label={label}
         title={label}
         type="button"
@@ -44,8 +44,7 @@ const NavIconButton = ({ icon, label, onClick, selected = false }) => (
 
 /**
  * NavigationBarIcons
- * - Renders action icons: search, jobs, gear/settings.
- * - Uses react-icons icons for consistency and modern look.
+ * - Renders action icons: search, jobs, and the settings dropdown.
  * - Highlights selected/active icon based on current route using useLocation.
  */
 const NavigationBarIcons = () => {
@@ -53,38 +52,38 @@ const NavigationBarIcons = () => {
     const location = useLocation();
 
     /**
-     * Handles navigation to settings page.
+     * Handles navigation to search and jobs pages.
      * @function
+     * @param {string} path - The path to navigate to.
      * @returns {void}
      */
-    const handleSettingsClick = React.useCallback(() => {
-        logger.info("Settings icon clicked, navigating to /settings");
-        navigate('/settings');
-    }, [navigate]);
+    const handleNavClick = React.useCallback(
+        path => {
+            logger.info(`${path} icon clicked, navigating to ${path}`);
+            navigate(path);
+        },
+        [navigate],
+    );
 
-    // Simple route matching (customize if adding more advanced nav)
-    const isSettings = location.pathname.startsWith('/settings');
-    const isJobs = location.pathname.startsWith('/jobs');
-    const isSearch = location.pathname.startsWith('/search');
+    // Active route matching (update logic as desired for deeper matching)
+    const isSearch = location.pathname.startsWith("/search");
+    const isJobs = location.pathname.startsWith("/jobs");
 
     return (
         <div className={styles.iconGroup}>
             <NavIconButton
                 icon={<IoIosSearch size={24} className={styles.iconSvg} />}
                 label="Search"
+                onClick={() => handleNavClick("/search")}
                 selected={isSearch}
             />
             <NavIconButton
                 icon={<IoFolderOpenOutline size={24} className={styles.iconSvg} />}
                 label="Jobs"
+                onClick={() => handleNavClick("/jobs")}
                 selected={isJobs}
             />
-            <NavIconButton
-                icon={<FiSettings size={24} className={styles.iconSvg} />}
-                label="Settings"
-                onClick={handleSettingsClick}
-                selected={isSettings}
-            />
+            <SettingsDropdown />
         </div>
     );
 };
@@ -96,10 +95,10 @@ const NavigationBarIcons = () => {
  * @returns {JSX.Element}
  */
 const NavigationBar = () => {
-    logger.info('NavigationBar rendered');
+    logger.info("NavigationBar rendered");
     const { user, loading, error } = useCurrentUser();
 
-    logger.info('NavigationBar: useCurrentUser output', { user, loading, error });
+    logger.info("NavigationBar: useCurrentUser output", { user, loading, error });
 
     return (
         <nav className={styles.navbar} role="navigation">
@@ -110,13 +109,13 @@ const NavigationBar = () => {
                 <NavigationBarIcons />
                 <div className={styles.user}>
                     {loading ? (
-                        <span style={{ color: 'gray' }}>Loading user...</span>
+                        <span style={{ color: "gray" }}>Loading user...</span>
                     ) : error ? (
-                        <span style={{ color: 'red' }}>User error</span>
+                        <span style={{ color: "red" }}>User error</span>
                     ) : user ? (
                         <UserDropdown user={user} />
                     ) : (
-                        <span style={{ color: 'red' }}>NO USER FOUND</span>
+                        <span style={{ color: "red" }}>NO USER FOUND</span>
                     )}
                 </div>
             </div>

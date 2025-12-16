@@ -1,10 +1,7 @@
 /**
- * Navigation Bar styles updated for SabriLTD theme consistency:
- * - Background: #fff (panel card white)
- * - Subtle border and pastel shadow for elegant separation
- * - Accent color for icons on hover: #8247e5 (primary), #8247e5 (selected)
- * - Solid black for icons by default: #232323
- * - Font stack and spacing kept for modern clarity
+ * NavigationBar styles for SabriLTD theme consistency.
+ * - Subtle pastel shadow, white background, consistent icons/hover/selected color per app theme.
+ * - Accessible, crisp, and scalable layout.
  */
 
 .navbar {
@@ -14,8 +11,8 @@
     height: 64px;
     padding: 0 2rem;
     background: #fff;
-    border-bottom: 1.5px solid #ececf0;
-    box-shadow: 0 2px 13px 0 rgba(130,71,229,0.06);
+    border-bottom: 1.5px solid #ececf0; /* Pastel border */
+    box-shadow: 0 2px 13px 0 rgba(130, 71, 229, 0.06); /* faint purple shadow */
     font-family: 'Inter', 'Segoe UI', Arial, Helvetica, sans-serif;
     letter-spacing: 0.01em;
 }
@@ -65,23 +62,23 @@
 
 .iconButton:hover,
 .iconButton:focus-visible {
-    background: #f5f0ff; /* settings tab accent */
+    background: #f5f0ff;
 }
 
 .iconSvg {
-    color: #232323;
+    color: #232323; /* solid black by default */
     stroke-width: 1.45;
     transition: color 0.15s, stroke-width 0.17s;
 }
 
-/* Selected/active nav icon styling – MATCH settings tab */
+/* Selected/active nav icon styling: match settings tab look */
 .selectedIconButton,
 .iconButton[data-selected="true"] {
-    background: #f5f0ff !important; /* exact settings tab accent */
+    background: #f5f0ff !important;
 }
 .selectedIconButton .iconSvg,
 .iconButton[data-selected="true"] .iconSvg {
-    color: #8247e5 !important; /* exact settings tab purple */
+    color: #8247e5 !important;
     stroke-width: 2.1;
 }
 
