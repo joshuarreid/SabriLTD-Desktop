@@ -5,15 +5,15 @@ import {
     deleteBuilding,
     getAllBuildings,
     updateBuilding,
-} from "../../../api/building/building";
+} from "../../../../api/building/building";
 import {
     createStorage,
     updateStorage,
     deleteStorage,
     getAllStorage,
-} from "../../../api/storage/storage";
-import { buildingKeys } from "../../../api/building/buildingQueryKeys";
-import { storageKeys } from "../../../api/storage/storageQueryKeys";
+} from "../../../../api/storage/storage";
+import { buildingKeys } from "../../../../api/building/buildingQueryKeys";
+import { storageKeys } from "../../../../api/storage/storageQueryKeys";
 
 /**
  * logger for useStorageSettingsTab hook (Bulletproof React: business logic, robust logging).

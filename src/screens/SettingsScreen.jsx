@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import styles from "../features/settings/styles/settingsscreen.module.css";
-import UserSettingsTab from "../features/settings/components/UserSettingsTab";
-import StorageSettingsTab from "../features/settings/components/StorageSettingsTab";
+import styles from "../features/settings/settingsscreen.module.css";
+import UserSettingsTab from "../features/settings/usersettings/components/UserSettingsTab";
+import StorageSettingsTab from "../features/settings/storagesettings/components/StorageSettingsTab";
 
 /**
  * SettingsScreen

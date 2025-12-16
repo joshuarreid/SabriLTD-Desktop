@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
-import { useCurrentUser } from "../../../hooks/useCurrentUser";
+import { useCurrentUser } from "../../../../hooks/useCurrentUser";
 import { CiEdit } from "react-icons/ci";
 import { BsTrash3 } from "react-icons/bs";
-import EditUserProfileModal from "../../../components/editusermodal/EditUserProfileModal";
-import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal";
+import EditUserProfileModal from "../../../../components/editusermodal/EditUserProfileModal";
+import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 
 /**
  * logger for UserSettingsTab component.

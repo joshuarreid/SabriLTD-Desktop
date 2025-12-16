@@ -3,9 +3,9 @@ import styles from "../styles/storagesettingstab.module.css";
 import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab";
 import BuildingInfoCard from "./BuildingInfoCard";
 import StorageInfoCard from "./StorageInfoCard";
-import EditBuildingModal from "../../../components/editbuildingmodal/EditBuildingModal";
-import EditStorageModal from "../../../components/editstoragemodal/EditStorageModal";
-import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal";
+import EditBuildingModal from "../../../../components/editbuildingmodal/EditBuildingModal";
+import EditStorageModal from "../../../../components/editstoragemodal/EditStorageModal";
+import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 
 /**
  * StorageSettingsTab
