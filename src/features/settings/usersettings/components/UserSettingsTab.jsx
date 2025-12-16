@@ -2,30 +2,23 @@ import React, { useState, useEffect, useRef } from "react";
 import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
 import { useCurrentUser } from "../../../../hooks/useCurrentUser";
-import { CiEdit } from "react-icons/ci";
-import { BsTrash3 } from "react-icons/bs";
-import EditUserProfileModal from "../../../../components/editusermodal/EditUserProfileModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
+import EditUserProfileModal from "../../../../components/editusermodal/EditUserProfileModal";
 
 /**
- * logger for UserSettingsTab component.
- * Logs lifecycle events and user interactions for traceability.
- * @type {{info: Function, error: Function}}
+ * UserSettingsTab
+ * Renders users as vertically stacked, centered cards in a responsive grid.
+ * Clicking a card opens the edit modal.
+ * Fetches and manages users automatically via useUserSettingsTab hook.
+ *
+ * @component
+ * @returns {JSX.Element}
  */
 const logger = {
     info: (...args) => console.log("[UserSettingsTab]", ...args),
     error: (...args) => console.error("[UserSettingsTab]", ...args),
 };
 
-/**
- * UserSettingsTab
- * Renders users as vertically stacked, centered cards in a responsive grid,
- * each with a three-dots menu for edit/delete.
- * Fetches and manages users automatically via useUserSettingsTab hook.
- *
- * @component
- * @returns {JSX.Element}
- */
 const UserSettingsTab = () => {
     logger.info("UserSettingsTab rendered");
 
@@ -34,24 +27,19 @@ const UserSettingsTab = () => {
         isPending,
         isError,
         error,
-        handleEditUser,
         handleSaveEdit,
         handleAddUser,
         handleRemoveUser,
         confirmRemoveUser,
         cancelRemoveUser,
-        editingId,
         editStatus,
-        addingUser,
         addStatus,
         removingId,
-        deleteUserMutation, // Exposed by useUserSettingsTab for delete status
+        deleteUserMutation,
     } = useUserSettingsTab();
 
-    // Get current user
     const { user: currentUser } = useCurrentUser();
 
-    const [activeMenu, setActiveMenu] = useState(null);
     const [editModalError, setEditModalError] = useState(null);
     const [modalMode, setModalMode] = useState(null); // 'edit' | 'add'
     const [modalUser, setModalUser] = useState(null);
@@ -63,7 +51,7 @@ const UserSettingsTab = () => {
         ? users.find((u) => u.userId === removingId)
         : null;
 
-    // Local delete status for modal badge, driven by deleteUserMutation.state
+    // Delete status for badge/confirmation
     const [deleteStatus, setDeleteStatus] = useState("idle");
 
     /**
@@ -90,14 +78,6 @@ const UserSettingsTab = () => {
     }, [deleteUserMutation?.status, cancelRemoveUser]);
 
     /**
-     * Toggles the action dropdown menu for a user card.
-     * @param {number} userId
-     */
-    const toggleMenu = (userId) => {
-        setActiveMenu(activeMenu === userId ? null : userId);
-    };
-
-    /**
      * Opens the edit modal for a user.
      * @param {object} user
      */
@@ -106,7 +86,6 @@ const UserSettingsTab = () => {
         setModalMode("edit");
         setEditModalError(null);
         setPendingClose(false);
-        setActiveMenu(null);
     };
 
     /**
@@ -141,7 +120,7 @@ const UserSettingsTab = () => {
 
     /**
      * Handles save for add user modal.
-     * @param {null} ignoredUserId (for parity; not used)
+     * @param {null} ignoredUserId
      * @param {{ name: string, email: string }} payload
      */
     const handleModalAdd = (_ignored, payload) => {
@@ -159,22 +138,11 @@ const UserSettingsTab = () => {
     };
 
     /**
-     * Handles edit action for a user and closes the action menu.
-     * (Now replaced with modal open)
-     * @param {number} userId
-     */
-    const handleEdit = (userId) => {
-        const toEdit = users.find((u) => u.userId === userId);
-        openEditModal(toEdit);
-    };
-
-    /**
-     * Handles delete action for a user and closes the action menu.
+     * Handles delete action for a user.
      * @param {number} userId
      */
     const handleDelete = (userId) => {
         handleRemoveUser(userId);
-        setActiveMenu(null);
     };
 
     /**
@@ -219,72 +187,33 @@ const UserSettingsTab = () => {
                 </button>
             </div>
             <div className={styles.gridContainer}>
-                {(users ?? []).map((user) => {
-                    const isCurrentUser = currentUser && user.userId === currentUser.userId;
-                    return (
-                        <div key={user.userId} className={styles.userCard}>
-                            {/* Actions menu in top right */}
-                            <div className={styles.cardMenu}>
-                                <div className={styles.menuWrapper}>
-                                    <button
-                                        className={styles.menuBtn}
-                                        onClick={() => toggleMenu(user.userId)}
-                                        aria-label="Open actions"
-                                        tabIndex={0}
-                                        type="button"
-                                    >
-                                        ⋮
-                                    </button>
-                                    {activeMenu === user.userId && (
-                                        <div className={styles.dropdownMenu}>
-                                            <button
-                                                className={styles.dropdownItem}
-                                                onClick={() => handleEdit(user.userId)}
-                                                type="button"
-                                            >
-                                                <span className={styles.dropdownIcon}>
-                                                    <CiEdit size={18} />
-                                                </span>
-                                                <span>Edit</span>
-                                            </button>
-                                            <button
-                                                className={styles.dropdownItem}
-                                                onClick={() => handleDelete(user.userId)}
-                                                type="button"
-                                                disabled={isCurrentUser}
-                                                style={
-                                                    isCurrentUser
-                                                        ? {
-                                                            opacity: 0.5,
-                                                            pointerEvents: "none",
-                                                            cursor: "not-allowed"
-                                                        }
-                                                        : {}
-                                                }
-                                            >
-                                                <span className={styles.dropdownIcon}>
-                                                    <BsTrash3 size={17} />
-                                                </span>
-                                                <span>Delete</span>
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            {/* Centered avatar, then stacked info */}
-                            <div className={styles.avatar}>
-                                {user.avatar || user.name?.[0]?.toUpperCase() || "?"}
-                            </div>
-                            <div className={styles.userInfo}>
-                                <div className={styles.userName}>{user.name}</div>
-                                {user.email && (
-                                    <div className={styles.userEmail}>{user.email}</div>
-                                )}
-                                <div className={styles.userRole}>{user.role || "User"}</div>
-                            </div>
+                {(users ?? []).map((user) => (
+                    <div
+                        key={user.userId}
+                        className={styles.userCard}
+                        tabIndex={0}
+                        onClick={() => openEditModal(user)}
+                        onKeyPress={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                openEditModal(user);
+                            }
+                        }}
+                        role="button"
+                        aria-label={`Edit user ${user.name}`}
+                    >
+                        <div className={styles.avatar}>
+                            {user.avatar || user.name?.[0]?.toUpperCase() || "?"}
                         </div>
-                    );
-                })}
+                        <div className={styles.userInfo}>
+                            <div className={styles.userName}>{user.name}</div>
+                            {user.email && (
+                                <div className={styles.userEmail}>{user.email}</div>
+                            )}
+                            <div className={styles.userRole}>{user.role || "User"}</div>
+                        </div>
+                    </div>
+                ))}
             </div>
             {/* Edit Modal */}
             {modalMode === "edit" && (
@@ -301,6 +230,8 @@ const UserSettingsTab = () => {
                         setPendingClose(false);
                     }}
                     error={editModalError}
+                    onDelete={(userId) => handleDelete(userId)}
+                    currentUser={currentUser}
                 />
             )}
 
@@ -319,6 +250,7 @@ const UserSettingsTab = () => {
                         setPendingClose(false);
                     }}
                     error={editModalError}
+                    currentUser={currentUser}
                 />
             )}
 

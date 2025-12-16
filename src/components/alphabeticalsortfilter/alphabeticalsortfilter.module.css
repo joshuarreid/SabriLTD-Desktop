@@ -1,0 +1,34 @@
+.sortToggleButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: none;
+    box-shadow: 0 1.5px 8px #9b97ad13, 0 0.5px 1px #c5bdd30c;
+    border-radius: 8px;
+    height: 38px;
+    width: 38px;
+    padding: 0;
+    margin-right: 0;
+    margin-left: 12px;
+    transition: border 0.12s, box-shadow 0.14s, color 0.15s, background 0.13s;
+    color: #8854df;
+    outline: none;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.sortToggleButton:focus,
+.sortToggleButton:hover {
+    background: #f8f3ff;
+    border-color: #bda6f9;
+    color: #7f48e1;
+    box-shadow: 0 2.5px 10px #a68ce62a;
+}
+
+.sortToggleIcon {
+    display: inline-block;
+    font-size: 1.12em;
+    color: inherit;
+    margin: 0;
+}
