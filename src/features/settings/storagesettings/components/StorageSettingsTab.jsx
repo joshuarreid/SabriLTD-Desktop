@@ -7,6 +7,7 @@ import EditBuildingModal from "../../../../components/editbuildingmodal/EditBuil
 import EditStorageModal from "../../../../components/editstoragemodal/EditStorageModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 
+
 /**
  * StorageSettingsTab
  * UI for managing buildings and their storage locations, following Bulletproof React conventions.
@@ -68,6 +69,7 @@ const StorageSettingsTab = () => {
     // Storage remove local state
     const [removingStorage, setRemovingStorage] = React.useState(null);
     const [isRemoving, setIsRemoving] = React.useState(false);
+    const [deleteStatus, setDeleteStatus] = React.useState("idle"); // 'deleting' | 'deleted' | 'error' | 'idle'
 
     // Set the first building as selected on load
     useEffect(() => {
@@ -182,6 +184,7 @@ const StorageSettingsTab = () => {
      */
     const handlePromptRemoveStorage = (storage) => {
         setRemovingStorage(storage);
+        setDeleteStatus("idle");
     };
 
     /**
@@ -190,10 +193,30 @@ const StorageSettingsTab = () => {
      */
     const confirmRemoveStorage = (storageId) => {
         setIsRemoving(true);
+        setDeleteStatus("deleting");
         deleteStorageMutation.mutate(storageId, {
+            onSuccess: () => {
+                setDeleteStatus("deleted");
+                setTimeout(() => {
+                    setDeletingDone();
+                }, 1000);
+            },
+            onError: () => {
+                setDeleteStatus("error");
+                setTimeout(() => {
+                    setDeletingDone();
+                }, 1400);
+            },
             onSettled: () => setIsRemoving(false),
-            onSuccess: () => setRemovingStorage(null),
         });
+    };
+
+    /**
+     * Helper to clear delete state after status indicator shown.
+     */
+    const setDeletingDone = () => {
+        setRemovingStorage(null);
+        setDeleteStatus("idle");
     };
 
     /**
@@ -311,6 +334,7 @@ const StorageSettingsTab = () => {
                 cancelText="Cancel"
                 isConfirmLoading={isRemoving}
                 isCancelLoading={false}
+                deleteStatus={deleteStatus}
             />
         </div>
     );

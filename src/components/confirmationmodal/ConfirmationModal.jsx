@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "./confirmationmodal.module.css";
-import DeleteStatus from "./DeleteStatus";
+import DeleteStatus from "../delete/DeleteStatus";
+
 
 /**
  * ConfirmationModal
