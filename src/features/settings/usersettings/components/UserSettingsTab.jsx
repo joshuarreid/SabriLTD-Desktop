@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
-import { useCurrentUser } from "../../../hooks/useCurrentUser";
+import { useCurrentUser } from "../../../../hooks/useCurrentUser";
 import { CiEdit } from "react-icons/ci";
 import { BsTrash3 } from "react-icons/bs";
-import EditUserProfileModal from "../../../components/editusermodal/EditUserProfileModal";
-import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal";
+import EditUserProfileModal from "../../../../components/editusermodal/EditUserProfileModal";
+import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 
 /**
  * logger for UserSettingsTab component.
@@ -44,7 +44,8 @@ const UserSettingsTab = () => {
         editStatus,
         addingUser,
         addStatus,
-        removingId
+        removingId,
+        deleteUserMutation, // Exposed by useUserSettingsTab for delete status
     } = useUserSettingsTab();
 
     // Get current user
@@ -61,6 +62,32 @@ const UserSettingsTab = () => {
     const removingUser = removingId
         ? users.find((u) => u.userId === removingId)
         : null;
+
+    // Local delete status for modal badge, driven by deleteUserMutation.state
+    const [deleteStatus, setDeleteStatus] = useState("idle");
+
+    /**
+     * Syncs deleteStatus state with the user delete mutation.
+     * Delays modal close for success/error so the badge is visible.
+     */
+    useEffect(() => {
+        if (deleteUserMutation?.status === "pending") {
+            setDeleteStatus("deleting");
+        } else if (deleteUserMutation?.status === "success") {
+            setDeleteStatus("deleted");
+            const timer = setTimeout(() => {
+                setDeleteStatus("idle");
+                cancelRemoveUser();
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else if (deleteUserMutation?.status === "error") {
+            setDeleteStatus("error");
+            const timer = setTimeout(() => setDeleteStatus("idle"), 1400);
+            return () => clearTimeout(timer);
+        } else {
+            setDeleteStatus("idle");
+        }
+    }, [deleteUserMutation?.status, cancelRemoveUser]);
 
     /**
      * Toggles the action dropdown menu for a user card.
@@ -308,7 +335,7 @@ const UserSettingsTab = () => {
                 }
                 confirmText="Delete"
                 cancelText="Cancel"
-                isConfirmLoading={false}
+                isConfirmLoading={deleteStatus === "deleting"}
                 isCancelLoading={false}
                 confirmClass={
                     removingUser && currentUser && removingUser.userId === currentUser.userId
@@ -318,6 +345,7 @@ const UserSettingsTab = () => {
                 confirmDisabled={
                     !!(removingUser && currentUser && removingUser.userId === currentUser.userId)
                 }
+                deleteStatus={deleteStatus}
             />
         </div>
     );

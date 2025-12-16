@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createUser, deleteUser, getAllUsers, getMe, updateUser } from "../../../api/user/user";
-import { userKeys } from "../../../api/user/userQueryKeys";
+import { createUser, deleteUser, getAllUsers, getMe, updateUser } from "../../../../api/user/user";
+import { userKeys } from "../../../../api/user/userQueryKeys";
 
 /**
  * logger for useUserSettingsTab hook.
@@ -85,6 +85,7 @@ export const useUserSettingsTab = () => {
 
     /**
      * Delete user mutation with full cache invalidation on success.
+     * (Returned in hook for use in modal delete status badge.)
      */
     const deleteUserMutation = useMutation({
         mutationFn: (userId) => deleteUser(userId),
@@ -254,5 +255,6 @@ export const useUserSettingsTab = () => {
         cancelEditOrAdd,
         editStatus,
         addStatus,
+        deleteUserMutation, // <------ KEY: This makes deleteStatus work in UserSettingsTab.jsx
     };
 };

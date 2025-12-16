@@ -1,0 +1,117 @@
+.tabRoot {
+    width: 100%;
+    max-width: 1260px;
+    margin: 0 auto;
+    padding-top: 32px;
+    background: transparent;
+}
+
+.buildingContainer {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 3px 18px 0 rgba(44,47,59,0.06);
+    padding: 34px 32px 28px 32px;
+    margin: 0 auto 36px auto;
+    max-width: 100%;
+}
+
+.sectionHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 28px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sectionTitle {
+    font-size: 1.28rem;
+    font-weight: 700;
+    color: #29224c;
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+
+.addUserBtn {
+    background-color: #8247e5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5em 1.35em;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    box-shadow: 0 2px 6px 0 rgba(132,71,229,0.06);
+}
+.addUserBtn:hover {
+    background-color: #6b30c6;
+}
+
+.cardsScrollRow {
+    display: flex;
+    overflow-x: auto;
+    padding: 2px 0 24px 0;
+    gap: 22px;
+    scrollbar-width: thin;
+    scrollbar-color: #e4dbee #fff;
+    width: 100%;
+}
+
+.storageLocationsContainer {
+    margin-top: 26px;
+    background: #fff;
+    box-shadow: 0 2px 9px 0 rgba(80,60,180,0.06);
+    border-radius: 15px;
+    padding: 27px 21px 33px 21px;
+    position: relative;
+}
+/* Header row for storage section - fix for right align */
+.storageLocationsHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    width: 100%;
+}
+.storageLocationsTitle {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #29224c;
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+.storageSectionPanel {
+    min-height: 164px;
+    width: 100%;
+    padding-bottom: 0.5em;
+}
+.storageGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+    gap: 16px;
+    margin-top: 4px;
+}
+.noStorageMsg {
+    color: #b2a7d2;
+    font-size: 1.05rem;
+    text-align: center;
+    padding: 26px 0 0 0;
+}
+.loading,
+.error {
+    font-size: 1.13rem;
+    color: #593ebc;
+    padding: 2em 0;
+    text-align: center;
+}
+
+@media (max-width: 900px) {
+    .buildingContainer, .storageLocationsContainer {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    .cardsScrollRow, .storageGrid {
+        gap: 12px;
+    }
+}
