@@ -4,8 +4,9 @@ import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
 import { useCurrentUser } from "../../../../hooks/useCurrentUser";
 import { CiEdit } from "react-icons/ci";
 import { BsTrash3 } from "react-icons/bs";
-import EditUserProfileModal from "../../../../components/editusermodal/EditUserProfileModal";
+
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
+import EditUserProfileModal from "../../../../components/editusermodal/EditUserProfileModal";
 
 /**
  * logger for UserSettingsTab component.
@@ -173,8 +174,21 @@ const UserSettingsTab = () => {
      * @param {number} userId
      */
     const handleDelete = (userId) => {
+        // Delegate removal to removingId, so modal (not action menu) controls confirmation
         handleRemoveUser(userId);
         setActiveMenu(null);
+    };
+
+    /**
+     * Handles the deletion confirmed from modal's inline delete.
+     * @param {number} userId
+     */
+    const handleModalDeleteConfirm = (userId) => {
+        handleRemoveUser(userId);
+        setModalUser(null);
+        setModalMode(null);
+        setEditModalError(null);
+        setPendingClose(false);
     };
 
     /**
@@ -301,6 +315,7 @@ const UserSettingsTab = () => {
                         setPendingClose(false);
                     }}
                     error={editModalError}
+                    onDelete={(userId) => handleDelete(userId)}
                 />
             )}
 
@@ -319,6 +334,7 @@ const UserSettingsTab = () => {
                         setPendingClose(false);
                     }}
                     error={editModalError}
+                    // No onDelete prop for add modal
                 />
             )}
 
