@@ -66,10 +66,13 @@
     padding: 27px 21px 33px 21px;
     position: relative;
 }
+/* Header row for storage section - fix for right align */
 .storageLocationsHeaderRow {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 18px;
+    width: 100%;
 }
 .storageLocationsTitle {
     font-size: 1.08rem;
