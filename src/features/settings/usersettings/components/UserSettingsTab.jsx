@@ -7,6 +7,7 @@ import { BsTrash3 } from "react-icons/bs";
 import EditUserProfileModal from "../../../../components/editusermodal/EditUserProfileModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 
+
 /**
  * logger for UserSettingsTab component.
  * Logs lifecycle events and user interactions for traceability.
@@ -44,7 +45,8 @@ const UserSettingsTab = () => {
         editStatus,
         addingUser,
         addStatus,
-        removingId
+        removingId,
+        deleteUserMutation, // <- Exposed by useUserSettingsTab for delete status
     } = useUserSettingsTab();
 
     // Get current user
@@ -61,6 +63,28 @@ const UserSettingsTab = () => {
     const removingUser = removingId
         ? users.find((u) => u.userId === removingId)
         : null;
+
+    // Local delete status for modal badge, driven by deleteUserMutation.state
+    const [deleteStatus, setDeleteStatus] = useState("idle");
+
+    // Keep delete status in sync with TanStack mutation state
+    useEffect(() => {
+        if (deleteUserMutation?.status === "pending") {
+            setDeleteStatus("deleting");
+        } else if (deleteUserMutation?.status === "success") {
+            setDeleteStatus("deleted");
+            // Hide modal after short delay
+            setTimeout(() => {
+                setDeleteStatus("idle");
+                cancelRemoveUser();
+            }, 1000);
+        } else if (deleteUserMutation?.status === "error") {
+            setDeleteStatus("error");
+            setTimeout(() => setDeleteStatus("idle"), 1400);
+        } else {
+            setDeleteStatus("idle");
+        }
+    }, [deleteUserMutation?.status, cancelRemoveUser]);
 
     /**
      * Toggles the action dropdown menu for a user card.
@@ -308,7 +332,7 @@ const UserSettingsTab = () => {
                 }
                 confirmText="Delete"
                 cancelText="Cancel"
-                isConfirmLoading={false}
+                isConfirmLoading={deleteStatus === "deleting"}
                 isCancelLoading={false}
                 confirmClass={
                     removingUser && currentUser && removingUser.userId === currentUser.userId
@@ -318,6 +342,7 @@ const UserSettingsTab = () => {
                 confirmDisabled={
                     !!(removingUser && currentUser && removingUser.userId === currentUser.userId)
                 }
+                deleteStatus={deleteStatus}
             />
         </div>
     );
