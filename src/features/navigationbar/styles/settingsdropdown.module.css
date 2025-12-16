@@ -1,0 +1,140 @@
+/**
+ * SettingsDropdown styles – match NavigationBar,
+ * and show "active" state when in settings, per nav theme and user screenshot.
+ */
+
+.settingsDropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.settingsButton {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 6px 14px 6px 6px;
+    background: #fff;
+    border-radius: 90px;
+    border: 1.5px solid #ececf0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+    outline: none;
+    color: #232323;
+}
+
+.settingsButton:focus,
+.settingsButton:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    background: #f5f0ff;
+}
+
+.settingsButtonActive,
+.settingsButton[data-selected="true"] {
+    border-color: #b8a7e7;
+    background: #f5f0ff;
+    color: #8247e5;
+}
+
+.settingsIcon {
+    margin-right: 9px;
+    color: #232323; /* matches other nav icons */
+    font-size: 1.18em;
+    display: inline-flex;
+    transition: color 0.14s;
+}
+
+.settingsButtonActive .settingsIcon,
+.settingsButton[data-selected="true"] .settingsIcon {
+    color: #8247e5 !important;
+}
+
+.settingsText {
+    font-weight: 500;
+    padding-right: 9px;
+}
+
+.caretSvg {
+    margin-left: 1px;
+    margin-right: -2px;
+    transition: transform 0.18s;
+    vertical-align: middle;
+    opacity: 0.76;
+}
+
+.settingsDropdownMenu {
+    position: absolute;
+    right: 0;
+    top: 110%;
+    background: #fff;
+    border: 1.4px solid #e8eaf0;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.09);
+    margin-top: 0.6rem;
+    padding: 0.35rem 0;
+    min-width: 175px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: fadeIn 0.18s cubic-bezier(.43,.02,.26,.97);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+
+.menuButton {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 10px 18px;
+    color: #362d58;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: background 0.14s, color 0.13s;
+    cursor: pointer;
+    outline: none;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.menuIconWrap {
+    display: flex;
+    align-items: center;
+    margin-right: 4px;
+    color: #b3abc8;
+    font-size: 1.12rem;
+}
+
+.menuButton:hover,
+.menuButton:focus {
+    background: #f8f5fd;
+    color: #8247e5;
+}
+
+.menuButtonActive {
+    background: #f5f0ff !important;
+    color: #8247e5 !important;
+}
+
+.menuButton:hover .menuIconWrap,
+.menuButton:focus .menuIconWrap,
+.menuButtonActive .menuIconWrap {
+    color: #8247e5;
+}
+
+/* Responsive for dropdown menu */
+@media (max-width: 500px) {
+    .settingsDropdownMenu {
+        min-width: 120px;
+        font-size: 0.98rem;
+    }
+}
