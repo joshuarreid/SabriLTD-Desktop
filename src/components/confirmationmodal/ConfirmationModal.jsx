@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "./confirmationmodal.module.css";
+import DeleteStatus from "./DeleteStatus";
 
 /**
  * ConfirmationModal
@@ -19,6 +20,9 @@ import styles from "./confirmationmodal.module.css";
  * @param {string} [props.confirmClass] - Custom class for the Confirm button.
  * @param {string} [props.cancelClass] - Custom class for the Cancel button.
  * @param {boolean} [props.confirmDisabled] - If true, disables confirm/delete button (e.g. for current user).
+ * @param {'deleting'|'deleted'|'idle'|'error'} [props.deleteStatus] - Visual delete status badge, if present.
+ * @param {string} [props.deletingText] - Custom deleting message for status.
+ * @param {string} [props.deletedText] - Custom deleted message for status.
  * @returns {JSX.Element|null}
  */
 const logger = {
@@ -39,8 +43,12 @@ const ConfirmationModal = ({
                                confirmClass,
                                cancelClass,
                                confirmDisabled = false,
+                               // --------- new props below ----------
+                               deleteStatus = "idle",
+                               deletingText = "Deleting...",
+                               deletedText = "Deleted",
                            }) => {
-    logger.info('ConfirmationModal rendered', { open });
+    logger.info('ConfirmationModal rendered', { open, deleteStatus });
 
     if (!open) return null;
 
@@ -68,23 +76,37 @@ const ConfirmationModal = ({
                 {description && (
                     <div className={styles.description}>{description}</div>
                 )}
+
+                {/* DeleteStatus badge: shows above actions if deleting/deleted */}
+                {["deleting", "deleted", "error"].includes(deleteStatus) && (
+                    <div style={{ marginBottom: 10 }}>
+                        <DeleteStatus
+                            status={deleteStatus}
+                            deletingText={deletingText}
+                            deletedText={deletedText}
+                        />
+                    </div>
+                )}
+
                 <div className={styles.actions}>
                     <button
                         className={confirmClass || styles.deleteButton}
                         onClick={onConfirm}
-                        disabled={isConfirmLoading || confirmDisabled}
+                        disabled={isConfirmLoading || confirmDisabled || deleteStatus === "deleting" || deleteStatus === "deleted"}
                         type="button"
-                        aria-disabled={isConfirmLoading || confirmDisabled}
+                        aria-disabled={isConfirmLoading || confirmDisabled || deleteStatus === "deleting" || deleteStatus === "deleted"}
                         tabIndex={0}
                     >
-                        {isConfirmLoading ? "..." : confirmText}
+                        {isConfirmLoading || deleteStatus === "deleting"
+                            ? "..."
+                            : confirmText}
                     </button>
                     <button
                         className={cancelClass || styles.cancelButton}
                         onClick={onCancel}
-                        disabled={isCancelLoading}
+                        disabled={isCancelLoading || deleteStatus === "deleting"}
                         type="button"
-                        aria-disabled={isCancelLoading}
+                        aria-disabled={isCancelLoading || deleteStatus === "deleting"}
                         tabIndex={0}
                     >
                         {cancelText}
