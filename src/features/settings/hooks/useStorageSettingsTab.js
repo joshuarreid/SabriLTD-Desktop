@@ -8,7 +8,9 @@ import {
     updateBuilding,
     getBuildingsWithStorage,
 } from "../../../api/building/building";
+import { createStorage, updateStorage, deleteStorage } from "../../../api/storage/storage";
 import { buildingKeys } from "../../../api/building/buildingQueryKeys";
+import { storageKeys } from "../../../api/storage/storageQueryKeys";
 
 /**
  * logger for useStorageSettingsTab hook.
@@ -44,10 +46,32 @@ const invalidateAllBuildingKeys = async (queryClient, building) => {
 };
 
 /**
- * useStorageSettingsTab
- * Encapsulates business logic/state for buildings table in storage settings.
+ * invalidateAllStorageKeys
+ * Invalidates all storage query keys after any storage mutation (add, update, delete).
+ * Includes: all, lists, list, detail, update, remove.
  *
- * @returns {object} - State and handlers for managing buildings.
+ * @async
+ * @function invalidateAllStorageKeys
+ * @param {object} queryClient - The TanStack Query client.
+ * @param {object} storage - The affected storage object (if available).
+ */
+const invalidateAllStorageKeys = async (queryClient, storage) => {
+    logger.info("Invalidating all relevant storage query keys");
+    await queryClient.invalidateQueries({ queryKey: storageKeys.all });
+    await queryClient.invalidateQueries({ queryKey: storageKeys.lists() });
+    await queryClient.invalidateQueries({ queryKey: storageKeys.list() });
+    if (storage?.storageId !== undefined && storage?.storageId !== null) {
+        await queryClient.invalidateQueries({ queryKey: storageKeys.detail(storage.storageId) });
+        await queryClient.invalidateQueries({ queryKey: storageKeys.update(storage.storageId) });
+        await queryClient.invalidateQueries({ queryKey: storageKeys.remove(storage.storageId) });
+    }
+};
+
+/**
+ * useStorageSettingsTab
+ * Encapsulates business logic/state for buildings and storage in storage settings.
+ *
+ * @returns {object} - State and handlers for managing buildings and storage.
  */
 export const useStorageSettingsTab = () => {
     logger.info("useStorageSettingsTab initialized");
@@ -68,6 +92,8 @@ export const useStorageSettingsTab = () => {
     const queryClient = useQueryClient();
     const [editStatus, setEditStatus] = useState("idle");
     const [addStatus, setAddStatus] = useState("idle");
+    const [storageEditStatus, setStorageEditStatus] = useState("idle");
+    const [storageAddStatus, setStorageAddStatus] = useState("idle");
 
     /**
      * Update building mutation with full cache invalidation on success.
@@ -116,6 +142,58 @@ export const useStorageSettingsTab = () => {
             logger.error("createBuilding failed", err);
             setAddStatus("error");
             setTimeout(() => setAddStatus("idle"), 1800);
+        },
+    });
+
+    /**
+     * Update storage mutation with cache invalidation.
+     */
+    const updateStorageMutation = useMutation({
+        mutationFn: ({ storageId, payload }) => updateStorage(storageId, payload),
+        onMutate: () => setStorageEditStatus("saving"),
+        onSuccess: async (updatedStorage, { storageId, payload }) => {
+            logger.info("Storage updated, invalidating storage keys");
+            await invalidateAllStorageKeys(queryClient, { ...payload, storageId });
+            setStorageEditStatus("saved");
+            setTimeout(() => setStorageEditStatus("idle"), 1800);
+        },
+        onError: (err) => {
+            logger.error("updateStorage failed", err);
+            setStorageEditStatus("error");
+            setTimeout(() => setStorageEditStatus("idle"), 1800);
+        },
+    });
+
+    /**
+     * Create storage mutation with cache invalidation.
+     */
+    const createStorageMutation = useMutation({
+        mutationFn: (payload) => createStorage(payload),
+        onMutate: () => setStorageAddStatus("saving"),
+        onSuccess: async (createdStorage) => {
+            logger.info("Storage created, invalidating storage keys");
+            await invalidateAllStorageKeys(queryClient, createdStorage);
+            setStorageAddStatus("saved");
+            setTimeout(() => setStorageAddStatus("idle"), 1800);
+        },
+        onError: (err) => {
+            logger.error("createStorage failed", err);
+            setStorageAddStatus("error");
+            setTimeout(() => setStorageAddStatus("idle"), 1800);
+        },
+    });
+
+    /**
+     * Delete storage mutation with cache invalidation.
+     */
+    const deleteStorageMutation = useMutation({
+        mutationFn: (storageId) => deleteStorage(storageId),
+        onSuccess: async (_data, storageId) => {
+            logger.info("Storage deleted, invalidating storage keys");
+            await invalidateAllStorageKeys(queryClient, { storageId });
+        },
+        onError: (err) => {
+            logger.error("deleteStorage failed", err);
         },
     });
 
@@ -252,5 +330,10 @@ export const useStorageSettingsTab = () => {
         editStatus,
         addStatus,
         isLoadingWithStorage,
+        createStorageMutation,
+        updateStorageMutation,
+        deleteStorageMutation,
+        storageEditStatus,
+        storageAddStatus,
     };
 };
