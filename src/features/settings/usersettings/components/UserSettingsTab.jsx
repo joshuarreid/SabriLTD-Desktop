@@ -2,20 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
 import { useCurrentUser } from "../../../../hooks/useCurrentUser";
-import { BsTrash3 } from "react-icons/bs";
-
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 import EditUserProfileModal from "../../../../components/editusermodal/EditUserProfileModal";
-
-/**
- * logger for UserSettingsTab component.
- * Logs lifecycle events and user interactions for traceability.
- * @type {{info: Function, error: Function}}
- */
-const logger = {
-    info: (...args) => console.log("[UserSettingsTab]", ...args),
-    error: (...args) => console.error("[UserSettingsTab]", ...args),
-};
 
 /**
  * UserSettingsTab
@@ -26,6 +14,11 @@ const logger = {
  * @component
  * @returns {JSX.Element}
  */
+const logger = {
+    info: (...args) => console.log("[UserSettingsTab]", ...args),
+    error: (...args) => console.error("[UserSettingsTab]", ...args),
+};
+
 const UserSettingsTab = () => {
     logger.info("UserSettingsTab rendered");
 
@@ -34,21 +27,17 @@ const UserSettingsTab = () => {
         isPending,
         isError,
         error,
-        handleEditUser,
         handleSaveEdit,
         handleAddUser,
         handleRemoveUser,
         confirmRemoveUser,
         cancelRemoveUser,
-        editingId,
         editStatus,
-        addingUser,
         addStatus,
         removingId,
         deleteUserMutation,
     } = useUserSettingsTab();
 
-    // Get current user
     const { user: currentUser } = useCurrentUser();
 
     const [editModalError, setEditModalError] = useState(null);
@@ -62,7 +51,7 @@ const UserSettingsTab = () => {
         ? users.find((u) => u.userId === removingId)
         : null;
 
-    // Local delete status for modal badge, driven by deleteUserMutation.state
+    // Delete status for badge/confirmation
     const [deleteStatus, setDeleteStatus] = useState("idle");
 
     /**
@@ -131,7 +120,7 @@ const UserSettingsTab = () => {
 
     /**
      * Handles save for add user modal.
-     * @param {null} ignoredUserId (for parity; not used)
+     * @param {null} ignoredUserId
      * @param {{ name: string, email: string }} payload
      */
     const handleModalAdd = (_ignored, payload) => {
@@ -198,35 +187,33 @@ const UserSettingsTab = () => {
                 </button>
             </div>
             <div className={styles.gridContainer}>
-                {(users ?? []).map((user) => {
-                    return (
-                        <div
-                            key={user.userId}
-                            className={styles.userCard}
-                            tabIndex={0}
-                            onClick={() => openEditModal(user)}
-                            onKeyPress={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault();
-                                    openEditModal(user);
-                                }
-                            }}
-                            role="button"
-                            aria-label={`Edit user ${user.name}`}
-                        >
-                            <div className={styles.avatar}>
-                                {user.avatar || user.name?.[0]?.toUpperCase() || "?"}
-                            </div>
-                            <div className={styles.userInfo}>
-                                <div className={styles.userName}>{user.name}</div>
-                                {user.email && (
-                                    <div className={styles.userEmail}>{user.email}</div>
-                                )}
-                                <div className={styles.userRole}>{user.role || "User"}</div>
-                            </div>
+                {(users ?? []).map((user) => (
+                    <div
+                        key={user.userId}
+                        className={styles.userCard}
+                        tabIndex={0}
+                        onClick={() => openEditModal(user)}
+                        onKeyPress={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                openEditModal(user);
+                            }
+                        }}
+                        role="button"
+                        aria-label={`Edit user ${user.name}`}
+                    >
+                        <div className={styles.avatar}>
+                            {user.avatar || user.name?.[0]?.toUpperCase() || "?"}
                         </div>
-                    );
-                })}
+                        <div className={styles.userInfo}>
+                            <div className={styles.userName}>{user.name}</div>
+                            {user.email && (
+                                <div className={styles.userEmail}>{user.email}</div>
+                            )}
+                            <div className={styles.userRole}>{user.role || "User"}</div>
+                        </div>
+                    </div>
+                ))}
             </div>
             {/* Edit Modal */}
             {modalMode === "edit" && (
@@ -244,6 +231,7 @@ const UserSettingsTab = () => {
                     }}
                     error={editModalError}
                     onDelete={(userId) => handleDelete(userId)}
+                    currentUser={currentUser}
                 />
             )}
 
@@ -262,6 +250,7 @@ const UserSettingsTab = () => {
                         setPendingClose(false);
                     }}
                     error={editModalError}
+                    currentUser={currentUser}
                 />
             )}
 
