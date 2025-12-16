@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
 import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab";
 import BuildingInfoCard from "./BuildingInfoCard";
@@ -6,17 +6,10 @@ import StorageInfoCard from "./StorageInfoCard";
 import EditBuildingModal from "../../../components/editbuildingmodal/EditBuildingModal";
 import EditStorageModal from "../../../components/editstoragemodal/EditStorageModal";
 import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal";
-import {
-    createStorage,
-    updateStorage,
-    deleteStorage,
-} from "../../../api/storage/storage";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { storageKeys } from "../../../api/storage/storageQueryKeys";
 
 /**
  * StorageSettingsTab
- * UI for managing buildings and their storage locations.
+ * UI for managing buildings and their storage locations, following Bulletproof React conventions.
  *
  * @component
  * @returns {JSX.Element}
@@ -33,117 +26,55 @@ const StorageSettingsTab = () => {
     logger.info("StorageSettingsTab mounted");
     const {
         buildings,
-        buildingsWithStorage,
-        isPending,
-        isError,
-        error,
-        isLoadingWithStorage,
-        addStatus,
-        editStatus,
-        addingBuilding,
+        isBuildingsPending,
+        isBuildingsError,
+        buildingsError,
+        selectedBuildingId,
+        setSelectedBuildingId,
+        storageList,
+        isStoragePending,
+        isStorageError,
+        storageError,
         editingId,
+        removingId,
+        addingBuilding,
         openAddBuilding,
         handleAddBuilding,
         handleEditBuilding,
         handleSaveEdit,
+        handleRemoveBuilding,
+        confirmRemoveBuilding,
+        cancelRemoveBuilding,
         cancelEditOrAdd,
+        editStatus,
+        addStatus,
+        storageEditStatus,
+        storageAddStatus,
+        createStorageMutation,
+        updateStorageMutation,
+        deleteStorageMutation,
     } = useStorageSettingsTab();
 
-    const [selectedBuildingId, setSelectedBuildingId] = useState(null);
-    const [editBuildingModalOpen, setEditBuildingModalOpen] = useState(false);
-    const [currEditBuilding, setCurrEditBuilding] = useState(null);
-    const [isEditMode, setIsEditMode] = useState(false);
+    // --- Modal local state
+    const [editBuildingModalOpen, setEditBuildingModalOpen] = React.useState(false);
+    const [currEditBuilding, setCurrEditBuilding] = React.useState(null);
+    const [isEditMode, setIsEditMode] = React.useState(false);
 
-    // --- Storage editing state ---
-    const [editStorageModalOpen, setEditStorageModalOpen] = useState(false);
-    const [currEditStorage, setCurrEditStorage] = useState(null);
-    const [isEditStorageMode, setIsEditStorageMode] = useState(false);
+    // Storage modal local state
+    const [editStorageModalOpen, setEditStorageModalOpen] = React.useState(false);
+    const [currEditStorage, setCurrEditStorage] = React.useState(null);
+    const [isEditStorageMode, setIsEditStorageMode] = React.useState(false);
 
-    // --- Storage removing state ---
-    const [removingStorage, setRemovingStorage] = useState(null);
-    const [isRemoving, setIsRemoving] = useState(false);
+    // Storage remove local state
+    const [removingStorage, setRemovingStorage] = React.useState(null);
+    const [isRemoving, setIsRemoving] = React.useState(false);
 
-    // TanStack QueryClient
-    const queryClient = useQueryClient();
-
-    /**
-     * invalidateAllStorageKeys
-     * Invalidates all storage query keys after any mutation (add, edit, delete).
-     * @async
-     * @param {object} storage - The affected storage object (if available).
-     */
-    const invalidateAllStorageKeys = async (storage) => {
-        logger.info("Invalidating all relevant storage query keys");
-        await queryClient.invalidateQueries({ queryKey: storageKeys.all });
-        await queryClient.invalidateQueries({ queryKey: storageKeys.lists() });
-        await queryClient.invalidateQueries({ queryKey: storageKeys.list() });
-        if (storage?.storageId !== undefined && storage?.storageId !== null) {
-            await queryClient.invalidateQueries({ queryKey: storageKeys.detail(storage.storageId) });
-            await queryClient.invalidateQueries({ queryKey: storageKeys.update(storage.storageId) });
-            await queryClient.invalidateQueries({ queryKey: storageKeys.remove(storage.storageId) });
-        }
-    };
-
-    /**
-     * Create storage mutation (with cache invalidation).
-     */
-    const createStorageMutation = useMutation({
-        mutationFn: (payload) => createStorage(payload),
-        onSuccess: async (createdStorage) => {
-            logger.info("Storage created, invalidating storage keys");
-            await invalidateAllStorageKeys(createdStorage);
-            setEditStorageModalOpen(false);
-            setCurrEditStorage(null);
-            setIsEditStorageMode(false);
-        },
-        onError: (err) => {
-            logger.error("createStorage failed", err);
-        },
-    });
-
-    /**
-     * Update storage mutation (with cache invalidation).
-     */
-    const updateStorageMutation = useMutation({
-        mutationFn: ({ storageId, payload }) => updateStorage(storageId, payload),
-        onSuccess: async (updatedStorage) => {
-            logger.info("Storage updated, invalidating storage keys");
-            await invalidateAllStorageKeys(updatedStorage);
-            setEditStorageModalOpen(false);
-            setCurrEditStorage(null);
-            setIsEditStorageMode(false);
-        },
-        onError: (err) => {
-            logger.error("updateStorage failed", err);
-        },
-    });
-
-    /**
-     * Delete storage mutation (with cache invalidation).
-     */
-    const deleteStorageMutation = useMutation({
-        mutationFn: (storageId) => {
-            setIsRemoving(true);
-            return deleteStorage(storageId);
-        },
-        onSuccess: async (_data, storageId, context) => {
-            logger.info("Storage deleted, invalidating storage keys");
-            await invalidateAllStorageKeys({ storageId });
-            setRemovingStorage(null);
-            setIsRemoving(false);
-        },
-        onError: (err) => {
-            logger.error("deleteStorage failed", err);
-            setIsRemoving(false);
-        },
-    });
-
-    // Select the first building whenever the building list changes
+    // Set the first building as selected on load
     useEffect(() => {
         if ((buildings ?? []).length > 0 && !selectedBuildingId) {
             setSelectedBuildingId(buildings[0].buildingId);
         }
-    }, [buildings, selectedBuildingId]);
+    }, [buildings, selectedBuildingId, setSelectedBuildingId]);
 
     // For building edit: Open modal if editingId changes
     useEffect(() => {
@@ -170,16 +101,8 @@ const StorageSettingsTab = () => {
         }
     }, [addingBuilding, editingId]);
 
-    // Find the selected building (with storage) for the lower panel
-    const selectedBuildingWithStorage = React.useMemo(() => {
-        if (!Array.isArray(buildingsWithStorage) || !selectedBuildingId) return null;
-        return buildingsWithStorage.find(
-            (b) => b.buildingId === selectedBuildingId
-        );
-    }, [buildingsWithStorage, selectedBuildingId]);
-
     /**
-     * Handles building add/save event from modal
+     * Handles building add/save event from modal.
      * @param {number|null} buildingId
      * @param {{name: string, address: string, manager: string}} payload
      */
@@ -193,7 +116,7 @@ const StorageSettingsTab = () => {
     };
 
     /**
-     * Handles modal close/cancel for building
+     * Handles modal close/cancel for building.
      */
     const handleBuildingModalClose = () => {
         logger.info("Building modal closed or cancelled");
@@ -206,7 +129,7 @@ const StorageSettingsTab = () => {
     // --- Storage Modal Integration ---
 
     /**
-     * Opens the edit modal for a storage location
+     * Opens the edit modal for a storage location.
      * @param {object} storage
      */
     const handleEditStorage = (storage) => {
@@ -217,7 +140,7 @@ const StorageSettingsTab = () => {
     };
 
     /**
-     * Opens the add modal for a storage location under the current building
+     * Opens the add modal for a storage location under the current building.
      */
     const handleAddStorage = () => {
         logger.info("Opening AddStorageModal (empty), for buildingId", selectedBuildingId);
@@ -230,7 +153,7 @@ const StorageSettingsTab = () => {
     };
 
     /**
-     * Handles modal close/cancel for storage
+     * Handles modal close/cancel for storage.
      */
     const handleStorageModalClose = () => {
         logger.info("Storage modal closed or cancelled");
@@ -240,7 +163,7 @@ const StorageSettingsTab = () => {
     };
 
     /**
-     * Handles storage add/save event from modal
+     * Handles storage add/save event from modal.
      * @param {number|null} storageId
      * @param {{name: string, description: string, buildingId: number}} payload
      */
@@ -254,7 +177,7 @@ const StorageSettingsTab = () => {
     };
 
     /**
-     * Called when minus-circle is clicked on a storage card.
+     * Prompt for removing a storage.
      * @param {object} storage
      */
     const handlePromptRemoveStorage = (storage) => {
@@ -266,13 +189,30 @@ const StorageSettingsTab = () => {
      * @param {number} storageId
      */
     const confirmRemoveStorage = (storageId) => {
-        deleteStorageMutation.mutate(storageId);
+        setIsRemoving(true);
+        deleteStorageMutation.mutate(storageId, {
+            onSettled: () => setIsRemoving(false),
+            onSuccess: () => setRemovingStorage(null),
+        });
     };
 
     /**
      * Cancels storage removal prompt.
      */
     const cancelRemoveStorage = () => setRemovingStorage(null);
+
+    // --- UI State Handling & Bulletproof React conventions ---
+
+    if (isBuildingsPending) {
+        return <div className={styles.loading}>Loading buildings…</div>;
+    }
+    if (isBuildingsError) {
+        return (
+            <div className={styles.error}>
+                Error: {buildingsError?.message || "Failed to load buildings."}
+            </div>
+        );
+    }
 
     return (
         <div className={styles.tabRoot}>
@@ -311,11 +251,15 @@ const StorageSettingsTab = () => {
                         </button>
                     </div>
                     <div className={styles.storageSectionPanel}>
-                        {isLoadingWithStorage || selectedBuildingId == null ? (
+                        {isStoragePending || selectedBuildingId == null ? (
                             <div className={styles.loading}>Loading storage locations…</div>
+                        ) : isStorageError ? (
+                            <div className={styles.error}>
+                                Error: {storageError?.message || "Failed to load storage locations."}
+                            </div>
                         ) : (
                             <StorageLocationsList
-                                storageList={selectedBuildingWithStorage?.storage ?? []}
+                                storageList={storageList ?? []}
                                 onEditStorage={handleEditStorage}
                                 onDeleteStorage={handlePromptRemoveStorage}
                             />
@@ -337,8 +281,8 @@ const StorageSettingsTab = () => {
                 open={editStorageModalOpen}
                 isSaving={
                     isEditStorageMode
-                        ? updateStorageMutation.isPending
-                        : createStorageMutation.isPending
+                        ? storageEditStatus === "saving"
+                        : storageAddStatus === "saving"
                 }
                 error={
                     isEditStorageMode
@@ -347,8 +291,8 @@ const StorageSettingsTab = () => {
                 }
                 saveState={
                     isEditStorageMode
-                        ? updateStorageMutation.status
-                        : createStorageMutation.status
+                        ? storageEditStatus
+                        : storageAddStatus
                 }
                 onSave={handleStorageModalSave}
                 onClose={handleStorageModalClose}
@@ -356,7 +300,7 @@ const StorageSettingsTab = () => {
             <ConfirmationModal
                 open={!!removingStorage}
                 onCancel={cancelRemoveStorage}
-                onConfirm={() => confirmRemoveStorage(removingStorage.storageId)}
+                onConfirm={() => confirmRemoveStorage(removingStorage?.storageId)}
                 title="Are you sure?"
                 description={
                     removingStorage
@@ -367,7 +311,6 @@ const StorageSettingsTab = () => {
                 cancelText="Cancel"
                 isConfirmLoading={isRemoving}
                 isCancelLoading={false}
-                // You can add confirmClass/confirmDisabled if you have special disables
             />
         </div>
     );

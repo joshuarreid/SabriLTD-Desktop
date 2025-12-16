@@ -40,11 +40,11 @@ export async function createStorage(storage) {
 }
 
 /**
- * Fetches all storage locations (supports filters, pagination, and sorting).
+ * Fetches all storage locations (optionally filtered by buildingId, supports pagination).
  *
  * @async
  * @function getAllStorage
- * @param {Object} [params={}] - Optional params: { page, size, sortField, sortOrder, name, buildingId }
+ * @param {Object} [params={}] - Optional params: { buildingId, page, size }
  * @returns {Promise<Array<{storageId: number, name: string, description: string, buildingId: number}>>} Storage objects.
  * @throws {Error} If request fails (network, 401, 500, etc).
  */
