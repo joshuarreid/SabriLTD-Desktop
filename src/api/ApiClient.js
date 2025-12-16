@@ -19,7 +19,6 @@
 import axios from 'axios';
 import {API_URL} from "../config/env";
 
-
 /**
  * Standardized logger for debugging and traceability.
  * Never log sensitive values.
@@ -226,8 +225,13 @@ export default class ApiClient {
      * @returns {string} path relative to baseURL passed to axios (starts with '/' unless empty)
      */
     _buildUrl(endpoint = '') {
+        // --------- FIX: Add special handling for query-only endpoints ---------
         if (!endpoint) {
             return this.apiPath ? `/${this.apiPath}` : '/';
+        }
+        if (endpoint.startsWith('?')) {
+            // Attach query directly to path, with NO slash at the end
+            return (this.apiPath ? `/${this.apiPath}` : '/') + endpoint;
         }
         if (/^https?:\/\//i.test(endpoint)) return endpoint;
         const cleanEndpoint = String(endpoint).replace(/^\/+/, '');
