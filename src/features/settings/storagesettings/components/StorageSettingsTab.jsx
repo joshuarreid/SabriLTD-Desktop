@@ -7,7 +7,6 @@ import EditBuildingModal from "../../../../components/editbuildingmodal/EditBuil
 import EditStorageModal from "../../../../components/editstoragemodal/EditStorageModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 
-
 /**
  * StorageSettingsTab
  * UI for managing buildings and their storage locations, following Bulletproof React conventions.
@@ -111,9 +110,9 @@ const StorageSettingsTab = () => {
     const handleBuildingModalSave = (buildingId, payload) => {
         logger.info("handleBuildingModalSave", { buildingId, payload });
         if (!buildingId) {
-            handleAddBuilding(payload, (error) => {});
+            handleAddBuilding(payload, (error) => { });
         } else {
-            handleSaveEdit(buildingId, payload, (error) => {});
+            handleSaveEdit(buildingId, payload, (error) => { });
         }
     };
 
@@ -166,15 +165,20 @@ const StorageSettingsTab = () => {
 
     /**
      * Handles storage add/save event from modal.
+     * Always injects current selectedBuildingId.
      * @param {number|null} storageId
-     * @param {{name: string, description: string, buildingId: number}} payload
+     * @param {{name: string, description: string}} payload
      */
     const handleStorageModalSave = (storageId, payload) => {
-        logger.info("handleStorageModalSave", { storageId, payload });
+        logger.info("handleStorageModalSave", { storageId, payload, selectedBuildingId });
+        const fullPayload = {
+            ...payload,
+            buildingId: selectedBuildingId,
+        };
         if (!storageId) {
-            createStorageMutation.mutate(payload);
+            createStorageMutation.mutate(fullPayload);
         } else {
-            updateStorageMutation.mutate({ storageId, payload });
+            updateStorageMutation.mutate({ storageId, payload: fullPayload });
         }
     };
 
@@ -270,7 +274,7 @@ const StorageSettingsTab = () => {
                             type="button"
                             onClick={handleAddStorage}
                         >
-                            + Add Storage
+                            + New
                         </button>
                     </div>
                     <div className={styles.storageSectionPanel}>
@@ -301,6 +305,7 @@ const StorageSettingsTab = () => {
             />
             <EditStorageModal
                 storage={currEditStorage}
+                selectedBuildingId={selectedBuildingId}
                 open={editStorageModalOpen}
                 isSaving={
                     isEditStorageMode

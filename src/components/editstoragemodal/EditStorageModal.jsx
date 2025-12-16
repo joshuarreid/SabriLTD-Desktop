@@ -5,11 +5,12 @@ import { useEditStorageModal } from "./useEditStorageModal";
 
 /**
  * EditStorageModal
- * Modal for editing or adding a storage location (name, description, buildingId).
+ * Modal for editing or adding a storage location (name, description) for a selected building.
  *
  * @component
  * @param {object} props
- * @param {object} props.storage - Storage object to edit ({storageId, name, description, buildingId}). Use {name: '', description: '', buildingId: ''} for add mode.
+ * @param {object} props.storage - Storage object to edit ({storageId, name, description, buildingId}). Use {name: '', description: ''} for add mode.
+ * @param {number|string} props.selectedBuildingId - Currently selected building ID (always included on submit, not shown in form).
  * @param {boolean} props.open - Modal open state.
  * @param {boolean} props.isSaving - If the save action is pending.
  * @param {function} props.onSave - Receives (storageId, {name, description, buildingId}) on submit.
@@ -25,6 +26,7 @@ const logger = {
 
 const EditStorageModal = ({
                               storage,
+                              selectedBuildingId,
                               open,
                               isSaving,
                               onSave,
@@ -60,8 +62,15 @@ const EditStorageModal = ({
     const isAddStorage =
         !storage.storageId &&
         (!storage.name || storage.name === "") &&
-        (!storage.description || storage.description === "") &&
-        (!storage.buildingId || storage.buildingId === "");
+        (!storage.description || storage.description === "");
+
+    /**
+     * Passes selectedBuildingId into handleSubmit for proper payload wiring.
+     */
+    const handleSubmitWithBuildingId = (e) => {
+        e.preventDefault();
+        handleSubmit(e, selectedBuildingId, onSave);
+    };
 
     return (
         <div
@@ -81,10 +90,7 @@ const EditStorageModal = ({
                 <h2 className={styles.storageTitle} id="edit-storage-modal-title">
                     {isAddStorage ? "Add Storage Location" : "Edit Storage Location"}
                 </h2>
-                <form
-                    className={styles.storageForm}
-                    onSubmit={(e) => handleSubmit(e, onSave)}
-                >
+                <form className={styles.storageForm} onSubmit={handleSubmitWithBuildingId}>
                     <div className={styles.formGroup}>
                         <label htmlFor="edit-storage-name">Name</label>
                         <input
@@ -95,6 +101,7 @@ const EditStorageModal = ({
                             onChange={handleChange}
                             autoComplete="off"
                             className={styles.input}
+                            maxLength={18}
                             disabled={isSaving}
                         />
                     </div>
@@ -111,19 +118,7 @@ const EditStorageModal = ({
                             disabled={isSaving}
                         />
                     </div>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="edit-storage-building-id">Building ID</label>
-                        <input
-                            id="edit-storage-building-id"
-                            name="buildingId"
-                            type="number"
-                            value={draft.buildingId}
-                            onChange={handleChange}
-                            autoComplete="off"
-                            className={styles.input}
-                            disabled={isSaving}
-                        />
-                    </div>
+                    {/* Building ID field removed. Value wired via selectedBuildingId on submit. */}
                     {(formError || error) && (
                         <div className={styles.errorMsg}>{formError || error}</div>
                     )}
