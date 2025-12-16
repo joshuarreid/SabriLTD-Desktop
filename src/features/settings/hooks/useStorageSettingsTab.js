@@ -4,16 +4,20 @@ import {
     createBuilding,
     deleteBuilding,
     getAllBuildings,
-    getBuildingById,
     updateBuilding,
-    getBuildingsWithStorage,
 } from "../../../api/building/building";
-import { createStorage, updateStorage, deleteStorage } from "../../../api/storage/storage";
+import {
+    createStorage,
+    updateStorage,
+    deleteStorage,
+    getAllStorage,
+} from "../../../api/storage/storage";
 import { buildingKeys } from "../../../api/building/buildingQueryKeys";
 import { storageKeys } from "../../../api/storage/storageQueryKeys";
 
 /**
- * logger for useStorageSettingsTab hook.
+ * logger for useStorageSettingsTab hook (Bulletproof React: business logic, robust logging).
+ * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
@@ -22,88 +26,91 @@ const logger = {
 };
 
 /**
- * invalidateAllBuildingKeys
- * Invalidates all building query keys after any building mutation (add, update, delete).
- * Includes: all, lists, list, detail, withStorage.
- *
- * @async
- * @function invalidateAllBuildingKeys
- * @param {object} queryClient - The TanStack Query client.
- * @param {object} building - The affected building object (if available).
- */
-const invalidateAllBuildingKeys = async (queryClient, building) => {
-    logger.info("Invalidating all relevant building query keys");
-    await queryClient.invalidateQueries({ queryKey: buildingKeys.all });
-    await queryClient.invalidateQueries({ queryKey: buildingKeys.lists() });
-    await queryClient.invalidateQueries({ queryKey: buildingKeys.list() });
-    if (building?.buildingId !== undefined && building?.buildingId !== null) {
-        await queryClient.invalidateQueries({ queryKey: buildingKeys.detail(building.buildingId) });
-        await queryClient.invalidateQueries({ queryKey: buildingKeys.update(building.buildingId) });
-        await queryClient.invalidateQueries({ queryKey: buildingKeys.remove(building.buildingId) });
-    }
-    await queryClient.invalidateQueries({ queryKey: buildingKeys.withStorage() });
-    await queryClient.invalidateQueries({ queryKey: buildingKeys.withStorageList() });
-};
-
-/**
- * invalidateAllStorageKeys
- * Invalidates all storage query keys after any storage mutation (add, update, delete).
- * Includes: all, lists, list, detail, update, remove.
- *
- * @async
- * @function invalidateAllStorageKeys
- * @param {object} queryClient - The TanStack Query client.
- * @param {object} storage - The affected storage object (if available).
- */
-const invalidateAllStorageKeys = async (queryClient, storage) => {
-    logger.info("Invalidating all relevant storage query keys");
-    await queryClient.invalidateQueries({ queryKey: storageKeys.all });
-    await queryClient.invalidateQueries({ queryKey: storageKeys.lists() });
-    await queryClient.invalidateQueries({ queryKey: storageKeys.list() });
-    if (storage?.storageId !== undefined && storage?.storageId !== null) {
-        await queryClient.invalidateQueries({ queryKey: storageKeys.detail(storage.storageId) });
-        await queryClient.invalidateQueries({ queryKey: storageKeys.update(storage.storageId) });
-        await queryClient.invalidateQueries({ queryKey: storageKeys.remove(storage.storageId) });
-    }
-};
-
-/**
  * useStorageSettingsTab
- * Encapsulates business logic/state for buildings and storage in storage settings.
+ * Manages business logic, side effects, TanStack Query, and state for storage/building settings.
+ * Decouples storage queries/mutations per building (Bulletproof React).
  *
- * @returns {object} - State and handlers for managing buildings and storage.
+ * @returns {object} All hook state, query status, and action handlers for UI.
  */
 export const useStorageSettingsTab = () => {
     logger.info("useStorageSettingsTab initialized");
 
-    // Query hooks for buildings
-    const { data: buildings = [], isPending, isError, error } = useQuery({
+    /**
+     * Locally selected building. Set to a valid buildingId to filter storage queries.
+     * @type {[number|null, Function]}
+     */
+    const [selectedBuildingId, setSelectedBuildingId] = useState(null);
+
+    /**
+     * Query for all buildings (paginated, filtered).
+     */
+    const {
+        data: buildings = [],
+        isPending: isBuildingsPending,
+        isError: isBuildingsError,
+        error: buildingsError,
+    } = useQuery({
         queryKey: buildingKeys.lists(),
         queryFn: () => getAllBuildings(),
     });
 
-    // Aggregated buildings with storages, useful for advanced usage/sections
-    const { data: buildingsWithStorage = [], isLoading: isLoadingWithStorage } = useQuery({
-        queryKey: buildingKeys.withStorage(),
-        queryFn: () => getBuildingsWithStorage(),
+    /**
+     * Query for storage locations for the active building.
+     * Only fetches when a building is selected.
+     */
+    const {
+        data: storageList = [],
+        isPending: isStoragePending,
+        isError: isStorageError,
+        error: storageError,
+    } = useQuery({
+        queryKey: storageKeys.list({ buildingId: selectedBuildingId }),
+        queryFn: () =>
+            selectedBuildingId != null
+                ? getAllStorage({ buildingId: selectedBuildingId })
+                : [],
+        enabled: !!selectedBuildingId,
     });
 
-    // Mutations
+    /**
+     * react-query's QueryClient for cache and invalidation.
+     */
     const queryClient = useQueryClient();
+
+    // --- Building mutations and UI states ---
     const [editStatus, setEditStatus] = useState("idle");
     const [addStatus, setAddStatus] = useState("idle");
-    const [storageEditStatus, setStorageEditStatus] = useState("idle");
-    const [storageAddStatus, setStorageAddStatus] = useState("idle");
+    const [editingId, setEditingId] = useState(null);
+    const [removingId, setRemovingId] = useState(null);
+    const [addingBuilding, setAddingBuilding] = useState(false);
 
     /**
-     * Update building mutation with full cache invalidation on success.
+     * Invalidates all relevant building queries after a mutation.
+     * @async
+     * @function invalidateAllBuildingKeys
+     * @param {object} building - The building affected (may be partial).
+     */
+    const invalidateAllBuildingKeys = async (building) => {
+        logger.info("Invalidating all relevant building query keys");
+        await queryClient.invalidateQueries({ queryKey: buildingKeys.all });
+        await queryClient.invalidateQueries({ queryKey: buildingKeys.lists() });
+        await queryClient.invalidateQueries({ queryKey: buildingKeys.list() });
+        if (building?.buildingId) {
+            await queryClient.invalidateQueries({ queryKey: buildingKeys.detail(building.buildingId) });
+            await queryClient.invalidateQueries({ queryKey: buildingKeys.update(building.buildingId) });
+            await queryClient.invalidateQueries({ queryKey: buildingKeys.remove(building.buildingId) });
+        }
+    };
+
+    /**
+     * Creates/updates/deletes buildings with responsive status management and logging.
      */
     const updateBuildingMutation = useMutation({
         mutationFn: ({ buildingId, building }) => updateBuilding(buildingId, building),
         onMutate: () => setEditStatus("saving"),
-        onSuccess: async (_updatedBuilding, { buildingId, building }) => {
+        onSuccess: async (_updated, { buildingId, building }) => {
             logger.info("Building updated, invalidating building keys");
-            await invalidateAllBuildingKeys(queryClient, { ...building, buildingId });
+            await invalidateAllBuildingKeys({ ...building, buildingId });
             setEditStatus("saved");
             setTimeout(() => setEditStatus("idle"), 1800);
         },
@@ -114,27 +121,21 @@ export const useStorageSettingsTab = () => {
         },
     });
 
-    /**
-     * Delete building mutation with full cache invalidation on success.
-     */
     const deleteBuildingMutation = useMutation({
-        mutationFn: (buildingId) => deleteBuilding(buildingId),
+        mutationFn: deleteBuilding,
         onSuccess: async (_data, buildingId) => {
             logger.info("Building deleted, invalidating building keys");
-            await invalidateAllBuildingKeys(queryClient, { buildingId });
+            await invalidateAllBuildingKeys({ buildingId });
         },
         onError: (err) => logger.error("deleteBuilding failed", err),
     });
 
-    /**
-     * Create building mutation with full cache invalidation on success.
-     */
     const createBuildingMutation = useMutation({
-        mutationFn: (building) => createBuilding(building),
+        mutationFn: createBuilding,
         onMutate: () => setAddStatus("saving"),
         onSuccess: async (createdBuilding) => {
             logger.info("Building created, invalidating building keys");
-            await invalidateAllBuildingKeys(queryClient, createdBuilding);
+            await invalidateAllBuildingKeys(createdBuilding);
             setAddStatus("saved");
             setTimeout(() => setAddStatus("idle"), 1800);
         },
@@ -145,15 +146,33 @@ export const useStorageSettingsTab = () => {
         },
     });
 
+    // --- Storage mutations and UI states (per-building only) ---
+    const [storageEditStatus, setStorageEditStatus] = useState("idle");
+    const [storageAddStatus, setStorageAddStatus] = useState("idle");
+
     /**
-     * Update storage mutation with cache invalidation.
+     * Invalidates storage queries for a specific building after mutation.
+     * @async
+     * @function invalidateThisBuildingStorage
+     * @param {number} buildingId - Building whose storage queries will be invalidated.
+     */
+    const invalidateThisBuildingStorage = async (buildingId) => {
+        logger.info("Invalidating storage for building", buildingId);
+        // Invalidate ONLY the list query for the building, not all storage
+        await queryClient.invalidateQueries({
+            queryKey: storageKeys.list({ buildingId }),
+        });
+    };
+
+    /**
+     * Updates storage by ID and payload. Invalidates only affected building's storage.
      */
     const updateStorageMutation = useMutation({
         mutationFn: ({ storageId, payload }) => updateStorage(storageId, payload),
         onMutate: () => setStorageEditStatus("saving"),
         onSuccess: async (updatedStorage, { storageId, payload }) => {
-            logger.info("Storage updated, invalidating storage keys");
-            await invalidateAllStorageKeys(queryClient, { ...payload, storageId });
+            logger.info("Storage updated, invalidating keys for buildingId:", payload.buildingId);
+            await invalidateThisBuildingStorage(payload.buildingId);
             setStorageEditStatus("saved");
             setTimeout(() => setStorageEditStatus("idle"), 1800);
         },
@@ -165,14 +184,14 @@ export const useStorageSettingsTab = () => {
     });
 
     /**
-     * Create storage mutation with cache invalidation.
+     * Creates storage for a building. Invalidates only that building's storage.
      */
     const createStorageMutation = useMutation({
-        mutationFn: (payload) => createStorage(payload),
+        mutationFn: createStorage,
         onMutate: () => setStorageAddStatus("saving"),
         onSuccess: async (createdStorage) => {
-            logger.info("Storage created, invalidating storage keys");
-            await invalidateAllStorageKeys(queryClient, createdStorage);
+            logger.info("Storage created, invalidating keys for buildingId:", createdStorage.buildingId);
+            await invalidateThisBuildingStorage(createdStorage.buildingId);
             setStorageAddStatus("saved");
             setTimeout(() => setStorageAddStatus("idle"), 1800);
         },
@@ -184,39 +203,31 @@ export const useStorageSettingsTab = () => {
     });
 
     /**
-     * Delete storage mutation with cache invalidation.
+     * Deletes storage by ID. Invalidates current building's storage query only.
      */
     const deleteStorageMutation = useMutation({
-        mutationFn: (storageId) => deleteStorage(storageId),
-        onSuccess: async (_data, storageId) => {
-            logger.info("Storage deleted, invalidating storage keys");
-            await invalidateAllStorageKeys(queryClient, { storageId });
+        mutationFn: deleteStorage,
+        onSuccess: async (_data, storageId, variables) => {
+            logger.info("Storage deleted, invalidating storage for building", selectedBuildingId);
+            await invalidateThisBuildingStorage(selectedBuildingId);
         },
         onError: (err) => {
             logger.error("deleteStorage failed", err);
         },
     });
 
-    // Local state for UI editing/add/removing
-    const [editingId, setEditingId] = useState(null);
-    const [removingId, setRemovingId] = useState(null);
-    const [addingBuilding, setAddingBuilding] = useState(false);
-
+    // --- Building actions (UI-handlers, status) ---
     /**
-     * Opens add new building UX/modal.
-     *
+     * Opens add-building modal.
      * @function openAddBuilding
-     * @returns {void}
      */
     const openAddBuilding = () => setAddingBuilding(true);
 
     /**
-     * Handles creation of a new building.
-     *
+     * Handles creation of a new building, updating addStatus and modal as needed.
      * @function handleAddBuilding
-     * @param {{name: string, address: string, manager: string}} building
-     * @param {function} [callback] - Optional, callback(error) after mutation completes.
-     * @returns {void}
+     * @param {object} building - New building payload.
+     * @param {Function} [callback]
      */
     const handleAddBuilding = (building, callback) => {
         logger.info("Creating building:", building.name);
@@ -232,22 +243,18 @@ export const useStorageSettingsTab = () => {
     };
 
     /**
-     * Opens editor for building.
-     *
+     * Opens edit mode for a building by ID.
      * @function handleEditBuilding
      * @param {number} buildingId
-     * @returns {void}
      */
     const handleEditBuilding = (buildingId) => setEditingId(buildingId);
 
     /**
-     * Handles save/update for an edited building.
-     *
+     * Saves edits for a given building, closing edit modal as needed.
      * @function handleSaveEdit
      * @param {number} buildingId
-     * @param {{name: string, address: string, manager: string}} building
-     * @param {function} [callback]
-     * @returns {void}
+     * @param {object} building
+     * @param {Function} [callback]
      */
     const handleSaveEdit = (buildingId, building, callback) => {
         logger.info("Saving edit for building", buildingId, building.name);
@@ -267,20 +274,16 @@ export const useStorageSettingsTab = () => {
     };
 
     /**
-     * Triggers UI to confirm removal for building.
-     *
+     * Opens removal prompt for a building.
      * @function handleRemoveBuilding
      * @param {number} buildingId
-     * @returns {void}
      */
     const handleRemoveBuilding = (buildingId) => setRemovingId(buildingId);
 
     /**
-     * Confirm building delete and call mutation.
-     *
+     * Confirms removal and performs mutation.
      * @function confirmRemoveBuilding
      * @param {number} buildingId
-     * @returns {void}
      */
     const confirmRemoveBuilding = (buildingId) => {
         logger.info("Confirm delete for building", buildingId);
@@ -290,18 +293,14 @@ export const useStorageSettingsTab = () => {
     };
 
     /**
-     * Cancel building removal.
-     *
+     * Cancels removal prompt for a building.
      * @function cancelRemoveBuilding
-     * @returns {void}
      */
     const cancelRemoveBuilding = () => setRemovingId(null);
 
     /**
-     * Cancel editing or adding a building.
-     *
+     * Cancels editing or adding states for buildings.
      * @function cancelEditOrAdd
-     * @returns {void}
      */
     const cancelEditOrAdd = () => {
         setEditingId(null);
@@ -312,10 +311,15 @@ export const useStorageSettingsTab = () => {
 
     return {
         buildings,
-        buildingsWithStorage,
-        isPending,
-        isError,
-        error,
+        isBuildingsPending,
+        isBuildingsError,
+        buildingsError,
+        selectedBuildingId,
+        setSelectedBuildingId,
+        storageList,
+        isStoragePending,
+        isStorageError,
+        storageError,
         editingId,
         removingId,
         addingBuilding,
@@ -329,11 +333,10 @@ export const useStorageSettingsTab = () => {
         cancelEditOrAdd,
         editStatus,
         addStatus,
-        isLoadingWithStorage,
+        storageEditStatus,
+        storageAddStatus,
         createStorageMutation,
         updateStorageMutation,
         deleteStorageMutation,
-        storageEditStatus,
-        storageAddStatus,
     };
 };

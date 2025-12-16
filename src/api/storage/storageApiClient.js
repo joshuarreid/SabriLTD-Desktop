@@ -1,8 +1,7 @@
 import ApiClient from "../ApiClient";
 
 /**
- * Standardized logger for debugging and traceability.
- * Never logs sensitive data.
+ * logger for StorageApiClient - robust, standardized, no sensitive data.
  * @constant
  * @type {{info: Function, error: Function}}
  */
@@ -35,18 +34,16 @@ const getTokenFromElectron = async () => {
 
 /**
  * StorageApiClient
- * Handles API requests to storage endpoints, including CRUD.
+ * Handles API requests to storage endpoints, including CRUD and list/query.
  *
  * @class
  * @extends ApiClient
  */
 export default class StorageApiClient extends ApiClient {
     /**
-     * Creates an instance of StorageApiClient.
-     * Uses baseURL from env API_URL unless overridden.
-     *
+     * Instantiates the StorageApiClient using standardized apiPath.
      * @param {Object} [options={}]
-     * @param {string} [options.baseURL] - Optional override for API base URL.
+     * @param {string} [options.baseURL] - The API base url.
      * @param {number} [options.timeout=10000] - Request timeout in ms.
      */
     constructor({ baseURL, timeout = 10000 } = {}) {
@@ -57,9 +54,9 @@ export default class StorageApiClient extends ApiClient {
     /**
      * Creates a new storage location (requires authentication).
      * @async
-     * @param {Object} payload - The storage fields { name, description, buildingId }
+     * @param {Object} payload - { name, description, buildingId }
      * @returns {Promise<Object>} API response with new storage object.
-     * @throws {Error} If request fails, duplicate, invalid, or validation error.
+     * @throws {Error} On request failure, duplicate, or validation error.
      */
     async createStorage(payload) {
         logger.info('createStorage called', { name: payload?.name });
@@ -69,7 +66,7 @@ export default class StorageApiClient extends ApiClient {
                 logger.error('createStorage failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const response = await this.post('/', payload, {
+            const response = await this.post('', payload, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -83,11 +80,11 @@ export default class StorageApiClient extends ApiClient {
     }
 
     /**
-     * Fetches all storage records (supports filters, pagination, and sorting). Requires authentication.
+     * Retrieves all storage records, optionally filtered by buildingId. Requires authentication.
      * @async
-     * @param {Object} [params={}] - Optional filter and pagination params, e.g. { page, size, sortField, sortOrder, name, buildingId }
+     * @param {Object} [params={}] - e.g. { buildingId, page, size }
      * @returns {Promise<Object>} API response with array of storage objects.
-     * @throws {Error} If request fails (network, 401, 500, etc).
+     * @throws {Error} On network or server error.
      */
     async fetchAllStorage(params = {}) {
         logger.info('fetchAllStorage called', params);
@@ -97,12 +94,15 @@ export default class StorageApiClient extends ApiClient {
                 logger.error('fetchAllStorage failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const response = await this.get('/', params, {
+            const response = await this.get('', params, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('fetchAllStorage success', { count: Array.isArray(response?.data) ? response.data.length : 0 });
+            logger.info(
+                'fetchAllStorage success',
+                { count: Array.isArray(response?.data?.data) ? response.data.data.length : 0 }
+            );
             return response;
         } catch (error) {
             logger.error('fetchAllStorage failed', error);
@@ -111,11 +111,11 @@ export default class StorageApiClient extends ApiClient {
     }
 
     /**
-     * Fetches a specific storage record by storage ID (requires authentication).
+     * Fetches a specific storage record by storageId (requires authentication).
      * @async
-     * @param {number} storageId - The storage ID to retrieve.
+     * @param {number} storageId - The storage ID.
      * @returns {Promise<Object>} API response with storage object.
-     * @throws {Error} If storage not found or request fails.
+     * @throws {Error} If fetch fails or not found.
      */
     async fetchStorageById(storageId) {
         logger.info('fetchStorageById called', { storageId });
@@ -139,12 +139,12 @@ export default class StorageApiClient extends ApiClient {
     }
 
     /**
-     * Updates an existing storage record by storageId (requires authentication).
+     * Updates a storage record by storageId (requires authentication).
      * @async
-     * @param {number} storageId - The storage ID to update.
-     * @param {Object} payload - The fields to update { name, description, buildingId }
-     * @returns {Promise<Object>} API response with updated storage object.
-     * @throws {Error} If not found, validation fails, or request fails.
+     * @param {number} storageId - Storage ID to update.
+     * @param {Object} payload - Fields to update: { name, description, buildingId }
+     * @returns {Promise<Object>} API response with updated storage.
+     * @throws {Error} If not found or request fails.
      */
     async updateStorage(storageId, payload) {
         logger.info('updateStorage called', { storageId });
@@ -172,7 +172,7 @@ export default class StorageApiClient extends ApiClient {
      * @async
      * @param {number} storageId - The storage ID to delete.
      * @returns {Promise<Object>} API success response or throws.
-     * @throws {Error} If storage is not found or request fails.
+     * @throws {Error} If delete fails or storage not found.
      */
     async deleteStorage(storageId) {
         logger.info('deleteStorage called', { storageId });

@@ -17,7 +17,7 @@ export const STORAGE = ['storage'];
  *
  * Usage examples:
  *   storageKeys.lists()                             // ['storage', 'lists']
- *   storageKeys.list({ sortField, name })           // ['storage', 'lists', { filters: { sortField, name } }]
+ *   storageKeys.list({ buildingId: 201 })           // ['storage', 'lists', { buildingId: 201 }]
  *   storageKeys.detail(501)                         // ['storage', 'detail', 501]
  *   storageKeys.create()                            // ['storage', 'create']
  *   storageKeys.update(501)                         // ['storage', 'detail', 501, 'update']
@@ -37,11 +37,11 @@ export const storageKeys = {
     lists: () => [...storageKeys.all, 'lists'],
 
     /**
-     * Key for a filtered storage list.
-     * @param {object} filters
+     * Key for a filtered storage list (by buildingId or other filters).
+     * @param {object} filters - Example: { buildingId }
      * @returns {Array}
      */
-    list: (filters = {}) => [...storageKeys.lists(), { filters }],
+    list: (filters = {}) => [...storageKeys.lists(), { ...filters }],
 
     /**
      * Key for a single storage detail by id.
