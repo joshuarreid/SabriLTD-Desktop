@@ -228,6 +228,26 @@ const StorageSettingsTab = () => {
      */
     const cancelRemoveStorage = () => setRemovingStorage(null);
 
+    /**
+     * Auto-close EditStorageModal after save (add or edit)
+     */
+    useEffect(() => {
+        const status = isEditStorageMode ? storageEditStatus : storageAddStatus;
+        if (
+            editStorageModalOpen &&
+            status === "saved"
+        ) {
+            // Close after a short delay to let user see the 'Saved' feedback
+            const t = setTimeout(() => {
+                setEditStorageModalOpen(false);
+                setCurrEditStorage(null);
+                setIsEditStorageMode(false);
+            }, 1000);
+            return () => clearTimeout(t);
+        }
+        return undefined;
+    }, [editStorageModalOpen, storageEditStatus, storageAddStatus, isEditStorageMode]);
+
     // --- UI State Handling & Bulletproof React conventions ---
 
     if (isBuildingsPending) {
