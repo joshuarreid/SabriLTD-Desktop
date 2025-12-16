@@ -4,26 +4,14 @@ import StorageInfoCard from "./StorageInfoCard";
 import EditStorageModal from "../../../../components/editstoragemodal/EditStorageModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
+import {useNaturalSort} from "../../../../components/alphabeticalsortfilter/useNaturalSort";
+
 
 /**
- * StorageSettings
- * UI for listing, adding, editing, and deleting storage locations for the selected building.
- *
- * @component
- * @param {object} props - All props/data from useStorageSettingsTab
- * @returns {JSX.Element}
- */
-const logger = {
-    info: (...args) => console.log("[StorageSettings]", ...args),
-    error: (...args) => console.error("[StorageSettings]", ...args),
-};
-
-/** @const {object} EMPTY_STORAGE - Default storage object for add modal */
-const EMPTY_STORAGE = { name: "", description: "", buildingId: "" };
-
-/**
- * @const {Array} STORAGE_SORT_OPTIONS
- * Dropdown sort options: only A to Z and Z to A
+ * STORAGE_SORT_OPTIONS
+ * Dropdown sort options: only A to Z and Z to A (maps to name + order for shared hook)
+ * @constant
+ * @type {Array<{key: string, label: string, field: string, order: "asc"|"desc"}>}
  */
 const STORAGE_SORT_OPTIONS = [
     { key: "a-z", label: "A to Z", field: "name", order: "asc" },
@@ -31,9 +19,30 @@ const STORAGE_SORT_OPTIONS = [
 ];
 
 /**
- * StorageSettings component
+ * EMPTY_STORAGE
+ * Default storage object for add modal
+ * @constant
+ * @type {{ name: string, description: string, buildingId: string }}
+ */
+const EMPTY_STORAGE = { name: "", description: "", buildingId: "" };
+
+/**
+ * logger
+ * Standardized logger for StorageSettings
+ * @constant
+ * @type {{info: Function, error: Function}}
+ */
+const logger = {
+    info: (...args) => console.log("[StorageSettings]", ...args),
+    error: (...args) => console.error("[StorageSettings]", ...args),
+};
+
+/**
+ * StorageSettings
+ * UI for listing, adding, editing, and deleting storage locations for the selected building.
+ *
  * @component
- * @param {object} props
+ * @param {object} props - All props/data from useStorageSettingsTab
  * @returns {JSX.Element}
  */
 const StorageSettings = ({
@@ -62,28 +71,23 @@ const StorageSettings = ({
     const [sortKey, setSortKey] = useState("a-z");
 
     /**
-     * Sort storage locations according to the current sort selection
-     * @function getSortedStorageList
-     * @param {Array} list
+     * Determine correct sort options for useNaturalSort,
+     * keeping the interface as close as possible to before.
      */
-    const getSortedStorageList = (list) => {
-        if (!Array.isArray(list)) return [];
-        const opt = STORAGE_SORT_OPTIONS.find(o => o.key === sortKey);
-        if (!opt) return list;
-        const { field, order } = opt;
-        return [...list].sort((a, b) => {
-            let aVal = a[field];
-            let bVal = b[field];
-            aVal = aVal ? aVal.toLowerCase() : "";
-            bVal = bVal ? bVal.toLowerCase() : "";
-            if (aVal < bVal) return order === "asc" ? -1 : 1;
-            if (aVal > bVal) return order === "asc" ? 1 : -1;
-            return 0;
-        });
-    };
+    const currentSort = STORAGE_SORT_OPTIONS.find(opt => opt.key === sortKey) || STORAGE_SORT_OPTIONS[0];
+
+    /**
+     * Sorted storageList using shared useNaturalSort hook.
+     * @type {Array}
+     */
+    const sortedStorageList = useNaturalSort(storageList, {
+        key: currentSort.field,
+        order: currentSort.order,
+    });
 
     /**
      * Opens the edit modal for a storage location.
+     * @function
      * @param {object} storage
      */
     const handleEditStorage = (storage) => {
@@ -95,6 +99,7 @@ const StorageSettings = ({
 
     /**
      * Opens the add modal for a storage location under the current building.
+     * @function
      */
     const handleAddStorage = () => {
         logger.info("Opening AddStorageModal (empty), for buildingId", selectedBuildingId);
@@ -108,6 +113,7 @@ const StorageSettings = ({
 
     /**
      * Handles modal close/cancel for storage.
+     * @function
      */
     const handleStorageModalClose = () => {
         logger.info("Storage modal closed or cancelled");
@@ -119,6 +125,7 @@ const StorageSettings = ({
     /**
      * Handles storage add/save event from modal.
      * Always inject current selectedBuildingId.
+     * @function
      * @param {number|null} storageId
      * @param {{name: string, description: string}} payload
      */
@@ -137,6 +144,7 @@ const StorageSettings = ({
 
     /**
      * Handles trash icon in EditStorageModal (delete; closes edit modal & triggers confirmation modal)
+     * @function
      * @param {number} storageId
      */
     const handleRequestDelete = (storageId) => {
@@ -152,6 +160,7 @@ const StorageSettings = ({
 
     /**
      * Handles trash icon/delete action from grid.
+     * @function
      * @param {object} storage
      */
     const handlePromptRemoveStorage = (storage) => {
@@ -162,6 +171,7 @@ const StorageSettings = ({
 
     /**
      * Calls the delete mutation; shows badge in modal for status.
+     * @function
      * @param {number} storageId
      */
     const confirmRemoveStorage = (storageId) => {
@@ -186,6 +196,7 @@ const StorageSettings = ({
 
     /**
      * Cancels storage removal prompt.
+     * @function
      */
     const cancelRemoveStorage = () => {
         setRemovingStorage(null);
@@ -195,6 +206,7 @@ const StorageSettings = ({
 
     /**
      * Auto-close EditStorageModal after save (add or edit).
+     * @function
      */
     useEffect(() => {
         const status = isEditStorageMode ? storageEditStatus : storageAddStatus;
@@ -233,7 +245,7 @@ const StorageSettings = ({
                     </div>
                 ) : (
                     <StorageLocationsList
-                        storageList={getSortedStorageList(storageList) ?? []}
+                        storageList={sortedStorageList ?? []}
                         onEditStorage={handleEditStorage}
                     />
                 )}
