@@ -2,6 +2,7 @@ import React from "react";
 import styles from "./editbuildingmodal.module.css";
 import SaveStatus from "../save/SaveStatus";
 import { useEditBuildingModal } from "./useEditBuildingModal";
+import { FaRegTrashCan } from "react-icons/fa6";
 
 /**
  * EditBuildingModal
@@ -14,6 +15,7 @@ import { useEditBuildingModal } from "./useEditBuildingModal";
  * @param {boolean} props.isSaving - If the save action is pending.
  * @param {function} props.onSave - Receives (buildingId, {name, address, manager}) on submit.
  * @param {function} props.onClose - Called on modal backdrop or cancel.
+ * @param {function} [props.onDelete] - Called when user confirms building deletion. Receives buildingId.
  * @param {string|null} props.error - Error message string (optional).
  * @param {'saving'|'saved'|'idle'|'error'} [props.saveState] - Current save state for SaveStatus indicator.
  * @returns {JSX.Element|null}
@@ -29,8 +31,9 @@ const EditBuildingModal = ({
                                isSaving,
                                onSave,
                                onClose,
+                               onDelete,
                                error,
-                               saveState = "idle"
+                               saveState = "idle",
                            }) => {
     const {
         draft,
@@ -40,6 +43,9 @@ const EditBuildingModal = ({
         handleSubmit,
         resetDraft,
     } = useEditBuildingModal(building, isSaving);
+
+    // Controls the confirmation modal for deletion.
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
 
     if (!open || !building) return null;
 
@@ -63,6 +69,32 @@ const EditBuildingModal = ({
         (!building.address || building.address === "") &&
         (!building.manager || building.manager === "");
 
+    /**
+     * Opens confirmation dialog for delete.
+     */
+    const handleTrashClick = (e) => {
+        e.stopPropagation();
+        setDeleteConfirmOpen(true);
+    };
+
+    /**
+     * Closes the delete confirmation.
+     */
+    const handleDeleteCancel = () => {
+        setDeleteConfirmOpen(false);
+    };
+
+    /**
+     * Confirms deletion, notifies parent.
+     */
+    const handleDeleteConfirm = () => {
+        setDeleteConfirmOpen(false);
+        if (onDelete && building.buildingId) {
+            logger.info("Building delete confirmed", building.buildingId);
+            onDelete(building.buildingId);
+        }
+    };
+
     return (
         <div
             className={styles.modalOverlay}
@@ -78,6 +110,21 @@ const EditBuildingModal = ({
                 aria-modal="true"
                 aria-labelledby="edit-building-modal-title"
             >
+                {/* Trash icon in top-right (only for edit mode, not add mode) */}
+                {!isAddBuilding && (
+                    <button
+                        type="button"
+                        className={styles.trashButton}
+                        onClick={handleTrashClick}
+                        title="Delete building"
+                        aria-label="Delete building"
+                        disabled={isSaving}
+                        tabIndex={0}
+                    >
+                        <FaRegTrashCan size={20} />
+                    </button>
+                )}
+
                 <h2 className={styles.buildingTitle} id="edit-building-modal-title">
                     {isAddBuilding ? "Add Building" : "Edit Building"}
                 </h2>
@@ -150,6 +197,37 @@ const EditBuildingModal = ({
                         <SaveStatus status={saveState} />
                     </div>
                 </form>
+                {/* Confirmation modal for deletion */}
+                {deleteConfirmOpen && (
+                    <div className={styles.confirmOverlay}>
+                        <div className={styles.confirmCard}>
+                            <h3>Delete this building?</h3>
+                            <p>
+                                Are you sure you want to delete{" "}
+                                <strong>
+                                    {building.name || "this building"}
+                                </strong>
+                                ? This cannot be undone.
+                            </p>
+                            <div className={styles.confirmActions}>
+                                <button
+                                    type="button"
+                                    className={styles.confirmDelete}
+                                    onClick={handleDeleteConfirm}
+                                >
+                                    Delete
+                                </button>
+                                <button
+                                    type="button"
+                                    className={styles.cancelDelete}
+                                    onClick={handleDeleteCancel}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -15,23 +15,38 @@
  */
 import { useState, useEffect } from "react";
 
+/**
+ * Standardized logger for useEditBuildingModal.
+ * @constant
+ */
 const logger = {
     info: (...args) => console.log("[useEditBuildingModal]", ...args),
     error: (...args) => console.error("[useEditBuildingModal]", ...args),
 };
 
+/**
+ * Custom hook for managing the edit/add modal state and logic for buildings.
+ *
+ * @param {object|null} building - The current building to edit or an empty draft for add.
+ * @param {boolean} isSaving - Whether a save operation is in progress.
+ * @returns {object} Modal draft state, error, and helpers
+ */
 export const useEditBuildingModal = (building, isSaving) => {
     const [draft, setDraft] = useState({ name: "", address: "", manager: "" });
     const [formError, setFormError] = useState(null);
 
     useEffect(() => {
-        if (building) setDraft({ name: building.name || "", address: building.address || "", manager: building.manager || "" });
+        if (building) setDraft({
+            name: building.name || "",
+            address: building.address || "",
+            manager: building.manager || ""
+        });
         setFormError(null);
         logger.info("Initialized modal draft for building", building);
     }, [building]);
 
     /**
-     * Handles input field changes for name/address/manager.
+     * Updates a field in the draft state and clears form error.
      * @param {object} e - React.ChangeEvent
      */
     const handleChange = (e) => {
@@ -42,8 +57,10 @@ export const useEditBuildingModal = (building, isSaving) => {
 
     /**
      * Validates and submits the edit/add building form.
+     * - All fields required, trimmed
+     * - No unchanged submit in edit mode
      * @param {React.FormEvent} e
-     * @param {function} onSave
+     * @param {function} onSave - (buildingId, payload)
      */
     const handleSubmit = (e, onSave) => {
         e.preventDefault();
@@ -62,12 +79,25 @@ export const useEditBuildingModal = (building, isSaving) => {
             return;
         }
         logger.info("Saving building edit", { id: building && building.buildingId, ...draft });
-        onSave(building ? building.buildingId : null, { name: draft.name.trim(), address: draft.address.trim(), manager: draft.manager.trim() });
+        onSave(
+            building ? building.buildingId : null,
+            {
+                name: draft.name.trim(),
+                address: draft.address.trim(),
+                manager: draft.manager.trim(),
+            }
+        );
     };
 
-    /** Resets the draft/fields to default values. */
+    /**
+     * Resets the draft/fields to default values and clears form error.
+     */
     const resetDraft = () => {
-        if (building) setDraft({ name: building.name || "", address: building.address || "", manager: building.manager || "" });
+        if (building) setDraft({
+            name: building.name || "",
+            address: building.address || "",
+            manager: building.manager || ""
+        });
         setFormError(null);
         logger.info("Form draft reset");
     };
