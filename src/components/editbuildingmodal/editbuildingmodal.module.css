@@ -9,6 +9,7 @@
 }
 
 .modalCard {
+    position: relative;
     background: #fff;
     border-radius: 20px;
     box-shadow: 0 8px 40px 0 rgba(130,71,229,0.14), 0 4px 10px 0 rgba(36,14,41,0.06);
@@ -129,4 +130,91 @@
     min-height: 20px;
     display: flex;
     align-items: center;
+}
+
+/* Trash (delete) in modal top right */
+.trashButton {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: none;
+    border: none;
+    color: #d15b5b;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    transition: color 0.13s, background 0.13s;
+    z-index: 11;
+}
+
+.trashButton:disabled {
+    opacity: 0.44;
+    cursor: not-allowed;
+}
+
+.trashButton:hover:not(:disabled), .trashButton:focus:not(:disabled) {
+    color: #9f1818;
+    background: #faecec;
+}
+
+/* Inline confirmation modal for building delete */
+.confirmOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(36,14,41,0.19);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+}
+
+.confirmCard {
+    background: #fff;
+    border-radius: 13px;
+    padding: 2em 2.5em;
+    min-width: 275px;
+    text-align: center;
+    outline: none;
+    box-shadow: 0 2.2px 24px #93333b26, 0 1.2px 8px #914d4c0d;
+}
+
+.confirmActions {
+    display: flex;
+    gap: 1.4em;
+    margin-top: 1.3em;
+    justify-content: center;
+}
+
+.confirmDelete {
+    background: #e24c4b;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 25px;
+    font-weight: 600;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.13s, box-shadow 0.11s;
+    box-shadow: 0 1.5px 7px #e24c4b14;
+}
+
+.confirmDelete:hover, .confirmDelete:focus {
+    background: #be2627;
+}
+
+.cancelDelete {
+    background: #f7f4fa;
+    color: #a89bb6;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 25px;
+    font-weight: 500;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.11s, color 0.11s;
+}
+
+.cancelDelete:hover, .cancelDelete:focus {
+    background: #ececf0;
+    color: #8247e5;
 }

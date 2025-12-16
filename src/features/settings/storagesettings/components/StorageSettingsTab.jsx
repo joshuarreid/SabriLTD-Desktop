@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "../styles/storagesettingstab.module.css";
 import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab";
 import BuildingInfoCard from "./BuildingInfoCard";
@@ -53,22 +53,28 @@ const StorageSettingsTab = () => {
         createStorageMutation,
         updateStorageMutation,
         deleteStorageMutation,
+        // New hook-controlled values for building deletion UX
+        buildingDeleteId,
+        buildingDeleteStatus,
+        triggerBuildingDelete,
+        handleConfirmBuildingDelete,
+        handleCancelBuildingDelete,
     } = useStorageSettingsTab();
 
     // --- Modal local state
-    const [editBuildingModalOpen, setEditBuildingModalOpen] = React.useState(false);
-    const [currEditBuilding, setCurrEditBuilding] = React.useState(null);
-    const [isEditMode, setIsEditMode] = React.useState(false);
+    const [editBuildingModalOpen, setEditBuildingModalOpen] = useState(false);
+    const [currEditBuilding, setCurrEditBuilding] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     // Storage modal local state
-    const [editStorageModalOpen, setEditStorageModalOpen] = React.useState(false);
-    const [currEditStorage, setCurrEditStorage] = React.useState(null);
-    const [isEditStorageMode, setIsEditStorageMode] = React.useState(false);
+    const [editStorageModalOpen, setEditStorageModalOpen] = useState(false);
+    const [currEditStorage, setCurrEditStorage] = useState(null);
+    const [isEditStorageMode, setIsEditStorageMode] = useState(false);
 
-    // Storage remove local state
-    const [removingStorage, setRemovingStorage] = React.useState(null);
-    const [isRemoving, setIsRemoving] = React.useState(false);
-    const [deleteStatus, setDeleteStatus] = React.useState("idle"); // 'deleting' | 'deleted' | 'error' | 'idle'
+    // Storage remove local state (UX only)
+    const [removingStorage, setRemovingStorage] = useState(null);
+    const [isRemoving, setIsRemoving] = useState(false);
+    const [deleteStatus, setDeleteStatus] = useState("idle");
 
     // Set the first building as selected on load
     useEffect(() => {
@@ -125,6 +131,15 @@ const StorageSettingsTab = () => {
         setEditBuildingModalOpen(false);
         setCurrEditBuilding(null);
         setIsEditMode(false);
+    };
+
+    /**
+     * Handles trash click on modal for building delete.
+     * Triggers the building delete UX in the hook.
+     * @param {number} buildingId
+     */
+    const handleRequestBuildingDelete = (buildingId) => {
+        triggerBuildingDelete(buildingId);
     };
 
     // --- Storage Modal Integration ---
@@ -322,6 +337,7 @@ const StorageSettingsTab = () => {
                 saveState={isEditMode ? editStatus : addStatus}
                 onSave={handleBuildingModalSave}
                 onClose={handleBuildingModalClose}
+                onDelete={handleRequestBuildingDelete}
             />
             <EditStorageModal
                 storage={currEditStorage}
@@ -345,6 +361,7 @@ const StorageSettingsTab = () => {
                 onSave={handleStorageModalSave}
                 onClose={handleStorageModalClose}
             />
+            {/* Storage delete confirmation modal */}
             <ConfirmationModal
                 open={!!removingStorage}
                 onCancel={cancelRemoveStorage}
@@ -357,9 +374,22 @@ const StorageSettingsTab = () => {
                 }
                 confirmText="Delete"
                 cancelText="Cancel"
-                isConfirmLoading={isRemoving}
+                isConfirmLoading={deleteStatus === "deleting"}
                 isCancelLoading={false}
                 deleteStatus={deleteStatus}
+            />
+            {/* Building delete confirmation modal, fully using hook-provided status */}
+            <ConfirmationModal
+                open={!!buildingDeleteId}
+                onCancel={handleCancelBuildingDelete}
+                onConfirm={() => handleConfirmBuildingDelete(buildingDeleteId)}
+                title="Delete Building"
+                description="Deleting this building will also remove all associated storage. This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                isConfirmLoading={buildingDeleteStatus === "deleting"}
+                isCancelLoading={false}
+                deleteStatus={buildingDeleteStatus}
             />
         </div>
     );

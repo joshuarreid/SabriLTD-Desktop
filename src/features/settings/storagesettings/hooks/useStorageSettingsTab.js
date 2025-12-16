@@ -84,6 +84,10 @@ export const useStorageSettingsTab = () => {
     const [removingId, setRemovingId] = useState(null);
     const [addingBuilding, setAddingBuilding] = useState(false);
 
+    // Building DELETE modal status for indicator in confirmation modal
+    const [buildingDeleteId, setBuildingDeleteId] = useState(null);
+    const [buildingDeleteStatus, setBuildingDeleteStatus] = useState("idle");
+
     /**
      * Invalidates all relevant building queries after a mutation.
      * @async
@@ -123,11 +127,25 @@ export const useStorageSettingsTab = () => {
 
     const deleteBuildingMutation = useMutation({
         mutationFn: deleteBuilding,
+        onMutate: () => setBuildingDeleteStatus("deleting"),
         onSuccess: async (_data, buildingId) => {
             logger.info("Building deleted, invalidating building keys");
+            setBuildingDeleteStatus("deleted");
             await invalidateAllBuildingKeys({ buildingId });
+            setTimeout(() => {
+                setBuildingDeleteStatus("idle");
+                setBuildingDeleteId(null);
+                setEditingId(null);
+            }, 1000);
         },
-        onError: (err) => logger.error("deleteBuilding failed", err),
+        onError: (err) => {
+            logger.error("deleteBuilding failed", err);
+            setBuildingDeleteStatus("error");
+            setTimeout(() => {
+                setBuildingDeleteStatus("idle");
+                setBuildingDeleteId(null);
+            }, 1400);
+        },
     });
 
     const createBuildingMutation = useMutation({
@@ -216,6 +234,44 @@ export const useStorageSettingsTab = () => {
         },
     });
 
+    // --- Building delete UX state and handlers (for trash can and global modal) ---
+    /**
+     * State and control handlers for the building delete confirmation.
+     */
+    /**
+     * Triggers building delete UX modal and resets its state.
+     * @function triggerBuildingDelete
+     * @param {number} buildingId
+     */
+    const triggerBuildingDelete = (buildingId) => {
+        setBuildingDeleteId(buildingId);
+        setBuildingDeleteStatus("idle");
+    };
+
+    /**
+     * Handler for confirming delete in modal, controls badge status and modal control.
+     * @function handleConfirmBuildingDelete
+     * @param {number} buildingId
+     */
+    const handleConfirmBuildingDelete = (buildingId) => {
+        setBuildingDeleteStatus("deleting");
+        logger.info("Building delete confirmed:", buildingId);
+        if (deleteBuildingMutation && buildingId) {
+            deleteBuildingMutation.mutate(buildingId, {
+                // onSuccess and onError are handled in mutation above with badge/modal side effects
+            });
+        }
+    };
+
+    /**
+     * Cancels UX modal for delete, always resets state.
+     * @function handleCancelBuildingDelete
+     */
+    const handleCancelBuildingDelete = () => {
+        setBuildingDeleteId(null);
+        setBuildingDeleteStatus("idle");
+    };
+
     // --- Building actions (UI-handlers, status) ---
     /**
      * Opens add-building modal.
@@ -274,14 +330,14 @@ export const useStorageSettingsTab = () => {
     };
 
     /**
-     * Opens removal prompt for a building.
+     * Opens removal prompt for a building (old prompt, not used for trash/confirmation).
      * @function handleRemoveBuilding
      * @param {number} buildingId
      */
     const handleRemoveBuilding = (buildingId) => setRemovingId(buildingId);
 
     /**
-     * Confirms removal and performs mutation.
+     * Confirms removal and performs mutation. Only used for the old remove flow, not trash can.
      * @function confirmRemoveBuilding
      * @param {number} buildingId
      */
@@ -293,7 +349,7 @@ export const useStorageSettingsTab = () => {
     };
 
     /**
-     * Cancels removal prompt for a building.
+     * Cancels removal prompt for a building (not global/trash).
      * @function cancelRemoveBuilding
      */
     const cancelRemoveBuilding = () => setRemovingId(null);
@@ -338,5 +394,11 @@ export const useStorageSettingsTab = () => {
         createStorageMutation,
         updateStorageMutation,
         deleteStorageMutation,
+        // --- Building delete modal state for trash/confirmation ---
+        buildingDeleteId,
+        buildingDeleteStatus,
+        triggerBuildingDelete,
+        handleConfirmBuildingDelete,
+        handleCancelBuildingDelete,
     };
 };
