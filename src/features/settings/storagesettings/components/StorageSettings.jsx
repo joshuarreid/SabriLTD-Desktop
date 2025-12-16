@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
 import StorageInfoCard from "./StorageInfoCard";
 import EditStorageModal from "../../../../components/editstoragemodal/EditStorageModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
-import { IoIosArrowDown } from "react-icons/io";
-import { FaCheck } from "react-icons/fa6";
+import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
 
 /**
  * StorageSettings
@@ -24,17 +23,18 @@ const EMPTY_STORAGE = { name: "", description: "", buildingId: "" };
 
 /**
  * @const {Array} STORAGE_SORT_OPTIONS
- * Ordered sort options for dropdown UI.
+ * Dropdown sort options: only A to Z and Z to A
  */
 const STORAGE_SORT_OPTIONS = [
-    { key: "newest", label: "Newest", field: "dateUpdated", order: "desc" },
-    { key: "oldest", label: "Oldest", field: "dateUpdated", order: "asc" },
     { key: "a-z", label: "A to Z", field: "name", order: "asc" },
     { key: "z-a", label: "Z to A", field: "name", order: "desc" }
 ];
 
 /**
- * StorageSettings
+ * StorageSettings component
+ * @component
+ * @param {object} props
+ * @returns {JSX.Element}
  */
 const StorageSettings = ({
                              storageList,
@@ -58,38 +58,8 @@ const StorageSettings = ({
     const [deleteStatus, setDeleteStatus] = useState("idle");
     const [pendingClose, setPendingClose] = useState(false);
 
-    // Dropdown sorting state and ref/close helpers
-    const [sortKey, setSortKey] = useState("newest");
-    const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
-    const sortDropdownRef = useRef(null);
-
-    /**
-     * Handles outside click to close dropdown
-     */
-    useEffect(() => {
-        if (!sortDropdownOpen) return;
-        const onDocClick = (e) => {
-            if (
-                sortDropdownRef.current &&
-                !sortDropdownRef.current.contains(e.target)
-            ) {
-                setSortDropdownOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", onDocClick);
-        return () => document.removeEventListener("mousedown", onDocClick);
-    }, [sortDropdownOpen]);
-
-    /**
-     * Handle dropdown sort option selection
-     * @function handleSortChange
-     * @param {string} newKey
-     */
-    const handleSortChange = (newKey) => {
-        setSortKey(newKey);
-        setSortDropdownOpen(false);
-        logger.info("Storage sort changed", newKey);
-    };
+    // Alphabetical sort state (A-Z or Z-A)
+    const [sortKey, setSortKey] = useState("a-z");
 
     /**
      * Sort storage locations according to the current sort selection
@@ -104,79 +74,13 @@ const StorageSettings = ({
         return [...list].sort((a, b) => {
             let aVal = a[field];
             let bVal = b[field];
-            if (field === "name") {
-                aVal = aVal ? aVal.toLowerCase() : "";
-                bVal = bVal ? bVal.toLowerCase() : "";
-                if (aVal < bVal) return order === "asc" ? -1 : 1;
-                if (aVal > bVal) return order === "asc" ? 1 : -1;
-                return 0;
-            }
-            if (field === "dateUpdated") {
-                aVal = aVal || a.dateAdded;
-                bVal = bVal || b.dateAdded;
-                if (!aVal) return 1;
-                if (!bVal) return -1;
-                const aDate = new Date(aVal);
-                const bDate = new Date(bVal);
-                if (aDate < bDate) return order === "asc" ? -1 : 1;
-                if (aDate > bDate) return order === "asc" ? 1 : -1;
-                return 0;
-            }
+            aVal = aVal ? aVal.toLowerCase() : "";
+            bVal = bVal ? bVal.toLowerCase() : "";
+            if (aVal < bVal) return order === "asc" ? -1 : 1;
+            if (aVal > bVal) return order === "asc" ? 1 : -1;
             return 0;
         });
     };
-
-    /**
-     * Dropdown menu for storage sorting, styled to match mock.
-     * @function SortDropdown
-     * @returns {JSX.Element}
-     */
-    const SortDropdown = () => {
-        const selectedOption = STORAGE_SORT_OPTIONS.find(o => o.key === sortKey);
-        return (
-            <div className={styles.sortDropdownRoot} ref={sortDropdownRef}>
-                <button
-                    className={styles.sortDropdownButton}
-                    onClick={() => setSortDropdownOpen(v => !v)}
-                    type="button"
-                    aria-haspopup="listbox"
-                    aria-expanded={sortDropdownOpen}
-                >
-                    <span className={styles.sortDropdownSelectedLabel}>
-                        {selectedOption?.label}
-                    </span>
-                    <IoIosArrowDown className={styles.dropdownArrow} size={18} />
-                </button>
-                {sortDropdownOpen && (
-                    <div className={styles.sortDropdownMenu} role="listbox">
-                        <div className={styles.sortDropdownLabel}>
-                            {selectedOption?.label}
-                        </div>
-                        {STORAGE_SORT_OPTIONS.map(opt => (
-                            <button
-                                key={opt.key}
-                                className={
-                                    styles.sortDropdownOption +
-                                    (opt.key === sortKey ? ` ${styles.selected}` : "")
-                                }
-                                onClick={() => handleSortChange(opt.key)}
-                                type="button"
-                                aria-selected={opt.key === sortKey}
-                                tabIndex={0}
-                            >
-                                {opt.label}
-                                {opt.key === sortKey && (
-                                    <FaCheck className={styles.checkmark} />
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div>
-        );
-    };
-
-    // --- Modal and CRUD handlers (no change) ---
 
     /**
      * Opens the edit modal for a storage location.
@@ -215,6 +119,8 @@ const StorageSettings = ({
     /**
      * Handles storage add/save event from modal.
      * Always inject current selectedBuildingId.
+     * @param {number|null} storageId
+     * @param {{name: string, description: string}} payload
      */
     const handleStorageModalSave = (storageId, payload) => {
         logger.info("handleStorageModalSave", { storageId, payload, selectedBuildingId });
@@ -230,8 +136,8 @@ const StorageSettings = ({
     };
 
     /**
-     * Handles trash icon in EditStorageModal.
-     * Triggers ConfirmationModal and closes edit modal.
+     * Handles trash icon in EditStorageModal (delete; closes edit modal & triggers confirmation modal)
+     * @param {number} storageId
      */
     const handleRequestDelete = (storageId) => {
         logger.info("Delete requested for storage", storageId);
@@ -255,7 +161,8 @@ const StorageSettings = ({
     };
 
     /**
-     * Actually calls the delete mutation; shows badge in modal for status.
+     * Calls the delete mutation; shows badge in modal for status.
+     * @param {number} storageId
      */
     const confirmRemoveStorage = (storageId) => {
         setDeleteStatus("deleting");
@@ -306,14 +213,16 @@ const StorageSettings = ({
         <>
             <div className={styles.storageLocationsHeaderRow}>
                 <h2 className={styles.storageLocationsTitle}>Storage Locations</h2>
-                <SortDropdown />
-                <button
-                    className={styles.addUserBtn}
-                    type="button"
-                    onClick={handleAddStorage}
-                >
-                    + New
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <button
+                        className={styles.addUserBtn}
+                        type="button"
+                        onClick={handleAddStorage}
+                    >
+                        + New
+                    </button>
+                    <AlphabeticalSortFilter value={sortKey} onChange={setSortKey} />
+                </div>
             </div>
             <div className={styles.storageSectionPanel}>
                 {isStoragePending || selectedBuildingId == null ? (
@@ -381,9 +290,6 @@ const StorageSettings = ({
  * @returns {JSX.Element}
  */
 const StorageLocationsList = ({ storageList, onEditStorage }) => {
-    /**
-     * logger for StorageLocationsList component.
-     */
     const logger = {
         info: (...args) => console.log("[StorageLocationsList]", ...args),
         error: (...args) => console.error("[StorageLocationsList]", ...args),
