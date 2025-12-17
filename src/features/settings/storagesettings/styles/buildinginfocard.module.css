@@ -16,16 +16,24 @@
     outline: none;
     cursor: pointer;
 }
-.buildingCard:hover,
-.buildingCard:focus-visible {
+
+/* Maintain normal hover for non-selected */
+.buildingCard:hover:not(.selectedCard),
+.buildingCard:focus-visible:not(.selectedCard) {
     box-shadow: 0 10px 30px 0 rgba(130,71,229,0.12), 0 1.5px 3px rgba(0,0,0,0.01);
     border-color: #ede1fb;
     transform: translateY(-2px) scale(1.017);
 }
-.selectedCard {
-    border: 2px solid #8247e5;
-    background: #f9f6fe;
-    box-shadow: 0 6px 26px 0 rgba(130,71,229,0.10);
+
+/* Selected state and when hovered/focused - always green, no purple shadow when active */
+.selectedCard,
+.selectedCard:hover,
+.selectedCard:focus-visible {
+    border: 2px solid #48d18e;
+    background: #f7fefb;
+    color: #1a3f27;
+    box-shadow: 0 3px 10px rgba(72,209,142,0.09);
+    transform: none;
 }
 
 .buildingCardActions {
@@ -66,7 +74,7 @@
 }
 .buildingIcon {
     font-size: 2.1rem;
-    color: #a993ee;
+    color: orange;
     opacity: 0.89;
 }
 .buildingInfo {
