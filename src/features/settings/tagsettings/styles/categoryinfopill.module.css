@@ -1,0 +1,59 @@
+.pill {
+    display: flex;
+    align-items: center;
+    gap: 0.37em;
+    border: 1.7px solid #e3e0f0;
+    background: #fff;
+    border-radius: 999px;
+    padding: 0.48em 1.18em 0.48em 0.98em;
+    font-size: 1.13rem;
+    font-weight: 500;
+    color: #242c38;
+    box-shadow: 0 2px 7px rgba(130,71,229,0.04);
+    margin: 0 0.33em 0.66em 0;
+    cursor: pointer;
+    outline: none;
+    transition: border 0.18s, background 0.18s, color 0.15s, box-shadow 0.18s, transform 0.14s;
+}
+
+.pillActive {
+    border: 2px solid #48d18e;
+    background: #f7fefb;
+    color: #1a3f27;
+    box-shadow: 0 3px 10px rgba(72,209,142,0.09);
+    /* No purple shadow when active */
+}
+
+/* Prioritize the .pillActive state when hovered/focused */
+.pill.pillActive,
+.pillActive:focus-visible,
+.pillActive:hover {
+    border: 2px solid #48d18e;
+    background: #f7fefb;
+    color: #1a3f27;
+    box-shadow: 0 3px 10px rgba(72,209,142,0.09);
+    transform: none;
+}
+
+/* Standard (not selected) hover state */
+.pill:focus-visible:not(.pillActive),
+.pill:hover:not(.pillActive) {
+    box-shadow: 0 10px 30px 0 rgba(130,71,229,0.12), 0 1.5px 3px rgba(0,0,0,0.01);
+    border-color: #ede1fb;
+    transform: translateY(-2px) scale(1.017);
+    background: #f3f0fa;
+    color: #623dc5;
+}
+
+.emoji, .icon {
+    margin-right: 0.44em;
+    font-size: 1.27em;
+    display: flex;
+    align-items: center;
+    opacity: 0.95;
+}
+
+.label {
+    display: inline-block;
+    white-space: nowrap;
+}
