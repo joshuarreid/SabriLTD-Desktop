@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import styles from "../features/settings/settingsscreen.module.css";
 import UserSettingsTab from "../features/settings/usersettings/components/UserSettingsTab";
 import StorageSettingsTab from "../features/settings/storagesettings/components/StorageSettingsTab";
+import TagSettingsTab from "../features/settings/tagsettings/components/TagSettingsTab";
+
 
 /**
  * logger for SettingsScreen
@@ -75,14 +77,7 @@ const SettingsScreen = () => {
             case "storage":
                 return <StorageSettingsTab />;
             case "tags":
-                return (
-                    <div className={styles.placeholder}>
-                        <h3>Tags Settings</h3>
-                        <div style={{ color: "#9a95b4", marginTop: 8, fontSize: "1.1rem" }}>
-                            Tag management coming soon.
-                        </div>
-                    </div>
-                );
+                return <TagSettingsTab />;
             default:
                 return null;
         }
