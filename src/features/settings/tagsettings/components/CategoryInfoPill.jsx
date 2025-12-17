@@ -17,19 +17,17 @@ function getIconForCategory(label, emoji) {
 
     if (lower.includes("brand"))          return <FcRating className={styles.icon} />;
     if (lower.includes("displays"))       return <FcFrame className={styles.icon} />;
-    if (lower.includes("furniture"))      return <LiaChairSolid className={styles.icon} style={{ color: "#965E2F" }} />;
-    if (lower.includes("raw materials"))  return <GiWoodFrame className={styles.icon} style={{ color: "#965E2F" }} />;
+    if (lower.includes("furniture"))      return <LiaChairSolid className={`${styles.icon} ${styles.iconBrown}`} />;
+    if (lower.includes("raw materials"))  return <GiWoodFrame className={`${styles.icon} ${styles.iconBrown}`} />;
     if (lower.includes("components"))     return <FcServices className={styles.icon} />;
-    if (lower.includes("fasteners"))      return <GiScrew className={styles.icon} style={{ color: "grey"}} />;
+    if (lower.includes("fasteners"))      return <GiScrew className={`${styles.icon} ${styles.iconGrey}`} />;
     if (lower.includes("graphics"))       return <FcStackOfPhotos className={styles.icon} />;
-    if (lower.includes("tools"))          return <LiaToolsSolid className={styles.icon} style={{ color: "grey" }} />;
+    if (lower.includes("tools"))          return <LiaToolsSolid className={`${styles.icon} ${styles.iconGrey}`} />;
     if (lower.includes("shipping"))       return <FcPackage className={styles.icon} />;
     if (lower.includes("event"))          return <FcAdvertising className={styles.icon} />;
     if (lower.includes("maintainence") || lower.includes("maintenance"))
-        return <PiToolboxDuotone className={styles.icon} style={{ color: "grey" }} />;
+        return <PiToolboxDuotone className={`${styles.icon} ${styles.iconGrey}`} />;
     if (lower.includes("archive"))        return <FcOpenedFolder className={styles.icon} />;
-
-    // fallback: use emoji string provided by API if available, else nothing.
     if (emoji) return <span className={styles.emoji}>{emoji}</span>;
     return null;
 }
