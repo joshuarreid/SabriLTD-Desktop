@@ -1,8 +1,9 @@
 import React from "react";
 import styles from "../styles/buildinginfocard.module.css";
-import { LuWarehouse } from "react-icons/lu";
+import { FcOrganization } from "react-icons/fc";
 import { FaHouse } from "react-icons/fa6";
-import { FaVanShuttle } from "react-icons/fa6";
+import { FcInTransit } from "react-icons/fc";
+import { GiHouse } from "react-icons/gi";
 import { MdOutlineModeEditOutline } from "react-icons/md";
 
 /**
@@ -27,10 +28,10 @@ const logger = {
  * @returns {JSX.Element}
  */
 function getBuildingIcon(name) {
-    if (!name) return <LuWarehouse className={styles.buildingIcon} />;
+    if (!name) return <FcOrganization className={styles.buildingIcon} />;
     const lower = name.toLowerCase();
     if (lower.includes("warehouse")) {
-        return <LuWarehouse className={styles.buildingIcon} />;
+        return <FcOrganization className={styles.buildingIcon} />;
     }
     if (
         lower.includes("van") ||
@@ -38,15 +39,15 @@ function getBuildingIcon(name) {
         lower.includes("car") ||
         lower.includes("vehicle")
     ) {
-        return <FaVanShuttle className={styles.buildingIcon} />;
+        return <FcInTransit className={styles.buildingIcon} />;
     }
     if (
         lower.includes("home") ||
         lower.includes("house")
     ) {
-        return <FaHouse className={styles.buildingIcon} />;
+        return <GiHouse className={styles.buildingIcon} />;
     }
-    return <LuWarehouse className={styles.buildingIcon} />;
+    return <FcOrganization className={styles.buildingIcon} />;
 }
 
 /**

@@ -51,10 +51,30 @@
     margin-right: 8px;
 }
 
+/* Base icon styling for all storage icons */
 .storageIcon {
     font-size: 1.24rem;
-    color: #a993ee;
 }
+
+/* Color accents for specific icons */
+.storageIconBrown {
+    color: #8187A6;
+}
+.storageIconGrey {
+    color: #8187A6;
+}
+.storageIconBlue {
+    color: #4587C7;
+}
+
+/* Optionally, a wrapper for 'cabinet' icons with a subtle background */
+.cabinetIconWrap {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 6px;
+    padding: 1px 4px 1px 1px;
+}
+
 .storageName {
     font-size: .98rem;
     font-weight: 600;
