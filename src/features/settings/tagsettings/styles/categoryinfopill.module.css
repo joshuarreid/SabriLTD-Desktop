@@ -21,10 +21,8 @@
     background: #f7fefb;
     color: #1a3f27;
     box-shadow: 0 3px 10px rgba(72,209,142,0.09);
-    /* No purple shadow when active */
 }
 
-/* Prioritize the .pillActive state when hovered/focused */
 .pill.pillActive,
 .pillActive:focus-visible,
 .pillActive:hover {
@@ -35,7 +33,6 @@
     transform: none;
 }
 
-/* Standard (not selected) hover state */
 .pill:focus-visible:not(.pillActive),
 .pill:hover:not(.pillActive) {
     box-shadow: 0 10px 30px 0 rgba(130,71,229,0.12), 0 1.5px 3px rgba(0,0,0,0.01);
@@ -51,6 +48,14 @@
     display: flex;
     align-items: center;
     opacity: 0.95;
+}
+
+.iconBrown {
+    color: #965E2F;
+}
+
+.iconGrey {
+    color: #8187A6;
 }
 
 .label {

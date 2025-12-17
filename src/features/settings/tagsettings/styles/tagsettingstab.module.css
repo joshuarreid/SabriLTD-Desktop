@@ -10,8 +10,9 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.5em;
-    margin-bottom: 28px;
+    margin-bottom: 20px;
     padding-left: 10px;
+    justify-content: flex-start;
 }
 
 .placeholder {
@@ -22,4 +23,73 @@
     min-height: 120px;
     text-align: center;
     margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+/* Card-wide search bar across top, matches reference image 6 */
+.cardSearchTopBarWrap {
+    width: 100%;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cardSearchBarContainer {
+    width: 100%;
+    max-width: 95%;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.cardSearchBar {
+    width: 100%;
+    min-width: 240px;
+    background: #f7f7f7;
+    border: none;
+    border-radius: 999px;
+    font-size: 1.1rem;
+    padding: 0.74em 0.4em 0.74em 2.7em;
+    font-family: inherit;
+    color: #b0b1b9;
+    outline: none;
+    box-shadow: none;
+    transition: box-shadow 0.17s, border-color 0.17s;
+}
+
+.cardSearchBar:focus {
+    background: #f5f2fb;
+    color: #6c5ca3;
+}
+
+.cardSearchIcon {
+    position: absolute;
+    left: 1.18em;
+    top: 50%;
+    transform: translateY(-55%);
+    color: #b0b1b9;
+    pointer-events: none;
+}
+
+.tagsPillsRow {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.48em;
+    min-height: 34px;
+    justify-content: center;
+    margin-bottom: 10px;
+    margin-top: 0;
+}
+
+.noTagsMsg {
+    color: #b6b3be;
+    font-size: 1.08em;
+    font-weight: 400;
+    padding: 0.2em 1.3em 0.1em 0.2em;
+    letter-spacing: 0.02em;
 }
