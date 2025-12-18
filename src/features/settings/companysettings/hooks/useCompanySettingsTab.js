@@ -1,19 +1,27 @@
 /**
  * useCompanySettingsTab.js
  *
- * Hook that encapsulates business logic and UI state for the CompanySettingsTab.
- * - Holds company list (wireframe/mock for now), modal state, delete flow, selection.
- * - Exposes handlers for the presentational component to consume.
+ * Hook that encapsulates business logic, data fetching and UI state for the CompanySettingsTab.
+ * - Loads companies via TanStack Query (getAllCompanies).
+ * - Exposes create / update / delete mutations wired to the company API.
+ * - Manages modal state (add/edit), delete confirmation, selection, and save/delete status badges.
  *
- * Follows Bulletproof React conventions: hooks contain side-effects, state, and logic.
+ * Follows the same design and cache-key patterns used by useUserSettingsTab.
  */
 
 import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+    getAllCompanies,
+    createCompany,
+    updateCompany,
+    deleteCompany,
+} from "../../../../api/company/company";
+import { companyKeys } from "../../../../api/company/companyQueryKeys";
 
 /**
  * logger for useCompanySettingsTab hook.
  * @constant
- * @type {{info: Function, error: Function}}
  */
 const logger = {
     info: (...args) => console.log("[useCompanySettingsTab]", ...args),
@@ -21,50 +29,62 @@ const logger = {
 };
 
 /**
+ * invalidateAllCompanyKeys
+ * Invalidates all relevant company-related query keys after a mutation.
+ *
+ * @async
+ * @param {object} queryClient - React Query client
+ * @param {object} company - Partial company object (optional)
+ */
+const invalidateAllCompanyKeys = async (queryClient, company) => {
+    logger.info("Invalidating all relevant company query keys");
+    await queryClient.invalidateQueries({ queryKey: companyKeys.all });
+    await queryClient.invalidateQueries({ queryKey: companyKeys.lists() });
+    await queryClient.invalidateQueries({ queryKey: companyKeys.list() });
+    await queryClient.invalidateQueries({ queryKey: companyKeys.withJobs() });
+    if (company?.companyId !== undefined && company?.companyId !== null) {
+        await queryClient.invalidateQueries({
+            queryKey: companyKeys.detail(company.companyId),
+        });
+        await queryClient.invalidateQueries({
+            queryKey: companyKeys.update(company.companyId),
+        });
+        await queryClient.invalidateQueries({
+            queryKey: companyKeys.remove(company.companyId),
+        });
+    }
+};
+
+/**
  * useCompanySettingsTab
  *
- * Encapsulates business logic & ephemeral UI state for the companies settings tab.
- *
- * Responsibilities:
- *  - Provide companies list (mocked here for the wireframe).
- *  - Manage modal state for add/edit flows (modalMode/modalCompany/modalError).
- *  - Provide save simulations and save status flags (editStatus/addStatus).
- *  - Manage delete confirmation flow (removingId/deleteStatus).
- *  - Selection state (selectedId) and helpers.
- *
- * @returns {object} Public API for CompanySettingsTab component.
+ * @returns {object} Hook API consumed by CompanySettingsTab.jsx
  */
 export const useCompanySettingsTab = () => {
     logger.info("useCompanySettingsTab initialized");
 
-    /**
-     * Mock list of companies for wireframe/demo usage.
-     * Use a lazy initializer to avoid re-creating on every render.
-     * @type {Array<Object>}
-     */
-    const [companies] = useState(() => [
-        {
-            companyId: 301,
-            name: "Acme Corp.",
-            address: "123 Industry Road",
-            phone: "+1-555-1234",
-            website: "https://acme.com",
-        },
-        {
-            companyId: 302,
-            name: "Globex Industries",
-            address: "456 Commerce Ave",
-            phone: "+1-555-9876",
-            website: "https://globex.example",
-        },
-        {
-            companyId: 303,
-            name: "Initech",
-            address: "789 Office Park Blvd",
-            phone: "+1-555-0000",
-            website: "https://initech.example",
-        },
-    ]);
+    const queryClient = useQueryClient();
+
+    // --- Query: companies list ---
+    const {
+        data: companies = [],
+        isPending,
+        isError,
+        error,
+    } = useQuery({
+        queryKey: companyKeys.lists(),
+        queryFn: () => getAllCompanies(),
+    });
+
+    // Auto-select the first company when loaded if none selected
+    const [selectedId, setSelectedId] = useState(null);
+    useEffect(() => {
+        if (!isPending && !isError && companies.length > 0 && selectedId == null) {
+            const firstId = companies[0].companyId;
+            logger.info("Auto-selecting first company", firstId);
+            setSelectedId(firstId);
+        }
+    }, [companies, isPending, isError, selectedId]);
 
     // --- Modal / save state ---
     const [editStatus, setEditStatus] = useState("idle"); // 'idle'|'saving'|'saved'|'error'
@@ -78,71 +98,87 @@ export const useCompanySettingsTab = () => {
     const [removingId, setRemovingId] = useState(null);
     const [deleteStatus, setDeleteStatus] = useState("idle"); // 'idle'|'deleting'|'deleted'|'error'
 
-    // --- Selection state ---
-    const [selectedId, setSelectedId] = useState(null);
-
-    // Refs for timeouts so we can clear on unmount
+    // Refs to manage timeouts
     const closeTimeoutRef = useRef(null);
     const deleteTimeoutRef = useRef(null);
 
-    // --- Simulated async operations (wireframe) ---
-    /**
-     * simulateEditSave
-     * Simulates saving an edited company.
-     *
-     * @param {number} companyId
-     * @param {object} payload
-     * @returns {void}
-     */
-    const simulateEditSave = (companyId, payload) => {
-        logger.info("simulateEditSave called", { companyId, payload });
-        setEditStatus("saving");
-        // Simulate latency
-        closeTimeoutRef.current = setTimeout(() => {
-            setEditStatus("saved");
-            logger.info("simulateEditSave completed (saved)", { companyId });
-        }, 600);
-    };
+    // --- Mutations ---
 
     /**
-     * simulateAddSave
-     * Simulates creating a new company.
-     *
-     * @param {object} payload
-     * @returns {void}
+     * createCompanyMutation
+     * Creates a company and invalidates company keys on success.
      */
-    const simulateAddSave = (payload) => {
-        logger.info("simulateAddSave called", payload);
-        setAddStatus("saving");
-        closeTimeoutRef.current = setTimeout(() => {
+    const createCompanyMutation = useMutation({
+        mutationFn: (company) => createCompany(company),
+        onMutate: () => setAddStatus("saving"),
+        onSuccess: async (created) => {
+            logger.info("Company created, invalidating keys", created);
+            await invalidateAllCompanyKeys(queryClient, created);
             setAddStatus("saved");
-            logger.info("simulateAddSave completed (saved)");
-        }, 600);
-    };
+            setTimeout(() => setAddStatus("idle"), 1400);
+        },
+        onError: (err) => {
+            logger.error("createCompany failed", err);
+            setAddStatus("error");
+            setTimeout(() => setAddStatus("idle"), 1600);
+        },
+    });
 
     /**
-     * simulateDelete
-     * Simulates deleting a company.
-     *
-     * @param {number} companyId
-     * @returns {void}
+     * updateCompanyMutation
+     * Updates a company by id and invalidates keys.
      */
-    const simulateDelete = (companyId) => {
-        logger.info("simulateDelete called", companyId);
-        setDeleteStatus("deleting");
-        deleteTimeoutRef.current = setTimeout(() => {
-            setDeleteStatus("deleted");
-            logger.info("simulateDelete completed (deleted)", companyId);
-        }, 600);
-    };
+    const updateCompanyMutation = useMutation({
+        mutationFn: ({ companyId, company }) => updateCompany(companyId, company),
+        onMutate: () => setEditStatus("saving"),
+        onSuccess: async (_updated, _vars) => {
+            logger.info("Company updated, invalidating keys");
+            await invalidateAllCompanyKeys(queryClient, _vars?.company || _vars);
+            setEditStatus("saved");
+            setTimeout(() => setEditStatus("idle"), 1400);
+        },
+        onError: (err) => {
+            logger.error("updateCompany failed", err);
+            setEditStatus("error");
+            setTimeout(() => setEditStatus("idle"), 1600);
+        },
+    });
 
-    // --- Modal / flow handlers (exposed) ---
+    /**
+     * deleteCompanyMutation
+     * Deletes a company by id and invalidates keys.
+     */
+    const deleteCompanyMutation = useMutation({
+        mutationFn: (companyId) => deleteCompany(companyId),
+        onMutate: () => {
+            logger.info("deleteCompanyMutation onMutate");
+            setDeleteStatus("deleting");
+        },
+        onSuccess: async (_data, companyId) => {
+            logger.info("Company deleted, invalidating keys", companyId);
+            await invalidateAllCompanyKeys(queryClient, { companyId });
+            setDeleteStatus("deleted");
+            setTimeout(() => {
+                setDeleteStatus("idle");
+                setRemovingId(null);
+                // If deleted company was selected, clear selection
+                if (selectedId === companyId) {
+                    setSelectedId(null);
+                }
+            }, 1000);
+        },
+        onError: (err) => {
+            logger.error("deleteCompany failed", err);
+            setDeleteStatus("error");
+            setTimeout(() => setDeleteStatus("idle"), 1600);
+        },
+    });
+
+    // --- Modal & CRUD handlers ---
+
     /**
      * openEditModal
-     * Opens the edit modal for a given company.
-     *
      * @param {object} company
-     * @returns {void}
      */
     const openEditModal = (company) => {
         logger.info("openEditModal", company?.companyId);
@@ -154,9 +190,6 @@ export const useCompanySettingsTab = () => {
 
     /**
      * openAddModal
-     * Opens the add-company modal.
-     *
-     * @returns {void}
      */
     const openAddModal = () => {
         logger.info("openAddModal");
@@ -168,50 +201,50 @@ export const useCompanySettingsTab = () => {
 
     /**
      * handleModalSaveEdit
-     * Called from the UI to save an edited company.
-     *
      * @param {number} companyId
      * @param {object} payload
-     * @returns {void}
      */
     const handleModalSaveEdit = (companyId, payload) => {
         logger.info("handleModalSaveEdit", { companyId, payload });
         setModalError(null);
         setPendingClose(true);
-        try {
-            simulateEditSave(companyId, payload);
-        } catch (err) {
-            logger.error("handleModalSaveEdit failed", err);
-            setModalError(err?.message || "Failed to save.");
-            setPendingClose(false);
-        }
+        updateCompanyMutation.mutate(
+            { companyId, company: payload },
+            {
+                onSuccess: () => {
+                    setModalCompany(null);
+                    setModalMode(null);
+                },
+                onError: (err) => {
+                    setModalError(err?.message || "Failed to save company.");
+                    setPendingClose(false);
+                },
+            }
+        );
     };
 
     /**
      * handleModalSaveAdd
-     * Called from the UI to create a new company.
-     *
      * @param {object} payload
-     * @returns {void}
      */
     const handleModalSaveAdd = (payload) => {
         logger.info("handleModalSaveAdd", payload);
         setModalError(null);
         setPendingClose(true);
-        try {
-            simulateAddSave(payload);
-        } catch (err) {
-            logger.error("handleModalSaveAdd failed", err);
-            setModalError(err?.message || "Failed to create.");
-            setPendingClose(false);
-        }
+        createCompanyMutation.mutate(payload, {
+            onSuccess: () => {
+                setModalCompany(null);
+                setModalMode(null);
+            },
+            onError: (err) => {
+                setModalError(err?.message || "Failed to create company.");
+                setPendingClose(false);
+            },
+        });
     };
 
     /**
-     * closeModal
-     * Closes the add/edit modal and resets modal state.
-     *
-     * @returns {void}
+     * closeModal - resets modal state and transient statuses
      */
     const closeModal = () => {
         logger.info("closeModal");
@@ -219,18 +252,15 @@ export const useCompanySettingsTab = () => {
         setModalMode(null);
         setModalError(null);
         setPendingClose(false);
-        // reset transient statuses (keep persisted statuses for UI badges)
         setEditStatus((s) => (s === "saved" ? "idle" : s));
         setAddStatus((s) => (s === "saved" ? "idle" : s));
     };
 
-    // --- Delete flow handlers (exposed) ---
+    // --- Delete flow handlers ---
+
     /**
      * handlePromptDelete
-     * Triggers delete confirmation UX for a company.
-     *
      * @param {number} companyId
-     * @returns {void}
      */
     const handlePromptDelete = (companyId) => {
         logger.info("handlePromptDelete", companyId);
@@ -239,10 +269,7 @@ export const useCompanySettingsTab = () => {
     };
 
     /**
-     * handleConfirmDelete
-     * Confirms and performs delete (simulated).
-     *
-     * @returns {void}
+     * handleConfirmDelete - confirms current removingId
      */
     const handleConfirmDelete = () => {
         if (!removingId) {
@@ -250,21 +277,12 @@ export const useCompanySettingsTab = () => {
             return;
         }
         logger.info("handleConfirmDelete", removingId);
-        try {
-            simulateDelete(removingId);
-        } catch (err) {
-            logger.error("handleConfirmDelete failed", err);
-            setDeleteStatus("error");
-        }
+        deleteCompanyMutation.mutate(removingId);
     };
 
     /**
-     * handleDeleteDirect
-     * Immediately performs deletion for a given companyId (bypasses prompt).
-     * Useful for modal-level confirmed deletes where the modal already asked for confirmation.
-     *
+     * handleDeleteDirect - delete provided companyId immediately (modal-level confirm)
      * @param {number} companyId
-     * @returns {void}
      */
     const handleDeleteDirect = (companyId) => {
         if (!companyId) {
@@ -272,19 +290,11 @@ export const useCompanySettingsTab = () => {
             return;
         }
         logger.info("handleDeleteDirect called", companyId);
-        try {
-            simulateDelete(companyId);
-        } catch (err) {
-            logger.error("handleDeleteDirect failed", err);
-            setDeleteStatus("error");
-        }
+        deleteCompanyMutation.mutate(companyId);
     };
 
     /**
      * handleCancelDelete
-     * Cancels the delete confirmation.
-     *
-     * @returns {void}
      */
     const handleCancelDelete = () => {
         logger.info("handleCancelDelete");
@@ -292,13 +302,12 @@ export const useCompanySettingsTab = () => {
         setDeleteStatus("idle");
     };
 
-    // --- Effects: watch for saved/deleted statuses and handle transitions ---
+    // --- Effects: modal auto-close and delete reset ---
+
     useEffect(() => {
-        // When saved, schedule clearing of pendingClose and close modal
         const status = modalMode === "add" ? addStatus : editStatus;
         if (pendingClose && status === "saved") {
-            logger.info("Detected saved state; scheduling modal close");
-            // reuse closeTimeoutRef (cleared on unmount)
+            logger.info("Modal save finished; scheduling close");
             closeTimeoutRef.current = setTimeout(() => {
                 closeModal();
             }, 800);
@@ -312,9 +321,8 @@ export const useCompanySettingsTab = () => {
     }, [pendingClose, editStatus, addStatus, modalMode]);
 
     useEffect(() => {
-        // When deleteStatus becomes 'deleted' or 'error' schedule resetting the confirmation
         if (deleteStatus === "deleted") {
-            logger.info("Delete confirmed; scheduling UI reset");
+            logger.info("Delete completed; scheduling reset");
             deleteTimeoutRef.current = setTimeout(() => {
                 setDeleteStatus("idle");
                 setRemovingId(null);
@@ -331,21 +339,20 @@ export const useCompanySettingsTab = () => {
         };
     }, [deleteStatus]);
 
-    // Cleanup on unmount
+    // Cleanup timers on unmount
     useEffect(() => {
         return () => {
-            if (closeTimeoutRef.current) {
-                clearTimeout(closeTimeoutRef.current);
-            }
-            if (deleteTimeoutRef.current) {
-                clearTimeout(deleteTimeoutRef.current);
-            }
+            if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+            if (deleteTimeoutRef.current) clearTimeout(deleteTimeoutRef.current);
         };
     }, []);
 
-    // --- Public API returned by the hook ---
+    // --- Public API returned ---
     return {
         companies,
+        isPending,
+        isError,
+        error,
         // modal + save state
         editStatus,
         addStatus,
@@ -368,6 +375,10 @@ export const useCompanySettingsTab = () => {
         // selection
         selectedId,
         setSelectedId,
+        // expose raw mutations for advanced usage/testing
+        createCompanyMutation,
+        updateCompanyMutation,
+        deleteCompanyMutation,
     };
 };
 

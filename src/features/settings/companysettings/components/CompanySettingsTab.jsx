@@ -1,24 +1,24 @@
 /**
  * CompanySettingsTab.jsx
  *
- * Presentational container that consumes useCompanySettingsTab hook for business
- * logic. Renders CompanyInfoCard tiles, wired EditCompanyModal, and delete confirmation UI.
+ * Presentational container wired to useCompanySettingsTab that renders:
+ * - CompanyInfoCard tiles
+ * - EditCompanyModal (real modal wired to API)
+ * - Card-level delete confirmation
  *
- * Per Bulletproof React conventions: this file contains render logic only and
- * delegates side-effects/state to the hook.
+ * This component contains ONLY render logic and delegates business logic to the hook.
  */
 
 import React from "react";
 import styles from "../styles/companysettingstab.module.css";
 import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
 import CompanyInfoCard from "./CompanyInfoCard";
-import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab";
 import EditCompanyModal from "../../../../components/editcompanymodal/EditCompanyModal";
+import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab";
 
 /**
  * logger for CompanySettingsTab.
  * @constant
- * @type {{info: Function, error: Function}}
  */
 const logger = {
     info: (...args) => console.log("[CompanySettingsTab]", ...args),
@@ -26,9 +26,7 @@ const logger = {
 };
 
 /**
- * CompanySettingsTab
- *
- * Presentational container for the company settings UI.
+ * CompanySettingsTab - presentational container
  *
  * @component
  * @returns {JSX.Element}
@@ -38,6 +36,9 @@ const CompanySettingsTab = () => {
 
     const {
         companies,
+        isPending,
+        isError,
+        error,
         // modal + save state
         editStatus,
         addStatus,
@@ -62,11 +63,16 @@ const CompanySettingsTab = () => {
         setSelectedId,
     } = useCompanySettingsTab();
 
-    const removingCompany = removingId
-        ? companies.find((c) => c.companyId === removingId)
-        : null;
+    const removingCompany = removingId ? companies.find((c) => c.companyId === removingId) : null;
 
-    // compute isSaving and saveState for modal SaveStatus
+    if (isPending) {
+        return <div className={styles.loading}>Loading companies...</div>;
+    }
+
+    if (isError) {
+        return <div className={styles.error}>Error: {error?.message || "Failed to load companies."}</div>;
+    }
+
     const modalIsSaving = editStatus === "saving" || addStatus === "saving";
     const modalSaveState = modalMode === "edit" ? editStatus : addStatus;
 
@@ -98,9 +104,7 @@ const CompanySettingsTab = () => {
                 ))}
             </div>
 
-            {/* Wire up the real modal (EditCompanyModal) to the hook handlers.
-                - onSave delegates to handleModalSaveEdit / handleModalSaveAdd
-                - onDelete uses handleDeleteDirect because EditCompanyModal shows its own confirm */}
+            {/* Edit/Add modal wired to real API via hook */}
             {modalCompany && (
                 <EditCompanyModal
                     company={modalCompany}
@@ -115,8 +119,7 @@ const CompanySettingsTab = () => {
                     }}
                     onClose={closeModal}
                     onDelete={(companyId) => {
-                        // EditCompanyModal already confirms with the user inside the modal.
-                        // We perform direct delete (no secondary prompt) since user already confirmed.
+                        // EditCompanyModal shows its own confirmation. Perform direct delete if confirmed.
                         handleDeleteDirect(companyId);
                     }}
                     error={modalError}
@@ -124,14 +127,14 @@ const CompanySettingsTab = () => {
                 />
             )}
 
-            {/* Wireframe delete confirmation (presentational) for card-level delete */}
+            {/* Card-level delete confirmation */}
             {removingCompany && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modalCard}>
                         <h3 className={styles.modalTitle}>Delete Company?</h3>
                         <p className={styles.modalBody}>
-                            Are you sure you want to delete company &quot;{removingCompany.name}&quot;? This is a mock
-                            confirmation for the wireframe.
+                            Are you sure you want to delete company &quot;{removingCompany.name}&quot;? This is a
+                            confirmation.
                         </p>
                         <div className={styles.modalActions}>
                             <button
@@ -140,7 +143,7 @@ const CompanySettingsTab = () => {
                                 onClick={handleConfirmDelete}
                                 disabled={deleteStatus === "deleting"}
                             >
-                                {deleteStatus === "deleting" ? "Deleting…" : "Delete (mock)"}
+                                {deleteStatus === "deleting" ? "Deleting…" : "Delete"}
                             </button>
                             <button
                                 type="button"
