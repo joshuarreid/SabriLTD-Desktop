@@ -1,12 +1,10 @@
 import React, { useMemo } from "react";
-import styles from "../styles/tagsettingstab.module.css";
-import CategoryInfoPill from "./CategoryInfoPill";
-import TagInfoPill from "./TagInfoPill";
 import { useTagSettingsTab } from "../hooks/useTagSettingsTab";
-import WideSearchBar from "../../../../components/searchbar/WideSearchBar";
+import TagSettingsLayout from "./TagSettingsLayout";
 
 /**
  * logger for TagSettingsTab.
+ *
  * @constant
  * @type {{info: Function, error: Function}}
  */
@@ -16,9 +14,23 @@ const logger = {
 };
 
 /**
+ * TAG_SORT_OPTIONS
+ * Dropdown sort options: only A to Z and Z to A.
+ *
+ * @constant
+ * @type {Array<{key: string, label: string, field: string, order: "asc"|"desc"}>}
+ */
+const TAG_SORT_OPTIONS = [
+    { key: "a-z", label: "A to Z", field: "name", order: "asc" },
+    { key: "z-a", label: "Z to A", field: "name", order: "desc" },
+];
+
+/**
  * TagSettingsTab
- * Tag settings UI using real API data via hook.
- * Renders category pills, wide tag search bar, and tag pills.
+ * Container component for Tag Settings.
+ * - Owns state (search text, sort key).
+ * - Uses useTagSettingsTab hook for data + mutations.
+ * - Delegates pure rendering to TagSettingsLayout.
  *
  * @component
  * @returns {JSX.Element}
@@ -37,22 +49,60 @@ const TagSettingsTab = () => {
         isTagsPending,
         isTagsError,
         tagsError,
+        tagDeleteId,
+        tagDeleteStatus,
+        triggerTagDelete,
+        handleConfirmTagDelete,
+        handleCancelTagDelete,
+        createTagAsDraft,
+        createTagStatus,
     } = useTagSettingsTab();
 
-    // Local UI-only state for tag search text
     const [tagSearch, setTagSearch] = React.useState("");
+    const [sortKey, setSortKey] = React.useState("a-z");
 
     /**
-     * Filters tags by search substring (case-insensitive).
+     * Computes the current sort configuration from TAG_SORT_OPTIONS.
+     *
+     * @type {{key: string, label: string, field: string, order: "asc"|"desc"}}
+     */
+    const currentSort = useMemo(
+        () => TAG_SORT_OPTIONS.find((opt) => opt.key === sortKey) || TAG_SORT_OPTIONS[0],
+        [sortKey],
+    );
+
+    /**
+     * Filters and sorts tags by search substring (case-insensitive) and sort order.
      *
      * @type {Array}
      */
     const filteredTags = useMemo(() => {
         if (isTagsPending || isTagsError) return [];
         const lower = tagSearch.trim().toLowerCase();
-        if (!lower) return tags;
-        return tags.filter((tag) => (tag.name || "").toLowerCase().includes(lower));
-    }, [tags, tagSearch, isTagsPending, isTagsError]);
+
+        let base = tags || [];
+        if (lower) {
+            base = base.filter((tag) => (tag.name || "").toLowerCase().includes(lower));
+        }
+
+        const sorted = [...base].sort((a, b) => {
+            const aName = (a.name || "").toLocaleString().toLowerCase();
+            const bName = (b.name || "").toLocaleString().toLowerCase();
+            if (aName === bName) return 0;
+            if (currentSort.order === "asc") {
+                return aName.localeCompare(bName, undefined, {
+                    numeric: true,
+                    sensitivity: "base",
+                });
+            }
+            return bName.localeCompare(aName, undefined, {
+                numeric: true,
+                sensitivity: "base",
+            });
+        });
+
+        return sorted;
+    }, [tags, tagSearch, isTagsPending, isTagsError, currentSort.order]);
 
     /**
      * Handles tag search bar input.
@@ -62,6 +112,41 @@ const TagSettingsTab = () => {
      */
     const handleTagSearchChange = (event) => {
         setTagSearch(event.target.value);
+    };
+
+    /**
+     * Handles Enter key in the search bar.
+     * Always creates a new tag with the current search string in the
+     * selected category (if both are valid).
+     *
+     * @param {React.KeyboardEvent<HTMLInputElement>} event
+     * @returns {void}
+     */
+    const handleTagSearchKeyDown = (event) => {
+        if (event.key !== "Enter") return;
+
+        const trimmed = tagSearch.trim();
+
+        logger.info("Tag search Enter pressed", {
+            rawValue: tagSearch,
+            trimmed,
+            selectedCategoryId,
+        });
+
+        if (!trimmed) {
+            logger.info("Enter pressed with empty value; ignoring");
+            return;
+        }
+
+        if (!selectedCategoryId) {
+            logger.info("Enter pressed but no selectedCategoryId; ignoring create");
+            return;
+        }
+
+        createTagAsDraft({
+            categoryId: selectedCategoryId,
+            name: trimmed,
+        });
     };
 
     /**
@@ -76,76 +161,53 @@ const TagSettingsTab = () => {
         setTagSearch("");
     };
 
-    if (isCategoriesPending) {
-        return (
-            <div className={styles.tabRoot}>
-                <div className={styles.placeholder}>Loading categories...</div>
-            </div>
-        );
-    }
+    /**
+     * Handles click on the delete "x" for a tag pill.
+     *
+     * @param {number} tagId
+     * @param {string} tagName
+     * @returns {void}
+     */
+    const handleTagDeleteRequest = (tagId, tagName) => {
+        logger.info("Delete icon clicked for tag", { tagId, tagName });
+        triggerTagDelete(tagId);
+    };
 
-    if (isCategoriesError) {
-        return (
-            <div className={styles.tabRoot}>
-                <div className={styles.placeholder}>
-                    <span style={{ color: "#cd384a" }}>
-                        Failed to load categories. {categoriesError?.message || "Please try again."}
-                    </span>
-                </div>
-            </div>
-        );
-    }
+    /**
+     * Handles sort value change from AlphabeticalSortFilter.
+     *
+     * @param {string} key
+     * @returns {void}
+     */
+    const handleSortChange = (key) => {
+        setSortKey(key);
+    };
 
     return (
-        <div className={styles.tabRoot}>
-            <div className={styles.pillsContainer}>
-                {categories && categories.length > 0 ? (
-                    categories.map((cat) => (
-                        <CategoryInfoPill
-                            key={cat.categoryId}
-                            label={cat.name}
-                            emoji={cat.emoji}
-                            active={cat.categoryId === selectedCategoryId}
-                            onClick={() => handleCategoryClick(cat.categoryId)}
-                        />
-                    ))
-                ) : (
-                    <span
-                        style={{
-                            color: "#b6b3be",
-                            fontSize: "1.07em",
-                            padding: ".7em 2em",
-                        }}
-                    >
-                        No categories yet.
-                    </span>
-                )}
-            </div>
-            <div className={styles.placeholder}>
-                <WideSearchBar
-                    value={tagSearch}
-                    onChange={handleTagSearchChange}
-                    placeholder="Search tags"
-                    ariaLabel="Search tags"
-                    disabled={isTagsPending || isTagsError}
-                />
-                <div className={styles.tagsPillsRow}>
-                    {isTagsPending ? (
-                        <span>Loading tags...</span>
-                    ) : isTagsError ? (
-                        <span className={styles.noTagsMsg} style={{ color: "#cd384a" }}>
-                            Failed to load tags. {tagsError?.message || "Please try again."}
-                        </span>
-                    ) : filteredTags.length > 0 ? (
-                        filteredTags.map((tag) => (
-                            <TagInfoPill key={tag.tagId} label={tag.name} />
-                        ))
-                    ) : (
-                        <span className={styles.noTagsMsg}>No tags found.</span>
-                    )}
-                </div>
-            </div>
-        </div>
+        <TagSettingsLayout
+            categories={categories}
+            selectedCategoryId={selectedCategoryId}
+            onCategoryClick={handleCategoryClick}
+            isCategoriesPending={isCategoriesPending}
+            isCategoriesError={isCategoriesError}
+            categoriesError={categoriesError}
+            tags={tags}
+            isTagsPending={isTagsPending}
+            isTagsError={isTagsError}
+            tagsError={tagsError}
+            tagSearch={tagSearch}
+            onTagSearchChange={handleTagSearchChange}
+            onTagSearchKeyDown={handleTagSearchKeyDown}
+            sortKey={sortKey}
+            onSortChange={handleSortChange}
+            filteredTags={filteredTags}
+            createTagStatus={createTagStatus}
+            tagDeleteId={tagDeleteId}
+            tagDeleteStatus={tagDeleteStatus}
+            onConfirmTagDelete={handleConfirmTagDelete}
+            onCancelTagDelete={handleCancelTagDelete}
+            onTagDeleteRequest={handleTagDeleteRequest}
+        />
     );
 };
 
