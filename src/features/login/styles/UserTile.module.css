@@ -1,17 +1,14 @@
 /**
- * UserTile - SabriLTD Minimalist Modern Style
- * - No harsh glow, reduced shadow
- * - Crisp white card, subtle border
- * - Avatar uses gentle pastel ring (SabriLTD accent), but is flat and modern
- * - Hover/selected states are clear but never overpowering
- * - Typography, layout, sizing: unchanged, keeping accessibility and density
+ * UserTile - SabriLTD neutral style
+ * - Primary = greys
+ * - Secondary (yellow) used very subtly only on the avatar ring when selected
  */
 
 .userTile {
     width: 128px;
     height: 148px;
-    background: #fff;
-    border: 1.4px solid #ececf0;
+    background: var(--color-bg-surface, #ffffff);
+    border: 1.4px solid var(--color-border-subtle, #ececf0);
     border-radius: 17px;
     display: flex;
     flex-direction: column;
@@ -28,68 +25,73 @@
     user-select: none;
     box-sizing: border-box;
     opacity: 1;
-    /* Minimal, modern shadow only for slight elevation */
-    box-shadow: 0 2px 8px 0 rgba(130,71,229,0.04), 0 1.5px 4px rgba(36,14,41,0.03);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1.5px 4px rgba(0, 0, 0, 0.03);
     outline: none;
     transform: translateY(0) scale(1);
-    filter: blur(0px);
 }
 
+/* Hover: soft grey only */
 .userTile:not(.selected):not(:focus):hover {
-    background: #f8f5fd;
-    border-color: #bca7e2;
-    box-shadow: 0 5px 18px 0 rgba(130,71,229,0.06), 0 2px 4px rgba(44,47,59,0.04);
+    background: var(--color-bg-subtle, #f5f5f7);
+    border-color: var(--sabri-grey-300, #cfd2da);
+    box-shadow: 0 5px 18px rgba(0, 0, 0, 0.06);
     transform: translateY(-1px) scale(1.008);
     z-index: 2;
 }
 
-.userTile:focus {
-    border-color: #bca7e2;
-    background: #f8f5fd;
+/* Focus: accessible but still neutral */
+.userTile:focus,
+.userTile:focus-visible {
+    border-color: var(--color-border-strong, var(--sabri-grey-400, #a0a4b0));
+    background: var(--color-bg-subtle, #f5f5f7);
     outline: none;
     z-index: 3;
-    /* No glow, just pastel border */
+    box-shadow:
+            0 0 0 3px rgba(0, 0, 0, 0.06);
 }
 
-.selected {
-    border-color: #8247e5 !important;
-    background: #f5f0ff !important;
+/* Selected: dark grey border, subtle background; no yellow card ring */
+.userTile.selected {
+    border-color: var(--color-primary, #333645);
+    background: #f7f8fb;
     z-index: 5;
-    /* No shadow ring; only a color border change */
 }
 
+/* Avatar */
 .avatar {
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    background: #f4f2fb;
-    color: #8b88a3;
+    background: #f3f4f8;
+    color: var(--sabri-grey-500, #8b88a3);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     font-size: 1.31rem;
     margin-bottom: 14px;
-    /* Subtle SabriLTD accent ring, flat modern effect */
-    border: 1.7px solid #ede1fb;
+    border: 1.7px solid var(--sabri-grey-300, #d5d8e0);
     user-select: none;
     letter-spacing: 0.07em;
     box-shadow: none;
-    transition: border-color 150ms, background 130ms;
+    transition: border-color 150ms, background 130ms, color 130ms;
 }
 
-.selected .avatar {
-    border-color: #8247e5;
-    background: #f5f0ff;
-    color: #8247e5;
+/* Selected avatar: very subtle yellow ring, text stays dark grey */
+.userTile.selected .avatar {
+    border-color: rgba(255, 214, 0, 0.8); /* soft yellow accent */
+    background: #ffffff;
+    color: var(--color-primary, #333645);
 }
 
+/* Icon color inside avatar */
 .avatarIcon {
-    color: #b8b2cc;
+    color: var(--sabri-grey-400, #b8b2cc);
 }
 
+/* Username */
 .userName {
-    color: #362d58;
+    color: var(--color-primary, #333645);
     font-weight: 600;
     letter-spacing: -0.01em;
     font-size: 1rem;
@@ -100,6 +102,7 @@
     opacity: 0.98;
 }
 
+/* Mobile adjustments */
 @media (max-width: 480px) {
     .userTile {
         border-radius: 12px;

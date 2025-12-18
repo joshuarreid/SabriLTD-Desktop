@@ -1,140 +1,225 @@
 /**
- * SettingsDropdown styles – match NavigationBar,
- * and show "active" state when in settings, per nav theme and user screenshot.
+ * SettingsDropdown — tuned selected-item text color to match "Storage Locations"
+ * (updated to apply var(--color-primary, #333645) and font-weight:600 to the
+ * menu label text specifically when an item is selected)
  */
 
+/* ---------- TUNABLES (change to taste) ---------- */
+:root {
+    --sd-accent: var(--color-secondary, #ffd600);
+    --sd-accent-muted: rgba(255,214,0,0.06); /* very pale pill/menu background */
+    --sd-accent-border: rgba(255,214,0,0.20); /* soft pill/menu border */
+    --sd-accent-text: rgba(255,214,0,0.70); /* used previously for gentler icon tint */
+    --sd-selected-text: #e0b700; /* prior selected text color (kept for icons if needed) */
+
+    --sd-pill-shadow: rgba(0,0,0,0.05); /* softer shadow */
+    --sd-menu-shadow: rgba(0,0,0,0.06);
+    --sd-pill-z: 260;
+    --sd-menu-z: 200;
+}
+
+/* ---------- wrapper / pill ---------- */
 .settingsDropdown {
     position: relative;
     display: inline-block;
 }
 
 .settingsButton {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 6px 14px 6px 6px;
-    background: #fff;
-    border-radius: 90px;
-    border: 1.5px solid #ececf0;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    padding: 6px 16px;
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 999px;
+    border: 1.4px solid var(--color-border-subtle, #ececf0);
+    box-shadow: 0 2px 10px var(--sd-pill-shadow);
     cursor: pointer;
     font-weight: 500;
     font-size: 1rem;
-    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s, color 0.15s, transform 0.12s;
     outline: none;
-    color: #232323;
+    color: var(--color-text-main, #232323);
+    z-index: var(--sd-pill-z);
 }
 
-.settingsButton:focus,
-.settingsButton:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-    background: #f5f0ff;
+.settingsButton:hover,
+.settingsButton:focus-visible {
+    border-color: var(--sabri-grey-300, #cfd2da);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    background: var(--color-bg-subtle, #f5f5f7);
+    transform: translateY(-1px);
 }
 
+/* Active pill: softer full fill + softer border (not saturated) */
 .settingsButtonActive,
 .settingsButton[data-selected="true"] {
-    border-color: #b8a7e7;
-    background: #f5f0ff;
-    color: #8247e5;
+    background: var(--sd-accent-muted);
+    border-color: var(--sd-accent-border);
+    color: var(--color-text-main, #191919);
+    box-shadow: 0 6px 18px var(--sd-pill-shadow);
+    z-index: calc(var(--sd-pill-z) + 40);
 }
 
+/* ensure no leftover decorative pseudo elements remain visible */
+.settingsButtonActive::before,
+.settingsButtonActive::after,
+.settingsButton[data-selected="true"]::before,
+.settingsButton[data-selected="true"]::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* icon inside pill */
 .settingsIcon {
-    margin-right: 9px;
-    color: #232323; /* matches other nav icons */
+    margin-right: 8px;
+    color: var(--color-text-main, #232323);
     font-size: 1.18em;
     display: inline-flex;
-    transition: color 0.14s;
+    transition: color 0.14s, transform 0.12s;
 }
 
+/* when pill active, keep icon readable; subtle tint */
 .settingsButtonActive .settingsIcon,
 .settingsButton[data-selected="true"] .settingsIcon {
-    color: #8247e5 !important;
+    color: color-mix(in srgb, var(--color-text-main) 75%, var(--sd-accent) 25%);
 }
 
+/* label */
 .settingsText {
     font-weight: 500;
-    padding-right: 9px;
+    padding-right: 6px;
 }
 
+/* caret */
 .caretSvg {
     margin-left: 1px;
     margin-right: -2px;
-    transition: transform 0.18s;
+    transition: transform 0.18s, opacity 0.12s;
     vertical-align: middle;
     opacity: 0.76;
+    color: var(--sabri-grey-400, #9b94b8);
 }
 
+/* ---------- dropdown ---------- */
 .settingsDropdownMenu {
     position: absolute;
     right: 0;
     top: 110%;
-    background: #fff;
-    border: 1.4px solid #e8eaf0;
+    background: var(--color-bg-surface, #ffffff);
+    border: 1.4px solid var(--color-border-subtle, #e8eaf0);
     border-radius: 14px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.09);
+    box-shadow: 0 8px 32px var(--sd-menu-shadow);
     margin-top: 0.6rem;
     padding: 0.35rem 0;
-    min-width: 175px;
-    z-index: 100;
+    min-width: 190px;
+    z-index: var(--sd-menu-z); /* below active pill so pill visually connects to trigger */
     display: flex;
     flex-direction: column;
     gap: 2px;
     animation: fadeIn 0.18s cubic-bezier(.43,.02,.26,.97);
+    will-change: transform, opacity;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px);}
-    to { opacity: 1; transform: translateY(0);}
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
+/* menu item */
 .menuButton {
     width: 100%;
     background: none;
     border: none;
     text-align: left;
     padding: 10px 18px;
-    color: #362d58;
+    color: var(--color-primary, #333645);
     font-size: 1rem;
     font-weight: 500;
     border-radius: 8px;
-    transition: background 0.14s, color 0.13s;
+    transition: background 0.12s, color 0.12s, transform 0.08s;
     cursor: pointer;
     outline: none;
     display: flex;
     align-items: center;
     gap: 11px;
+    position: relative;
 }
 
+/* muted leading icon by default */
 .menuIconWrap {
     display: flex;
     align-items: center;
     margin-right: 4px;
-    color: #b3abc8;
+    color: var(--sabri-grey-400, #b3abc8);
     font-size: 1.12rem;
 }
 
+/* hover/focus */
 .menuButton:hover,
 .menuButton:focus {
-    background: #f8f5fd;
-    color: #8247e5;
+    background: var(--color-bg-subtle, #f5f5f7);
+    color: var(--color-primary, #333645);
+    transform: translateY(-1px);
 }
 
-.menuButtonActive {
-    background: #f5f0ff !important;
-    color: #8247e5 !important;
+/* selected menu item — pale fill and softened yellow icon by default */
+.menuButtonActive,
+.menuButton[aria-selected="true"] {
+    background: rgba(255,214,0,0.06); /* very pale yellow */
+    color: var(--sd-selected-text); /* fallback color for item elements */
+    border-left: 3px solid rgba(255,214,0,0.28); /* thin soft left accent */
+    padding-left: calc(18px - 3px); /* compensate for left border */
 }
 
-.menuButton:hover .menuIconWrap,
-.menuButton:focus .menuIconWrap,
-.menuButtonActive .menuIconWrap {
-    color: #8247e5;
+/* selected icon follows the selected text color exactly for consistency */
+.menuButtonActive .menuIconWrap,
+.menuButton[aria-selected="true"] .menuIconWrap {
+    color: var(--sd-selected-text);
 }
 
-/* Responsive for dropdown menu */
+/* --- NEW: ensure the visible menu LABEL (the text to the right of the icon)
+   matches the requested project style: use the primary color and font-weight 600.
+   The label is the second child <span> in the button markup (icon, label, check).
+*/
+.menuButtonActive > span:nth-child(2),
+.menuButton[aria-selected="true"] > span:nth-child(2) {
+    color: var(--color-primary, #333645) !important;
+    font-weight: 550 !important;
+}
+
+/* remove any pseudo underline previously used */
+.menuButtonActive::after,
+.menuButton[aria-selected="true"]::after {
+    display: none;
+    content: none;
+}
+
+/* focus accessibility */
+.menuButton:focus-visible {
+    box-shadow:
+            0 0 0 3px var(--sabri-grey-300, rgba(207,210,218,0.6)),
+            0 0 0 5px var(--color-secondary-muted, rgba(255,214,0,0.06));
+    border-radius: 8px;
+}
+
+/* small screens */
 @media (max-width: 500px) {
     .settingsDropdownMenu {
-        min-width: 120px;
+        min-width: 150px;
         font-size: 0.98rem;
+    }
+    .settingsButton { padding: 6px 12px; gap: 0.5rem; }
+    .settingsIcon { margin-right: 6px; }
+    .menuButton { padding: 8px 14px; }
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .settingsDropdownMenu,
+    .settingsButton,
+    .menuButton {
+        transition: none !important;
+        animation: none !important;
     }
 }
