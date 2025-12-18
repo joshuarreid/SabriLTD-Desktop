@@ -259,6 +259,28 @@ export const useCompanySettingsTab = () => {
     };
 
     /**
+     * handleDeleteDirect
+     * Immediately performs deletion for a given companyId (bypasses prompt).
+     * Useful for modal-level confirmed deletes where the modal already asked for confirmation.
+     *
+     * @param {number} companyId
+     * @returns {void}
+     */
+    const handleDeleteDirect = (companyId) => {
+        if (!companyId) {
+            logger.error("handleDeleteDirect called with invalid companyId", companyId);
+            return;
+        }
+        logger.info("handleDeleteDirect called", companyId);
+        try {
+            simulateDelete(companyId);
+        } catch (err) {
+            logger.error("handleDeleteDirect failed", err);
+            setDeleteStatus("error");
+        }
+    };
+
+    /**
      * handleCancelDelete
      * Cancels the delete confirmation.
      *
@@ -342,6 +364,7 @@ export const useCompanySettingsTab = () => {
         handlePromptDelete,
         handleConfirmDelete,
         handleCancelDelete,
+        handleDeleteDirect,
         // selection
         selectedId,
         setSelectedId,
