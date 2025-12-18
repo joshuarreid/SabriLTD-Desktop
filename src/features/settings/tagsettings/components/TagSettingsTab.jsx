@@ -2,25 +2,30 @@ import React, { useMemo } from "react";
 import styles from "../styles/tagsettingstab.module.css";
 import CategoryInfoPill from "./CategoryInfoPill";
 import TagInfoPill from "./TagInfoPill";
-import { FiSearch } from "react-icons/fi";
 import { useTagSettingsTab } from "../hooks/useTagSettingsTab";
+import WideSearchBar from "../../../../components/searchbar/WideSearchBar";
+
+/**
+ * logger for TagSettingsTab.
+ * @constant
+ * @type {{info: Function, error: Function}}
+ */
+const logger = {
+    info: (...args) => console.log("[TagSettingsTab]", ...args),
+    error: (...args) => console.error("[TagSettingsTab]", ...args),
+};
 
 /**
  * TagSettingsTab
  * Tag settings UI using real API data via hook.
- * Renders category pills, top tag search bar, tag pills.
+ * Renders category pills, wide tag search bar, and tag pills.
+ *
  * @component
  * @returns {JSX.Element}
  */
-const logger = {
-    info: (...args) => console.log('[TagSettingsTab]', ...args),
-    error: (...args) => console.error('[TagSettingsTab]', ...args),
-};
-
 const TagSettingsTab = () => {
     logger.info("TagSettingsTab rendered");
 
-    // Use hook for all state, fetching, and actions
     const {
         categories,
         isCategoriesPending,
@@ -34,39 +39,43 @@ const TagSettingsTab = () => {
         tagsError,
     } = useTagSettingsTab();
 
-    // Tag search state (UI-only, local)
+    // Local UI-only state for tag search text
     const [tagSearch, setTagSearch] = React.useState("");
 
     /**
      * Filters tags by search substring (case-insensitive).
+     *
      * @type {Array}
      */
     const filteredTags = useMemo(() => {
         if (isTagsPending || isTagsError) return [];
         const lower = tagSearch.trim().toLowerCase();
         if (!lower) return tags;
-        return tags.filter(tag =>
-            (tag.name || "").toLowerCase().includes(lower)
-        );
+        return tags.filter((tag) => (tag.name || "").toLowerCase().includes(lower));
     }, [tags, tagSearch, isTagsPending, isTagsError]);
 
     /**
      * Handles tag search bar input.
-     * @param {React.ChangeEvent<HTMLInputElement>} e
+     *
+     * @param {React.ChangeEvent<HTMLInputElement>} event
+     * @returns {void}
      */
-    const handleTagSearchChange = (e) => setTagSearch(e.target.value);
+    const handleTagSearchChange = (event) => {
+        setTagSearch(event.target.value);
+    };
 
     /**
      * Handles click on a category pill.
+     *
      * @param {number} categoryId
+     * @returns {void}
      */
     const handleCategoryClick = (categoryId) => {
         logger.info("Category pill clicked", categoryId);
         setSelectedCategoryId(categoryId);
-        setTagSearch(""); // Reset tag search on category change
+        setTagSearch("");
     };
 
-    // Loading or error handling for category fetch
     if (isCategoriesPending) {
         return (
             <div className={styles.tabRoot}>
@@ -74,6 +83,7 @@ const TagSettingsTab = () => {
             </div>
         );
     }
+
     if (isCategoriesError) {
         return (
             <div className={styles.tabRoot}>
@@ -100,27 +110,25 @@ const TagSettingsTab = () => {
                         />
                     ))
                 ) : (
-                    <span style={{ color: "#b6b3be", fontSize: "1.07em", padding: ".7em 2em" }}>
+                    <span
+                        style={{
+                            color: "#b6b3be",
+                            fontSize: "1.07em",
+                            padding: ".7em 2em",
+                        }}
+                    >
                         No categories yet.
                     </span>
                 )}
             </div>
             <div className={styles.placeholder}>
-                {/* Card-wide search bar for tags */}
-                <div className={styles.cardSearchTopBarWrap}>
-                    <label className={styles.cardSearchBarContainer}>
-                        <FiSearch size={25} className={styles.cardSearchIcon} />
-                        <input
-                            type="search"
-                            className={styles.cardSearchBar}
-                            placeholder="Search tags"
-                            value={tagSearch}
-                            onChange={handleTagSearchChange}
-                            aria-label="Search tags"
-                            disabled={isTagsPending || isTagsError}
-                        />
-                    </label>
-                </div>
+                <WideSearchBar
+                    value={tagSearch}
+                    onChange={handleTagSearchChange}
+                    placeholder="Search tags"
+                    ariaLabel="Search tags"
+                    disabled={isTagsPending || isTagsError}
+                />
                 <div className={styles.tagsPillsRow}>
                     {isTagsPending ? (
                         <span>Loading tags...</span>

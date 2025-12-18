@@ -5,7 +5,7 @@
     border: 1.4px solid #ebeaf4;
     background: #fff;
     border-radius: 999px;
-    padding: 0.38em 1.13em 0.36em 1.13em;
+    padding: 0.38em 0.56em 0.36em 0.98em; /* extra room right for X */
     font-size: 1.05rem;
     font-weight: 500;
     color: #2e314b;
@@ -15,6 +15,7 @@
     box-shadow: 0 1px 7px rgba(130,71,229,0.04);
     transition: border 0.18s, background 0.13s, color 0.14s, box-shadow 0.18s, transform 0.13s;
 }
+
 .pillActive,
 .pill:focus-visible,
 .pill:hover {
@@ -23,4 +24,35 @@
     color: #724fed;
     box-shadow: 0 7px 18px 0 rgba(130,71,229,0.11);
     transform: translateY(-1px) scale(1.01);
+}
+
+/* Label text sits to the left of the X */
+.pillLabel {
+    padding-right: 0.35em;
+}
+
+/* Small "x" delete button on right side of tag */
+.deleteButton {
+    border: none;
+    background: transparent;
+    color: #b2b1c5;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0;
+    margin-left: 0.1em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 999px;
+    min-width: 1.1em;
+    min-height: 1.1em;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.deleteButton:hover,
+.deleteButton:focus-visible {
+    background-color: rgba(0, 0, 0, 0.06);
+    color: #7b7a8e;
+    outline: none;
 }
