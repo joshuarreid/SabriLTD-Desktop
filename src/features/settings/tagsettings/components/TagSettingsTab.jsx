@@ -207,7 +207,7 @@ const TagSettingsTab = () => {
                             }
                         >
                             <span className={styles.addUserBtnIcon}>+</span>
-                            <span className={styles.addUserBtnLabel}>New</span>
+                            <span className={styles.addUserBtnLabel}>Add</span>
                         </button>
                         <AlphabeticalSortFilter value={sortKey} onChange={setSortKey} />
                     </div>
