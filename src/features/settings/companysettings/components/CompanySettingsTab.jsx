@@ -6,10 +6,14 @@
  * - EditCompanyModal (real modal wired to API)
  * - Card-level delete confirmation
  *
- * This component contains ONLY render logic and delegates business logic to the hook.
+ * This version mirrors the UserSettingsTab interaction model: there is no long-lived
+ * selected card state — clicking a card simply opens the modal and closing the modal
+ * does not leave the card highlighted.
+ *
+ * @component
  */
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import styles from "../styles/companysettingstab.module.css";
 import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
 import CompanyInfoCard from "./CompanyInfoCard";
@@ -26,9 +30,17 @@ const logger = {
 };
 
 /**
+ * SORT OPTIONS used by AlphabeticalSortFilter
+ * @constant {Array<{key: string, label: string, field: string, order: "asc"|"desc"}>}
+ */
+const COMPANY_SORT_OPTIONS = [
+    { key: "a-z", label: "A to Z", field: "name", order: "asc" },
+    { key: "z-a", label: "Z to A", field: "name", order: "desc" },
+];
+
+/**
  * CompanySettingsTab - presentational container
  *
- * @component
  * @returns {JSX.Element}
  */
 const CompanySettingsTab = () => {
@@ -58,10 +70,38 @@ const CompanySettingsTab = () => {
         handleConfirmDelete,
         handleCancelDelete,
         handleDeleteDirect,
-        // selection
-        selectedId,
-        setSelectedId,
     } = useCompanySettingsTab();
+
+    const [sortKey, setSortKey] = useState("a-z");
+
+    const currentSort = useMemo(
+        () => COMPANY_SORT_OPTIONS.find((opt) => opt.key === sortKey) || COMPANY_SORT_OPTIONS[0],
+        [sortKey],
+    );
+
+    const sortedCompanies = useMemo(() => {
+        if (isPending || isError) return [];
+        const base = Array.isArray(companies) ? [...companies] : [];
+        const field = currentSort.field || "name";
+        const order = currentSort.order || "asc";
+
+        base.sort((a, b) => {
+            const aName = String(a?.[field] ?? "").toLowerCase();
+            const bName = String(b?.[field] ?? "").toLowerCase();
+            if (aName === bName) return 0;
+            if (order === "asc") {
+                return aName.localeCompare(bName, undefined, { numeric: true, sensitivity: "base" });
+            }
+            return bName.localeCompare(aName, undefined, { numeric: true, sensitivity: "base" });
+        });
+
+        return base;
+    }, [companies, isPending, isError, currentSort.field, currentSort.order]);
+
+    const onSortChange = (key) => {
+        logger.info("Sort changed", key);
+        setSortKey(key);
+    };
 
     const removingCompany = removingId ? companies.find((c) => c.companyId === removingId) : null;
 
@@ -84,18 +124,18 @@ const CompanySettingsTab = () => {
                     <button type="button" className={styles.addCompanyBtn} onClick={openAddModal}>
                         + Add Company
                     </button>
-                    <AlphabeticalSortFilter value={"a-z"} onChange={() => {}} />
+                    <AlphabeticalSortFilter value={sortKey} onChange={onSortChange} />
                 </div>
             </div>
 
             <div className={styles.gridContainer}>
-                {(companies ?? []).map((company) => (
+                {(sortedCompanies ?? []).map((company) => (
                     <CompanyInfoCard
                         key={company.companyId}
                         company={company}
-                        selected={selectedId === company.companyId}
+                        // DO NOT pass a persistent `selected` prop so the card won't stay highlighted
                         onClick={(c) => {
-                            setSelectedId(c.companyId);
+                            // open modal (no setSelected behavior) — matches user tiles interaction
                             openEditModal(c);
                         }}
                         onEdit={(c) => openEditModal(c)}
