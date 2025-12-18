@@ -1,11 +1,3 @@
-/**
- * TagApiClient
- * - Specialized API client for Tag endpoints.
- * - Implements tag CRUD, audited responses, filtering, pagination, and follows Bulletproof React conventions.
- *
- * @module TagApiClient
- */
-
 import ApiClient from "../ApiClient";
 
 /**
@@ -58,6 +50,9 @@ export default class TagApiClient extends ApiClient {
      * @param {number} [options.timeout=10000] - Request timeout in ms.
      */
     constructor({ baseURL, timeout = 10000 } = {}) {
+        // NOTE: apiPath MUST NOT have trailing slash, so that
+        // ApiClient._buildUrl + get() produce "/api/tags?categoryId=5"
+        // and NOT "/api/tags/?categoryId=5" (which your backend rejects)
         super({ baseURL, timeout, apiPath: '/api/tags' });
         logger.info('TagApiClient initialized');
     }
@@ -77,10 +72,11 @@ export default class TagApiClient extends ApiClient {
                 logger.error('createTag failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const response = await this.post('/', payload, {
+            // Storage client posts to '' (no trailing slash) – do the same here
+            const response = await this.post('', payload, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                },
             });
             logger.info('createTag success', { tagId: response?.data?.tagId });
             return response;
@@ -91,9 +87,11 @@ export default class TagApiClient extends ApiClient {
     }
 
     /**
-     * Fetches all tags (supports filters, pagination, and sorting). Requires authentication.
+     * Fetches all tags, optionally filtered by categoryId. Requires authentication.
+     * Matches StorageApiClient pattern to avoid double slashes.
+     *
      * @async
-     * @param {Object} [params={}] - Optional filter and pagination params, e.g. { page, size, sortField, sortOrder, name }
+     * @param {Object} [params={}] - Optional filter and pagination params, e.g. { page, size, sortField, sortOrder, name, categoryId }
      * @returns {Promise<Object>} API response with array of tag objects
      * @throws {Error} If request fails.
      */
@@ -105,12 +103,17 @@ export default class TagApiClient extends ApiClient {
                 logger.error('fetchAllTags failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const response = await this.get('/', params, {
+            // IMPORTANT: use '' (no trailing slash) just like fetchAllStorage does,
+            // so ApiClient.get builds "/api/tags?categoryId=5" instead of "/api/tags/?categoryId=5"
+            const response = await this.get('', params, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                },
             });
-            logger.info('fetchAllTags success', { count: Array.isArray(response?.data) ? response.data.length : 0 });
+            logger.info(
+                'fetchAllTags success',
+                { count: Array.isArray(response?.data?.data) ? response.data.data.length : 0 },
+            );
             return response;
         } catch (error) {
             logger.error('fetchAllTags failed', error);
@@ -135,8 +138,8 @@ export default class TagApiClient extends ApiClient {
             }
             const response = await this.get(`/${tagId}`, {}, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                },
             });
             logger.info('fetchTagById success', { tagId: response?.data?.tagId });
             return response;
@@ -164,8 +167,8 @@ export default class TagApiClient extends ApiClient {
             }
             const response = await this.put(`/${tagId}`, payload, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                },
             });
             logger.info('updateTag success', { tagId: response?.data?.tagId });
             return response;
@@ -192,8 +195,8 @@ export default class TagApiClient extends ApiClient {
             }
             await this.delete(`/${tagId}`, {}, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                    Authorization: `Bearer ${token}`,
+                },
             });
             logger.info('deleteTag success', { tagId });
         } catch (error) {
