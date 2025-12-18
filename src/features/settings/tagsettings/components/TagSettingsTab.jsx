@@ -4,8 +4,8 @@ import CategoryInfoPill from "./CategoryInfoPill";
 import TagInfoPill from "./TagInfoPill";
 import { useTagSettingsTab } from "../hooks/useTagSettingsTab";
 import WideSearchBar from "../../../../components/searchbar/WideSearchBar";
+import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
-
 
 /**
  * logger for TagSettingsTab.
@@ -18,9 +18,21 @@ const logger = {
 };
 
 /**
+ * TAG_SORT_OPTIONS
+ * Dropdown sort options: only A to Z and Z to A, mirrors STORAGE_SORT_OPTIONS.
+ *
+ * @constant
+ * @type {Array<{key: string, label: string, field: string, order: "asc"|"desc"}>}
+ */
+const TAG_SORT_OPTIONS = [
+    { key: "a-z", label: "A to Z", field: "name", order: "asc" },
+    { key: "z-a", label: "Z to A", field: "name", order: "desc" },
+];
+
+/**
  * TagSettingsTab
  * Tag settings UI using real API data via hook.
- * Renders category pills, wide tag search bar, and tag pills.
+ * Renders category pills, wide tag search bar, sort/filter controls, and tag pills.
  *
  * @component
  * @returns {JSX.Element}
@@ -50,17 +62,46 @@ const TagSettingsTab = () => {
     // Local UI-only state for tag search text
     const [tagSearch, setTagSearch] = React.useState("");
 
+    // Local UI-only sort state (A–Z or Z–A)
+    const [sortKey, setSortKey] = React.useState("a-z");
+
     /**
-     * Filters tags by search substring (case-insensitive).
+     * Computes the current sort configuration from TAG_SORT_OPTIONS.
+     *
+     * @type {{key: string, label: string, field: string, order: "asc"|"desc"}}
+     */
+    const currentSort = useMemo(
+        () => TAG_SORT_OPTIONS.find((opt) => opt.key === sortKey) || TAG_SORT_OPTIONS[0],
+        [sortKey],
+    );
+
+    /**
+     * Filters and sorts tags by search substring (case-insensitive) and sort order.
+     * Sorting uses a simple localeCompare on tag.name, similar to useNaturalSort key behavior.
      *
      * @type {Array}
      */
     const filteredTags = useMemo(() => {
         if (isTagsPending || isTagsError) return [];
         const lower = tagSearch.trim().toLowerCase();
-        if (!lower) return tags;
-        return tags.filter((tag) => (tag.name || "").toLowerCase().includes(lower));
-    }, [tags, tagSearch, isTagsPending, isTagsError]);
+
+        let base = tags || [];
+        if (lower) {
+            base = base.filter((tag) => (tag.name || "").toLowerCase().includes(lower));
+        }
+
+        const sorted = [...base].sort((a, b) => {
+            const aName = (a.name || "").toLocaleString().toLowerCase();
+            const bName = (b.name || "").toLocaleString().toLowerCase();
+            if (aName === bName) return 0;
+            if (currentSort.order === "asc") {
+                return aName.localeCompare(bName, undefined, { numeric: true, sensitivity: "base" });
+            }
+            return bName.localeCompare(aName, undefined, { numeric: true, sensitivity: "base" });
+        });
+
+        return sorted;
+    }, [tags, tagSearch, isTagsPending, isTagsError, currentSort.order]);
 
     /**
      * Handles tag search bar input.
@@ -145,14 +186,33 @@ const TagSettingsTab = () => {
                     </span>
                 )}
             </div>
+
             <div className={styles.placeholder}>
-                <WideSearchBar
-                    value={tagSearch}
-                    onChange={handleTagSearchChange}
-                    placeholder="Search tags"
-                    ariaLabel="Search tags"
-                    disabled={isTagsPending || isTagsError}
-                />
+                {/* Header row above tags: search bar on left, + New + sort on right (mirrors StorageSettings) */}
+                <div className={styles.tagsHeaderRow}>
+                    <WideSearchBar
+                        value={tagSearch}
+                        onChange={handleTagSearchChange}
+                        placeholder="Search tags"
+                        ariaLabel="Search tags"
+                        disabled={isTagsPending || isTagsError}
+                    />
+                    <div className={styles.tagsHeaderActions}>
+                        <button
+                            type="button"
+                            className={styles.addUserBtn}
+                            // TODO: wire to future Tag add modal/hook
+                            onClick={() =>
+                                logger.info("New Tag button clicked (not yet implemented)")
+                            }
+                        >
+                            <span className={styles.addUserBtnIcon}>+</span>
+                            <span className={styles.addUserBtnLabel}>New</span>
+                        </button>
+                        <AlphabeticalSortFilter value={sortKey} onChange={setSortKey} />
+                    </div>
+                </div>
+
                 <div className={styles.tagsPillsRow}>
                     {isTagsPending ? (
                         <span>Loading tags...</span>
