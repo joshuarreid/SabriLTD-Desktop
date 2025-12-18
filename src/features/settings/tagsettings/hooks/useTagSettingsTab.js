@@ -36,7 +36,10 @@ const logger = {
  * - Clicking different CategoryInfoPills swaps selectedCategoryId, which updates the tags
  *   query key and pulls the correct tag list from cache or network.
  *
- * Also exposes CRUD mutations with scoped cache invalidation and delete-confirmation state.
+ * Additional behavior:
+ * - Manages a delete-confirmation flow for tags.
+ * - Exposes a createTagAsDraft helper so the UI can create a new tag when the
+ *   user hits Enter in the search box with no matches.
  *
  * @returns {object} Hook state, query status, and action handlers for the Tag Settings tab.
  */
@@ -125,6 +128,12 @@ export const useTagSettingsTab = () => {
      * @type {[('idle'|'deleting'|'deleted'|'error'), Function]}
      */
     const [tagDeleteStatus, setTagDeleteStatus] = useState("idle");
+
+    /**
+     * Create-tag status for lightweight UX around "search-to-create".
+     * @type {[('idle'|'saving'|'saved'|'error'), Function]}
+     */
+    const [createTagStatus, setCreateTagStatus] = useState("idle");
 
     /**
      * Invalidates all relevant category queries after a mutation.
@@ -296,14 +305,48 @@ export const useTagSettingsTab = () => {
      */
     const createTagMutation = useMutation({
         mutationFn: createTag,
+        onMutate: () => {
+            logger.info("createTagMutation onMutate");
+            setCreateTagStatus("saving");
+        },
         onSuccess: async (createdTag) => {
             logger.info("Tag created, invalidating tag keys");
             await invalidateAllTagKeys(createdTag);
+            setCreateTagStatus("saved");
+            setTimeout(() => setCreateTagStatus("idle"), 1200);
         },
         onError: (err) => {
             logger.error("createTag failed", err);
+            setCreateTagStatus("error");
+            setTimeout(() => setCreateTagStatus("idle"), 1600);
         },
     });
+
+    /**
+     * createTagAsDraft
+     * - Helper used by the UI when the user presses Enter in the search bar
+     *   and there are no matching tags.
+     *
+     * @function createTagAsDraft
+     * @param {{categoryId: number, name: string}} payload - New tag payload.
+     * @returns {void}
+     */
+    const createTagAsDraft = ({ categoryId, name }) => {
+        const trimmed = String(name || "").trim();
+        if (!trimmed) {
+            logger.info("createTagAsDraft called with empty name; aborting");
+            return;
+        }
+        if (!categoryId) {
+            logger.info("createTagAsDraft called with no categoryId; aborting");
+            return;
+        }
+        logger.info("createTagAsDraft creating tag", { categoryId, name: trimmed });
+        createTagMutation.mutate({
+            categoryId,
+            name: trimmed,
+        });
+    };
 
     // ---- UI handlers for categories ----
 
@@ -490,5 +533,8 @@ export const useTagSettingsTab = () => {
         triggerTagDelete,
         handleConfirmTagDelete,
         handleCancelTagDelete,
+        // Search-to-create helper and status
+        createTagAsDraft,
+        createTagStatus,
     };
 };
