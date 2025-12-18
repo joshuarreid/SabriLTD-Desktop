@@ -36,7 +36,7 @@ const logger = {
  * - Clicking different CategoryInfoPills swaps selectedCategoryId, which updates the tags
  *   query key and pulls the correct tag list from cache or network.
  *
- * Also exposes CRUD mutations with scoped cache invalidation.
+ * Also exposes CRUD mutations with scoped cache invalidation and delete-confirmation state.
  *
  * @returns {object} Hook state, query status, and action handlers for the Tag Settings tab.
  */
@@ -89,13 +89,8 @@ export const useTagSettingsTab = () => {
      *
      * Pattern is intentionally the same as building → storage:
      *  - use a filtered list key: tagKeys.list({ categoryId: selectedCategoryId })
-     *  - queryFn closes over selectedCategoryId (simple and stable)
+     *  - queryFn closes over selectedCategoryId
      *  - enabled flag ensures we only fetch when a category is chosen
-     *
-     * Switching selectedCategoryId (via CategoryInfoPill click) changes the queryKey,
-     * so React Query will:
-     *  - return cached results immediately if present, OR
-     *  - fetch tags for the new category from the API.
      */
     const {
         data: tags = [],
@@ -117,6 +112,19 @@ export const useTagSettingsTab = () => {
     const [editingId, setEditingId] = useState(null);
     const [addingCategory, setAddingCategory] = useState(false);
     const [removingId, setRemovingId] = useState(null);
+
+    // --- Tag delete confirmation modal state ---
+    /**
+     * The tagId currently targeted for deletion (for confirmation modal).
+     * @type {[number|null, Function]}
+     */
+    const [tagDeleteId, setTagDeleteId] = useState(null);
+
+    /**
+     * Visual delete status for the tag confirmation modal.
+     * @type {[('idle'|'deleting'|'deleted'|'error'), Function]}
+     */
+    const [tagDeleteStatus, setTagDeleteStatus] = useState("idle");
 
     /**
      * Invalidates all relevant category queries after a mutation.
@@ -147,7 +155,6 @@ export const useTagSettingsTab = () => {
 
     /**
      * Invalidates all relevant tag queries after a mutation.
-     * Follows the same pattern as invalidateThisBuildingStorage in useStorageSettingsTab:
      * - Always invalidates root/list keys.
      * - Additionally invalidates the filtered list for the tag's categoryId when known.
      *
@@ -260,15 +267,27 @@ export const useTagSettingsTab = () => {
 
     /**
      * Deletes a tag by ID.
+     * Note: we pass the active selectedCategoryId so the filtered list gets invalidated.
      */
     const deleteTagMutation = useMutation({
         mutationFn: deleteTag,
+        onMutate: () => {
+            logger.info("deleteTagMutation onMutate");
+            setTagDeleteStatus("deleting");
+        },
         onSuccess: async (_data, tagId) => {
-            logger.info("Tag deleted, invalidating tag keys");
+            logger.info("Tag deleted, invalidating tag keys", { tagId, selectedCategoryId });
             await invalidateAllTagKeys({ tagId, categoryId: selectedCategoryId });
+            setTagDeleteStatus("deleted");
+            setTimeout(() => {
+                setTagDeleteStatus("idle");
+                setTagDeleteId(null);
+            }, 1000);
         },
         onError: (err) => {
             logger.error("deleteTag failed", err);
+            setTagDeleteStatus("error");
+            setTimeout(() => setTagDeleteStatus("idle"), 1600);
         },
     });
 
@@ -395,6 +414,48 @@ export const useTagSettingsTab = () => {
         setAddStatus("idle");
     };
 
+    // ---- UI handlers for tag delete confirmation ----
+
+    /**
+     * Triggers the tag delete confirmation modal for a specific tagId.
+     *
+     * @function triggerTagDelete
+     * @param {number} tagId
+     * @returns {void}
+     */
+    const triggerTagDelete = (tagId) => {
+        logger.info("triggerTagDelete called", { tagId });
+        setTagDeleteId(tagId);
+        setTagDeleteStatus("idle");
+    };
+
+    /**
+     * Confirms deletion of the currently selected tag in the modal.
+     *
+     * @function handleConfirmTagDelete
+     * @returns {void}
+     */
+    const handleConfirmTagDelete = () => {
+        if (!tagDeleteId) {
+            logger.error("handleConfirmTagDelete called but tagDeleteId is null");
+            return;
+        }
+        logger.info("handleConfirmTagDelete for tagId", tagDeleteId);
+        deleteTagMutation.mutate(tagDeleteId);
+    };
+
+    /**
+     * Cancels the tag delete confirmation modal and resets status.
+     *
+     * @function handleCancelTagDelete
+     * @returns {void}
+     */
+    const handleCancelTagDelete = () => {
+        logger.info("handleCancelTagDelete");
+        setTagDeleteId(null);
+        setTagDeleteStatus("idle");
+    };
+
     return {
         categories,
         isCategoriesPending,
@@ -419,9 +480,15 @@ export const useTagSettingsTab = () => {
         cancelEditOrAdd,
         editStatus,
         addStatus,
-        // Tag CRUD mutations exposed for future UI (e.g., Tag editing dialogs).
+        // Tag CRUD mutations for future dialogs
         createTagMutation,
         updateTagMutation,
         deleteTagMutation,
+        // Tag delete confirmation state/handlers
+        tagDeleteId,
+        tagDeleteStatus,
+        triggerTagDelete,
+        handleConfirmTagDelete,
+        handleCancelTagDelete,
     };
 };
