@@ -17,7 +17,6 @@ import { tagKeys } from "../../../../api/tag/tagQueryKeys";
 
 /**
  * logger for useTagSettingsTab hook (Bulletproof React: business logic, robust logging).
- * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
@@ -27,13 +26,19 @@ const logger = {
 
 /**
  * useTagSettingsTab
- * Manages business logic, side effects, TanStack Query, and state for tag category and tag management.
- * - Loads all tag categories.
- * - Automatically selects a default category (first category) when categories load.
- * - Whenever the selected category changes, fetches all tags for that categoryId.
- * - Exposes CRUD mutations for categories and tags with proper cache invalidation.
  *
- * @returns {object} All hook state, query status, and action handlers for UI.
+ * Manages business logic, side effects, TanStack Query, and state for tag category and tag management.
+ * Mirrors the building → storage pattern used in useStorageSettingsTab:
+ * - Loads all categories.
+ * - Tracks a single selectedCategoryId in local state.
+ * - Fetches tags for the selected category only, using a filtered list query key:
+ *     tagKeys.list({ categoryId })
+ * - Clicking different CategoryInfoPills swaps selectedCategoryId, which updates the tags
+ *   query key and pulls the correct tag list from cache or network.
+ *
+ * Also exposes CRUD mutations with scoped cache invalidation.
+ *
+ * @returns {object} Hook state, query status, and action handlers for the Tag Settings tab.
  */
 export const useTagSettingsTab = () => {
     logger.info("useTagSettingsTab initialized");
@@ -67,7 +72,12 @@ export const useTagSettingsTab = () => {
      * is selected yet, default to the first category to drive the tags query.
      */
     useEffect(() => {
-        if (!isCategoriesPending && !isCategoriesError && categories.length > 0 && !selectedCategoryId) {
+        if (
+            !isCategoriesPending &&
+            !isCategoriesError &&
+            categories.length > 0 &&
+            selectedCategoryId == null
+        ) {
             const firstId = categories[0].categoryId;
             logger.info("Auto-selecting first category", firstId);
             setSelectedCategoryId(firstId);
@@ -76,8 +86,16 @@ export const useTagSettingsTab = () => {
 
     /**
      * Query for all tags in the currently selected category.
-     * Follows Tag API spec: GET /api/tags?categoryId=...
-     * Only enabled when a category is selected.
+     *
+     * Pattern is intentionally the same as building → storage:
+     *  - use a filtered list key: tagKeys.list({ categoryId: selectedCategoryId })
+     *  - queryFn closes over selectedCategoryId (simple and stable)
+     *  - enabled flag ensures we only fetch when a category is chosen
+     *
+     * Switching selectedCategoryId (via CategoryInfoPill click) changes the queryKey,
+     * so React Query will:
+     *  - return cached results immediately if present, OR
+     *  - fetch tags for the new category from the API.
      */
     const {
         data: tags = [],
@@ -86,15 +104,11 @@ export const useTagSettingsTab = () => {
         error: tagsError,
     } = useQuery({
         queryKey: tagKeys.list({ categoryId: selectedCategoryId }),
-        queryFn: () => {
-            if (!selectedCategoryId) {
-                logger.info("Tags queryFn skipped: no selectedCategoryId");
-                return [];
-            }
-            logger.info("Fetching tags for categoryId", selectedCategoryId);
-            return getAllTags({ categoryId: selectedCategoryId });
-        },
-        enabled: !!selectedCategoryId,
+        queryFn: () =>
+            selectedCategoryId != null
+                ? getAllTags({ categoryId: selectedCategoryId })
+                : [],
+        enabled: selectedCategoryId != null,
     });
 
     // --- UI state for category edit/add ---
@@ -106,29 +120,41 @@ export const useTagSettingsTab = () => {
 
     /**
      * Invalidates all relevant category queries after a mutation.
+     *
      * @async
      * @function invalidateAllCategoryKeys
      * @param {object} category - The affected category (may be partial).
+     * @returns {Promise<void>}
      */
     const invalidateAllCategoryKeys = async (category) => {
         logger.info("Invalidating all relevant category query keys");
         await queryClient.invalidateQueries({ queryKey: categoryKeys.all });
         await queryClient.invalidateQueries({ queryKey: categoryKeys.lists() });
         await queryClient.invalidateQueries({ queryKey: categoryKeys.list() });
+
         if (category?.categoryId) {
-            await queryClient.invalidateQueries({ queryKey: categoryKeys.detail(category.categoryId) });
-            await queryClient.invalidateQueries({ queryKey: categoryKeys.update(category.categoryId) });
-            await queryClient.invalidateQueries({ queryKey: categoryKeys.remove(category.categoryId) });
+            await queryClient.invalidateQueries({
+                queryKey: categoryKeys.detail(category.categoryId),
+            });
+            await queryClient.invalidateQueries({
+                queryKey: categoryKeys.update(category.categoryId),
+            });
+            await queryClient.invalidateQueries({
+                queryKey: categoryKeys.remove(category.categoryId),
+            });
         }
     };
 
     /**
      * Invalidates all relevant tag queries after a mutation.
-     * Also invalidates the list for that categoryId (if available).
+     * Follows the same pattern as invalidateThisBuildingStorage in useStorageSettingsTab:
+     * - Always invalidates root/list keys.
+     * - Additionally invalidates the filtered list for the tag's categoryId when known.
      *
      * @async
      * @function invalidateAllTagKeys
      * @param {object} tag - The affected tag (may be partial).
+     * @returns {Promise<void>}
      */
     const invalidateAllTagKeys = async (tag) => {
         logger.info("Invalidating all relevant tag query keys");
@@ -182,6 +208,7 @@ export const useTagSettingsTab = () => {
                 setEditStatus("idle");
                 setRemovingId(null);
             }, 1000);
+
             // If we just deleted the selected category, clear selection
             if (selectedCategoryId === categoryId) {
                 logger.info("Deleted selected category; clearing selectedCategoryId");
@@ -238,7 +265,7 @@ export const useTagSettingsTab = () => {
         mutationFn: deleteTag,
         onSuccess: async (_data, tagId) => {
             logger.info("Tag deleted, invalidating tag keys");
-            await invalidateAllTagKeys({ tagId });
+            await invalidateAllTagKeys({ tagId, categoryId: selectedCategoryId });
         },
         onError: (err) => {
             logger.error("deleteTag failed", err);
@@ -264,14 +291,17 @@ export const useTagSettingsTab = () => {
     /**
      * Opens add-category modal.
      * @function openAddCategory
+     * @returns {void}
      */
     const openAddCategory = () => setAddingCategory(true);
 
     /**
      * Handles creation of a new category, updating addStatus and modal as needed.
+     *
      * @function handleAddCategory
      * @param {object} category - New category payload.
-     * @param {Function} [callback]
+     * @param {Function} [callback] - Optional callback invoked with (error|null).
+     * @returns {void}
      */
     const handleAddCategory = (category, callback) => {
         logger.info("Creating category:", category.name);
@@ -288,17 +318,21 @@ export const useTagSettingsTab = () => {
 
     /**
      * Opens edit mode for a category by ID.
+     *
      * @function handleEditCategory
      * @param {number} categoryId
+     * @returns {void}
      */
     const handleEditCategory = (categoryId) => setEditingId(categoryId);
 
     /**
      * Saves edits for a given category, closing edit modal as needed.
+     *
      * @function handleSaveEdit
      * @param {number} categoryId
      * @param {object} category
      * @param {Function} [callback]
+     * @returns {void}
      */
     const handleSaveEdit = (categoryId, category, callback) => {
         logger.info("Saving edit for category", categoryId, category.name);
@@ -313,21 +347,25 @@ export const useTagSettingsTab = () => {
                     setEditingId(null);
                     if (callback) callback(err);
                 },
-            }
+            },
         );
     };
 
     /**
      * Opens removal prompt for a category.
+     *
      * @function handleRemoveCategory
      * @param {number} categoryId
+     * @returns {void}
      */
     const handleRemoveCategory = (categoryId) => setRemovingId(categoryId);
 
     /**
      * Confirms removal and performs mutation.
+     *
      * @function confirmRemoveCategory
      * @param {number} categoryId
+     * @returns {void}
      */
     const confirmRemoveCategory = (categoryId) => {
         logger.info("Confirm delete for category", categoryId);
@@ -338,13 +376,17 @@ export const useTagSettingsTab = () => {
 
     /**
      * Cancels removal prompt for a category.
+     *
      * @function cancelRemoveCategory
+     * @returns {void}
      */
     const cancelRemoveCategory = () => setRemovingId(null);
 
     /**
      * Cancels editing or adding states for categories.
+     *
      * @function cancelEditOrAdd
+     * @returns {void}
      */
     const cancelEditOrAdd = () => {
         setEditingId(null);
