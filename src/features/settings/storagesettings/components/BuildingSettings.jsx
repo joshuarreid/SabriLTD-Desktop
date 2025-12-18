@@ -115,7 +115,7 @@ const BuildingSettings = ({
     return (
         <>
             <div className={styles.sectionHeaderRow}>
-                <h2 className={styles.sectionTitle}>Buildings</h2>
+                <h2 className={styles.sectionTitle}>Manage Buildings</h2>
                 <button
                     className={styles.addUserBtn}
                     type="button"

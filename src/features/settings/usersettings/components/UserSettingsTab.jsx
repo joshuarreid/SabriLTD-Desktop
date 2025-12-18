@@ -202,6 +202,8 @@ const UserSettingsTab = () => {
                         role="button"
                         aria-label={`Edit user ${user.name}`}
                     >
+                        {/* Yellow status dot: becomes visible on hover/selected (CSS controls opacity) */}
+                        <span className={styles.statusDot} />
                         <div className={styles.avatar}>
                             {user.avatar || user.name?.[0]?.toUpperCase() || "?"}
                         </div>

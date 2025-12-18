@@ -105,7 +105,7 @@ const TagSettingsLayout = ({
     return (
         <div className={styles.tabRoot}>
             <div className={styles.sectionHeaderRow}>
-            <h2 className={styles.sectionTitle}>Categories</h2>
+            <h2 className={styles.sectionTitle}>Manage Tags</h2>
             </div>
             {/* Category pills row */}
             <div className={styles.pillsContainer}>

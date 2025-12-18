@@ -1,0 +1,173 @@
+:root {
+    --accent: var(--color-secondary, #ffd600);
+    --card-elevation: rgba(0, 0, 0, 0.04);
+    --card-elevation-strong: rgba(0, 0, 0, 0.06);
+}
+
+/* Company card (presentation only) */
+.companyCard {
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 13px;
+    box-shadow: 0 2px 8px var(--card-elevation);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    min-height: 170px;
+    padding: 0 0 14px 0;
+    position: relative;
+    transition:
+            box-shadow 0.18s cubic-bezier(.22, .95, .15, 1),
+            transform 0.16s cubic-bezier(.22, .95, .15, 1),
+            border-color 0.14s;
+    border: 1.5px solid var(--color-border-subtle, #f5f2fa);
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.companyCard:hover {
+    box-shadow: 0 10px 30px var(--card-elevation-strong);
+    transform: translateY(-4px);
+    border-color: var(--color-border-strong, #ede1fb);
+}
+
+/* Selected modifier (optional) */
+.selectedCard {
+    border-color: var(--color-border-strong, #ede1fb);
+    background: var(--color-bg-subtle, #f5f5f7);
+    box-shadow: 0 10px 30px var(--card-elevation-strong);
+}
+
+/* Status dot (yellow) */
+.statusDot {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 2px 6px rgba(255, 214, 0, 0.18);
+    opacity: 0;
+    transform: translateY(0);
+    transition: opacity 150ms ease, transform 120ms ease;
+    z-index: 4;
+}
+
+/* Reveal on hover, focus-visible, and selected */
+.companyCard:hover .statusDot,
+.companyCard:focus-visible .statusDot,
+.selectedCard .statusDot,
+.selectedCard:hover .statusDot,
+.selectedCard:focus-visible .statusDot {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+/* Avatar circle */
+.avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--color-bg-subtle, #f2f0f7);
+    color: var(--sabri-grey-700, #9d95bc);
+    font-size: 1.32rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 26px auto 0 auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    letter-spacing: 0.03em;
+    user-select: none;
+    border: 1.5px solid var(--sabri-grey-200, #e7e2f9);
+    transition: border-color 150ms, background 130ms, color 130ms;
+}
+
+/* Info region */
+.companyInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 16px;
+    width: 100%;
+    padding: 0 14px;
+    box-sizing: border-box;
+}
+
+.companyName {
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: var(--color-primary, #362d58);
+    margin-bottom: 4px;
+    text-align: center;
+    word-break: break-word;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.companyMeta {
+    font-size: 0.94rem;
+    color: var(--color-text-muted, #868099);
+    text-align: center;
+    margin-bottom: 4px;
+    word-break: break-word;
+    max-width: 95%;
+}
+
+.companyMetaSecondary {
+    font-size: 0.88rem;
+    color: var(--color-primary-muted, #777c88);
+    text-align: center;
+    word-break: break-all;
+    max-width: 95%;
+}
+
+/* Delete button (small circle in top-right) */
+.cardDeleteBtn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 999px;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--color-border-subtle, #e4e6ec);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-primary-muted, #777c88);
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0;
+    transition: background 0.12s, color 0.12s, box-shadow 0.12s, transform 0.06s;
+}
+
+.cardDeleteBtn:hover {
+    background: var(--color-bg-subtle, #f5f5f7);
+    color: #cd384a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
+
+/* Responsive tweaks */
+@media (max-width: 640px) {
+    .companyCard {
+        min-height: 150px;
+        padding-bottom: 12px;
+    }
+
+    .avatar {
+        width: 48px;
+        height: 48px;
+        font-size: 1.1rem;
+        margin-top: 18px;
+    }
+
+    .companyName {
+        font-size: 1.02rem;
+    }
+}
