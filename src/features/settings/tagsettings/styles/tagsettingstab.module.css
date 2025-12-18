@@ -101,6 +101,58 @@
     letter-spacing: 0.02em;
 }
 
+/* Header row for buildings + actions */
+.sectionHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 28px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Title matches settings/users titles & uses app primary */
+.sectionTitle {
+    font-size: 1.28rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0;
+    letter-spacing: 0.01em;
+    position: relative;      /* required for the underline pseudo */
+    padding-bottom: 8px;     /* space for the underline */
+}
+
+/* Proportional accent underline under the section title (matches user tab style)
+   - scales with title width (50%), bounded by min/max for consistency
+   - uses global color token --color-secondary via --accent
+*/
+.sectionTitle::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
+    width: 100%;               /* proportional to the title width */
+    min-width: 28px;          /* ensures visible minimum */
+    height: 4px;
+    border-radius: 6px;
+    background: var(--accent);
+    opacity: 0.95;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+
+
+/* Storage section title — now includes the same proportional underline as .sectionTitle */
+.categoryTitle {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0;
+    letter-spacing: 0.01em;
+    position: relative;
+    padding-bottom: 8px;
+}
+
 /* Responsive tweaks */
 @media (max-width: 900px) {
     .placeholder {
@@ -115,5 +167,20 @@
 
     .tagsHeaderActions {
         justify-content: flex-end;
+    }
+}
+
+
+/* Responsive: scale down title accent on small screens */
+@media (max-width: 640px) {
+    .sectionTitle::after {
+        width: 40%;
+        max-width: 48px;
+        height: 3px;
+    }
+    .categoryTitle::after {
+        width: 36%;
+        max-width: 44px;
+        height: 3px;
     }
 }
