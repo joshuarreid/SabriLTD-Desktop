@@ -24,12 +24,15 @@ const logger = {
 
 /**
  * Retrieves the session token from Electron main process via preload bridge.
+ * Falls back to a development token in localStorage (key: DEV_API_TOKEN) when running in a browser dev environment.
+ *
  * @async
  * @function getTokenFromElectron
  * @returns {Promise<string|null>} The authentication token, or null if unavailable.
  */
 const getTokenFromElectron = async () => {
     logger.info("getTokenFromElectron called");
+    // Electron preload token getter (preferred)
     if (window.electronAPI && window.electronAPI.tokenGet) {
         try {
             const { success, token } = await window.electronAPI.tokenGet();
@@ -40,6 +43,19 @@ const getTokenFromElectron = async () => {
             return null;
         }
     }
+
+    // Fallback: allow a developer token stored in localStorage for browser development.
+    // DO NOT commit real production tokens to this storage. This is only a development convenience.
+    try {
+        const devToken = window?.localStorage?.getItem && window.localStorage.getItem("DEV_API_TOKEN");
+        if (devToken) {
+            logger.info("getTokenFromElectron: Using DEV_API_TOKEN from localStorage (development only)");
+            return devToken;
+        }
+    } catch (err) {
+        logger.error("getTokenFromElectron localStorage read failed", err);
+    }
+
     logger.error("Electron ipc not available; token-get skipped");
     return null;
 };
@@ -69,15 +85,33 @@ export default class CompanyApiClient extends ApiClient {
      * Fetches a paginated/listing of companies.
      * GET /
      *
+     * Note: This endpoint requires authentication in the current API. We will attach Authorization header
+     * and avoid making the request if no token is available (prevents sending unauthenticated requests that
+     * may produce opaque CORS failures in the browser).
+     *
      * @async
      * @param {Object} [params] - Optional query params: { page, size, sortField, sortOrder, name, ... }
      * @returns {Promise<Object>} API response with list of companies
-     * @throws {Error} If request fails
+     * @throws {Error} If request fails or no token is available for authenticated endpoints
      */
     async fetchAllCompanies(params = {}) {
         logger.info("fetchAllCompanies called", { params });
         try {
-            const response = await this.get("/", params);
+            // Ensure we have a token before making this authenticated request
+            const token = await getTokenFromElectron();
+            if (!token) {
+                // throw early so caller can handle; avoids sending an unauthenticated request which may result
+                // in a 401 without CORS headers and therefore an opaque browser error.
+                const err = new Error("No authentication token found for fetchAllCompanies");
+                logger.error("fetchAllCompanies failed: no token available");
+                throw err;
+            }
+
+            // Attach Authorization header for authenticated GET
+            const response = await this.get("/", params, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
             logger.info("fetchAllCompanies success", {
                 count: Array.isArray(response?.data) ? response.data.length : 0,
             });
