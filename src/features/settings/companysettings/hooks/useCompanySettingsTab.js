@@ -4,9 +4,12 @@
  * Hook that encapsulates business logic, data fetching and UI state for the CompanySettingsTab.
  * - Loads companies via TanStack Query (getAllCompanies).
  * - Exposes create / update / delete mutations wired to the company API.
- * - Manages modal state (add/edit), delete confirmation, selection, and save/delete status badges.
+ * - Manages modal state (add/edit), delete confirmation, and save/delete status badges.
  *
- * Follows the same design and cache-key patterns used by useUserSettingsTab.
+ * This version intentionally does NOT maintain a persistent "selected" card state to match
+ * the same interaction model used by UserSettingsTab (click -> open modal; no long-lived selection).
+ *
+ * @module useCompanySettingsTab
  */
 
 import { useState, useEffect, useRef } from "react";
@@ -76,15 +79,8 @@ export const useCompanySettingsTab = () => {
         queryFn: () => getAllCompanies(),
     });
 
-    // Auto-select the first company when loaded if none selected
-    const [selectedId, setSelectedId] = useState(null);
-    useEffect(() => {
-        if (!isPending && !isError && companies.length > 0 && selectedId == null) {
-            const firstId = companies[0].companyId;
-            logger.info("Auto-selecting first company", firstId);
-            setSelectedId(firstId);
-        }
-    }, [companies, isPending, isError, selectedId]);
+    // NOTE: intentionally do NOT keep a persistent selection state here in order to
+    // mirror the user tiles behavior (click opens modal, but no sticky 'selected' state).
 
     // --- Modal / save state ---
     const [editStatus, setEditStatus] = useState("idle"); // 'idle'|'saving'|'saved'|'error'
@@ -161,10 +157,6 @@ export const useCompanySettingsTab = () => {
             setTimeout(() => {
                 setDeleteStatus("idle");
                 setRemovingId(null);
-                // If deleted company was selected, clear selection
-                if (selectedId === companyId) {
-                    setSelectedId(null);
-                }
             }, 1000);
         },
         onError: (err) => {
@@ -372,9 +364,6 @@ export const useCompanySettingsTab = () => {
         handleConfirmDelete,
         handleCancelDelete,
         handleDeleteDirect,
-        // selection
-        selectedId,
-        setSelectedId,
         // expose raw mutations for advanced usage/testing
         createCompanyMutation,
         updateCompanyMutation,
