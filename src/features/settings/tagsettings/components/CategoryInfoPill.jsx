@@ -4,6 +4,7 @@ import { FcRating, FcFrame, FcServices, FcStackOfPhotos, FcPackage, FcAdvertisin
 import { LiaChairSolid, LiaToolsSolid } from "react-icons/lia";
 import { GiWoodFrame, GiScrew } from "react-icons/gi";
 import { PiToolboxDuotone } from "react-icons/pi";
+import { FcCamcorderPro } from "react-icons/fc";
 
 /**
  * Returns the icon/emoji for a given category name (customized for known category types).
@@ -23,6 +24,7 @@ function getIconForCategory(label, emoji) {
     if (lower.includes("fasteners"))      return <GiScrew className={`${styles.icon} ${styles.iconGrey}`} />;
     if (lower.includes("graphics"))       return <FcStackOfPhotos className={styles.icon} />;
     if (lower.includes("tools"))          return <LiaToolsSolid className={`${styles.icon} ${styles.iconGrey}`} />;
+    if (lower.includes("av equipment"))          return <FcCamcorderPro className={`${styles.icon} ${styles.iconGrey}`} />;
     if (lower.includes("shipping"))       return <FcPackage className={styles.icon} />;
     if (lower.includes("event"))          return <FcAdvertising className={styles.icon} />;
     if (lower.includes("maintainence") || lower.includes("maintenance"))
