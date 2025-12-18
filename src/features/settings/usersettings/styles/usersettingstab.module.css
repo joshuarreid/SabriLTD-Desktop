@@ -7,7 +7,7 @@
  * - Uses global tokens where available (--color-primary, --color-secondary, --color-bg-subtle, etc.)
  * - Adds small, tasteful accents:
  *     • yellow underline for section title
- *     • small yellow status dot on cards
+ *     • small yellow status dot for cards (now shows on hover/focus)
  *     • subtle yellow pill for role badges
  *     • optional yellow "Add User" accent variant
  * - Keeps hover/focus states accessible and mild
@@ -246,7 +246,12 @@
     color: var(--color-primary, #333645);
 }
 
-/* Small status dot near avatar for visual color cue */
+/* --------------------
+   Small status dot near avatar for visual color cue
+   - Hidden by default (opacity: 0)
+   - Revealed on hover, focus-visible, and when selected
+   - Slight translateY to match company/building behavior
+   -------------------- */
 .userCard .statusDot {
     position: absolute;
     top: 18px;
@@ -256,12 +261,20 @@
     border-radius: 50%;
     background: var(--accent);
     box-shadow: 0 2px 6px rgba(255,214,0,0.18);
-    opacity: 0; /* hidden by default, shown for active/selected states */
-    transition: opacity 0.15s;
+    opacity: 0;
+    transform: translateY(0);
+    transition: opacity 150ms ease, transform 120ms ease;
+    z-index: 4;
 }
+
+/* reveal on hover, keyboard focus, and selected states */
+.userCard:hover .statusDot,
+.userCard:focus-visible .statusDot,
 .userCard.selected .statusDot,
-.userCard:hover .statusDot {
+.userCard.selected:hover .statusDot,
+.userCard.selected:focus-visible .statusDot {
     opacity: 1;
+    transform: translateY(-1px);
 }
 
 /* User info */

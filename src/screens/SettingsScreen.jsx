@@ -4,6 +4,7 @@ import styles from "../features/settings/settingsscreen.module.css";
 import UserSettingsTab from "../features/settings/usersettings/components/UserSettingsTab";
 import StorageSettingsTab from "../features/settings/storagesettings/components/StorageSettingsTab";
 import TagSettingsTab from "../features/settings/tagsettings/components/TagSettingsTab";
+import CompanySettingsTab from "../features/settings/companysettings/components/CompanySettingsTab";
 
 
 /**
@@ -20,6 +21,7 @@ const TABS = [
     { label: "Users", key: "users" },
     { label: "Storage Locations", key: "storage" },
     { label: "Tags", key: "tags" },
+    { label: "Companies", key: "companies" }
 ];
 
 /**
@@ -78,6 +80,8 @@ const SettingsScreen = () => {
                 return <StorageSettingsTab />;
             case "tags":
                 return <TagSettingsTab />;
+            case "companies":
+                return <CompanySettingsTab />
             default:
                 return null;
         }
