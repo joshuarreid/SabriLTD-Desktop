@@ -2,22 +2,44 @@ import React from "react";
 import styles from "../styles/taginfopill.module.css";
 
 /**
- * TagInfoPill
- * - Renders a single tag pill with basic highlight/hover for tag lists.
- * @component
- * @param {object} props
- * @param {string} props.label - Tag label.
- * @param {boolean} [props.active] - Is tag selected? (future use)
- * @param {function} [props.onClick] - Optional click for tag.
- * @returns {JSX.Element}
+ * logger for TagInfoPill component.
+ *
+ * @constant
+ * @type {{info: Function, error: Function}}
  */
 const logger = {
     info: (...args) => console.log("[TagInfoPill]", ...args),
     error: (...args) => console.error("[TagInfoPill]", ...args),
 };
 
-const TagInfoPill = ({ label, active = false, onClick }) => {
+/**
+ * TagInfoPill
+ * - Renders a single tag pill with label and optional delete "x" control.
+ *
+ * @component
+ * @param {object} props
+ * @param {string} props.label - Tag label.
+ * @param {boolean} [props.active] - Is tag selected? (future use)
+ * @param {function} [props.onClick] - Optional click handler for the pill body.
+ * @param {function} [props.onDelete] - Optional handler invoked when the delete "x" is clicked.
+ * @returns {JSX.Element}
+ */
+const TagInfoPill = ({ label, active = false, onClick, onDelete }) => {
     logger.info("TagInfoPill rendered", { label, active });
+
+    /**
+     * Handles click on the delete icon.
+     *
+     * @param {React.MouseEvent<HTMLButtonElement>} event
+     * @returns {void}
+     */
+    const handleDeleteClick = (event) => {
+        event.stopPropagation();
+        if (onDelete) {
+            onDelete();
+        }
+    };
+
     return (
         <span
             className={`${styles.pill} ${active ? styles.pillActive : ""}`}
@@ -25,8 +47,17 @@ const TagInfoPill = ({ label, active = false, onClick }) => {
             role="button"
             onClick={onClick}
         >
-      {label}
-    </span>
+            <span className={styles.pillLabel}>{label}</span>
+            {/* Always render the X for now; if you only want it sometimes, wrap in {onDelete && ...} */}
+            <button
+                type="button"
+                className={styles.deleteButton}
+                aria-label={`Remove tag ${label}`}
+                onClick={handleDeleteClick}
+            >
+                ×
+            </button>
+        </span>
     );
 };
 

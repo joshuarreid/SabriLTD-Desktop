@@ -29,52 +29,6 @@
     position: relative;
 }
 
-/* Card-wide search bar across top, matches reference image 6 */
-.cardSearchTopBarWrap {
-    width: 100%;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.cardSearchBarContainer {
-    width: 100%;
-    max-width: 95%;
-    display: flex;
-    align-items: center;
-    position: relative;
-}
-
-.cardSearchBar {
-    width: 100%;
-    min-width: 240px;
-    background: #f7f7f7;
-    border: none;
-    border-radius: 999px;
-    font-size: 1.1rem;
-    padding: 0.74em 0.4em 0.74em 2.7em;
-    font-family: inherit;
-    color: #b0b1b9;
-    outline: none;
-    box-shadow: none;
-    transition: box-shadow 0.17s, border-color 0.17s;
-}
-
-.cardSearchBar:focus {
-    background: #f5f2fb;
-    color: #6c5ca3;
-}
-
-.cardSearchIcon {
-    position: absolute;
-    left: 1.18em;
-    top: 50%;
-    transform: translateY(-55%);
-    color: #b0b1b9;
-    pointer-events: none;
-}
-
 .tagsPillsRow {
     width: 100%;
     display: flex;

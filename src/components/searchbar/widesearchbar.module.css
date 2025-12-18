@@ -1,0 +1,61 @@
+/* Card-wide search bar across top */
+
+.cardSearchTopBarWrap {
+    width: 100%;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cardSearchBarContainer {
+    width: 100%;
+    max-width: 95%;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.cardSearchBar {
+    width: 100%;
+    min-width: 240px;
+    background: #f7f7f7;
+    border: 1px solid transparent; /* remove colored border */
+    border-radius: 999px;
+    font-size: 1.1rem;
+    padding: 0.74em 0.4em 0.74em 2.7em;
+    font-family: inherit;
+    color: #4b4b55;
+    outline: none;
+    box-shadow: none;
+    transition: background-color 0.17s, color 0.17s, border-color 0.17s;
+}
+
+.cardSearchBar::placeholder {
+    color: #b0b1b9;
+}
+
+/* Focus: keep neutral gray, no purple border/glow */
+.cardSearchBar:focus {
+    background: #f1f1f3;
+    color: #333645;
+    border-color: #d4d4dd; /* subtle neutral border, not purple */
+    outline: none;
+    box-shadow: none;
+}
+
+/* Also neutralize browser default focus ring in WebKit/Chromium */
+.cardSearchBar:focus-visible {
+    outline: none;
+    box-shadow: none;
+    border-color: #d4d4dd;
+}
+
+.cardSearchIcon {
+    position: absolute;
+    left: 1.18em;
+    top: 50%;
+    transform: translateY(-55%);
+    color: #b0b1b9;
+    pointer-events: none;
+}
