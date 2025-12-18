@@ -6,6 +6,7 @@ import { useTagSettingsTab } from "../hooks/useTagSettingsTab";
 import WideSearchBar from "../../../../components/searchbar/WideSearchBar";
 import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
+import SaveStatus from "../../../../components/save/SaveStatus";
 
 /**
  * logger for TagSettingsTab.
@@ -32,7 +33,10 @@ const TAG_SORT_OPTIONS = [
 /**
  * TagSettingsTab
  * Tag settings UI using real API data via hook.
- * Renders category pills, wide tag search bar, sort/filter controls, and tag pills.
+ * - Category pills drive the selectedCategoryId.
+ * - Search filters tags client-side.
+ * - Pressing Enter in the search bar creates a new tag with the typed value
+ *   in the selected category, and shows SaveStatus to the right of the bar.
  *
  * @component
  * @returns {JSX.Element}
@@ -57,12 +61,12 @@ const TagSettingsTab = () => {
         triggerTagDelete,
         handleConfirmTagDelete,
         handleCancelTagDelete,
+        // tag create helper + status
+        createTagAsDraft,
+        createTagStatus,
     } = useTagSettingsTab();
 
-    // Local UI-only state for tag search text
     const [tagSearch, setTagSearch] = React.useState("");
-
-    // Local UI-only sort state (A–Z or Z–A)
     const [sortKey, setSortKey] = React.useState("a-z");
 
     /**
@@ -77,7 +81,6 @@ const TagSettingsTab = () => {
 
     /**
      * Filters and sorts tags by search substring (case-insensitive) and sort order.
-     * Sorting uses a simple localeCompare on tag.name, similar to useNaturalSort key behavior.
      *
      * @type {Array}
      */
@@ -95,9 +98,15 @@ const TagSettingsTab = () => {
             const bName = (b.name || "").toLocaleString().toLowerCase();
             if (aName === bName) return 0;
             if (currentSort.order === "asc") {
-                return aName.localeCompare(bName, undefined, { numeric: true, sensitivity: "base" });
+                return aName.localeCompare(bName, undefined, {
+                    numeric: true,
+                    sensitivity: "base",
+                });
             }
-            return bName.localeCompare(aName, undefined, { numeric: true, sensitivity: "base" });
+            return bName.localeCompare(aName, undefined, {
+                numeric: true,
+                sensitivity: "base",
+            });
         });
 
         return sorted;
@@ -111,6 +120,43 @@ const TagSettingsTab = () => {
      */
     const handleTagSearchChange = (event) => {
         setTagSearch(event.target.value);
+    };
+
+    /**
+     * Handles Enter key in the search bar.
+     * - If there is a non-empty search string and a category is selected,
+     *   always create a new tag with that name in the selected category.
+     *
+     * @param {React.KeyboardEvent<HTMLInputElement>} event
+     * @returns {void}
+     */
+    const handleTagSearchKeyDown = (event) => {
+        if (event.key !== "Enter") return;
+
+        const trimmed = tagSearch.trim();
+
+        logger.info("Tag search Enter pressed (unconditional create)", {
+            rawValue: tagSearch,
+            trimmed,
+            selectedCategoryId,
+        });
+
+        if (!trimmed) {
+            logger.info("Enter pressed in tag search with empty value; ignoring");
+            return;
+        }
+
+        if (!selectedCategoryId) {
+            logger.info(
+                "Enter pressed in tag search but no selectedCategoryId; ignoring create",
+            );
+            return;
+        }
+
+        createTagAsDraft({
+            categoryId: selectedCategoryId,
+            name: trimmed,
+        });
     };
 
     /**
@@ -150,14 +196,14 @@ const TagSettingsTab = () => {
             <div className={styles.tabRoot}>
                 <div className={styles.placeholder}>
                     <span style={{ color: "#cd384a" }}>
-                        Failed to load categories. {categoriesError?.message || "Please try again."}
+                        Failed to load categories.{" "}
+                        {categoriesError?.message || "Please try again."}
                     </span>
                 </div>
             </div>
         );
     }
 
-    // Pull the tag record for the confirmation modal label (optional, defensive)
     const tagBeingDeleted =
         tagDeleteId != null ? tags.find((t) => t.tagId === tagDeleteId) : null;
 
@@ -188,28 +234,24 @@ const TagSettingsTab = () => {
             </div>
 
             <div className={styles.placeholder}>
-                {/* Header row above tags: search bar on left, + New + sort on right (mirrors StorageSettings) */}
+                {/* Header row above tags: search bar on left, sort + status on right */}
                 <div className={styles.tagsHeaderRow}>
                     <WideSearchBar
                         value={tagSearch}
                         onChange={handleTagSearchChange}
-                        placeholder="Search tags"
-                        ariaLabel="Search tags"
-                        disabled={isTagsPending || isTagsError}
+                        onKeyDown={handleTagSearchKeyDown}
+                        placeholder="Search or add tags"
+                        ariaLabel="Search or add tags"
+                        disabled={
+                            isTagsPending || isTagsError || createTagStatus === "saving"
+                        }
                     />
                     <div className={styles.tagsHeaderActions}>
-                        <button
-                            type="button"
-                            className={styles.addUserBtn}
-                            // TODO: wire to future Tag add modal/hook
-                            onClick={() =>
-                                logger.info("New Tag button clicked (not yet implemented)")
-                            }
-                        >
-                            <span className={styles.addUserBtnIcon}>+</span>
-                            <span className={styles.addUserBtnLabel}>Add</span>
-                        </button>
-                        <AlphabeticalSortFilter value={sortKey} onChange={setSortKey} />
+                        <SaveStatus
+                            status={createTagStatus === "error" ? "idle" : createTagStatus}
+                            savingText="Creating tag…"
+                            savedText="Tag added"
+                        />
                     </div>
                 </div>
 
@@ -234,7 +276,6 @@ const TagSettingsTab = () => {
                 </div>
             </div>
 
-            {/* Tag delete confirmation modal */}
             <ConfirmationModal
                 open={tagDeleteId != null}
                 onCancel={handleCancelTagDelete}

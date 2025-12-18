@@ -21,6 +21,7 @@ const logger = {
  * @param {Object} props
  * @param {string} props.value - Current search value.
  * @param {(event: React.ChangeEvent<HTMLInputElement>) => void} props.onChange - Change handler for input.
+ * @param {(event: React.KeyboardEvent<HTMLInputElement>) => void} [props.onKeyDown] - Optional keydown handler (e.g. Enter to create).
  * @param {string} [props.placeholder="Search"] - Input placeholder text.
  * @param {boolean} [props.disabled=false] - Whether the search is disabled.
  * @param {string} [props.ariaLabel="Search"] - Accessible label for screen readers.
@@ -29,12 +30,14 @@ const logger = {
 const WideSearchBar = ({
                            value,
                            onChange,
+                           onKeyDown,
                            placeholder = "Search",
                            disabled = false,
                            ariaLabel = "Search",
                        }) => {
     logger.info("WideSearchBar rendered", { disabled });
 
+    // NOTE: onKeyDown is forwarded so parents (e.g. TagSettingsTab) can handle Enter.
     return (
         <div className={styles.cardSearchTopBarWrap}>
             <label className={styles.cardSearchBarContainer}>
@@ -45,6 +48,7 @@ const WideSearchBar = ({
                     placeholder={placeholder}
                     value={value}
                     onChange={onChange}
+                    onKeyDown={onKeyDown}
                     aria-label={ariaLabel}
                     disabled={disabled}
                 />
