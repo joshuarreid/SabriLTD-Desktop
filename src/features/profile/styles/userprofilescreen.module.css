@@ -1,10 +1,10 @@
 /**
- * User Profile Screen - SabriLTD theme
+ * User Profile Screen - softened focus styles
  *
- * - Panel/card uses #fafafd background, subtle purple drop-shadow, and rounded edges for warmth
- * - Titles/text use #23263b/#362d58 for clarity and unity
- * - Input fields, buttons, and error/success match the rest of SabriLTD UI
- * - Main accent: #8247e5 (primary), #f5f0ff and #f8f5fd (panel/diffuse), #b3abc8 (muted icon/error)
+ * - Removes the strong yellow outer ring used previously.
+ * - Replaces it with a subtle, accessible grey focus ring + soft elevation so focus is visible
+ *   but not visually harsh.
+ * - All other tokenized styles remain consistent with the app theme.
  */
 
 .profileContainer {
@@ -12,24 +12,28 @@
     justify-content: center;
     align-items: center;
     min-height: 60vh;
-    background: #faf9fb;
+    background: var(--color-bg-subtle, #faf9fb);
+    padding: 1.5rem;
 }
 
 .profileCard {
     width: 350px;
-    background: #fafafd;
+    background: var(--color-bg-surface, #ffffff);
     border-radius: 14px;
-    box-shadow: 0 4px 24px rgba(130, 71, 229, 0.08);
-    padding: 2rem 2rem 1.5rem 2rem;
+    box-shadow:
+            0 6px 20px rgba(0, 0, 0, 0.06),
+            0 2px 6px rgba(0, 0, 0, 0.03);
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 1.5px solid #ececf0;
+    border: 1.5px solid var(--color-border-subtle, #ececf0);
+    box-sizing: border-box;
 }
 
 .profileTitle {
     margin-bottom: 1.1rem;
-    color: #23263b;
+    color: var(--color-text-main, #23263b);
     font-size: 1.45rem;
     font-weight: 700;
     text-align: center;
@@ -51,103 +55,44 @@
 
 .formGroup label {
     font-size: 1rem;
-    color: #978bb4;
+    color: var(--color-primary-muted, #978bb4);
     margin-bottom: 0.28em;
     font-weight: 500;
     letter-spacing: 0.01em;
 }
 
+/* Inputs: neutral greys with a softened focus ring */
 .input {
     padding: 9px 13px;
     border-radius: 8px;
-    border: 1.5px solid #ececf0;
+    border: 1.5px solid var(--color-border-subtle, #ececf0);
     font-size: 1.05rem;
     font-weight: 500;
-    background: #f6f6ff;
-    color: #23263b;
-    transition: border-color 0.18s, box-shadow 0.13s, background 0.13s;
-}
-
-.input:focus {
-    border-color: #8247e5;
+    background: var(--color-bg-subtle, #f5f5f7);
+    color: var(--color-text-main, #23263b);
+    transition: border-color 0.18s, box-shadow 0.13s, background 0.13s, transform 0.08s;
     outline: none;
-    background: #fff;
-    box-shadow: 0 0 0 2px #f5f0ff;
+    box-sizing: border-box;
 }
 
-.formActions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1.2em;
-    margin-top: 0.5rem;
+/* Soft, accessible focus state:
+   - primary border darkens to a readable grey
+   - add a faint, low-contrast outer ring for visibility (no bright yellow)
+   - lift slightly to signal focus without being harsh */
+.input:focus,
+.input:focus-visible {
+    border-color: var(--sabri-grey-500, #777c88); /* neutral grey */
+    background: var(--color-bg-surface, #ffffff);
+    box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.06),                 /* subtle elevation */
+            0 0 0 4px rgba(15, 20, 25, 0.03);                /* very soft grey ring */
+    transform: translateY(-1px);
 }
 
-.saveButton {
-    background: #8247e5;
-    color: #fff;
-    padding: 9px 22px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.15s, box-shadow 0.14s;
-    box-shadow: 0 2px 6px 0 rgba(132,71,229,0.06);
-}
-
-.saveButton:hover,
-.saveButton:focus {
-    background: #6b30c6;
-}
-
-.saveButton[disabled],
-.saveButton[aria-disabled="true"] {
-    background: #ede1fb !important;
-    color: #b8b2cc !important;
-    cursor: not-allowed !important;
-    border: none;
-    opacity: 0.68;
-    box-shadow: none;
-}
-
-.resetButton {
-    background: #f3f0fa;
-    color: #a89bb6;
-    padding: 9px 20px;
-    border-radius: 8px;
-    border: none;
-    font-weight: 500;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.13s, color 0.15s;
-}
-
-.resetButton:hover,
-.resetButton:focus {
-    background: #ececf0;
-    color: #8247e5;
-}
-
-.resetButton[disabled],
-.resetButton[aria-disabled="true"] {
-    background: #f3f0fa !important;
-    color: #ccc !important;
-    opacity: 0.7;
-    cursor: not-allowed !important;
-}
-
-.centered {
-    width: 100%;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-size: 1.15rem;
-}
-
+/* Keep error states semantic and clear (red) */
 .errorMsg {
-    color: #b000b9;
-    background: #f8f5fd;
+    color: #b00020; /* semantic error */
+    background: rgba(176, 0, 32, 0.06); /* very light red tint */
     padding: 0.65em 1em;
     border-radius: 7px;
     font-weight: 500;
@@ -156,6 +101,88 @@
     word-break: break-word;
 }
 
+/* Form actions aligned to right */
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1.2em;
+    margin-top: 0.5rem;
+}
+
+/* Primary action: uses neutral primary greys */
+.saveButton {
+    background: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #ffffff);
+    padding: 9px 22px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.14s, transform 0.08s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    outline: none;
+}
+
+.saveButton:hover:enabled,
+.saveButton:focus-visible {
+    background: var(--sabri-grey-900, #191919);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    transform: translateY(-1px);
+    border-color: transparent; /* avoid adding a strong accent */
+}
+
+.saveButton[disabled],
+.saveButton[aria-disabled="true"] {
+    background: var(--sabri-grey-200, #ede1fb) !important;
+    color: var(--sabri-grey-400, #b8b2cc) !important;
+    cursor: not-allowed !important;
+    border: none;
+    opacity: 0.68;
+    box-shadow: none;
+}
+
+/* Secondary action: subdued grey, with gentle hover */
+.resetButton {
+    background: var(--color-bg-subtle, #f3f0fa);
+    color: var(--color-primary-muted, #a89bb6);
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.13s, color 0.15s, transform 0.08s;
+    outline: none;
+}
+
+.resetButton:hover:enabled,
+.resetButton:focus-visible {
+    background: var(--color-bg-subtle, #ececf0);
+    color: var(--color-primary, #333645);
+    transform: translateY(-1px);
+}
+
+.resetButton[disabled],
+.resetButton[aria-disabled="true"] {
+    background: var(--color-bg-subtle, #f3f0fa) !important;
+    color: #ccc !important;
+    opacity: 0.7;
+    cursor: not-allowed !important;
+}
+
+/* Centered helper area (used for empty / centered states) */
+.centered {
+    width: 100%;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.15rem;
+    color: var(--color-text-main, #23263b);
+}
+
+/* Save feedback / status area */
 .saveFeedback {
     margin-top: 1.1em;
     min-height: 30px;
@@ -163,6 +190,7 @@
     display: flex;
     align-items: center;
     gap: 0.8em;
+    width: 100%;
 }
 
 .saveState {
@@ -171,15 +199,30 @@
     font-size: 1.06em;
     font-weight: 500;
     gap: 0.6em;
-    color: #362d58;
+    color: var(--color-primary, #362d58);
 }
 
 .iconSpin {
     animation: spinAnim 0.9s linear infinite;
 }
 
+/* Animations */
 @keyframes spinAnim {
     100% {
         transform: rotate(360deg);
+    }
+}
+
+/* Responsive tweaks */
+@media (max-width: 420px) {
+    .profileCard {
+        width: 100%;
+        padding: 1.25rem;
+    }
+    .profileTitle {
+        font-size: 1.25rem;
+    }
+    .formActions {
+        justify-content: center;
     }
 }

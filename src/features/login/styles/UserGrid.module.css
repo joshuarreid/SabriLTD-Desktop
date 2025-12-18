@@ -1,7 +1,10 @@
 /**
- * UserGrid - SabriLTD theme
- * - Uses white/pastel bg, subtle purple shadow, and border for clarity and warmth
- * - Modular, responsive grid with unified padding and radii
+ * UserGrid - SabriLTD theme (tokenized)
+ *
+ * Notes:
+ * - Uses global design tokens (CSS variables) where available:
+ *   --color-primary, --color-bg-subtle, --color-border-subtle, --sabri-grey-400, --tile-size
+ * - Falls back to sensible defaults if tokens aren't present.
  */
 
 .userGridPagerWrapper {
@@ -17,7 +20,7 @@
 
 .usersGrid {
     display: grid;
-    grid-template-columns: repeat(4, 128px);
+    grid-template-columns: repeat(4, var(--tile-size, 128px));
     gap: 16px;
     margin: 0 auto;
     width: auto;
@@ -29,18 +32,22 @@
     background: none;
 }
 
+/* spacer for arrow UI (keeps layout stable) */
 .userGridArrowSpacer {
-    width: 32px;
-    height: 32px;
+    width: var(--chevron-size, 32px);
+    height: var(--chevron-size, 32px);
     display: inline-block;
 }
+
+/* reserved selector for tile-level overrides by parent components */
 .userTile {
-    /* Visually hidden padding slot */
+    /* intentionally left blank as a slot for tile-specific overrides */
 }
 
+/* responsive adjustments */
 @media (max-width: 640px) {
     .usersGrid {
-        grid-template-columns: repeat(2, 128px);
+        grid-template-columns: repeat(2, var(--tile-size, 128px));
         gap: 12px;
     }
     .userGridArrowSpacer {

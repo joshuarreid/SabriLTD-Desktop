@@ -1,48 +1,67 @@
+:root {
+    --accent: var(--color-secondary, #ffd600);
+    --accent-muted: rgba(255,214,0,0.06);
+    --accent-border: rgba(255,214,0,0.22);
+    --primary: var(--color-primary, #333645);
+    --text-main: var(--color-text-main, #242c38);
+    --border-subtle: var(--color-border-subtle, #e3e0f0);
+    --bg-surface: var(--color-bg-surface, #ffffff);
+    --bg-subtle: var(--color-bg-subtle, #f5f5f7);
+    --shadow-soft: rgba(0,0,0,0.04);
+    --shadow-strong: rgba(0,0,0,0.06);
+
+    /* Reuse global success tokens from App.css for green active state */
+    --success: var(--color-success, #48d18e);
+    --success-muted: var(--color-success-muted, rgba(72,209,142,0.06));
+    --success-border: var(--color-success, #48d18e); /* use full color for a stronger border */
+}
+
+/* Pill base */
 .pill {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 0.37em;
-    border: 1.7px solid #e3e0f0;
-    background: #fff;
+    border: 1.7px solid var(--border-subtle);
+    background: var(--bg-surface);
     border-radius: 999px;
     padding: 0.48em 1.18em 0.48em 0.98em;
     font-size: 1.13rem;
     font-weight: 500;
-    color: #242c38;
-    box-shadow: 0 2px 7px rgba(130,71,229,0.04);
+    color: var(--text-main);
+    box-shadow: 0 2px 7px var(--shadow-soft);
     margin: 0 0.33em 0.66em 0;
     cursor: pointer;
     outline: none;
     transition: border 0.18s, background 0.18s, color 0.15s, box-shadow 0.18s, transform 0.14s;
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box; /* ensure border thickness doesn't change layout unexpectedly */
 }
 
-.pillActive {
-    border: 2px solid #48d18e;
-    background: #f7fefb;
-    color: #1a3f27;
-    box-shadow: 0 3px 10px rgba(72,209,142,0.09);
-}
-
-.pill.pillActive,
-.pillActive:focus-visible,
-.pillActive:hover {
-    border: 2px solid #48d18e;
-    background: #f7fefb;
-    color: #1a3f27;
-    box-shadow: 0 3px 10px rgba(72,209,142,0.09);
+/* Active / selected pill: stronger green border to match building card */
+.pillActive,
+.pill.pillActive {
+    /* Strong, 2px green border to visually match building selected state */
+    border: 2px solid var(--success-border);
+    background: var(--success-muted);
+    color: color-mix(in srgb, var(--primary) 84%, var(--success) 16%);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.04);
     transform: none;
+    /* keep padding the same and use box-sizing so the visual size doesn't shift */
 }
 
+/* Hover / focus for non-active */
 .pill:focus-visible:not(.pillActive),
 .pill:hover:not(.pillActive) {
-    box-shadow: 0 10px 30px 0 rgba(130,71,229,0.12), 0 1.5px 3px rgba(0,0,0,0.01);
-    border-color: #ede1fb;
-    transform: translateY(-2px) scale(1.017);
-    background: #f3f0fa;
-    color: #623dc5;
+    box-shadow: 0 6px 18px var(--shadow-soft);
+    border-color: var(--card-border-strong, #ede1fb);
+    transform: translateY(-2px);
+    background: var(--bg-subtle);
+    color: color-mix(in srgb, var(--primary) 78%, var(--accent) 22%);
 }
 
-.emoji, .icon {
+/* Icon / emoji */
+.emoji,
+.icon {
     margin-right: 0.44em;
     font-size: 1.27em;
     display: flex;
@@ -50,15 +69,20 @@
     opacity: 0.95;
 }
 
-.iconBrown {
-    color: #965E2F;
-}
+/* Per-icon color tokens (still overridable) */
+.iconBrown { color: var(--icon-brown, #965E2F); }
+.iconGrey  { color: var(--sabri-grey-700, #8187A6); }
 
-.iconGrey {
-    color: #8187A6;
-}
-
+/* Label */
 .label {
     display: inline-block;
     white-space: nowrap;
+}
+
+/* Accessibility focus ring */
+.pill:focus-visible {
+    box-shadow:
+            0 0 0 4px rgba(207,210,218,0.6),
+            0 6px 18px var(--shadow-soft);
+    border-color: var(--accent-border);
 }
