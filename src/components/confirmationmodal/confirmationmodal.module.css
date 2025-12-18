@@ -1,16 +1,19 @@
 .overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(36,14,41,0.12);
+    background: rgba(36, 14, 41, 0.12);
     z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
 .modal {
-    background: #fff;
+    background: var(--color-bg-surface, #ffffff);
     border-radius: 16px;
-    box-shadow: 0 6px 32px rgba(130,71,229,0.10), 0 1.5px 6px rgba(60,60,60,0.04);
+    box-shadow:
+            0 6px 32px rgba(0, 0, 0, 0.12),
+            0 1.5px 6px rgba(0, 0, 0, 0.05);
     padding: 2rem 1.7rem 1.7rem 1.7rem;
     min-width: 340px;
     max-width: 99vw;
@@ -19,30 +22,37 @@
     flex-direction: column;
     align-items: center;
 }
+
 .title {
     font-size: 1.18rem;
     font-weight: 700;
     margin-bottom: 10px;
-    color: #362d58;
+    color: var(--color-primary, #333645); /* primary text */
     letter-spacing: 0.01em;
 }
+
 .description {
     font-size: 1rem;
-    color: #444;
+    color: var(--color-text-muted, #555865);
     margin-bottom: 28px;
     margin-top: 6px;
     max-width: 440px;
     line-height: 1.52;
 }
+
 .actions {
     display: flex;
     justify-content: center;
     gap: 1.3em;
     margin-top: 4px;
 }
+
+/**
+ * Delete button is destructive – not using primary/secondary brand colors.
+ */
 .deleteButton {
     background: #e24c4b;
-    color: #fff;
+    color: #ffffff;
     border: none;
     border-radius: 8px;
     padding: 9px 24px;
@@ -50,37 +60,47 @@
     font-size: 1rem;
     cursor: pointer;
     transition: background 0.16s, box-shadow 0.15s, opacity 0.13s;
-    box-shadow: 0 1.5px 7px rgba(226,76,75,0.13);
+    box-shadow: 0 1.5px 7px rgba(226, 76, 75, 0.13);
     outline: none;
 }
+
 .deleteButton:hover,
 .deleteButton:focus {
     background: #be2627;
 }
+
 .deleteButton[disabled],
 .deleteButton[aria-disabled="true"] {
-    background: #e1d4e5 !important;
-    color: #c3bbc7 !important;
+    background: var(--sabri-grey-200, #e5e5ea) !important;
+    color: var(--sabri-grey-400, #b8b8c0) !important;
     opacity: 0.68;
     cursor: not-allowed;
     pointer-events: none;
     box-shadow: none;
 }
+
+/**
+ * Cancel button:
+ * - Primary: greys (var(--color-primary), var(--color-bg-subtle))
+ * - Secondary: subtle yellow border on hover via var(--color-secondary)
+ */
 .cancelButton {
-    background: #f7f4fa;
-    color: #a89bb6;
-    border: none;
+    background: var(--color-bg-subtle, #f5f5f7);
+    color: var(--color-primary-muted, #5d6170);
+    border: 1px solid var(--color-border-subtle, #e0e0e6);
     border-radius: 8px;
     padding: 9px 24px;
     font-weight: 500;
     font-size: 1rem;
     cursor: pointer;
-    transition: background 0.12s, color 0.13s;
+    transition: background 0.12s, color 0.13s, border-color 0.13s;
     margin-left: 2px;
     outline: none;
 }
+
 .cancelButton:hover,
 .cancelButton:focus {
-    background: #ececf0;
-    color: #8247e5;
+    background: var(--color-bg-surface, #ffffff);
+    color: var(--color-primary, #333645);
+    border-color: var(--color-secondary, #ffd600); /* secondary accent */
 }

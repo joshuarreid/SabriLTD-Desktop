@@ -1,6 +1,12 @@
 /**
- * UserGridArrowButton - SabriLTD theme
- * - Minimalist arrow with purple-accented hover, focus, and shadow states.
+ * UserGridArrowButton - Tokenized interactive arrow
+ *
+ * Replaces purple accents with primary greys and uses the brand yellow only as a subtle secondary accent.
+ * Uses the global tokens:
+ *  - --color-primary (main interactive color)
+ *  - --color-bg-subtle (hover/focus surface)
+ *  - --sabri-grey-400 (muted stroke)
+ *  - --chevron-size (sizing; fallback provided)
  */
 
 .userGridArrowButton {
@@ -13,10 +19,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.16s, opacity 0.17s, box-shadow 0.13s;
-    height: 32px;
-    width: 32px;
+    transition: color 0.16s, opacity 0.17s, box-shadow 0.13s, background 0.12s;
+    height: var(--chevron-size, 32px);
+    width: var(--chevron-size, 32px);
     border-radius: 7px;
+    color: var(--color-primary, #333645); /* accessible fallback */
 }
 
 .userGridArrowButton:disabled {
@@ -24,22 +31,39 @@
     cursor: not-allowed;
 }
 
+/* direction helpers (kept for consumers) */
 .left { }
 .right { }
 
+/* chevron (SVG stroke) default */
 .chevron {
-    stroke: #b3abc8;
-    transition: stroke 0.18s;
+    stroke: var(--sabri-grey-400, #b3abc8);
+    transition: stroke 0.18s, transform 0.12s;
 }
 
+/* subtle hover/focus surface using greys; chevron becomes darker primary */
 .userGridArrowButton:not(:disabled):hover,
 .userGridArrowButton:not(:disabled):focus-visible {
-    background: #f5f0ff;
+    background: var(--color-bg-subtle, #f5f0ff);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
 }
 
 .userGridArrowButton:not(:disabled):hover .chevron,
 .userGridArrowButton:not(:disabled):focus-visible .chevron {
-    stroke: #8247e5;
+    stroke: var(--color-primary, #333645);
+}
+
+/* For a more prominent secondary accent (used sparingly),
+   callers can add a class that applies the secondary color */
+.withSecondaryAccent:not(:disabled):hover,
+.withSecondaryAccent:not(:disabled):focus-visible {
+    background: rgba(255, 214, 0, 0.10); /* very soft yellow wash */
+}
+
+.withSecondaryAccent:not(:disabled):hover .chevron,
+.withSecondaryAccent:not(:disabled):focus-visible .chevron {
+    stroke: var(--color-secondary, #ffd600);
 }
 
 @media (max-width: 640px) {

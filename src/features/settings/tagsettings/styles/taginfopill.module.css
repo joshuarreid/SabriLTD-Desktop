@@ -1,41 +1,59 @@
+:root{
+    --accent: var(--color-secondary, #ffd600);
+    --accent-muted: rgba(255,214,0,0.06);
+    --accent-border: rgba(255,214,0,0.18);
+    --primary: var(--color-primary, #333645);
+    --text-main: var(--color-text-main, #2e314b);
+    --border-subtle: var(--color-border-subtle, #ebeaf4);
+    --bg-surface: var(--color-bg-surface, #ffffff);
+    --bg-subtle: var(--color-bg-subtle, #f5f5f7);
+    --shadow-soft: rgba(0,0,0,0.03);
+    --shadow-strong: rgba(0,0,0,0.06);
+}
+
+/* Tag pill base */
 .pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1.4px solid #ebeaf4;
-    background: #fff;
+    border: 1.4px solid var(--border-subtle);
+    background: var(--bg-surface);
     border-radius: 999px;
-    padding: 0.38em 0.56em 0.36em 0.98em; /* extra room right for X */
+    padding: 0.38em 0.56em 0.36em 0.98em; /* extra right room for the X */
     font-size: 1.05rem;
     font-weight: 500;
-    color: #2e314b;
+    color: var(--text-main);
     margin: 0 0.3em 0.62em 0;
     cursor: pointer;
     outline: none;
-    box-shadow: 0 1px 7px rgba(130,71,229,0.04);
+    box-shadow: 0 1px 7px var(--shadow-soft);
     transition: border 0.18s, background 0.13s, color 0.14s, box-shadow 0.18s, transform 0.13s;
+    -webkit-tap-highlight-color: transparent;
 }
 
+/* Active / hover / focus */
 .pillActive,
 .pill:focus-visible,
 .pill:hover {
-    border: 2px solid #ab9bf7;
-    background: #f4f3fc;
-    color: #724fed;
-    box-shadow: 0 7px 18px 0 rgba(130,71,229,0.11);
-    transform: translateY(-1px) scale(1.01);
+    border: 1.8px solid var(--accent-border);
+    background: var(--accent-muted);
+    color: var(--primary);
+    box-shadow: 0 5px 16px var(--shadow-strong);
+    transform: translateY(-1px);
 }
 
-/* Label text sits to the left of the X */
+/* Label text position (left of delete) */
 .pillLabel {
     padding-right: 0.35em;
+    display: inline-block;
+    white-space: nowrap;
 }
 
-/* Small "x" delete button on right side of tag */
+/* Delete (x) button */
 .deleteButton {
     border: none;
     background: transparent;
-    color: #b2b1c5;
+    color: var(--sabri-grey-400, #b2b1c5);
     font-size: 1.2rem;
     line-height: 1;
     padding: 0;
@@ -47,12 +65,21 @@
     border-radius: 999px;
     min-width: 1.1em;
     min-height: 1.1em;
-    transition: background-color 0.15s, color 0.15s;
+    transition: background-color 0.15s, color 0.15s, transform 0.08s;
+    outline: none;
 }
 
+/* Delete hover/focus */
 .deleteButton:hover,
 .deleteButton:focus-visible {
-    background-color: rgba(0, 0, 0, 0.06);
-    color: #7b7a8e;
-    outline: none;
+    background-color: rgba(0,0,0,0.04);
+    color: color-mix(in srgb, var(--primary) 70%, black 30%);
+}
+
+/* Keep focus styles accessible for keyboard users */
+.pill:focus-visible {
+    box-shadow:
+            0 0 0 4px rgba(207,210,218,0.6),
+            0 6px 16px var(--shadow-soft);
+    border-color: var(--accent-border);
 }

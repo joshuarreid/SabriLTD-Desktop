@@ -5,19 +5,21 @@ import styles from "../styles/settingsdropdown.module.css";
 import { IoPersonOutline } from "react-icons/io5";
 import { MdWarehouse } from "react-icons/md";
 import { IoPricetagsOutline } from "react-icons/io5";
+import { IoIosCheckmark } from "react-icons/io";
 
 /**
  * logger for SettingsDropdown component.
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log('[SettingsDropdown]', ...args),
-    error: (...args) => console.error('[SettingsDropdown]', ...args),
+    info: (...args) => console.log("[SettingsDropdown]", ...args),
+    error: (...args) => console.error("[SettingsDropdown]", ...args),
 };
 
 /**
  * Settings options for the dropdown.
  * @constant
+ * @type {Array<{label: string, key: string, route: string, icon: JSX.Element}>}
  */
 const SETTINGS_OPTIONS = [
     {
@@ -37,14 +39,18 @@ const SETTINGS_OPTIONS = [
         key: "tags",
         route: "/settings?tab=tags",
         icon: <IoPricetagsOutline />,
-    }
+    },
 ];
 
 /**
  * SettingsDropdown
- * Dropdown select for settings categories.
  *
+ * Dropdown select for settings categories.
  * Shows selected state matching nav styling when user is on a settings screen.
+ *
+ * Notes:
+ * - Label text is wrapped in a dedicated .menuLabel element so CSS can target it
+ *   reliably (text previously was a plain text node which CSS couldn't select).
  *
  * @component
  * @returns {JSX.Element}
@@ -57,6 +63,7 @@ const SettingsDropdown = () => {
 
     /**
      * Handles dropdown toggle.
+     *
      * @function
      * @returns {void}
      */
@@ -67,6 +74,7 @@ const SettingsDropdown = () => {
 
     /**
      * Handles selecting a settings option.
+     *
      * @function
      * @param {string} route - The route to navigate to.
      * @returns {void}
@@ -79,14 +87,13 @@ const SettingsDropdown = () => {
 
     /**
      * Closes the dropdown if clicking outside.
+     *
+     * @side-effects adds/removes a mousedown event listener when open
      */
     React.useEffect(() => {
         if (!open) return;
         const handleClickOutside = (event) => {
-            if (
-                buttonRef.current &&
-                !buttonRef.current.contains(event.target)
-            ) {
+            if (buttonRef.current && !buttonRef.current.contains(event.target)) {
                 setOpen(false);
                 logger.info("Settings dropdown closed (click outside)");
             }
@@ -97,6 +104,7 @@ const SettingsDropdown = () => {
 
     /**
      * Returns the active tab key from the search params, or "users" by default.
+     *
      * @returns {string}
      */
     const getActiveTab = () => {
@@ -113,7 +121,9 @@ const SettingsDropdown = () => {
         <div className={styles.settingsDropdown} tabIndex={0} ref={buttonRef}>
             <button
                 type="button"
-                className={`${styles.settingsButton} ${open || isSettingsRoute ? styles.settingsButtonActive : ""}`}
+                className={`${styles.settingsButton} ${
+                    open || isSettingsRoute ? styles.settingsButtonActive : ""
+                }`}
                 onClick={handleToggle}
                 aria-haspopup="listbox"
                 aria-expanded={open}
@@ -127,7 +137,7 @@ const SettingsDropdown = () => {
                     height="18"
                     style={{
                         transition: "transform 0.18s",
-                        transform: open ? "rotate(-180deg)" : undefined
+                        transform: open ? "rotate(-180deg)" : undefined,
                     }}
                     aria-hidden="true"
                     viewBox="0 0 20 20"
@@ -142,20 +152,34 @@ const SettingsDropdown = () => {
                     />
                 </svg>
             </button>
+
             {open && (
-                <div className={styles.settingsDropdownMenu} role="listbox">
-                    {SETTINGS_OPTIONS.map((opt) => (
-                        <button
-                            key={opt.key}
-                            className={`${styles.menuButton}${activeTab === opt.key ? " " + styles.menuButtonActive : ""}`}
-                            onClick={() => handleSelect(opt.route)}
-                            aria-selected={activeTab === opt.key}
-                            tabIndex={0}
-                        >
-                            <span className={styles.menuIconWrap}>{opt.icon}</span>
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className={styles.settingsDropdownMenu} role="listbox" aria-label="Settings options">
+                    {SETTINGS_OPTIONS.map((opt) => {
+                        const isActive = activeTab === opt.key;
+                        return (
+                            <button
+                                key={opt.key}
+                                className={`${styles.menuButton}${isActive ? " " + styles.menuButtonActive : ""}`}
+                                onClick={() => handleSelect(opt.route)}
+                                aria-selected={isActive}
+                                tabIndex={0}
+                                type="button"
+                            >
+                <span className={styles.menuIconWrap} aria-hidden>
+                  {opt.icon}
+                </span>
+
+                                {/* Wrapped label so CSS can target the label specifically */}
+                                <span className={styles.menuLabel}>{opt.label}</span>
+
+                                {/* Checkmark indicator aligned to the right when selected */}
+                                <span className={styles.menuCheckWrap} aria-hidden>
+                  {isActive ? <IoIosCheckmark /> : null}
+                </span>
+                            </button>
+                        );
+                    })}
                 </div>
             )}
         </div>

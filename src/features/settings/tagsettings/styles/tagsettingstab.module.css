@@ -1,3 +1,13 @@
+:root{
+    --accent: var(--color-secondary, #ffd600);
+    --bg-surface: var(--color-bg-surface, #ffffff);
+    --card-shadow: rgba(0,0,0,0.06);
+    --card-radius: 16px;
+    --border-subtle: var(--color-border-subtle, #e8eaf0);
+    --muted-text: var(--color-text-muted, #b6b3be);
+}
+
+/* Page root */
 .tabRoot {
     width: 100%;
     max-width: 1240px;
@@ -6,6 +16,7 @@
     background: transparent;
 }
 
+/* Pills container layout */
 .pillsContainer {
     display: flex;
     flex-wrap: wrap;
@@ -15,10 +26,11 @@
     justify-content: flex-start;
 }
 
+/* Empty placeholder panel */
 .placeholder {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 3px 14px 0 rgba(44,47,59,0.07);
+    background: var(--bg-surface);
+    border-radius: var(--card-radius);
+    box-shadow: 0 3px 14px 0 var(--card-shadow);
     padding: 42px 32px 38px 32px;
     min-height: 120px;
     text-align: center;
@@ -27,8 +39,11 @@
     flex-direction: column;
     align-items: center;
     position: relative;
+    border: 1px solid var(--border-subtle);
+    box-sizing: border-box;
 }
 
+/* Tags pills row */
 .tagsPillsRow {
     width: 100%;
     display: flex;
@@ -40,10 +55,20 @@
     margin-top: 0;
 }
 
+/* Empty state text */
 .noTagsMsg {
-    color: #b6b3be;
+    color: var(--muted-text);
     font-size: 1.08em;
     font-weight: 400;
     padding: 0.2em 1.3em 0.1em 0.2em;
     letter-spacing: 0.02em;
+}
+
+/* Small responsive tweaks */
+@media (max-width: 640px) {
+    .placeholder {
+        padding: 28px 18px;
+        min-height: 100px;
+    }
+    .pillsContainer { gap: 0.4em; }
 }

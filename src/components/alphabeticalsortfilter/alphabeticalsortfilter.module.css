@@ -2,8 +2,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    border: none;
+    background: var(--color-bg-surface, #ffffff);
+    border: 1px solid transparent;
     box-shadow: 0 1.5px 8px #9b97ad13, 0 0.5px 1px #c5bdd30c;
     border-radius: 8px;
     height: 38px;
@@ -12,18 +12,19 @@
     margin-right: 0;
     margin-left: 12px;
     transition: border 0.12s, box-shadow 0.14s, color 0.15s, background 0.13s;
-    color: #8854df;
+    color: var(--color-primary, #333645); /* primary grey icon */
     outline: none;
     cursor: pointer;
     min-width: 0;
 }
 
+/* Primary: greys. Yellow only as a very subtle accent on border if you want to keep it. */
 .sortToggleButton:focus,
 .sortToggleButton:hover {
-    background: #f8f3ff;
-    border-color: #bda6f9;
-    color: #7f48e1;
-    box-shadow: 0 2.5px 10px #a68ce62a;
+    background: var(--color-bg-subtle, #f5f5f7);       /* light neutral grey highlight */
+    border-color: var(--sabri-grey-300, #cfd2da);     /* subtle grey border */
+    color: var(--sabri-grey-900, #191919);            /* darker grey icon on hover */
+    box-shadow: 0 2.5px 10px rgba(0, 0, 0, 0.08);
 }
 
 .sortToggleIcon {

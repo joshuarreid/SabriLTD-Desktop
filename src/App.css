@@ -1,7 +1,8 @@
-/* Global styles: white background, black text/borders, pastel magenta accents for a modern look */
+/* Global styles: white background, black text/borders, grey primary, subtle yellow secondary and success (green) token */
 
-body, html {
-    background-color: #fff;
+body,
+html {
+    background-color: #ffffff;
     color: #191919;
     margin: 0;
     padding: 0;
@@ -11,43 +12,99 @@ body, html {
     letter-spacing: 0.01em;
 }
 
+/* === SABRI DESIGN TOKENS (GLOBAL CSS VARIABLES) === */
+/* Primary palette: greys; Secondary accents: Sabri yellow; Success token (green) added */
+
+:root {
+    /* Core brand */
+    --sabri-yellow: #ffd600;
+
+    /* Greys – primary UI colors */
+    --sabri-grey-900: #191919;
+    --sabri-grey-800: #333645;
+    --sabri-grey-700: #4a4f5c;
+    --sabri-grey-600: #5d6170;
+    --sabri-grey-500: #777c88;
+    --sabri-grey-400: #a0a4b0;
+    --sabri-grey-300: #cfd2da;
+    --sabri-grey-200: #e4e6ec;
+    --sabri-grey-100: #f5f5f7;
+
+    /* Semantic aliases (preferred for modules to reference) */
+    --color-primary: var(--sabri-grey-800);
+    --color-primary-muted: var(--sabri-grey-500);
+    --color-primary-contrast: #ffffff;
+
+    --color-secondary: var(--sabri-yellow);
+    --color-secondary-muted: rgba(255, 214, 0, 0.18);
+
+    /* NEW: Success (green) tokens used across the app */
+    --color-success: #48d18e;
+    --color-success-muted: rgba(72, 209, 142, 0.06);
+    --color-success-border: rgba(72, 209, 142, 0.22);
+    --color-success-contrast: #163821;
+
+    --color-border-subtle: var(--sabri-grey-200);
+    --color-border-strong: var(--sabri-grey-500);
+
+    --color-bg-surface: #ffffff;
+    --color-bg-subtle: var(--sabri-grey-100);
+
+    --color-text-main: var(--sabri-grey-900);
+    --color-text-muted: var(--sabri-grey-600);
+    --color-text-inverse: #ffffff;
+}
+
 /* Main app layout */
 .App {
     text-align: center;
-    color: #191919;
-    background: #fff;
+    color: var(--color-text-main);
+    background: var(--color-bg-surface);
 }
 
 /* App header */
 .App-header {
     padding: 40px;
-    border-bottom: 1px solid #191919;
-    background: #fff;
+    border-bottom: 1px solid var(--sabri-grey-900);
+    background: var(--color-bg-surface);
 }
 
-/* Pastel magenta accent example for headings/links */
-a, .accent {
-    color: #b000b9;
+/* Links & accent text – primary grey with subtle yellow accent on hover underline */
+a,
+.accent {
+    color: var(--color-primary);
     text-decoration: none;
     font-weight: 600;
-    transition: color 0.2s;
+    transition: color 0.2s, text-decoration-color 0.2s;
 }
+
 a:hover,
 .accent:hover {
-    color: #e0b3ff;
+    color: var(--sabri-grey-900);
     text-decoration: underline;
+    text-decoration-color: var(--color-secondary);
 }
 
 /* Universal input focus/selection accent for all forms */
 input:focus,
 select:focus,
 textarea:focus {
-    border-color: #b000b9;
+    border-color: var(--sabri-grey-500);
     outline: none;
-    box-shadow: 0 0 0 2px #e0b3ff;
+    box-shadow:
+            0 0 0 1px var(--sabri-grey-300),
+            0 0 0 2px var(--color-secondary-muted);
 }
 
-::-webkit-input-placeholder { color: #bbb; }
-::-moz-placeholder { color: #bbb; }
-:-ms-input-placeholder { color: #bbb; }
-::placeholder { color: #bbb; }
+::-webkit-input-placeholder {
+    color: #bbb;
+}
+::-moz-placeholder {
+    color: #bbb;
+}
+:-ms-input-placeholder {
+    color: #bbb;
+}
+::placeholder {
+    color: #bbb;
+}
