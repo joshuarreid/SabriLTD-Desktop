@@ -1,28 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import styles from "../styles/tagsettingstab.module.css";
 import CategoryInfoPill from "./CategoryInfoPill";
+import TagInfoPill from "./TagInfoPill";
 import { useTagSettingsTab } from "../hooks/useTagSettingsTab";
+import WideSearchBar from "../../../../components/searchbar/WideSearchBar";
 
 /**
- * logger for TagSettingsTab
+ * logger for TagSettingsTab.
+ * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log('[TagSettingsTab]', ...args),
-    error: (...args) => console.error('[TagSettingsTab]', ...args),
+    info: (...args) => console.log("[TagSettingsTab]", ...args),
+    error: (...args) => console.error("[TagSettingsTab]", ...args),
 };
 
 /**
  * TagSettingsTab
- * - Renders tag category pill filtering section and management placeholder UI.
- * - Fetches categories using useTagSettingsTab (business/data logic).
+ * Tag settings UI using real API data via hook.
+ * Renders category pills, wide tag search bar, and tag pills.
+ *
  * @component
  * @returns {JSX.Element}
  */
 const TagSettingsTab = () => {
     logger.info("TagSettingsTab rendered");
 
-    // Hook manages fetching categories, loading/error state, selection
     const {
         categories,
         isCategoriesPending,
@@ -30,35 +33,64 @@ const TagSettingsTab = () => {
         categoriesError,
         selectedCategoryId,
         setSelectedCategoryId,
+        tags,
+        isTagsPending,
+        isTagsError,
+        tagsError,
     } = useTagSettingsTab();
 
+    // Local UI-only state for tag search text
+    const [tagSearch, setTagSearch] = React.useState("");
+
     /**
-     * Handles category pill selection.
-     * @param {number} id
+     * Filters tags by search substring (case-insensitive).
+     *
+     * @type {Array}
      */
-    const handleCategoryClick = (id) => {
-        logger.info("Category pill clicked", id);
-        setSelectedCategoryId(id);
+    const filteredTags = useMemo(() => {
+        if (isTagsPending || isTagsError) return [];
+        const lower = tagSearch.trim().toLowerCase();
+        if (!lower) return tags;
+        return tags.filter((tag) => (tag.name || "").toLowerCase().includes(lower));
+    }, [tags, tagSearch, isTagsPending, isTagsError]);
+
+    /**
+     * Handles tag search bar input.
+     *
+     * @param {React.ChangeEvent<HTMLInputElement>} event
+     * @returns {void}
+     */
+    const handleTagSearchChange = (event) => {
+        setTagSearch(event.target.value);
     };
 
-    // Loading or fetch error
+    /**
+     * Handles click on a category pill.
+     *
+     * @param {number} categoryId
+     * @returns {void}
+     */
+    const handleCategoryClick = (categoryId) => {
+        logger.info("Category pill clicked", categoryId);
+        setSelectedCategoryId(categoryId);
+        setTagSearch("");
+    };
+
     if (isCategoriesPending) {
         return (
-            <div className={styles.placeholder}>
-                <h3>Tags Settings</h3>
-                <div style={{ color: "#9a95b4", marginTop: 8, fontSize: "1.1rem" }}>
-                    Loading categories...
-                </div>
+            <div className={styles.tabRoot}>
+                <div className={styles.placeholder}>Loading categories...</div>
             </div>
         );
     }
 
     if (isCategoriesError) {
         return (
-            <div className={styles.placeholder}>
-                <h3>Tags Settings</h3>
-                <div style={{ color: "#cd384a", marginTop: 8, fontSize: "1.08rem" }}>
-                    Failed to load categories. {categoriesError?.message || "Please try again."}
+            <div className={styles.tabRoot}>
+                <div className={styles.placeholder}>
+                    <span style={{ color: "#cd384a" }}>
+                        Failed to load categories. {categoriesError?.message || "Please try again."}
+                    </span>
                 </div>
             </div>
         );
@@ -72,21 +104,45 @@ const TagSettingsTab = () => {
                         <CategoryInfoPill
                             key={cat.categoryId}
                             label={cat.name}
-                            emoji={cat.emoji} // If emoji is not from server, omit or enhance later
+                            emoji={cat.emoji}
                             active={cat.categoryId === selectedCategoryId}
                             onClick={() => handleCategoryClick(cat.categoryId)}
                         />
                     ))
                 ) : (
-                    <span style={{ color: "#b6b3be", fontSize: "1.07em", padding: ".7em 2em" }}>
+                    <span
+                        style={{
+                            color: "#b6b3be",
+                            fontSize: "1.07em",
+                            padding: ".7em 2em",
+                        }}
+                    >
                         No categories yet.
                     </span>
                 )}
             </div>
             <div className={styles.placeholder}>
-                <h3>Tags Settings</h3>
-                <div style={{ color: "#9a95b4", marginTop: 8, fontSize: "1.1rem" }}>
-                    Tag management coming soon.
+                <WideSearchBar
+                    value={tagSearch}
+                    onChange={handleTagSearchChange}
+                    placeholder="Search tags"
+                    ariaLabel="Search tags"
+                    disabled={isTagsPending || isTagsError}
+                />
+                <div className={styles.tagsPillsRow}>
+                    {isTagsPending ? (
+                        <span>Loading tags...</span>
+                    ) : isTagsError ? (
+                        <span className={styles.noTagsMsg} style={{ color: "#cd384a" }}>
+                            Failed to load tags. {tagsError?.message || "Please try again."}
+                        </span>
+                    ) : filteredTags.length > 0 ? (
+                        filteredTags.map((tag) => (
+                            <TagInfoPill key={tag.tagId} label={tag.name} />
+                        ))
+                    ) : (
+                        <span className={styles.noTagsMsg}>No tags found.</span>
+                    )}
                 </div>
             </div>
         </div>

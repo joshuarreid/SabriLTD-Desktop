@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     createCategory,
@@ -6,7 +6,14 @@ import {
     deleteCategory,
     getAllCategories,
 } from "../../../../api/category/category";
+import {
+    getAllTags,
+    createTag,
+    updateTag,
+    deleteTag,
+} from "../../../../api/tag/tag";
 import { categoryKeys } from "../../../../api/category/categoryQueryKeys";
+import { tagKeys } from "../../../../api/tag/tagQueryKeys";
 
 /**
  * logger for useTagSettingsTab hook (Bulletproof React: business logic, robust logging).
@@ -20,8 +27,11 @@ const logger = {
 
 /**
  * useTagSettingsTab
- * Manages business logic, side effects, TanStack Query, and state for tag category management.
- * Decouples category queries/mutations (Bulletproof React conventions).
+ * Manages business logic, side effects, TanStack Query, and state for tag category and tag management.
+ * - Loads all tag categories.
+ * - Automatically selects a default category (first category) when categories load.
+ * - Whenever the selected category changes, fetches all tags for that categoryId.
+ * - Exposes CRUD mutations for categories and tags with proper cache invalidation.
  *
  * @returns {object} All hook state, query status, and action handlers for UI.
  */
@@ -33,6 +43,11 @@ export const useTagSettingsTab = () => {
      * @type {[number|null, Function]}
      */
     const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+
+    /**
+     * React Query's QueryClient for cache and invalidation.
+     */
+    const queryClient = useQueryClient();
 
     /**
      * Query for all categories (paginated, filtered).
@@ -48,9 +63,39 @@ export const useTagSettingsTab = () => {
     });
 
     /**
-     * React Query's QueryClient for cache and invalidation.
+     * Side-effect: when categories are successfully loaded and no category
+     * is selected yet, default to the first category to drive the tags query.
      */
-    const queryClient = useQueryClient();
+    useEffect(() => {
+        if (!isCategoriesPending && !isCategoriesError && categories.length > 0 && !selectedCategoryId) {
+            const firstId = categories[0].categoryId;
+            logger.info("Auto-selecting first category", firstId);
+            setSelectedCategoryId(firstId);
+        }
+    }, [categories, isCategoriesPending, isCategoriesError, selectedCategoryId]);
+
+    /**
+     * Query for all tags in the currently selected category.
+     * Follows Tag API spec: GET /api/tags?categoryId=...
+     * Only enabled when a category is selected.
+     */
+    const {
+        data: tags = [],
+        isPending: isTagsPending,
+        isError: isTagsError,
+        error: tagsError,
+    } = useQuery({
+        queryKey: tagKeys.list({ categoryId: selectedCategoryId }),
+        queryFn: () => {
+            if (!selectedCategoryId) {
+                logger.info("Tags queryFn skipped: no selectedCategoryId");
+                return [];
+            }
+            logger.info("Fetching tags for categoryId", selectedCategoryId);
+            return getAllTags({ categoryId: selectedCategoryId });
+        },
+        enabled: !!selectedCategoryId,
+    });
 
     // --- UI state for category edit/add ---
     const [editStatus, setEditStatus] = useState("idle");
@@ -74,6 +119,33 @@ export const useTagSettingsTab = () => {
             await queryClient.invalidateQueries({ queryKey: categoryKeys.detail(category.categoryId) });
             await queryClient.invalidateQueries({ queryKey: categoryKeys.update(category.categoryId) });
             await queryClient.invalidateQueries({ queryKey: categoryKeys.remove(category.categoryId) });
+        }
+    };
+
+    /**
+     * Invalidates all relevant tag queries after a mutation.
+     * Also invalidates the list for that categoryId (if available).
+     *
+     * @async
+     * @function invalidateAllTagKeys
+     * @param {object} tag - The affected tag (may be partial).
+     */
+    const invalidateAllTagKeys = async (tag) => {
+        logger.info("Invalidating all relevant tag query keys");
+        await queryClient.invalidateQueries({ queryKey: tagKeys.all });
+        await queryClient.invalidateQueries({ queryKey: tagKeys.lists() });
+        await queryClient.invalidateQueries({ queryKey: tagKeys.list() });
+
+        if (tag?.tagId) {
+            await queryClient.invalidateQueries({ queryKey: tagKeys.detail(tag.tagId) });
+            await queryClient.invalidateQueries({ queryKey: tagKeys.update(tag.tagId) });
+            await queryClient.invalidateQueries({ queryKey: tagKeys.remove(tag.tagId) });
+        }
+
+        if (tag?.categoryId) {
+            await queryClient.invalidateQueries({
+                queryKey: tagKeys.list({ categoryId: tag.categoryId }),
+            });
         }
     };
 
@@ -110,6 +182,11 @@ export const useTagSettingsTab = () => {
                 setEditStatus("idle");
                 setRemovingId(null);
             }, 1000);
+            // If we just deleted the selected category, clear selection
+            if (selectedCategoryId === categoryId) {
+                logger.info("Deleted selected category; clearing selectedCategoryId");
+                setSelectedCategoryId(null);
+            }
         },
         onError: (err) => {
             logger.error("deleteCategory failed", err);
@@ -138,7 +215,51 @@ export const useTagSettingsTab = () => {
         },
     });
 
-    // ---- UI handlers ----
+    // ---- Tag CRUD logic ----
+
+    /**
+     * Updates a tag by ID and payload with caching and logging.
+     */
+    const updateTagMutation = useMutation({
+        mutationFn: ({ tagId, tag }) => updateTag(tagId, tag),
+        onSuccess: async (_updated, { tagId, tag }) => {
+            logger.info("Tag updated, invalidating tag keys");
+            await invalidateAllTagKeys({ ...tag, tagId });
+        },
+        onError: (err) => {
+            logger.error("updateTag failed", err);
+        },
+    });
+
+    /**
+     * Deletes a tag by ID.
+     */
+    const deleteTagMutation = useMutation({
+        mutationFn: deleteTag,
+        onSuccess: async (_data, tagId) => {
+            logger.info("Tag deleted, invalidating tag keys");
+            await invalidateAllTagKeys({ tagId });
+        },
+        onError: (err) => {
+            logger.error("deleteTag failed", err);
+        },
+    });
+
+    /**
+     * Creates a tag. Invalidates keys.
+     */
+    const createTagMutation = useMutation({
+        mutationFn: createTag,
+        onSuccess: async (createdTag) => {
+            logger.info("Tag created, invalidating tag keys");
+            await invalidateAllTagKeys(createdTag);
+        },
+        onError: (err) => {
+            logger.error("createTag failed", err);
+        },
+    });
+
+    // ---- UI handlers for categories ----
 
     /**
      * Opens add-category modal.
@@ -239,6 +360,10 @@ export const useTagSettingsTab = () => {
         categoriesError,
         selectedCategoryId,
         setSelectedCategoryId,
+        tags,
+        isTagsPending,
+        isTagsError,
+        tagsError,
         editingId,
         removingId,
         addingCategory,
@@ -252,5 +377,9 @@ export const useTagSettingsTab = () => {
         cancelEditOrAdd,
         editStatus,
         addStatus,
+        // Tag CRUD mutations exposed for future UI (e.g., Tag editing dialogs).
+        createTagMutation,
+        updateTagMutation,
+        deleteTagMutation,
     };
 };

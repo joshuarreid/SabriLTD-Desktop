@@ -13,7 +13,7 @@ import {useLoginScreen} from "../features/login/hooks/useLoginScreen";
 import { UserGrid } from '../features/login/components/UserGrid';
 import { LoginForm } from '../features/login/components/LoginForm';
 
-import BrandLogo from '../assets/logos/sabriltd-logo.png';
+import BrandLogo from '../assets/logos/Sabri-headerlogo1.png';
 
 
 /**
