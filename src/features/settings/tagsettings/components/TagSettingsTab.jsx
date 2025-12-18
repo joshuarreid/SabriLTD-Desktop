@@ -4,6 +4,8 @@ import CategoryInfoPill from "./CategoryInfoPill";
 import TagInfoPill from "./TagInfoPill";
 import { useTagSettingsTab } from "../hooks/useTagSettingsTab";
 import WideSearchBar from "../../../../components/searchbar/WideSearchBar";
+import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
+
 
 /**
  * logger for TagSettingsTab.
@@ -37,6 +39,12 @@ const TagSettingsTab = () => {
         isTagsPending,
         isTagsError,
         tagsError,
+        // tag delete modal state from hook
+        tagDeleteId,
+        tagDeleteStatus,
+        triggerTagDelete,
+        handleConfirmTagDelete,
+        handleCancelTagDelete,
     } = useTagSettingsTab();
 
     // Local UI-only state for tag search text
@@ -76,6 +84,18 @@ const TagSettingsTab = () => {
         setTagSearch("");
     };
 
+    /**
+     * Handles click on the delete "x" for a tag pill.
+     *
+     * @param {number} tagId
+     * @param {string} tagName
+     * @returns {void}
+     */
+    const handleTagDeleteRequest = (tagId, tagName) => {
+        logger.info("Delete icon clicked for tag", { tagId, tagName });
+        triggerTagDelete(tagId);
+    };
+
     if (isCategoriesPending) {
         return (
             <div className={styles.tabRoot}>
@@ -95,6 +115,10 @@ const TagSettingsTab = () => {
             </div>
         );
     }
+
+    // Pull the tag record for the confirmation modal label (optional, defensive)
+    const tagBeingDeleted =
+        tagDeleteId != null ? tags.find((t) => t.tagId === tagDeleteId) : null;
 
     return (
         <div className={styles.tabRoot}>
@@ -138,13 +162,36 @@ const TagSettingsTab = () => {
                         </span>
                     ) : filteredTags.length > 0 ? (
                         filteredTags.map((tag) => (
-                            <TagInfoPill key={tag.tagId} label={tag.name} />
+                            <TagInfoPill
+                                key={tag.tagId}
+                                label={tag.name}
+                                onDelete={() => handleTagDeleteRequest(tag.tagId, tag.name)}
+                            />
                         ))
                     ) : (
                         <span className={styles.noTagsMsg}>No tags found.</span>
                     )}
                 </div>
             </div>
+
+            {/* Tag delete confirmation modal */}
+            <ConfirmationModal
+                open={tagDeleteId != null}
+                onCancel={handleCancelTagDelete}
+                onConfirm={handleConfirmTagDelete}
+                title="Delete tag?"
+                description={
+                    tagBeingDeleted
+                        ? `Are you sure you want to delete the tag "${tagBeingDeleted.name}"? This cannot be undone.`
+                        : "Are you sure you want to delete this tag? This cannot be undone."
+                }
+                confirmText="Delete tag"
+                cancelText="Cancel"
+                confirmDisabled={false}
+                deleteStatus={tagDeleteStatus}
+                deletingText="Deleting tag..."
+                deletedText="Tag deleted"
+            />
         </div>
     );
 };
