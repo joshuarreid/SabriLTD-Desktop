@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { IoIosSearch } from "react-icons/io";
+import { RiFunctionAddLine } from "react-icons/ri";
 import { IoFolderOpenOutline } from "react-icons/io5";
 import Logo from "./Logo";
 import UserDropdown from "./UserDropdown";
@@ -72,9 +72,9 @@ const NavigationBarIcons = () => {
     return (
         <div className={styles.iconGroup}>
             <NavIconButton
-                icon={<IoIosSearch size={24} className={styles.iconSvg} />}
-                label="Search"
-                onClick={() => handleNavClick("/search")}
+                icon={<RiFunctionAddLine size={24}/>}
+                label="Add Item"
+                onClick={() => handleNavClick("/add-item")}
                 selected={isSearch}
             />
             <NavIconButton
