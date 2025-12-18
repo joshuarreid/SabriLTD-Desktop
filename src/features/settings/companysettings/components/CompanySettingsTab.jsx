@@ -2,7 +2,7 @@
  * CompanySettingsTab.jsx
  *
  * Presentational container that consumes useCompanySettingsTab hook for business
- * logic. Renders CompanyInfoCard tiles, modals, and delete confirmation UI.
+ * logic. Renders CompanyInfoCard tiles, wired EditCompanyModal, and delete confirmation UI.
  *
  * Per Bulletproof React conventions: this file contains render logic only and
  * delegates side-effects/state to the hook.
@@ -13,6 +13,7 @@ import styles from "../styles/companysettingstab.module.css";
 import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
 import CompanyInfoCard from "./CompanyInfoCard";
 import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab";
+import EditCompanyModal from "../../../../components/editcompanymodal/EditCompanyModal";
 
 /**
  * logger for CompanySettingsTab.
@@ -55,6 +56,7 @@ const CompanySettingsTab = () => {
         handlePromptDelete,
         handleConfirmDelete,
         handleCancelDelete,
+        handleDeleteDirect,
         // selection
         selectedId,
         setSelectedId,
@@ -63,6 +65,10 @@ const CompanySettingsTab = () => {
     const removingCompany = removingId
         ? companies.find((c) => c.companyId === removingId)
         : null;
+
+    // compute isSaving and saveState for modal SaveStatus
+    const modalIsSaving = editStatus === "saving" || addStatus === "saving";
+    const modalSaveState = modalMode === "edit" ? editStatus : addStatus;
 
     return (
         <div className={styles.companyPanel}>
@@ -92,53 +98,33 @@ const CompanySettingsTab = () => {
                 ))}
             </div>
 
-            {/* Wireframe modal for edit/add (presentational) */}
+            {/* Wire up the real modal (EditCompanyModal) to the hook handlers.
+                - onSave delegates to handleModalSaveEdit / handleModalSaveAdd
+                - onDelete uses handleDeleteDirect because EditCompanyModal shows its own confirm */}
             {modalCompany && (
-                <div className={styles.modalOverlay}>
-                    <div className={styles.modalCard}>
-                        <h3 className={styles.modalTitle}>
-                            {modalMode === "edit" ? "Edit Company (wireframe)" : "Add Company (wireframe)"}
-                        </h3>
-                        <p className={styles.modalBody}>
-                            This is a placeholder wireframe modal. Replace with a real EditCompanyModal
-                            wired to the API and useCompanySettingsTab.
-                        </p>
-                        {modalError && <p className={styles.modalError}>{modalError || "Something went wrong."}</p>}
-                        <div className={styles.modalActions}>
-                            <button
-                                type="button"
-                                className={styles.addCompanyBtn}
-                                onClick={() => {
-                                    if (modalMode === "edit") {
-                                        handleModalSaveEdit(modalCompany.companyId, modalCompany);
-                                    } else {
-                                        handleModalSaveAdd(modalCompany);
-                                    }
-                                }}
-                                disabled={editStatus === "saving" || addStatus === "saving"}
-                            >
-                                {modalMode === "edit"
-                                    ? editStatus === "saving"
-                                        ? "Saving…"
-                                        : "Save (mock)"
-                                    : addStatus === "saving"
-                                        ? "Creating…"
-                                        : "Create (mock)"}
-                            </button>
-                            <button
-                                type="button"
-                                className={styles.secondaryButton}
-                                onClick={closeModal}
-                                disabled={editStatus === "saving" || addStatus === "saving"}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <EditCompanyModal
+                    company={modalCompany}
+                    open={!!modalCompany}
+                    isSaving={modalIsSaving}
+                    onSave={(companyId, payload) => {
+                        if (modalMode === "edit") {
+                            handleModalSaveEdit(companyId, payload);
+                        } else {
+                            handleModalSaveAdd(payload);
+                        }
+                    }}
+                    onClose={closeModal}
+                    onDelete={(companyId) => {
+                        // EditCompanyModal already confirms with the user inside the modal.
+                        // We perform direct delete (no secondary prompt) since user already confirmed.
+                        handleDeleteDirect(companyId);
+                    }}
+                    error={modalError}
+                    saveState={modalSaveState}
+                />
             )}
 
-            {/* Wireframe delete confirmation (presentational) */}
+            {/* Wireframe delete confirmation (presentational) for card-level delete */}
             {removingCompany && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modalCard}>
