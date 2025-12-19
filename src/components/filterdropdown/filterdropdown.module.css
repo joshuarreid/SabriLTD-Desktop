@@ -1,0 +1,122 @@
+:root {
+    --filter-bg: var(--color-bg-surface, #ffffff);
+    --filter-border: var(--color-border-subtle, #e0e3f0);
+    --filter-border-strong: var(--color-border-strong, #c0c6e4);
+}
+
+/* Root wrapper for a dropdown control + its floating menu */
+.filterDropdownRoot {
+    position: relative;
+    display: inline-block;
+}
+
+/* Square filter control button */
+.filterControl {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 12px;
+    min-height: 36px;
+    min-width: 170px;
+    border-radius: 6px;
+    border: 1px solid var(--filter-border);
+    background: var(--filter-bg);
+    box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.7),
+            0 1px 3px rgba(15, 23, 42, 0.06);
+    cursor: pointer;
+    transition:
+            box-shadow 0.15s ease,
+            border-color 0.15s ease,
+            background-color 0.15s ease,
+            transform 0.08s ease;
+}
+
+.filterControl:hover,
+.filterControl:focus-visible {
+    border-color: var(--filter-border-strong);
+    box-shadow:
+            0 2px 6px rgba(15, 23, 42, 0.12),
+            0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+    background: #f7f7ff;
+    transform: translateY(-1px);
+}
+
+/* Label text inside the square control (e.g. "Sort by") */
+.filterLabel {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-primary-muted, #6f6f7f);
+    white-space: nowrap;
+}
+
+/* Wrap for the current value + caret */
+.filterValueWrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Current value text */
+.filterValueText {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--color-primary, #333645);
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Caret icon */
+.filterCaret {
+    font-size: 0.7rem;
+    color: var(--color-primary-muted, #8a8fa0);
+}
+
+/* Floating dropdown menu under the control */
+.filterMenu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 190px;
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid var(--filter-border);
+    box-shadow:
+            0 8px 20px rgba(15, 23, 42, 0.18),
+            0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+    padding: 6px 0;
+    z-index: 20;
+}
+
+/* Individual menu item row */
+.filterMenuItem {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    color: var(--color-primary, #333645);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Hover / focus state */
+.filterMenuItem:hover,
+.filterMenuItem:focus-visible {
+    background: rgba(143, 129, 236, 0.08);
+}
+
+/* Selected/active item – slightly stronger background, bold text */
+.filterMenuItemActive {
+    font-weight: 600;
+    background: rgba(143, 129, 236, 0.12);
+}

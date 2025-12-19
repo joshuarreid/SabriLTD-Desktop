@@ -8,7 +8,8 @@ import LoginScreen from './screens/loginScreen.jsx';
 import { AuthProvider, useAuth } from './features/login/hooks/useAuth';
 import ProtectedLayout from './layouts/ProtectedLayout';
 import UserProfileScreen from './screens/UserProfileScreen.jsx';
-import SettingsScreen from './screens/SettingsScreen.jsx'; // <-- Add this import
+import SettingsScreen from './screens/SettingsScreen.jsx';
+import JobScreen from "./screens/JobScreen"; // <-- Add this import
 
 /**
  * ProtectedRoute
@@ -71,6 +72,14 @@ function App() {
                                     }
                                 />
                                 {/* Add more protected routes as needed */}
+                                <Route
+                                    path="/jobs"
+                                    element={
+                                        <ProtectedLayout>
+                                            <JobScreen />
+                                        </ProtectedLayout>
+                                    }
+                                />
                             </Route>
                         </Routes>
                     </div>
