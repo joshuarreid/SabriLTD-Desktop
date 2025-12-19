@@ -1,27 +1,37 @@
-import React from 'react';
-import NavigationBar from '../features/navigationbar/components/NavigationBar';
+import React from "react";
+import NavigationBar from "../features/navigationbar/components/NavigationBar";
+import RouteBar from "../features/navigationbar/components/RouteBar";
+
+
+/**
+ * logger for ProtectedLayout component.
+ *
+ * @constant
+ * @type {{info: Function, error: Function}}
+ */
+const logger = {
+    info: (...args) => console.log("[ProtectedLayout]", ...args),
+    error: (...args) => console.error("[ProtectedLayout]", ...args),
+};
 
 /**
  * ProtectedLayout
- * - Layout for authenticated content, includes NavigationBar at the top.
+ * - Layout for authenticated content.
+ * - Renders NavigationBar at the top, RouteBar just below it,
+ *   and then the routed page content.
+ *
  * @component
  * @param {object} props
- * @param {React.ReactNode} props.children - Children elements (protected routes/components)
+ * @param {React.ReactNode} props.children - Protected route content.
  * @returns {JSX.Element}
  */
-const logger = {
-    info: (...args) => console.log('[ProtectedLayout]', ...args),
-    error: (...args) => console.error('[ProtectedLayout]', ...args),
-};
-
 const ProtectedLayout = ({ children }) => {
-    logger.info('ProtectedLayout rendered');
+    logger.info("ProtectedLayout rendered");
     return (
         <div className="protected-area">
             <NavigationBar />
-            <main>
-                {children}
-            </main>
+            <RouteBar />
+            <main>{children}</main>
         </div>
     );
 };
