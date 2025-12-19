@@ -3,7 +3,8 @@ import PropTypes from "prop-types";
 import styles from "./filterdropdown.module.css";
 
 /**
- * logger for FilterDropdown.
+ * logger for FilterDropdown component.
+ *
  * @constant
  * @type {{info: Function, error: Function}}
  */
@@ -14,22 +15,26 @@ const logger = {
 
 /**
  * FilterDropdown
- * Custom square dropdown used on JobScreen for "Sort by", "Company", and "Status".
- * Renders a button-like control and a fully styled option list (no native select menu).
+ *
+ * Generic, square-styled dropdown used for filter/sort controls across the app.
+ * - Pure presentational, no external side‑effects.
+ * - Fully controlled via `value` and `onChange`.
+ * - Renders a button-style trigger and a custom styled list of options.
  *
  * @component
  * @param {Object} props
- * @param {string} props.label - Left-side label text (e.g. "Company").
- * @param {Array<{value:string,label:string}>} props.options - Dropdown options.
- * @param {string} props.value - Currently selected value.
- * @param {(value:string)=>void} props.onChange - Called when the user selects a value.
+ * @param {string} props.label - Left-side label text (e.g. "Sort by", "Company").
+ * @param {Array<{value:string,label:string}>} props.options - Options for the dropdown.
+ * @param {string} props.value - Currently selected option value.
+ * @param {(value:string)=>void} props.onChange - Called when user selects an option.
+ * @param {string} [props.className] - Optional extra className to attach to root wrapper.
  * @returns {JSX.Element}
  */
-const FilterDropdown = ({ label, options, value, onChange }) => {
+const FilterDropdown = ({ label, options, value, onChange, className }) => {
     const [open, setOpen] = useState(false);
     const rootRef = useRef(null);
 
-    /** Selected option object for display */
+    /** Selected option object for display. */
     const selectedOption =
         options.find((opt) => opt.value === value) || options[0];
 
@@ -37,11 +42,13 @@ const FilterDropdown = ({ label, options, value, onChange }) => {
      * Toggles the dropdown menu open/closed.
      *
      * @function handleToggle
-     * @returns {void}
      */
     const handleToggle = () => {
         setOpen((prev) => !prev);
-        logger.info("FilterDropdown toggled", { label, open: !open });
+        logger.info("FilterDropdown toggled", {
+            label,
+            open: !open,
+        });
     };
 
     /**
@@ -49,19 +56,20 @@ const FilterDropdown = ({ label, options, value, onChange }) => {
      *
      * @function handleSelect
      * @param {string} nextValue
-     * @returns {void}
      */
     const handleSelect = (nextValue) => {
-        logger.info("FilterDropdown option selected", { label, value: nextValue });
+        logger.info("FilterDropdown option selected", {
+            label,
+            value: nextValue,
+        });
         onChange(nextValue);
         setOpen(false);
     };
 
     /**
-     * Closes dropdown on outside click when menu is open.
+     * Closes dropdown when a click occurs outside of this component.
      *
-     * @function
-     * @returns {void}
+     * @function useEffect
      */
     useEffect(() => {
         if (!open) return;
@@ -77,24 +85,28 @@ const FilterDropdown = ({ label, options, value, onChange }) => {
     }, [open]);
 
     /**
-     * Keyboard interaction for the control.
+     * Keyboard interactions for the trigger button.
      *
      * @function handleKeyDown
-     * @param {React.KeyboardEvent<HTMLButtonElement>} e
-     * @returns {void}
+     * @param {React.KeyboardEvent<HTMLButtonElement>} event
      */
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
+    const handleKeyDown = (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
             handleToggle();
         }
-        if (e.key === "Escape") {
+        if (event.key === "Escape") {
             setOpen(false);
         }
     };
 
     return (
-        <div ref={rootRef} className={styles.filterDropdownRoot}>
+        <div
+            ref={rootRef}
+            className={`${styles.filterDropdownRoot}${
+                className ? ` ${className}` : ""
+            }`}
+        >
             <button
                 type="button"
                 className={styles.filterControl}
@@ -126,7 +138,7 @@ const FilterDropdown = ({ label, options, value, onChange }) => {
                                 type="button"
                                 className={
                                     styles.filterMenuItem +
-                                    (isActive ? " " + styles.filterMenuItemActive : "")
+                                    (isActive ? ` ${styles.filterMenuItemActive}` : "")
                                 }
                                 onClick={() => handleSelect(opt.value)}
                                 role="option"
@@ -152,6 +164,11 @@ FilterDropdown.propTypes = {
     ).isRequired,
     value: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
+    className: PropTypes.string,
+};
+
+FilterDropdown.defaultProps = {
+    className: "",
 };
 
 export default FilterDropdown;
