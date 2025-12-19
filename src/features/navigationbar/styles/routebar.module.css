@@ -1,65 +1,49 @@
 :root {
-    --routebar-bg: var(--color-bg-surface, #ffffff);
+    --routebar-bg-shell: var(--color-bg-surface, #ffffff);
     --routebar-text: var(--color-primary, #333645);
     --routebar-muted: var(--color-primary-muted, #7a7f90);
-    --routebar-link: #4f46e5;
     --routebar-link-hover: #3730a3;
-    --routebar-border: var(--color-border-subtle, #e4e6ec);
 }
 
-/* Main container */
+/**
+ * routeBarShell
+ * - Sits directly under the logo on the far left.
+ * - Shares the same horizontal padding as the navbar so content lines up.
+ * - No border or extra chrome.
+ */
+.routeBarShell {
+    width: 100%;
+    background: var(--routebar-bg-shell);
+    box-sizing: border-box;
+
+    /* align with logo on the far left */
+    padding: 4px 1.5rem 8px 1.5rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/**
+ * routeBar
+ * - Simple inline breadcrumb row.
+ */
 .routeBar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 0 4px 0;
-    background: var(--routebar-bg);
+    gap: 8px;
+    margin: 0;
+    padding: 0;
     color: var(--routebar-text);
     font-size: 0.86rem;
 }
 
-/* Back / forward */
-.historyControls {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-right: 4px;
-}
-
-.navButton {
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    border: 1px solid var(--routebar-border);
-    background: #f8f8ff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--routebar-muted);
-    cursor: pointer;
-    padding: 0;
-    transition:
-            background-color 0.12s ease,
-            border-color 0.12s ease,
-            color 0.12s ease,
-            transform 0.08s ease,
-            box-shadow 0.12s ease;
-}
-
-.navButton:hover {
-    background: #ecebff;
-    border-color: var(--routebar-link);
-    color: var(--routebar-link);
-    transform: translateY(-1px);
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
-}
-
-/* Breadcrumbs */
+/* Breadcrumbs – light, text‑forward */
 .breadcrumbList {
     list-style: none;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     margin: 0;
     padding: 0;
 }
@@ -83,6 +67,7 @@
     font-size: 0.86rem;
 }
 
+/* Earlier segments – subtle grey links, no underline by default */
 .crumbLink {
     border: none;
     background: transparent;
@@ -103,12 +88,26 @@
     text-decoration-color: var(--routebar-link-hover);
 }
 
+/* Current page – slightly stronger, Sabri accent underline */
 .crumbCurrent {
     font-weight: 600;
-    color: var(--routebar-link);
+    color: var(--color-primary, #333645);
+    position: relative;
 }
 
-/* Home icon */
+
+/* Home icon left of first crumb */
 .homeIcon {
     display: block;
+}
+
+/* Small-screen tweak to keep things from feeling cramped */
+@media (max-width: 768px) {
+    .routeBarShell {
+        padding: 4px 1rem 6px 1rem;
+    }
+
+    .routeBar {
+        font-size: 0.8rem;
+    }
 }

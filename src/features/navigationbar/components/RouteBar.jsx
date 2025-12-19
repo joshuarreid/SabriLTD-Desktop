@@ -1,8 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { AiOutlineHome } from "react-icons/ai";
-import styles from "./routebar.module.css";
+import styles from "../styles/routebar.module.css";
 
 /**
  * logger for RouteBar component.
@@ -17,7 +16,7 @@ const logger = {
 
 /**
  * humanizeSegment
- * Converts a raw path segment (e.g. "job-details") into a human‑readable label.
+ * Converts a raw path segment (e.g. "storage-locations") into a human‑readable label.
  *
  * @function humanizeSegment
  * @param {string} segment - Raw path segment from URL.
@@ -49,9 +48,7 @@ const buildBreadcrumbs = (pathname) => {
         isCurrent: parts.length === 0,
     });
 
-    if (parts.length === 0) {
-        return breadcrumbs;
-    }
+    if (parts.length === 0) return breadcrumbs;
 
     let accumulatedPath = "";
     parts.forEach((part, index) => {
@@ -68,13 +65,9 @@ const buildBreadcrumbs = (pathname) => {
 
 /**
  * RouteBar
- * Breadcrumb + navigation bar showing:
- *  - Back / Forward buttons (history navigation)
- *  - Current route path as breadcrumbs
- *    (e.g. Home > Product > Categories)
  *
- * This component is purely presentational and uses react-router hooks
- * for navigation and pathname only (no side effects beyond navigation).
+ * Sabri-themed breadcrumb that sits inside the NavigationBar on the left.
+ * Shows the current route as text-only breadcrumbs (e.g., Home › Settings › Jobs).
  *
  * @component
  * @returns {JSX.Element}
@@ -92,31 +85,6 @@ const RouteBar = () => {
     });
 
     /**
-     * handleBack
-     * Navigate to previous entry in browser history.
-     *
-     * @function handleBack
-     * @returns {void}
-     */
-    const handleBack = () => {
-        logger.info("RouteBar back clicked");
-        navigate(-1);
-    };
-
-    /**
-     * handleForward
-     * Navigate to next entry in browser history.
-     *
-     * @function handleForward
-     * @returns {void}
-     */
-    const handleForward = () => {
-        logger.info("RouteBar forward clicked");
-        navigate(1);
-    };
-
-    /**
-     * handleCrumbClick
      * Navigate directly to a breadcrumb's path.
      *
      * @function handleCrumbClick
@@ -129,66 +97,48 @@ const RouteBar = () => {
     };
 
     return (
-        <nav className={styles.routeBar} aria-label="Breadcrumb">
-            {/* History controls */}
-            <div className={styles.historyControls}>
-                <button
-                    type="button"
-                    className={styles.navButton}
-                    onClick={handleBack}
-                    aria-label="Go back"
-                >
-                    <FiChevronLeft size={16} />
-                </button>
-                <button
-                    type="button"
-                    className={styles.navButton}
-                    onClick={handleForward}
-                    aria-label="Go forward"
-                >
-                    <FiChevronRight size={16} />
-                </button>
-            </div>
+        <div className={styles.routeBarShell}>
+            <nav className={styles.routeBar} aria-label="Breadcrumb">
+                <ol className={styles.breadcrumbList}>
+                    {breadcrumbs.map((crumb, index) => {
+                        const isHome = index === 0;
+                        const isCurrent = crumb.isCurrent;
 
-            {/* Breadcrumb trail */}
-            <ol className={styles.breadcrumbList}>
-                {breadcrumbs.map((crumb, index) => {
-                    const isHome = index === 0;
-                    const isCurrent = crumb.isCurrent;
+                        return (
+                            <li key={crumb.path} className={styles.breadcrumbItem}>
+                                {index > 0 && (
+                                    <span className={styles.separator}>›</span>
+                                )}
 
-                    return (
-                        <li key={crumb.path} className={styles.breadcrumbItem}>
-                            {index > 0 && (
-                                <span className={styles.separator}>›</span>
-                            )}
-
-                            {isCurrent ? (
-                                <span
-                                    className={`${styles.crumbLabel} ${styles.crumbCurrent}`}
-                                    aria-current="page"
-                                >
-                                    {crumb.label}
-                                </span>
-                            ) : (
-                                <button
-                                    type="button"
-                                    className={`${styles.crumbLabel} ${styles.crumbLink}`}
-                                    onClick={() => handleCrumbClick(crumb.path)}
-                                >
-                                    {isHome ? (
-                                        <AiOutlineHome
-                                            size={16}
-                                            className={styles.homeIcon}
-                                        />
-                                    ) : null}
-                                    {!isHome ? crumb.label : null}
-                                </button>
-                            )}
-                        </li>
-                    );
-                })}
-            </ol>
-        </nav>
+                                {isCurrent ? (
+                                    <span
+                                        className={`${styles.crumbLabel} ${styles.crumbCurrent}`}
+                                        aria-current="page"
+                                    >
+                                        {crumb.label}
+                                    </span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className={`${styles.crumbLabel} ${styles.crumbLink}`}
+                                        onClick={() => handleCrumbClick(crumb.path)}
+                                    >
+                                        {isHome ? (
+                                            <AiOutlineHome
+                                                size={15}
+                                                className={styles.homeIcon}
+                                            />
+                                        ) : (
+                                            crumb.label
+                                        )}
+                                    </button>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ol>
+            </nav>
+        </div>
     );
 };
 
