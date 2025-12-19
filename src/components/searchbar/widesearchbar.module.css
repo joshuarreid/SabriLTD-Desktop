@@ -5,15 +5,29 @@
     margin-bottom: 20px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* legacy: center the search bar with max-width */
+}
+
+/**
+ * Fluid mode:
+ * - Applied in addition to .cardSearchTopBarWrap when the component receives `fluid={true}`.
+ * - Keeps backward compatibility for existing usages (they don't opt into this).
+ */
+.cardSearchTopBarWrapFluid {
+    justify-content: flex-start; /* align with left edge of parent layout */
 }
 
 .cardSearchBarContainer {
     width: 100%;
-    max-width: 95%;
+    max-width: 95%; /* legacy cap so search doesn't hit full width by default */
     display: flex;
     align-items: center;
     position: relative;
+}
+
+/* When in fluid mode, remove the 95% cap so the bar can truly fill its container */
+.cardSearchTopBarWrapFluid .cardSearchBarContainer {
+    max-width: 100%;
 }
 
 .cardSearchBar {

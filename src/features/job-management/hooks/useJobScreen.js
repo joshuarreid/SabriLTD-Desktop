@@ -3,7 +3,7 @@
  *
  * Business logic and UI state for the JobScreen.
  * - Loads jobs via TanStack Query (getAllJobs).
- * - Manages client-side search, sort, and filter state (company/status).
+ * - Manages client-side search, sort, and filter state (company/status/client).
  * - Exposes a filtered & sorted jobs list for the presentational JobScreen.
  *
  * Follows the same design patterns as useCompanySettingsTab (single hook that
@@ -29,17 +29,17 @@ const logger = {
 /**
  * SORT_OPTIONS
  * Sort options for the "Sort by" dropdown.
+ * NOTE: The job API exposes:
+ *  - dateAdded: when the job was created
+ *  - dateUpdated: when the job was last modified
  *
  * @constant
  * @type {Array<{ key: string, label: string }>}
  */
 const SORT_OPTIONS = [
-    { key: "name-asc", label: "Name (A → Z)" },
-    { key: "name-desc", label: "Name (Z → A)" },
-    { key: "date-desc", label: "Date Added (newest)" },
-    { key: "date-asc", label: "Date Added (oldest)" },
-    { key: "status-asc", label: "Status (A → Z)" },
-    { key: "status-desc", label: "Status (Z → A)" },
+    { key: "date-desc", label: "Newest" },          // dateAdded newest first
+    { key: "date-asc", label: "Oldest" },          // dateAdded oldest first
+    { key: "modified-desc", label: "Date Modified" }, // dateUpdated newest first, falling back to dateAdded
 ];
 
 /**
@@ -47,7 +47,7 @@ const SORT_OPTIONS = [
  *
  * Encapsulates state and derived values for JobScreen:
  * - Fetches jobs from the real Job API via React Query.
- * - Owns search text, sort key, company & status filters.
+ * - Owns search text, sort key, company, client & status filters.
  * - Computes dropdown option lists and filtered/sorted jobs.
  *
  * @returns {object} Hook API consumed by JobScreen.jsx
@@ -87,15 +87,23 @@ export const useJobScreen = () => {
      *
      * @type {[string, Function]}
      */
-    const [sortKey, setSortKey] = useState("name-asc");
+    const [sortKey, setSortKey] = useState("date-desc");
 
     /**
      * companyFilter
-     * Current company filter, "all" or a specific company name.
+     * Current company filter, "all" or a specific companyId (stringified).
      *
      * @type {[string, Function]}
      */
     const [companyFilter, setCompanyFilter] = useState("all");
+
+    /**
+     * clientFilter
+     * Current client filter, "all" or a specific client string.
+     *
+     * @type {[string, Function]}
+     */
+    const [clientFilter, setClientFilter] = useState("all");
 
     /**
      * statusFilter
@@ -120,23 +128,46 @@ export const useJobScreen = () => {
 
     /**
      * companyOptions
-     * Derived list of unique company names for the Company filter dropdown.
-     * Uses job.client as the display field (per JobResponse spec).
+     * Derived list of unique companyId values for the Company filter dropdown.
+     * Uses job.companyId (ID) as both value and label for now.
      *
      * @type {Array<{value:string,label:string}>}
      */
     const companyOptions = useMemo(() => {
-        const setCompanies = new Set();
+        const setCompanyIds = new Set();
         (jobs || []).forEach((job) => {
-            if (job.client) {
-                setCompanies.add(job.client);
+            if (job.companyId !== null && job.companyId !== undefined) {
+                setCompanyIds.add(String(job.companyId));
             }
         });
+
         return [
             { value: "all", label: "All" },
-            ...Array.from(setCompanies)
+            ...Array.from(setCompanyIds)
+                .sort((a, b) => Number(a) - Number(b))
+                .map((id) => ({ value: id, label: id })),
+        ];
+    }, [jobs]);
+
+    /**
+     * clientOptions
+     * Derived list of unique clients for the Client filter dropdown.
+     *
+     * @type {Array<{value:string,label:string}>}
+     */
+    const clientOptions = useMemo(() => {
+        const setClients = new Set();
+        (jobs || []).forEach((job) => {
+            if (job.client) {
+                setClients.add(job.client);
+            }
+        });
+
+        return [
+            { value: "all", label: "All" },
+            ...Array.from(setClients)
                 .sort()
-                .map((c) => ({ value: c, label: c })),
+                .map((client) => ({ value: client, label: client })),
         ];
     }, [jobs]);
 
@@ -165,7 +196,7 @@ export const useJobScreen = () => {
 
     /**
      * filteredAndSortedJobs
-     * Applies search, company/status filters, and sorting to the jobs array.
+     * Applies search, company/status/client filters, and sorting to the jobs array.
      *
      * @type {Array<{
      *   jobId:number,
@@ -196,38 +227,44 @@ export const useJobScreen = () => {
                 String(job.description || "").toLowerCase().includes(q);
 
             const matchesCompany =
-                companyFilter === "all" || job.client === companyFilter;
+                companyFilter === "all" ||
+                String(job.companyId ?? "") === companyFilter;
+
+            const matchesClient =
+                clientFilter === "all" || job.client === clientFilter;
 
             const matchesStatus =
                 statusFilter === "all" || job.status === statusFilter;
 
-            return matchesSearch && matchesCompany && matchesStatus;
+            return matchesSearch && matchesCompany && matchesClient && matchesStatus;
         });
 
-        const [field, dir] = String(sortKey || "").split("-");
+        const [field, dirRaw] = String(sortKey || "").split("-");
+        const dir = dirRaw || "desc";
         const result = [...baseFiltered];
 
         result.sort((a, b) => {
-            if (field === "name") {
-                const aa = String(a.name || "").toLowerCase();
-                const bb = String(b.name || "").toLowerCase();
-                return dir === "asc" ? aa.localeCompare(bb) : bb.localeCompare(aa);
-            }
             if (field === "date") {
                 const da = a.dateAdded ? new Date(a.dateAdded).getTime() : 0;
                 const db = b.dateAdded ? new Date(b.dateAdded).getTime() : 0;
                 return dir === "asc" ? da - db : db - da;
             }
-            if (field === "status") {
-                const sa = String(a.status || "").toLowerCase();
-                const sb = String(b.status || "").toLowerCase();
-                return dir === "asc" ? sa.localeCompare(sb) : sb.localeCompare(sa);
+            if (field === "modified") {
+                const modifiedA = a.dateUpdated || a.dateAdded;
+                const modifiedB = b.dateUpdated || b.dateAdded;
+                const da = modifiedA ? new Date(modifiedA).getTime() : 0;
+                const db = modifiedB ? new Date(modifiedB).getTime() : 0;
+                // "Date Modified" UX: newest first
+                return dir === "asc" ? da - db : db - da;
             }
-            return 0;
+            // default fallback: name sort if something unexpected happens
+            const aa = String(a.name || "").toLowerCase();
+            const bb = String(b.name || "").toLowerCase();
+            return dir === "asc" ? aa.localeCompare(bb) : bb.localeCompare(aa);
         });
 
         return result;
-    }, [jobs, search, companyFilter, statusFilter, sortKey]);
+    }, [jobs, search, companyFilter, clientFilter, statusFilter, sortKey]);
 
     // --- Public API ---
 
@@ -242,17 +279,20 @@ export const useJobScreen = () => {
         search,
         sortKey,
         companyFilter,
+        clientFilter,
         statusFilter,
 
         // setters
         setSearch,
         setSortKey,
         setCompanyFilter,
+        setClientFilter,
         setStatusFilter,
 
         // dropdown options
         sortOptionsForDropdown,
         companyOptions,
+        clientOptions,
         statusOptions,
 
         // derived list for UI

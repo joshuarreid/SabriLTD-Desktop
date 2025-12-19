@@ -3,7 +3,7 @@
  *
  * Presentational jobs screen:
  *  - Wide search bar at the top ("Search jobs")
- *  - Filter row: Sort by, Company, Status (using generic FilterDropdown)
+ *  - Filter row: Sort by, Company, Client, Status (using generic FilterDropdown)
  *  - Grid of minimal job items (icon + name) using JobInfoCard (no surrounding tile)
  *
  * All data fetching and business logic is handled by useJobScreen.
@@ -45,13 +45,16 @@ const JobScreen = () => {
         search,
         sortKey,
         companyFilter,
+        clientFilter,
         statusFilter,
         setSearch,
         setSortKey,
         setCompanyFilter,
+        setClientFilter,
         setStatusFilter,
         sortOptionsForDropdown,
         companyOptions,
+        clientOptions,
         statusOptions,
         filteredAndSortedJobs,
     } = useJobScreen();
@@ -60,6 +63,7 @@ const JobScreen = () => {
      * handleSearchChange
      * Handles changes in the search bar input.
      *
+     * @function handleSearchChange
      * @param {React.ChangeEvent<HTMLInputElement>} event
      * @returns {void}
      */
@@ -93,17 +97,18 @@ const JobScreen = () => {
                 <h2 className={styles.title}>Jobs</h2>
             </header>
 
-            {/* Top search bar */}
+            {/* Top search bar – full-width and aligned with title & filters */}
             <div className={styles.searchRow}>
                 <WideSearchBar
                     value={search}
                     onChange={handleSearchChange}
                     placeholder="Search jobs"
                     ariaLabel="Search jobs"
+                    fluid
                 />
             </div>
 
-            {/* Filters row: Sort by, Company, Status (using generic FilterDropdown) */}
+            {/* Filters row: Sort by, Company, Client, Status */}
             <div className={styles.filtersRow} role="region" aria-label="Job filters">
                 <FilterDropdown
                     label="Sort by"
@@ -116,6 +121,12 @@ const JobScreen = () => {
                     value={companyFilter}
                     options={companyOptions}
                     onChange={setCompanyFilter}
+                />
+                <FilterDropdown
+                    label="Client"
+                    value={clientFilter}
+                    options={clientOptions}
+                    onChange={setClientFilter}
                 />
                 <FilterDropdown
                     label="Status"
@@ -133,8 +144,9 @@ const JobScreen = () => {
                         onClick={() => {
                             setSearch("");
                             setCompanyFilter("all");
+                            setClientFilter("all");
                             setStatusFilter("all");
-                            setSortKey("name-asc");
+                            setSortKey("date-desc");
                             logger.info("Filters cleared");
                         }}
                     >
@@ -159,6 +171,7 @@ const JobScreen = () => {
                                 job={{
                                     jobId: job.jobId,
                                     name: job.name,
+                                    // companyName currently maps to client for display if needed
                                     companyName: job.client,
                                     status: job.status,
                                 }}

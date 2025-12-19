@@ -6,14 +6,11 @@
     --filter-border-strong: var(--color-border-strong, #777c88);
 
     --filter-label-color: var(--color-primary-muted, #5d6170);
-    --filter-value-color: var(--color-primary, #333645);
+    --filter-label-active-color: var(--color-primary, #333645);
     --filter-caret-color: var(--color-primary-muted, #777c88);
 
-    /* Menu surface + shadow tuned for Sabri greys */
     --filter-menu-bg: var(--color-bg-surface, #ffffff);
     --filter-menu-border: var(--color-border-subtle, #e4e6ec);
-
-    /* Active/hover rows use subtle secondary + grey */
     --filter-menu-hover-bg: rgba(148, 163, 184, 0.1); /* soft grey */
     --filter-menu-active-bg: rgba(255, 214, 0, 0.14); /* Sabri yellow muted */
 }
@@ -24,7 +21,7 @@
     display: inline-block;
 }
 
-/* Square filter control button (aligned with theme tokens) */
+/* Square filter control button */
 .filterControl {
     position: relative;
     display: inline-flex;
@@ -33,7 +30,7 @@
     gap: 8px;
     padding: 6px 12px;
     min-height: 36px;
-    min-width: 170px;
+    min-width: 140px;
     border-radius: 6px;
     border: 1px solid var(--filter-border);
     background: var(--filter-bg);
@@ -58,32 +55,20 @@
     transform: translateY(-1px);
 }
 
-/* Label text inside the square control (e.g. "Sort by") */
+/* Label text inside the square control */
 .filterLabel {
     font-size: 0.78rem;
-    font-weight: 600;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--filter-label-color);
     white-space: nowrap;
 }
 
-/* Wrap for the current value + caret */
-.filterValueWrap {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* Current value text */
-.filterValueText {
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--filter-value-color);
-    max-width: 120px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+/* Bold/strong label when a filter is active (not "all") */
+.filterLabelActive {
+    font-weight: 700;
+    color: var(--filter-label-active-color);
 }
 
 /* Caret icon */
