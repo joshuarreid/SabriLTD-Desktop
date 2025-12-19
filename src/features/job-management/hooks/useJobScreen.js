@@ -133,7 +133,7 @@ export const useJobScreen = () => {
             }
         });
         return [
-            { value: "all", label: "All companies" },
+            { value: "all", label: "All" },
             ...Array.from(setCompanies)
                 .sort()
                 .map((c) => ({ value: c, label: c })),
@@ -154,7 +154,7 @@ export const useJobScreen = () => {
             }
         });
         return [
-            { value: "all", label: "All statuses" },
+            { value: "all", label: "All" },
             ...Array.from(setStatus)
                 .sort()
                 .map((s) => ({ value: s, label: s })),
