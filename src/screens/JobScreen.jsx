@@ -5,6 +5,7 @@
  *  - Wide search bar at the top ("Search jobs")
  *  - Filter row: Sort by, Company, Client, Status (using generic FilterDropdown)
  *  - Grid of minimal job items (icon + name) using JobInfoCard (no surrounding tile)
+ *  - Pagination controls pinned to the bottom (page indicator + navigation)
  *
  * All data fetching and business logic is handled by useJobScreen.
  */
@@ -56,11 +57,16 @@ const JobScreen = () => {
         companyOptions,
         clientOptions,
         statusOptions,
-        filteredAndSortedJobs,
+        paginatedJobs,
+        totalJobs,
+        totalPages,
+        currentPage,
+        pageSize,
+        setPage,
+        handleResetFilters,
     } = useJobScreen();
 
     /**
-     * handleSearchChange
      * Handles changes in the search bar input.
      *
      * @function handleSearchChange
@@ -70,7 +76,20 @@ const JobScreen = () => {
     const handleSearchChange = (event) => {
         const next = event.target.value;
         setSearch(next);
+        setPage(1);
         logger.info("Job search changed", { value: next });
+    };
+
+    /**
+     * Handles pagination navigation.
+     *
+     * @function handlePageChange
+     * @param {number} nextPage
+     * @returns {void}
+     */
+    const handlePageChange = (nextPage) => {
+        logger.info("JobScreen handlePageChange", { nextPage });
+        setPage(nextPage);
     };
 
     if (isPending) {
@@ -90,6 +109,9 @@ const JobScreen = () => {
             </div>
         );
     }
+
+    const hasPrevious = currentPage > 1;
+    const hasNext = currentPage < totalPages;
 
     return (
         <div className={styles.jobScreen}>
@@ -114,25 +136,37 @@ const JobScreen = () => {
                     label="Sort by"
                     value={sortKey}
                     options={sortOptionsForDropdown}
-                    onChange={setSortKey}
+                    onChange={(value) => {
+                        setSortKey(value);
+                        setPage(1);
+                    }}
                 />
                 <FilterDropdown
                     label="Company"
                     value={companyFilter}
                     options={companyOptions}
-                    onChange={setCompanyFilter}
+                    onChange={(value) => {
+                        setCompanyFilter(value);
+                        setPage(1);
+                    }}
                 />
                 <FilterDropdown
                     label="Client"
                     value={clientFilter}
                     options={clientOptions}
-                    onChange={setClientFilter}
+                    onChange={(value) => {
+                        setClientFilter(value);
+                        setPage(1);
+                    }}
                 />
                 <FilterDropdown
                     label="Status"
                     value={statusFilter}
                     options={statusOptions}
-                    onChange={setStatusFilter}
+                    onChange={(value) => {
+                        setStatusFilter(value);
+                        setPage(1);
+                    }}
                 />
 
                 <div className={styles.filtersSpacer} />
@@ -142,12 +176,8 @@ const JobScreen = () => {
                         type="button"
                         className={styles.clearButton}
                         onClick={() => {
-                            setSearch("");
-                            setCompanyFilter("all");
-                            setClientFilter("all");
-                            setStatusFilter("all");
-                            setSortKey("date-desc");
-                            logger.info("Filters cleared");
+                            handleResetFilters();
+                            logger.info("Filters cleared (from JobScreen)");
                         }}
                     >
                         Clear
@@ -157,21 +187,20 @@ const JobScreen = () => {
 
             {/* Folder grid (minimal JobInfoCard components) */}
             <section className={styles.folderGridSection}>
-                {filteredAndSortedJobs.length === 0 ? (
+                {paginatedJobs.length === 0 ? (
                     <div className={styles.emptyState}>
                         {jobs.length === 0
                             ? "No jobs found."
-                            : "No jobs match your search."}
+                            : "No jobs match your search or filters."}
                     </div>
                 ) : (
                     <div className={styles.folderGrid}>
-                        {filteredAndSortedJobs.map((job) => (
+                        {paginatedJobs.map((job) => (
                             <JobInfoCard
                                 key={job.jobId}
                                 job={{
                                     jobId: job.jobId,
                                     name: job.name,
-                                    // companyName currently maps to client for display if needed
                                     companyName: job.client,
                                     status: job.status,
                                 }}
@@ -185,6 +214,42 @@ const JobScreen = () => {
                     </div>
                 )}
             </section>
+
+            {/* Pagination footer pinned at bottom of page content */}
+            <footer className={styles.paginationFooter} aria-label="Job pagination">
+                <div className={styles.paginationSummary}>
+                    {totalJobs === 0 ? (
+                        "Showing 0 jobs"
+                    ) : (
+                        <>
+                            Showing{" "}
+                            {(currentPage - 1) * pageSize + 1}–
+                            {Math.min(currentPage * pageSize, totalJobs)} of {totalJobs} jobs
+                        </>
+                    )}
+                </div>
+                <div className={styles.paginationControls}>
+                    <button
+                        type="button"
+                        className={styles.paginationButton}
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={!hasPrevious}
+                    >
+                        Previous
+                    </button>
+                    <span className={styles.paginationIndicator}>
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button
+                        type="button"
+                        className={styles.paginationButton}
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={!hasNext}
+                    >
+                        Next
+                    </button>
+                </div>
+            </footer>
         </div>
     );
 };
