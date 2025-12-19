@@ -1,0 +1,224 @@
+:root {
+    --accent: var(--color-secondary, #ffd600);
+    --card-elevation: rgba(0, 0, 0, 0.04);
+    --card-elevation-strong: rgba(0, 0, 0, 0.06);
+    --filter-bg: var(--color-bg-surface, #ffffff);
+    --filter-border: var(--color-border-subtle, #e0e3f0);
+    --filter-border-strong: var(--color-border-strong, #c0c6e4);
+}
+
+/* Root layout for the JobScreen wireframe */
+.jobScreen {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+    box-sizing: border-box;
+    background: transparent;
+}
+
+/* Header row (title only for now) */
+.headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.title {
+    font-size: 1.32rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0 0 6px 0;
+    letter-spacing: 0.01em;
+}
+
+/* Search row uses WideSearchBar full-width */
+.searchRow {
+    margin-bottom: 12px;
+}
+
+/* Filters row under the search bar (square chip-like controls) */
+.filtersRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+/* Square filter control – similar to reference: flat square button with label & caret */
+.filterControl {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 12px;
+    min-height: 34px;
+    min-width: 170px;
+    border-radius: 6px; /* square with slight rounding */
+    border: 1px solid var(--filter-border);
+    background: var(--filter-bg);
+    box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.7),
+            0 1px 3px rgba(15, 23, 42, 0.06);
+    cursor: pointer;
+    transition:
+            box-shadow 0.15s ease,
+            border-color 0.15s ease,
+            background-color 0.15s ease,
+            transform 0.08s ease;
+}
+
+.filterControl:hover,
+.filterControl:focus-within {
+    border-color: var(--filter-border-strong);
+    box-shadow:
+            0 2px 6px rgba(15, 23, 42, 0.1),
+            0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+    background: #f7f7ff;
+    transform: translateY(-1px);
+}
+
+/* Left label text inside the square button ("Sort by", "Company", "Status") */
+.filterLabel {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-primary-muted, #6f6f7f);
+    white-space: nowrap;
+}
+
+/* Current value (e.g., "Name (A → Z)") */
+.filterValue {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--color-primary, #333645);
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Tiny caret on the right side of the square button */
+.filterCaret {
+    font-size: 0.7rem;
+    color: var(--color-primary-muted, #8a8fa0);
+    margin-left: 4px;
+}
+
+/* The native select is visually hidden but still handles focus & keyboard */
+.filterSelect {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Spacer to push actions to the right */
+.filtersSpacer {
+    flex: 1 1 auto;
+    min-width: 8px;
+}
+
+/* Filter action area (clear, etc.) */
+.filterActions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Clear button styled as subtle square chip */
+.clearButton {
+    background: #f8f7ff;
+    border-radius: 6px;
+    border: 1px solid var(--filter-border);
+    padding: 6px 14px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.86rem;
+    color: var(--color-primary-muted, #55586b);
+    transition:
+            background-color 0.12s ease,
+            border-color 0.12s ease,
+            color 0.12s ease,
+            transform 0.08s ease,
+            box-shadow 0.12s ease;
+}
+
+.clearButton:hover {
+    background: #ecebff;
+    border-color: var(--filter-border-strong);
+    color: var(--color-primary, #333645);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+/* --- Dropdown VALUE MENU STYLING (browser-native) ---
+   These rules style the open dropdown list and options as much as browsers allow.
+   It won't be pixel-perfect across all browsers, but approximates the reference.
+*/
+
+/* Base for all <select> when it is open (where supported) */
+.filterSelect:focus-visible {
+    outline: none;
+}
+
+/* Selected option highlight color in many browsers */
+.filterSelect option:checked {
+    background-color: rgba(120, 113, 255, 0.12);
+    color: var(--color-primary, #333645);
+}
+
+/* Give all options a bit of padding so the list feels like the reference menu */
+.filterSelect option {
+    padding: 6px 10px;
+}
+
+/* Section wrapper for grid */
+.folderGridSection {
+    margin-top: 8px;
+}
+
+/* Grid for job folder icons + names (~5 per row on wide screens) */
+.folderGrid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
+    gap: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Fallback to 4/3/2/1 columns on smaller screens */
+@media (max-width: 1180px) {
+    .folderGrid {
+        grid-template-columns: repeat(4, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 980px) {
+    .folderGrid {
+        grid-template-columns: repeat(3, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .folderGrid {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .folderGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Empty-state text */
+.emptyState {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 1rem;
+    color: var(--color-text-muted, #868099);
+}
