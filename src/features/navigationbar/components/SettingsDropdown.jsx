@@ -1,6 +1,17 @@
+/**
+ * SettingsDropdown.jsx
+ *
+ * Adds "Companies" to the navbar settings dropdown and keeps the same UX as other items:
+ *  - Shows active state when the current route is a settings route.
+ *  - Navigates to /settings?tab=companies when selected.
+ *
+ * Conforms to Bulletproof React conventions: UI-only component, side-effects limited to local UI (click outside handler).
+ */
+
 import React, { useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FiSettings } from "react-icons/fi";
+import { FaBuilding } from "react-icons/fa";
 import styles from "../styles/settingsdropdown.module.css";
 import { IoPersonOutline } from "react-icons/io5";
 import { MdWarehouse } from "react-icons/md";
@@ -8,8 +19,8 @@ import { IoPricetagsOutline } from "react-icons/io5";
 import { IoIosCheckmark } from "react-icons/io";
 
 /**
- * logger for SettingsDropdown component.
- * @type {{info: Function, error: Function}}
+ * Standardized logger for SettingsDropdown.
+ * @constant
  */
 const logger = {
     info: (...args) => console.log("[SettingsDropdown]", ...args),
@@ -17,8 +28,9 @@ const logger = {
 };
 
 /**
- * Settings options for the dropdown.
- * @constant
+ * SETTINGS_OPTIONS
+ * Options rendered inside the settings dropdown menu.
+ *
  * @type {Array<{label: string, key: string, route: string, icon: JSX.Element}>}
  */
 const SETTINGS_OPTIONS = [
@@ -40,17 +52,19 @@ const SETTINGS_OPTIONS = [
         route: "/settings?tab=tags",
         icon: <IoPricetagsOutline />,
     },
+    {
+        label: "Companies",
+        key: "companies",
+        route: "/settings?tab=companies",
+        icon: <FaBuilding />,
+    }
 ];
 
 /**
  * SettingsDropdown
  *
- * Dropdown select for settings categories.
- * Shows selected state matching nav styling when user is on a settings screen.
- *
- * Notes:
- * - Label text is wrapped in a dedicated .menuLabel element so CSS can target it
- *   reliably (text previously was a plain text node which CSS couldn't select).
+ * Dropdown select for settings categories. Clicking an item navigates to the
+ * appropriate settings tab (e.g. /settings?tab=companies).
  *
  * @component
  * @returns {JSX.Element}
@@ -62,9 +76,9 @@ const SettingsDropdown = () => {
     const navigate = useNavigate();
 
     /**
-     * Handles dropdown toggle.
+     * handleToggle
+     * Toggle dropdown open/close.
      *
-     * @function
      * @returns {void}
      */
     const handleToggle = () => {
@@ -73,10 +87,10 @@ const SettingsDropdown = () => {
     };
 
     /**
-     * Handles selecting a settings option.
+     * handleSelect
+     * Navigate to the selected settings route and close the menu.
      *
-     * @function
-     * @param {string} route - The route to navigate to.
+     * @param {string} route - The route to navigate to (e.g. '/settings?tab=companies').
      * @returns {void}
      */
     const handleSelect = (route) => {
@@ -86,9 +100,23 @@ const SettingsDropdown = () => {
     };
 
     /**
-     * Closes the dropdown if clicking outside.
+     * getActiveTab
+     * Parses the current location search params and returns the active tab key.
      *
-     * @side-effects adds/removes a mousedown event listener when open
+     * @returns {string|null} active tab key (e.g. 'companies') or "users" by default when on /settings
+     */
+    const getActiveTab = () => {
+        const match = location.search.match(/[?&]tab=(\w+)/);
+        if (match) return match[1];
+        return "users";
+    };
+
+    // Show settings as "active" if on any settings route
+    const isSettingsRoute = location.pathname.startsWith("/settings");
+    const activeTab = isSettingsRoute ? getActiveTab() : null;
+
+    /**
+     * Close on outside click — attaches listener only while open.
      */
     React.useEffect(() => {
         if (!open) return;
@@ -101,21 +129,6 @@ const SettingsDropdown = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [open]);
-
-    /**
-     * Returns the active tab key from the search params, or "users" by default.
-     *
-     * @returns {string}
-     */
-    const getActiveTab = () => {
-        const match = location.search.match(/[?&]tab=(\w+)/);
-        if (match) return match[1];
-        return "users";
-    };
-
-    // Show settings as "active" if on any settings route
-    const isSettingsRoute = location.pathname.startsWith("/settings");
-    const activeTab = isSettingsRoute ? getActiveTab() : null;
 
     return (
         <div className={styles.settingsDropdown} tabIndex={0} ref={buttonRef}>
@@ -166,17 +179,17 @@ const SettingsDropdown = () => {
                                 tabIndex={0}
                                 type="button"
                             >
-                <span className={styles.menuIconWrap} aria-hidden>
-                  {opt.icon}
-                </span>
+                                <span className={styles.menuIconWrap} aria-hidden>
+                                    {opt.icon}
+                                </span>
 
                                 {/* Wrapped label so CSS can target the label specifically */}
                                 <span className={styles.menuLabel}>{opt.label}</span>
 
                                 {/* Checkmark indicator aligned to the right when selected */}
                                 <span className={styles.menuCheckWrap} aria-hidden>
-                  {isActive ? <IoIosCheckmark /> : null}
-                </span>
+                                    {isActive ? <IoIosCheckmark /> : null}
+                                </span>
                             </button>
                         );
                     })}
