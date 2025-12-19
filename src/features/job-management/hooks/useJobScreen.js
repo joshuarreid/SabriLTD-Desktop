@@ -4,10 +4,12 @@
  * Business logic and UI state for the JobScreen.
  * - Loads jobs via TanStack Query (getAllJobs).
  * - Manages client-side search, sort, and filter state (company/status/client).
- * - Exposes a filtered & sorted jobs list for the presentational JobScreen.
+ * - Manages simple client-side pagination (page, pageSize).
+ * - Exposes a filtered, sorted, and paginated jobs list for JobScreen.
  *
- * Follows the same design patterns as useCompanySettingsTab (single hook that
- * owns data fetching, keys, and view-model state).
+ * Follows Bulletproof React conventions:
+ *  - UI concerns live in JobScreen.jsx
+ *  - Data/state and side effects live in this hook.
  */
 
 import { useMemo, useState } from "react";
@@ -29,18 +31,28 @@ const logger = {
 /**
  * SORT_OPTIONS
  * Sort options for the "Sort by" dropdown.
- * NOTE: The job API exposes:
- *  - dateAdded: when the job was created
- *  - dateUpdated: when the job was last modified
+ *
+ * NOTE:
+ *  - "Newest" / "Oldest" use dateAdded.
+ *  - "Date Modified" uses dateUpdated with a fallback to dateAdded.
  *
  * @constant
  * @type {Array<{ key: string, label: string }>}
  */
 const SORT_OPTIONS = [
-    { key: "date-desc", label: "Newest" },          // dateAdded newest first
-    { key: "date-asc", label: "Oldest" },          // dateAdded oldest first
-    { key: "modified-desc", label: "Date Modified" }, // dateUpdated newest first, falling back to dateAdded
+    { key: "date-desc", label: "Newest" },
+    { key: "date-asc", label: "Oldest" },
+    { key: "modified-desc", label: "Date Modified" },
 ];
+
+/**
+ * DEFAULT_PAGE_SIZE
+ * Default number of jobs per page for JobScreen pagination.
+ *
+ * @constant
+ * @type {number}
+ */
+const DEFAULT_PAGE_SIZE = 50;
 
 /**
  * useJobScreen
@@ -49,6 +61,7 @@ const SORT_OPTIONS = [
  * - Fetches jobs from the real Job API via React Query.
  * - Owns search text, sort key, company, client & status filters.
  * - Computes dropdown option lists and filtered/sorted jobs.
+ * - Provides client-side pagination (page, pageSize).
  *
  * @returns {object} Hook API consumed by JobScreen.jsx
  */
@@ -56,6 +69,7 @@ export const useJobScreen = () => {
     logger.info("useJobScreen initialized");
 
     // --- Query: jobs list from real API ---
+
     /**
      * jobsQuery
      * Uses jobKeys.lists() as the canonical cache key and getAllJobs as the fetcher.
@@ -112,6 +126,22 @@ export const useJobScreen = () => {
      * @type {[string, Function]}
      */
     const [statusFilter, setStatusFilter] = useState("all");
+
+    /**
+     * page
+     * Current page index, 1-based.
+     *
+     * @type {[number, Function]}
+     */
+    const [page, setPage] = useState(1);
+
+    /**
+     * pageSize
+     * Current page size. Default 50 per user requirements.
+     *
+     * @type {[number, Function]}
+     */
+    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
     // --- Derived option lists for dropdowns ---
 
@@ -192,7 +222,7 @@ export const useJobScreen = () => {
         ];
     }, [jobs]);
 
-    // --- Derived data: filtered + sorted jobs ---
+    // --- Derived data: filtered + sorted jobs (before pagination) ---
 
     /**
      * filteredAndSortedJobs
@@ -254,10 +284,9 @@ export const useJobScreen = () => {
                 const modifiedB = b.dateUpdated || b.dateAdded;
                 const da = modifiedA ? new Date(modifiedA).getTime() : 0;
                 const db = modifiedB ? new Date(modifiedB).getTime() : 0;
-                // "Date Modified" UX: newest first
                 return dir === "asc" ? da - db : db - da;
             }
-            // default fallback: name sort if something unexpected happens
+            // default fallback: name sort
             const aa = String(a.name || "").toLowerCase();
             const bb = String(b.name || "").toLowerCase();
             return dir === "asc" ? aa.localeCompare(bb) : bb.localeCompare(aa);
@@ -265,6 +294,72 @@ export const useJobScreen = () => {
 
         return result;
     }, [jobs, search, companyFilter, clientFilter, statusFilter, sortKey]);
+
+    // --- Pagination over filtered+sorted list ---
+
+    /**
+     * totalJobs
+     * Total count after filtering, before pagination.
+     *
+     * @type {number}
+     */
+    const totalJobs = filteredAndSortedJobs.length;
+
+    /**
+     * totalPages
+     * Total pages given current pageSize.
+     *
+     * @type {number}
+     */
+    const totalPages = useMemo(() => {
+        if (totalJobs === 0) return 1;
+        return Math.max(1, Math.ceil(totalJobs / pageSize));
+    }, [totalJobs, pageSize]);
+
+    /**
+     * currentPage
+     * Page number clamped to valid range (1..totalPages).
+     *
+     * @type {number}
+     */
+    const currentPage = useMemo(() => {
+        if (page < 1) return 1;
+        if (page > totalPages) return totalPages;
+        return page;
+    }, [page, totalPages]);
+
+    /**
+     * paginatedJobs
+     * Slice of filteredAndSortedJobs for the current page.
+     *
+     * @type {Array}
+     */
+    const paginatedJobs = useMemo(() => {
+        if (totalJobs === 0) {
+            return [];
+        }
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        return filteredAndSortedJobs.slice(start, end);
+    }, [filteredAndSortedJobs, currentPage, pageSize, totalJobs]);
+
+    /**
+     * handleResetFilters
+     * Resets filters, search, sort, and page to defaults.
+     *
+     * @function handleResetFilters
+     * @returns {void}
+     */
+    const handleResetFilters = () => {
+        logger.info("useJobScreen handleResetFilters");
+        setSearch("");
+        setCompanyFilter("all");
+        setClientFilter("all");
+        setStatusFilter("all");
+        setSortKey("date-desc");
+        setPage(1);
+        setPageSize(DEFAULT_PAGE_SIZE);
+    };
 
     // --- Public API ---
 
@@ -281,6 +376,8 @@ export const useJobScreen = () => {
         companyFilter,
         clientFilter,
         statusFilter,
+        page,
+        pageSize,
 
         // setters
         setSearch,
@@ -288,6 +385,8 @@ export const useJobScreen = () => {
         setCompanyFilter,
         setClientFilter,
         setStatusFilter,
+        setPage,
+        setPageSize,
 
         // dropdown options
         sortOptionsForDropdown,
@@ -295,8 +394,17 @@ export const useJobScreen = () => {
         clientOptions,
         statusOptions,
 
-        // derived list for UI
+        // derived lists
         filteredAndSortedJobs,
+        paginatedJobs,
+
+        // pagination meta
+        totalJobs,
+        totalPages,
+        currentPage,
+
+        // actions
+        handleResetFilters,
     };
 };
 

@@ -9,13 +9,16 @@
 
 /**
  * Root layout for the JobScreen.
- * Constrains content to a centered column that matches other settings screens.
+ * Constrains content to a centered column that matches other screens.
  */
 .jobScreen {
     max-width: 1120px;
     margin: 32px auto 40px auto;
     padding: 0 24px 40px;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 120px); /* helps keep footer near bottom on tall screens */
 }
 
 /* Header row */
@@ -36,36 +39,23 @@
 
 /* ---------------- SEARCH BAR LAYOUT (JobScreen-specific) --------------- */
 
-/**
- * Row wrapper for the search bar.
- * Margin is small; most spacing is handled by the search input itself.
- */
 .searchRow {
     margin-bottom: 14px;
 }
 
-/**
- * Inner wrapper so we can scope overrides for WideSearchBar only on JobScreen.
- * Ensures the search bar aligns exactly with the JobScreen content width.
- */
-.searchRowInner {
+/* WideSearchBar uses fluid layout on this screen */
+.searchRow :global(.cardSearchTopBarWrap) {
     width: 100%;
+    margin-bottom: 0;
+    justify-content: flex-start;
 }
 
-/* Override WideSearchBar’s centering & 95% max-width ONLY on JobScreen */
-.searchRowInner :global(.cardSearchTopBarWrap) {
+.searchRow :global(.cardSearchBarContainer) {
     width: 100%;
-    margin-bottom: 0;              /* we control spacing via .searchRow */
-    justify-content: flex-start;   /* align with left edge like the title */
+    max-width: 100%;
 }
 
-.searchRowInner :global(.cardSearchBarContainer) {
-    width: 100%;
-    max-width: 100%;               /* remove 95% cap so it reaches full width */
-}
-
-/* Optional: slightly adjust font size so it feels proportionate here */
-.searchRowInner :global(.cardSearchBar) {
+.searchRow :global(.cardSearchBar) {
     font-size: 1rem;
 }
 
@@ -122,13 +112,13 @@
     white-space: nowrap;
 }
 
-/* Spacer to push Clear button to the right */
+/* Spacer to push actions to the right */
 .filtersSpacer {
     flex: 1 1 auto;
     min-width: 8px;
 }
 
-/* Filter action area (Clear button) */
+/* Filter action area (clear, etc.) */
 .filterActions {
     display: flex;
     gap: 8px;
@@ -165,13 +155,10 @@
 
 .folderGridSection {
     margin-top: 6px;
+    flex: 1 1 auto; /* let grid grow and push footer to bottom */
 }
 
-/**
- * Folder grid:
- * - Roughly 5 columns on large screens.
- * - Comfortable vertical spacing between rows.
- */
+/* Folder tiles grid */
 .folderGrid {
     display: grid;
     grid-template-columns: repeat(5, minmax(120px, 1fr));
@@ -203,6 +190,67 @@
     .folderGrid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ---------------- PAGINATION FOOTER ----------------------------------- */
+
+.paginationFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-subtle, #e4e6ec);
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #6b6f7a);
+}
+
+.paginationSummary {
+    white-space: nowrap;
+}
+
+.paginationControls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.paginationButton {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--filter-border);
+    background: #f8f7ff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-primary-muted, #55586b);
+    cursor: pointer;
+    transition:
+            background-color 0.12s ease,
+            border-color 0.12s ease,
+            color 0.12s ease,
+            transform 0.08s ease,
+            box-shadow 0.12s ease;
+}
+
+.paginationButton:hover:not(:disabled) {
+    background: #ecebff;
+    border-color: var(--filter-border-strong);
+    color: var(--color-primary, #333645);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+.paginationButton:disabled {
+    opacity: 0.45;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+}
+
+.paginationIndicator {
+    font-size: 0.88rem;
+    color: var(--color-primary-muted, #6b6f7a);
 }
 
 /* ---------------- FEEDBACK STATES ------------------------------------- */

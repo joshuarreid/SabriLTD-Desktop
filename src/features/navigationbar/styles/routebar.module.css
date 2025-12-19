@@ -1,0 +1,114 @@
+:root {
+    --routebar-bg: var(--color-bg-surface, #ffffff);
+    --routebar-text: var(--color-primary, #333645);
+    --routebar-muted: var(--color-primary-muted, #7a7f90);
+    --routebar-link: #4f46e5;
+    --routebar-link-hover: #3730a3;
+    --routebar-border: var(--color-border-subtle, #e4e6ec);
+}
+
+/* Main container */
+.routeBar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0 4px 0;
+    background: var(--routebar-bg);
+    color: var(--routebar-text);
+    font-size: 0.86rem;
+}
+
+/* Back / forward */
+.historyControls {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 4px;
+}
+
+.navButton {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    border: 1px solid var(--routebar-border);
+    background: #f8f8ff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--routebar-muted);
+    cursor: pointer;
+    padding: 0;
+    transition:
+            background-color 0.12s ease,
+            border-color 0.12s ease,
+            color 0.12s ease,
+            transform 0.08s ease,
+            box-shadow 0.12s ease;
+}
+
+.navButton:hover {
+    background: #ecebff;
+    border-color: var(--routebar-link);
+    color: var(--routebar-link);
+    transform: translateY(-1px);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+/* Breadcrumbs */
+.breadcrumbList {
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+}
+
+.breadcrumbItem {
+    display: inline-flex;
+    align-items: center;
+}
+
+.separator {
+    margin: 0 4px;
+    color: var(--routebar-muted);
+    font-size: 0.8rem;
+}
+
+/* Labels */
+.crumbLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.86rem;
+}
+
+.crumbLink {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    color: var(--routebar-muted);
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+            color 0.12s ease,
+            text-decoration-color 0.12s ease;
+}
+
+.crumbLink:hover {
+    color: var(--routebar-link-hover);
+    text-decoration: underline;
+    text-decoration-color: var(--routebar-link-hover);
+}
+
+.crumbCurrent {
+    font-weight: 600;
+    color: var(--routebar-link);
+}
+
+/* Home icon */
+.homeIcon {
+    display: block;
+}
