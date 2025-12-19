@@ -1,13 +1,12 @@
 /**
  * JobScreen.jsx
  *
- * Wireframe jobs screen with:
+ * Presentational jobs screen:
  *  - Wide search bar at the top ("Search jobs")
- *  - Filter row underneath the search: Sort by, Company, Status (using generic FilterDropdown)
+ *  - Filter row: Sort by, Company, Status (using generic FilterDropdown)
  *  - Grid of minimal job items (icon + name) using JobInfoCard (no surrounding tile)
  *
- * Per Bulletproof React conventions: this file contains render logic only and
- * delegates state / business logic to useJobScreen hook.
+ * All data fetching and business logic is handled by useJobScreen.
  */
 
 import React from "react";
@@ -30,7 +29,7 @@ const logger = {
 
 /**
  * JobScreen
- * Presentational container for the jobs wireframe.
+ * Top-level presentational container for the jobs view.
  *
  * @component
  * @returns {JSX.Element}
@@ -39,6 +38,10 @@ const JobScreen = () => {
     logger.info("JobScreen rendered");
 
     const {
+        jobs,
+        isPending,
+        isError,
+        error,
         search,
         sortKey,
         companyFilter,
@@ -65,6 +68,24 @@ const JobScreen = () => {
         setSearch(next);
         logger.info("Job search changed", { value: next });
     };
+
+    if (isPending) {
+        return (
+            <div className={styles.jobScreen}>
+                <div className={styles.loading}>Loading jobs...</div>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className={styles.jobScreen}>
+                <div className={styles.error}>
+                    Error: {error?.message || "Failed to load jobs."}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.jobScreen}>
@@ -125,15 +146,24 @@ const JobScreen = () => {
             {/* Folder grid (minimal JobInfoCard components) */}
             <section className={styles.folderGridSection}>
                 {filteredAndSortedJobs.length === 0 ? (
-                    <div className={styles.emptyState}>No jobs match your search.</div>
+                    <div className={styles.emptyState}>
+                        {jobs.length === 0
+                            ? "No jobs found."
+                            : "No jobs match your search."}
+                    </div>
                 ) : (
                     <div className={styles.folderGrid}>
                         {filteredAndSortedJobs.map((job) => (
                             <JobInfoCard
                                 key={job.jobId}
-                                job={job}
+                                job={{
+                                    jobId: job.jobId,
+                                    name: job.name,
+                                    companyName: job.client,
+                                    status: job.status,
+                                }}
                                 onClick={() =>
-                                    logger.info("Job item clicked (wireframe only)", {
+                                    logger.info("Job item clicked", {
                                         jobId: job.jobId,
                                     })
                                 }

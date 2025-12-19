@@ -1,13 +1,19 @@
 /**
  * useJobScreen.js
  *
- * Business logic and UI state for the JobScreen wireframe.
- * - Holds mock jobs list (for now; can later be wired to real Job API).
- * - Manages search, filters (sort, company, status) and derived lists.
- * - Encapsulates all non-render logic so JobScreen.jsx stays presentational.
+ * Business logic and UI state for the JobScreen.
+ * - Loads jobs via TanStack Query (getAllJobs).
+ * - Manages client-side search, sort, and filter state (company/status).
+ * - Exposes a filtered & sorted jobs list for the presentational JobScreen.
+ *
+ * Follows the same design patterns as useCompanySettingsTab (single hook that
+ * owns data fetching, keys, and view-model state).
  */
 
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getAllJobs } from "../../../api/job/job";
+import { jobKeys } from "../../../api/job/jobQueryKeys";
 
 /**
  * logger for useJobScreen hook.
@@ -19,27 +25,6 @@ const logger = {
     info: (...args) => console.log("[useJobScreen]", ...args),
     error: (...args) => console.error("[useJobScreen]", ...args),
 };
-
-/**
- * MOCK_JOBS
- * Wireframe-only job dataset used for layout and filtering demo.
- * Replace with real Job API results in a future iteration.
- *
- * @constant
- * @type {Array<{jobId:number, name:string, companyName?:string, status?:string, dateAdded?:string}>}
- */
-const MOCK_JOBS = [
-    { jobId: 401, name: "Annual Audit", companyName: "Acme Corp.", status: "Active", dateAdded: "2025-12-09T14:00:00Z" },
-    { jobId: 402, name: "Inventory Count", companyName: "Globex", status: "Pending Storage", dateAdded: "2025-11-12T09:30:00Z" },
-    { jobId: 403, name: "Warehouse Cleanup", companyName: "Initech", status: "Closed", dateAdded: "2025-10-02T08:15:00Z" },
-    { jobId: 404, name: "Onboarding Project", companyName: "Umbrella", status: "Active", dateAdded: "2025-09-21T11:10:00Z" },
-    { jobId: 405, name: "Q4 Reporting", companyName: "Wonka Industries", status: "Active", dateAdded: "2025-12-01T07:00:00Z" },
-    { jobId: 406, name: "Compliance Review", companyName: "Acme Corp.", status: "Pending Storage", dateAdded: "2025-08-14T12:22:00Z" },
-    { jobId: 407, name: "Safety Inspection", companyName: "Globex", status: "Closed", dateAdded: "2025-07-03T10:05:00Z" },
-    { jobId: 408, name: "Site Survey", companyName: "Initech", status: "Active", dateAdded: "2025-12-05T14:55:00Z" },
-    { jobId: 409, name: "Data Migration", companyName: "Umbrella", status: "Active", dateAdded: "2025-06-18T16:45:00Z" },
-    { jobId: 410, name: "Retrospective", companyName: "Wonka Industries", status: "Closed", dateAdded: "2025-05-09T13:30:00Z" },
-];
 
 /**
  * SORT_OPTIONS
@@ -61,16 +46,30 @@ const SORT_OPTIONS = [
  * useJobScreen
  *
  * Encapsulates state and derived values for JobScreen:
- * - search text
- * - sort key
- * - company & status filters
- * - computed dropdown option lists
- * - filtered & sorted jobs list
+ * - Fetches jobs from the real Job API via React Query.
+ * - Owns search text, sort key, company & status filters.
+ * - Computes dropdown option lists and filtered/sorted jobs.
  *
  * @returns {object} Hook API consumed by JobScreen.jsx
  */
 export const useJobScreen = () => {
     logger.info("useJobScreen initialized");
+
+    // --- Query: jobs list from real API ---
+    /**
+     * jobsQuery
+     * Uses jobKeys.lists() as the canonical cache key and getAllJobs as the fetcher.
+     * Currently no server-side filters; all filtering is done client-side.
+     */
+    const {
+        data: jobs = [],
+        isPending,
+        isError,
+        error,
+    } = useQuery({
+        queryKey: jobKeys.lists(),
+        queryFn: () => getAllJobs(),
+    });
 
     // --- Local UI state ---
 
@@ -92,7 +91,7 @@ export const useJobScreen = () => {
 
     /**
      * companyFilter
-     * Current company filter, "all" or a specific companyName.
+     * Current company filter, "all" or a specific company name.
      *
      * @type {[string, Function]}
      */
@@ -100,7 +99,7 @@ export const useJobScreen = () => {
 
     /**
      * statusFilter
-     * Current status filter, "all" or a specific status.
+     * Current status filter, "all" or a specific status string.
      *
      * @type {[string, Function]}
      */
@@ -121,14 +120,17 @@ export const useJobScreen = () => {
 
     /**
      * companyOptions
-     * Derived list of unique companies for the Company filter dropdown.
+     * Derived list of unique company names for the Company filter dropdown.
+     * Uses job.client as the display field (per JobResponse spec).
      *
      * @type {Array<{value:string,label:string}>}
      */
     const companyOptions = useMemo(() => {
         const setCompanies = new Set();
-        MOCK_JOBS.forEach((j) => {
-            if (j.companyName) setCompanies.add(j.companyName);
+        (jobs || []).forEach((job) => {
+            if (job.client) {
+                setCompanies.add(job.client);
+            }
         });
         return [
             { value: "all", label: "All companies" },
@@ -136,7 +138,7 @@ export const useJobScreen = () => {
                 .sort()
                 .map((c) => ({ value: c, label: c })),
         ];
-    }, []);
+    }, [jobs]);
 
     /**
      * statusOptions
@@ -146,8 +148,10 @@ export const useJobScreen = () => {
      */
     const statusOptions = useMemo(() => {
         const setStatus = new Set();
-        MOCK_JOBS.forEach((j) => {
-            if (j.status) setStatus.add(j.status);
+        (jobs || []).forEach((job) => {
+            if (job.status) {
+                setStatus.add(job.status);
+            }
         });
         return [
             { value: "all", label: "All statuses" },
@@ -155,28 +159,44 @@ export const useJobScreen = () => {
                 .sort()
                 .map((s) => ({ value: s, label: s })),
         ];
-    }, []);
+    }, [jobs]);
 
     // --- Derived data: filtered + sorted jobs ---
 
     /**
      * filteredAndSortedJobs
-     * Applies search, company/status filters, and sorting to the mock jobs.
+     * Applies search, company/status filters, and sorting to the jobs array.
      *
-     * @type {Array<{jobId:number, name:string, companyName?:string, status?:string, dateAdded?:string}>}
+     * @type {Array<{
+     *   jobId:number,
+     *   name:string,
+     *   companyId:number,
+     *   client:string|null,
+     *   description:string|null,
+     *   status:string|null,
+     *   updatedBy:number|null,
+     *   dateAdded:string,
+     *   dateUpdated:string|null,
+     *   comments:string|null
+     * }>}
      */
     const filteredAndSortedJobs = useMemo(() => {
+        if (!Array.isArray(jobs) || jobs.length === 0) {
+            return [];
+        }
+
         const q = search.trim().toLowerCase();
 
-        const baseFiltered = MOCK_JOBS.filter((job) => {
+        const baseFiltered = jobs.filter((job) => {
             const matchesSearch =
                 !q ||
                 String(job.name || "").toLowerCase().includes(q) ||
-                String(job.companyName || "").toLowerCase().includes(q) ||
-                String(job.status || "").toLowerCase().includes(q);
+                String(job.client || "").toLowerCase().includes(q) ||
+                String(job.status || "").toLowerCase().includes(q) ||
+                String(job.description || "").toLowerCase().includes(q);
 
             const matchesCompany =
-                companyFilter === "all" || job.companyName === companyFilter;
+                companyFilter === "all" || job.client === companyFilter;
 
             const matchesStatus =
                 statusFilter === "all" || job.status === statusFilter;
@@ -184,7 +204,7 @@ export const useJobScreen = () => {
             return matchesSearch && matchesCompany && matchesStatus;
         });
 
-        const [field, dir] = sortKey.split("-");
+        const [field, dir] = String(sortKey || "").split("-");
         const result = [...baseFiltered];
 
         result.sort((a, b) => {
@@ -207,13 +227,16 @@ export const useJobScreen = () => {
         });
 
         return result;
-    }, [search, companyFilter, statusFilter, sortKey]);
+    }, [jobs, search, companyFilter, statusFilter, sortKey]);
 
     // --- Public API ---
 
     return {
-        // raw data (mock for now)
-        jobs: MOCK_JOBS,
+        // query base
+        jobs,
+        isPending,
+        isError,
+        error,
 
         // state
         search,
@@ -232,7 +255,7 @@ export const useJobScreen = () => {
         companyOptions,
         statusOptions,
 
-        // derived list
+        // derived list for UI
         filteredAndSortedJobs,
     };
 };
