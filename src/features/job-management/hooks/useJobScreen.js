@@ -1,10 +1,10 @@
 /**
  * useJobScreen.js
  *
- * Top-level orchestration hook for the JobScreen route.
+ * Orchestration hook for JobScreen.
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
     useJobFilters,
     DEFAULT_SORT_KEY,
@@ -19,21 +19,21 @@ const logger = {
 };
 
 export const useJobScreen = () => {
-    logger.info("useJobScreen initialized");
+    logger.info("useJobScreen render start");
 
-    // --- Global filters that should be reflected in server calls ---
+    // Global filters
     const [companyFilter, setCompanyFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
     const [clientFilter, setClientFilter] = useState("all");
     const [sortKey, setSortKey] = useState(DEFAULT_SORT_KEY);
 
-    // --- Server pagination state that actually drives API queries ---
+    // Server pagination (drives API)
     const [serverPage, setServerPage] = useState(1);
     const [serverPageSize, setServerPageSize] = useState(DEFAULT_PAGE_SIZE);
 
     const clientSearchMode = false;
 
-    // --- Server data: jobs + metadata + server-driven filter options ---
+    // Server data
     const {
         jobs: serverJobs,
         totalJobs: serverTotalJobs,
@@ -54,7 +54,25 @@ export const useJobScreen = () => {
         clientSearchMode,
     });
 
-    // --- Centralized pagination, informed by server meta ---
+    useEffect(() => {
+        logger.info("useJobSearch snapshot", {
+            serverPage,
+            serverPageSize,
+            serverCurrentPage,
+            serverTotalJobs,
+            serverTotalPages,
+            jobsLength: serverJobs.length,
+        });
+    }, [
+        serverPage,
+        serverPageSize,
+        serverCurrentPage,
+        serverTotalJobs,
+        serverTotalPages,
+        serverJobs,
+    ]);
+
+    // Pagination informed by server meta
     const pagination = useJobScreenPagination({
         initialPage: serverCurrentPage ?? 1,
         initialPageSize: serverPageSize,
@@ -62,25 +80,29 @@ export const useJobScreen = () => {
         totalPagesFromServer: serverTotalPages,
     });
 
-    // Sync pagination changes back to server state so queries refetch
     const handlePageChange = (nextPage) => {
+        logger.info("useJobScreen handlePageChange (from UI)", {
+            nextPage,
+        });
         pagination.setPage(nextPage);
         setServerPage(nextPage);
     };
 
     const handleSetPageSize = (nextSize) => {
+        logger.info("useJobScreen handleSetPageSize", { nextSize });
         pagination.setPageSize(nextSize);
         setServerPageSize(nextSize);
         setServerPage(1);
     };
 
-    // --- Local filters/search/sort/pagination over current server page ---
+    // Local filters over current page
     const filters = useJobFilters(serverJobs, {
         initialSortKey: sortKey,
         initialPageSize: serverJobs.length || DEFAULT_PAGE_SIZE,
     });
 
     const handleSetSortKey = (value) => {
+        logger.info("useJobScreen handleSetSortKey", { value });
         setSortKey(value);
         filters.setSortKey(value);
         filters.setPage(1);
@@ -98,7 +120,7 @@ export const useJobScreen = () => {
     );
 
     const handleResetFilters = () => {
-        logger.info("useJobScreen handleResetFilters called");
+        logger.info("useJobScreen handleResetFilters");
         filters.handleResetFilters();
         setCompanyFilter("all");
         setStatusFilter("all");
@@ -110,10 +132,31 @@ export const useJobScreen = () => {
         setServerPageSize(DEFAULT_PAGE_SIZE);
     };
 
-    // Use server meta as the single source of truth for totals
     const totalJobs = serverTotalJobs ?? filters.totalJobs;
-    const totalPages = pagination.totalPages; // <- from pagination (already based on serverTotalPages)
-    const currentPage = pagination.page;      // <- from pagination
+    const totalPages = pagination.totalPages;
+    const currentPage = pagination.page;
+
+    useEffect(() => {
+        logger.info("useJobScreen meta snapshot", {
+            totalJobs,
+            totalPages,
+            currentPage,
+            paginationPage: pagination.page,
+            paginationTotalPages: pagination.totalPages,
+            serverTotalJobs,
+            serverTotalPages,
+            serverCurrentPage,
+        });
+    }, [
+        totalJobs,
+        totalPages,
+        currentPage,
+        pagination.page,
+        pagination.totalPages,
+        serverTotalJobs,
+        serverTotalPages,
+        serverCurrentPage,
+    ]);
 
     return {
         // jobs
@@ -139,6 +182,7 @@ export const useJobScreen = () => {
         setSortKey: handleSetSortKey,
         setCompanyFilter: (value) => {
             const normalized = value || "all";
+            logger.info("useJobScreen setCompanyFilter", { normalized });
             setCompanyFilter(normalized);
             filters.setCompanyFilter(normalized);
             filters.setPage(1);
@@ -146,6 +190,7 @@ export const useJobScreen = () => {
         },
         setClientFilter: (value) => {
             const normalized = value || "all";
+            logger.info("useJobScreen setClientFilter", { normalized });
             setClientFilter(normalized);
             filters.setClientFilter(normalized);
             filters.setPage(1);
@@ -153,6 +198,7 @@ export const useJobScreen = () => {
         },
         setStatusFilter: (value) => {
             const normalized = value || "all";
+            logger.info("useJobScreen setStatusFilter", { normalized });
             setStatusFilter(normalized);
             filters.setStatusFilter(normalized);
             filters.setPage(1);
@@ -182,6 +228,7 @@ export const useJobScreen = () => {
 
         // actions
         handleResetFilters,
+        handleSetPageSize, // not used yet but logged
     };
 };
 
