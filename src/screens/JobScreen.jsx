@@ -35,11 +35,9 @@ const logger = {
  * Top-level presentational container for the jobs view.
  *
  * NOTE:
- * - We intentionally keep the outer layout mounted even while data is loading
- *   so that Framer Motion can animate card transitions smoothly.
- * - isPending is rendered as a subtle inline hint above the grid instead of
- *   returning a separate full-screen loading view. This mirrors the SearchBar
- *   behavior where the page does not flash when results update.
+ * - The outer layout stays mounted while data is loading so that
+ *   Framer Motion can animate card transitions smoothly (no flashes),
+ *   similar to the global SearchBar behavior.
  *
  * @component
  * @returns {JSX.Element}
@@ -79,7 +77,7 @@ const JobScreen = () => {
 
     /**
      * handleSearchChange
-     * - Updates local search input only; does NOT trigger API until Enter is pressed.
+     * - Updates local search input only; does NOT trigger filtering until Enter.
      *
      * @function handleSearchChange
      * @param {React.ChangeEvent<HTMLInputElement>} event
@@ -88,7 +86,7 @@ const JobScreen = () => {
     const handleSearchChange = (event) => {
         const next = event.target.value;
         setSearchInput(next);
-        logger.info("Job search input changed", { value: next });
+        logger.info("JobScreen search input changed", { value: next });
     };
 
     /**
@@ -103,7 +101,7 @@ const JobScreen = () => {
         if (event.key === "Enter") {
             event.preventDefault();
             const value = searchInput.trim();
-            logger.info("Job search submitted via Enter", { value });
+            logger.info("JobScreen search submitted via Enter", { value });
             setSearch(value);
             setPage(1);
         }
@@ -127,7 +125,8 @@ const JobScreen = () => {
 
     /**
      * buildCompanySearchOptions
-     * - Maps unique companyIds from companyOptions into label/value pairs for FilterDropdownSearch.
+     * - Maps companyOptions into label/value pairs for FilterDropdownSearch,
+     *   excluding the "all" sentinel option.
      *
      * @returns {Array<{value:string,label:string}>}
      */
@@ -184,6 +183,7 @@ const JobScreen = () => {
                         setSortKey(value);
                         setPage(1);
                     }}
+                    displaySelection
                 />
 
                 <FilterDropdownSearch
@@ -222,6 +222,7 @@ const JobScreen = () => {
                         setStatusFilter(value);
                         setPage(1);
                     }}
+                    displaySelection
                 />
 
                 <div className={styles.filtersSpacer} />
@@ -232,7 +233,7 @@ const JobScreen = () => {
                         className={styles.clearButton}
                         onClick={() => {
                             handleResetFilters();
-                            logger.info("Filters cleared (from JobScreen)");
+                            logger.info("JobScreen filters cleared");
                         }}
                     >
                         Clear
@@ -240,6 +241,10 @@ const JobScreen = () => {
                 </div>
             </div>
 
+            {/* Inline loading hint (no full-screen spinner) */}
+            {isPending && (
+                <div className={styles.inlineLoadingHint}>Updating jobs…</div>
+            )}
 
             {/* Folder grid (animated JobInfoCard components) */}
             <section className={styles.folderGridSection}>
@@ -282,7 +287,7 @@ const JobScreen = () => {
                                             status: job.status,
                                         }}
                                         onClick={() =>
-                                            logger.info("Job item clicked", {
+                                            logger.info("JobScreen job clicked", {
                                                 jobId: job.jobId,
                                             })
                                         }
@@ -301,8 +306,7 @@ const JobScreen = () => {
                         "Showing 0 jobs"
                     ) : (
                         <>
-                            Showing{" "}
-                            {(currentPage - 1) * pageSize + 1}–
+                            Showing {(currentPage - 1) * pageSize + 1}–
                             {Math.min(currentPage * pageSize, totalJobs)} of {totalJobs} jobs
                         </>
                     )}
