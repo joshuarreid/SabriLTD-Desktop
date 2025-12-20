@@ -301,4 +301,36 @@ export default class JobApiClient extends ApiClient {
             throw error;
         }
     }
+
+    /**
+     * fetchJobCompanies
+     * Calls the unique companies endpoint: GET /api/jobs/companies
+     *
+     * @async
+     * @returns {Promise<Object>} API response with UniqueCompanyResponse[] in `data`
+     * @throws {Error} If request fails (network, 401, 500, etc).
+     */
+    async fetchJobCompanies() {
+        logger.info("fetchJobCompanies called");
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error("fetchJobCompanies failed: No token available");
+                throw new Error("No authentication token found");
+            }
+            const response = await this.get("/companies", {}, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            logger.info("fetchJobCompanies success", {
+                count: Array.isArray(response?.data) ? response.data.length : 0,
+            });
+            return response;
+        } catch (error) {
+            logger.error("fetchJobCompanies failed", error);
+            throw error;
+        }
+    }
 }
+

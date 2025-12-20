@@ -283,3 +283,28 @@ export async function deleteJob(jobId) {
         throw error;
     }
 }
+
+/**
+ * getJobCompanies
+ * Fetches a de-duplicated list of companies that have at least one job.
+ *
+ * Mirrors "Get Unique Companies" endpoint:
+ *   GET /api/jobs/companies
+ *
+ * @async
+ * @function getJobCompanies
+ * @returns {Promise<Array<{companyId:number, companyName:string}>>}
+ *          Array of UniqueCompanyResponse objects (data field)
+ * @throws {Error} If request fails (network, 401, 500, etc).
+ */
+export async function getJobCompanies() {
+    logger.info("getJobCompanies called");
+    try {
+        const response = await apiClient.fetchJobCompanies();
+        // response shape: { status, data: UniqueCompanyResponse[], meta, transactionId, errors }
+        return response?.data || [];
+    } catch (error) {
+        logger.error("getJobCompanies failed", error);
+        throw error;
+    }
+}
