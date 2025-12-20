@@ -2,13 +2,6 @@
  * useJobScreen.js
  *
  * Top-level orchestration hook for the JobScreen route.
- *
- * Responsibilities:
- * - Own server-side pagination state (centralized in useJobScreenPagination).
- * - Call useJobSearch to fetch jobs + server metadata.
- * - Call useJobFilters to manage local search/filter/sort/pagination
- *   over the current server page of jobs.
- * - Reconcile server meta (totalJobs/totalPages/currentPage) with local state.
  */
 
 import { useMemo, useState } from "react";
@@ -29,23 +22,16 @@ export const useJobScreen = () => {
     logger.info("useJobScreen initialized");
 
     // --- Global filters that should be reflected in server calls ---
-    /** @type {[string, Function]} */
     const [companyFilter, setCompanyFilter] = useState("all");
-    /** @type {[string, Function]} */
     const [statusFilter, setStatusFilter] = useState("all");
-    /** @type {[string, Function]} */
     const [clientFilter, setClientFilter] = useState("all");
-    /** @type {[string, Function]} */
     const [sortKey, setSortKey] = useState(DEFAULT_SORT_KEY);
 
-    // Centralized pagination hook for JobScreen
-    const pagination = useJobScreenPagination({
-        initialPage: 1,
-        initialPageSize: DEFAULT_PAGE_SIZE,
-    });
+    // --- Server pagination state that actually drives API queries ---
+    const [serverPage, setServerPage] = useState(1);
+    const [serverPageSize, setServerPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-    // If you want "client search" to be special (server-wide search), toggle this:
-    const clientSearchMode = false; // set true if you want searchJobs(q=clientFilter)
+    const clientSearchMode = false;
 
     // --- Server data: jobs + metadata + server-driven filter options ---
     const {
@@ -63,10 +49,30 @@ export const useJobScreen = () => {
         statusFilter,
         clientFilter,
         sortKey,
-        page: pagination.page,
-        pageSize: pagination.pageSize,
+        page: serverPage,
+        pageSize: serverPageSize,
         clientSearchMode,
     });
+
+    // --- Centralized pagination, informed by server meta ---
+    const pagination = useJobScreenPagination({
+        initialPage: serverCurrentPage ?? 1,
+        initialPageSize: serverPageSize,
+        totalItems: serverTotalJobs,
+        totalPagesFromServer: serverTotalPages,
+    });
+
+    // Sync pagination changes back to server state so queries refetch
+    const handlePageChange = (nextPage) => {
+        pagination.setPage(nextPage);
+        setServerPage(nextPage);
+    };
+
+    const handleSetPageSize = (nextSize) => {
+        pagination.setPageSize(nextSize);
+        setServerPageSize(nextSize);
+        setServerPage(1);
+    };
 
     // --- Local filters/search/sort/pagination over current server page ---
     const filters = useJobFilters(serverJobs, {
@@ -74,15 +80,13 @@ export const useJobScreen = () => {
         initialPageSize: serverJobs.length || DEFAULT_PAGE_SIZE,
     });
 
-    // Keep sortKey in sync with local sort changes if desired
     const handleSetSortKey = (value) => {
         setSortKey(value);
         filters.setSortKey(value);
         filters.setPage(1);
-        pagination.setPage(1);
+        handlePageChange(1);
     };
 
-    // Company/client options: prefer server options if available
     const companyOptions = useMemo(
         () => companyOptionsFromServer || filters.companyOptions,
         [companyOptionsFromServer, filters.companyOptions],
@@ -93,7 +97,6 @@ export const useJobScreen = () => {
         [clientOptionsFromServer, filters.clientOptions],
     );
 
-    // Global reset: filters + server pagination
     const handleResetFilters = () => {
         logger.info("useJobScreen handleResetFilters called");
         filters.handleResetFilters();
@@ -101,16 +104,19 @@ export const useJobScreen = () => {
         setStatusFilter("all");
         setClientFilter("all");
         setSortKey(DEFAULT_SORT_KEY);
+
         pagination.resetPagination();
+        setServerPage(1);
+        setServerPageSize(DEFAULT_PAGE_SIZE);
     };
 
-    // Map server pagination/meta into what the UI expects
+    // Use server meta as the single source of truth for totals
     const totalJobs = serverTotalJobs ?? filters.totalJobs;
-    const totalPages = serverTotalPages ?? filters.totalPages;
-    const currentPage = serverCurrentPage ?? pagination.page;
+    const totalPages = pagination.totalPages; // <- from pagination (already based on serverTotalPages)
+    const currentPage = pagination.page;      // <- from pagination
 
     return {
-        // jobs (use paginatedJobs for rendering grid)
+        // jobs
         jobs: filters.jobs,
         filteredAndSortedJobs: filters.filteredAndSortedJobs,
         paginatedJobs: filters.paginatedJobs,
@@ -120,7 +126,7 @@ export const useJobScreen = () => {
         isError,
         error,
 
-        // search & filters (UI state)
+        // filters
         search: filters.search,
         searchInput: filters.searchInput,
         sortKey,
@@ -128,7 +134,6 @@ export const useJobScreen = () => {
         clientFilter,
         statusFilter,
 
-        // setters for search/filters
         setSearch: filters.setSearch,
         setSearchInput: filters.setSearchInput,
         setSortKey: handleSetSortKey,
@@ -137,31 +142,28 @@ export const useJobScreen = () => {
             setCompanyFilter(normalized);
             filters.setCompanyFilter(normalized);
             filters.setPage(1);
-            pagination.setPage(1);
+            handlePageChange(1);
         },
         setClientFilter: (value) => {
             const normalized = value || "all";
             setClientFilter(normalized);
             filters.setClientFilter(normalized);
             filters.setPage(1);
-            pagination.setPage(1);
+            handlePageChange(1);
         },
         setStatusFilter: (value) => {
             const normalized = value || "all";
             setStatusFilter(normalized);
             filters.setStatusFilter(normalized);
             filters.setPage(1);
-            pagination.setPage(1);
+            handlePageChange(1);
         },
 
-        // pagination (centralized via useJobScreenPagination)
-        page: currentPage,
+        // pagination
         pageSize: pagination.pageSize,
-        setPage: pagination.setPage,
-        setPageSize: pagination.setPageSize,
         hasPrevious: pagination.hasPrevious,
         hasNext: pagination.hasNext,
-        handlePageChange: pagination.handlePageChange,
+        handlePageChange,
         handleNextPage: pagination.handleNext,
         handlePreviousPage: pagination.handlePrevious,
         itemStart: pagination.itemStart,
