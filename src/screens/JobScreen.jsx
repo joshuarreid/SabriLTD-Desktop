@@ -3,7 +3,7 @@
  *
  * Presentational jobs screen.
  * - Wide search bar at the top ("Search jobs")
- * - Filter row: Sort by, Company, Client, Status (using generic FilterDropdown)
+ * - Filter row: Sort by, Company, Client, Status (company/client use FilterDropdownSearch)
  * - Animated grid of minimal job items (JobInfoCard) using Framer Motion layout transitions
  * - Pagination controls pinned to the bottom (page indicator + navigation)
  *
@@ -16,6 +16,7 @@ import styles from "../features/job-management/styles/jobscreen.module.css";
 import JobInfoCard from "../features/job-management/components/JobInfoCard";
 import WideSearchBar from "../components/searchbar/WideSearchBar";
 import FilterDropdown from "../components/filterdropdown/FilterDropdown";
+import FilterDropdownSearch from "../components/filterdropdown/FilterDropdownSearch";
 import { useJobScreen } from "../features/job-management/hooks/useJobScreen";
 
 /**
@@ -71,7 +72,7 @@ const JobScreen = () => {
 
     /**
      * handleSearchChange
-     * - Updates local input only; does NOT trigger API until Enter is pressed.
+     * - Updates local search input only; does NOT trigger API until Enter is pressed.
      *
      * @function handleSearchChange
      * @param {React.ChangeEvent<HTMLInputElement>} event
@@ -135,6 +136,38 @@ const JobScreen = () => {
     const hasPrevious = currentPage > 1;
     const hasNext = currentPage < totalPages;
 
+    /**
+     * buildCompanySearchOptions
+     * - Maps unique companyIds from companyOptions into label/value pairs for FilterDropdownSearch.
+     * - Label currently uses the raw companyId; can be updated to show a proper company name when available.
+     *
+     * @returns {Array<{value:string,label:string}>}
+     */
+    const buildCompanySearchOptions = () =>
+        (companyOptions || [])
+            .filter((opt) => opt.value !== "all")
+            .map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+            }));
+
+    /**
+     * buildClientSearchOptions
+     * - Maps unique clients from clientOptions into label/value pairs for FilterDropdownSearch.
+     *
+     * @returns {Array<{value:string,label:string}>}
+     */
+    const buildClientSearchOptions = () =>
+        (clientOptions || [])
+            .filter((opt) => opt.value !== "all")
+            .map((opt) => ({
+                value: opt.value,
+                label: opt.label,
+            }));
+
+    const companySearchOptions = buildCompanySearchOptions();
+    const clientSearchOptions = buildClientSearchOptions();
+
     return (
         <div className={styles.jobScreen}>
             <header className={styles.headerRow}>
@@ -164,24 +197,35 @@ const JobScreen = () => {
                         setPage(1);
                     }}
                 />
-                <FilterDropdown
+
+                <FilterDropdownSearch
                     label="Company"
-                    value={companyFilter}
-                    options={companyOptions}
-                    onChange={(value) => {
-                        setCompanyFilter(value);
+                    value={companyFilter === "all" ? "" : companyFilter}
+                    options={companySearchOptions}
+                    onChange={(nextValue) => {
+                        const normalized = nextValue || "all";
+                        logger.info("JobScreen company filter changed", {
+                            value: normalized,
+                        });
+                        setCompanyFilter(normalized);
                         setPage(1);
                     }}
                 />
-                <FilterDropdown
+
+                <FilterDropdownSearch
                     label="Client"
-                    value={clientFilter}
-                    options={clientOptions}
-                    onChange={(value) => {
-                        setClientFilter(value);
+                    value={clientFilter === "all" ? "" : clientFilter}
+                    options={clientSearchOptions}
+                    onChange={(nextValue) => {
+                        const normalized = nextValue || "all";
+                        logger.info("JobScreen client filter changed", {
+                            value: normalized,
+                        });
+                        setClientFilter(normalized);
                         setPage(1);
                     }}
                 />
+
                 <FilterDropdown
                     label="Status"
                     value={statusFilter}
@@ -211,8 +255,7 @@ const JobScreen = () => {
             {/* Folder grid (animated JobInfoCard components) */}
             <section className={styles.folderGridSection}>
                 {paginatedJobs.length === 0 ? (
-                    <div className={styles.emptyState}>
-                    </div>
+                    <div className={styles.emptyState}></div>
                 ) : (
                     <motion.div
                         className={styles.folderGrid}
