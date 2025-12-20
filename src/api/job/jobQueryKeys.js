@@ -21,15 +21,16 @@ export const JOB = ["job"];
  * Canonical Job query/mutation cache keys.
  *
  * Usage examples:
- *   jobKeys.lists()                              // ['job', 'lists']
- *   jobKeys.list({ status: 'Active' })           // ['job', 'lists', { filters: { status: 'Active' } }]
- *   jobKeys.search({ q: 'Audit' })               // ['job', 'search', { searchParams: { q: 'Audit' } }]
- *   jobKeys.clients()                            // ['job', 'clients']
- *   jobKeys.companies()                          // ['job', 'companies']
- *   jobKeys.detail(401)                          // ['job', 'detail', 401]
- *   jobKeys.create()                             // ['job', 'create']
- *   jobKeys.update(401)                          // ['job', 'detail', 401, 'update']
- *   jobKeys.remove(401)                          // ['job', 'detail', 401, 'remove']
+ *   jobKeys.lists()                                   // ['job', 'lists']
+ *   jobKeys.list({ status: 'Active' })                // ['job', 'lists', { filters: { status: 'Active' } }]
+ *   jobKeys.search({ q: 'Audit' })                    // ['job', 'search', { searchParams: { q: 'Audit' } }]
+ *   jobKeys.clients()                                 // ['job', 'clients']
+ *   jobKeys.clientsList({ companyId: 301 })           // ['job', 'clients', { filters: { companyId: 301 } }]
+ *   jobKeys.companies()                               // ['job', 'companies']
+ *   jobKeys.detail(401)                               // ['job', 'detail', 401]
+ *   jobKeys.create()                                  // ['job', 'create']
+ *   jobKeys.update(401)                               // ['job', 'detail', 401, 'update']
+ *   jobKeys.remove(401)                               // ['job', 'detail', 401, 'remove']
  *
  * These keys are used across:
  *  - useQuery (for fetching jobs, job search, clients, and companies)
@@ -79,8 +80,12 @@ export const jobKeys = {
      * Key for the unique clients list (GET /api/jobs/clients).
      * Use this when fetching the de-duplicated client pick list.
      *
+     * NOTE:
+     * - When scoping by companyId, prefer jobKeys.clientsList({ companyId })
+     *   so the cache key encodes the companyId filter explicitly.
+     *
      * @function
-     * @returns {Array} React Query key for unique clients
+     * @returns {Array} React Query key for unique clients (unscoped)
      */
     clients: () => [...jobKeys.all, "clients"],
 
@@ -88,9 +93,13 @@ export const jobKeys = {
      * Key for a clients list scoped by optional filters.
      * Example: jobKeys.clientsList({ companyId: 301 })
      *
+     * This is intended for the updated "Get Unique Clients" endpoint:
+     *   GET /api/jobs/clients?companyId=301
+     *
      * @function
-     * @param {object} [filters={}] - Optional filters to scope the clients key.
-     * @returns {Array} React Query key for clients list
+     * @param {object} [filters={}] - Optional filters to scope the clients key,
+     *   e.g. { companyId: 301 }.
+     * @returns {Array} React Query key for clients list with filters encoded
      */
     clientsList: (filters = {}) => [...jobKeys.clients(), { filters }],
 

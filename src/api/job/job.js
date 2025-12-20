@@ -308,3 +308,30 @@ export async function getJobCompanies() {
         throw error;
     }
 }
+
+/**
+ * getJobClients
+ * Fetches a de-duplicated list of clients used by jobs, optionally scoped by companyId.
+ *
+ * Mirrors "Get Unique Clients" endpoint:
+ *   GET /api/jobs/clients
+ *   GET /api/jobs/clients?companyId=301
+ *
+ * @async
+ * @function getJobClients
+ * @param {{ companyId?: number }} [params={}] - Optional filter parameters.
+ * @returns {Promise<Array<{clientId: (number|null), clientName: string}>>}
+ *          Array of UniqueClientResponse objects (data field).
+ * @throws {Error} If request fails (network, 401, 500, etc).
+ */
+export async function getJobClients(params = {}) {
+    logger.info("getJobClients called", params);
+    try {
+        const response = await apiClient.fetchJobClients(params);
+        // response shape: { status, data: UniqueClientResponse[], meta, transactionId, errors }
+        return response?.data || [];
+    } catch (error) {
+        logger.error("getJobClients failed", error);
+        throw error;
+    }
+}
