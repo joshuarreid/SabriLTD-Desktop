@@ -2,14 +2,30 @@
  * useJobScreen.js
  *
  * Business logic and UI state for the JobScreen.
- * - Loads jobs via TanStack Query (getAllJobs).
- * - Uses server-side search via /api/jobs/search when search text is submitted (Enter).
- * - Manages client-side sort and filter state (company/status/client).
- * - Manages simple client-side pagination (page, pageSize) over the active dataset.
+ *
+ * Global vs local filtering rules:
+ * - Initial filter(s) for company/status/client drive GLOBAL queries via getAllJobs(params).
+ * - After the initial global filter set, remaining filters become LOCAL (client-side)
+ *   and operate only on the currently loaded job set.
+ *
+ * Global behavior:
+ * - If company is chosen first: call getAllJobs({ companyId, ...status? })
+ * - If status is chosen first:  call getAllJobs({ status, ...companyId? })
+ * - If client is chosen first:
+ *    - Trigger global search via searchJobs({ q: clientName })
+ *    - Populate the search bar with that clientName
+ * - Edge case:
+ *    - If initial filter is company then status (or vice versa), perform another
+ *      GLOBAL getAllJobs with both { companyId, status }.
+ *
+ * Local behavior:
+ * - After the initial global filter combination has been applied, further
+ *   changes to filters are treated as LOCAL filters over the current `jobs`
+ *   array (no additional getAllJobs/searchJobs calls).
  */
 
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllJobs, searchJobs } from "../../../api/job/job";
 import { jobKeys } from "../../../api/job/jobQueryKeys";
 
@@ -48,7 +64,7 @@ const DEFAULT_PAGE_SIZE = 50;
 
 /**
  * deriveSortParams
- * Maps internal sortKey to API sort parameters for the search endpoint.
+ * Maps internal sortKey to API sort parameters for the global getAllJobs/searchJobs endpoints.
  *
  * @function deriveSortParams
  * @param {string} sortKey - Current sort key (e.g., "date-desc", "modified-desc").
@@ -72,9 +88,53 @@ const deriveSortParams = (sortKey) => {
 };
 
 /**
+ * buildGlobalJobParams
+ * - Builds the query params object for getAllJobs based on the current
+ *   global filters (company/status) and pagination/sort.
+ *
+ * @function buildGlobalJobParams
+ * @param {object} args
+ * @param {string} args.companyFilter - "all" or companyId string
+ * @param {string} args.statusFilter - "all" or status string
+ * @param {number} args.page - current page (1-based)
+ * @param {number} args.pageSize - current page size
+ * @param {{sortField:(string|undefined),sortOrder:('asc'|'desc'|undefined)}} args.sortParams
+ * @returns {object} params for getAllJobs
+ */
+const buildGlobalJobParams = ({
+                                  companyFilter,
+                                  statusFilter,
+                                  page,
+                                  pageSize,
+                                  sortParams,
+                              }) => {
+    const params = {
+        page,
+        size: pageSize,
+    };
+
+    if (sortParams.sortField) {
+        params.sortField = sortParams.sortField;
+    }
+    if (sortParams.sortOrder) {
+        params.sortOrder = sortParams.sortOrder;
+    }
+
+    if (companyFilter && companyFilter !== "all") {
+        params.companyId = Number(companyFilter);
+    }
+
+    if (statusFilter && statusFilter !== "all") {
+        params.status = statusFilter;
+    }
+
+    return params;
+};
+
+/**
  * useJobScreen
  *
- * Main hook encapsulating data fetching, server-side search, filters, sort,
+ * Main hook encapsulating data fetching, global search, filters, sort,
  * and pagination behavior for the jobs screen.
  *
  * @function useJobScreen
@@ -82,26 +142,7 @@ const deriveSortParams = (sortKey) => {
  */
 export const useJobScreen = () => {
     logger.info("useJobScreen initialized");
-
-    // --- Query: load all jobs once (V8 behavior) ---
-
-    /**
-     * Base list query:
-     * - Loads all jobs with a single call to getAllJobs().
-     * - All filtering/sorting/pagination for non-search mode is client-side.
-     */
-    const {
-        data: baseJobs = [],
-        isPending: isPendingList,
-        isError: isErrorList,
-        error: errorList,
-    } = useQuery({
-        queryKey: jobKeys.lists(),
-        queryFn: () => {
-            logger.info("useJobScreen base list queryFn called");
-            return getAllJobs();
-        },
-    });
+    const queryClient = useQueryClient();
 
     // --- Local UI state ---
 
@@ -115,8 +156,7 @@ export const useJobScreen = () => {
 
     /**
      * search
-     * - Active search text that has been "applied" (e.g., via Enter key).
-     * - Only this value triggers server-side /api/jobs/search.
+     * - Active search text that has been "applied" (e.g., via Enter key or client dropdown).
      *
      * @type {[string, Function]}
      */
@@ -139,20 +179,20 @@ export const useJobScreen = () => {
     const [companyFilter, setCompanyFilter] = useState("all");
 
     /**
-     * clientFilter
-     * - "all" or a specific client string.
-     *
-     * @type {[string, Function]}
-     */
-    const [clientFilter, setClientFilter] = useState("all");
-
-    /**
      * statusFilter
      * - "all" or a specific job status string.
      *
      * @type {[string, Function]}
      */
     const [statusFilter, setStatusFilter] = useState("all");
+
+    /**
+     * clientFilter
+     * - "all" or a specific client string.
+     *
+     * @type {[string, Function]}
+     */
+    const [clientFilter, setClientFilter] = useState("all");
 
     /**
      * page
@@ -171,6 +211,48 @@ export const useJobScreen = () => {
     const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
     /**
+     * hasGlobalFilters
+     * - Once true, indicates that a global filter/search has been executed.
+     *   After this, additional filter changes become local only.
+     *
+     * @type {[boolean, Function]}
+     */
+    const [hasGlobalFilters, setHasGlobalFilters] = useState(false);
+
+    /**
+     * initialGlobalFilterSource
+     * - Tracks which filter triggered the first global operation: "none" | "company" | "status" | "client".
+     *
+     * @type {[string, Function]}
+     */
+    const [initialGlobalFilterSource, setInitialGlobalFilterSource] = useState("none");
+
+    /**
+     * baseJobs
+     * - Jobs returned from the base/global API calls (getAllJobs/searchJobs).
+     *   This is the array that local filters operate on.
+     *
+     * @type {[Array, Function]}
+     */
+    const [baseJobs, setBaseJobs] = useState([]);
+
+    /**
+     * isBaseLoading
+     * - Manual flag to represent loading state for global operations.
+     *
+     * @type {[boolean, Function]}
+     */
+    const [isBaseLoading, setIsBaseLoading] = useState(false);
+
+    /**
+     * baseError
+     * - Error object (if any) for global operations.
+     *
+     * @type {[Error|null, Function]}
+     */
+    const [baseError, setBaseError] = useState(null);
+
+    /**
      * sortParams
      * - Derived server-side sort parameters from sortKey.
      *
@@ -184,101 +266,260 @@ export const useJobScreen = () => {
     const trimmedSearch = search.trim();
     const trimmedSearchInput = searchInput.trim();
 
-    // --- Server search query (only when search text has been "applied") ---
+    // --- Base "all jobs" query (unfiltered) for initial load only ---
 
     /**
-     * searchJobsQuery
-     * - Uses /api/jobs/search when search text has been applied.
-     * - Does not run while user is still typing (only when trimmedSearch has content).
+     * initialJobsQuery
+     * - Loads all jobs once on mount before any global filters are applied.
+     * - After hasGlobalFilters becomes true, this query is no longer used for UI data.
      */
     const {
-        data: searchResponse,
-        isPending: isPendingSearch,
-        isError: isErrorSearch,
-        error: errorSearch,
+        data: initialJobsResponse,
+        isPending: isPendingInitial,
+        isError: isErrorInitial,
+        error: errorInitial,
     } = useQuery({
-        queryKey: jobKeys.search({
-            q: trimmedSearch || null,
-            page,
-            size: pageSize,
-            sortField: sortParams.sortField,
-            sortOrder: sortParams.sortOrder,
-        }),
+        queryKey: jobKeys.lists(),
         queryFn: async () => {
-            logger.info("useJobScreen search queryFn called", {
-                q: trimmedSearch,
+            logger.info("useJobScreen initial jobs queryFn called");
+            const response = await getAllJobs();
+            // getAllJobs now returns { status, data, meta, ... }
+            const jobsArray = Array.isArray(response?.data) ? response.data : [];
+            logger.info("useJobScreen initial jobs queryFn success", {
+                count: jobsArray.length,
+            });
+            return jobsArray;
+        },
+    });
+
+    /**
+     * sync baseJobs from initial query when there are no global filters yet.
+     */
+    useEffect(() => {
+        if (!hasGlobalFilters && Array.isArray(initialJobsResponse)) {
+            setBaseJobs(initialJobsResponse);
+        }
+    }, [hasGlobalFilters, initialJobsResponse]);
+
+    // --- Global operations: getAllJobs & searchJobs (imperative) ---
+
+    /**
+     * applyGlobalCompanyStatusFilter
+     * - Executes a global getAllJobs call based on current company/status filters.
+     * - Used when initial filter is company or status, and in the edge case when
+     *   both are applied in sequence.
+     *
+     * @async
+     * @function applyGlobalCompanyStatusFilter
+     * @returns {Promise<void>}
+     */
+    const applyGlobalCompanyStatusFilter = async () => {
+        try {
+            setIsBaseLoading(true);
+            setBaseError(null);
+
+            const params = buildGlobalJobParams({
+                companyFilter,
+                statusFilter,
                 page,
-                size: pageSize,
-                sortField: sortParams.sortField,
-                sortOrder: sortParams.sortOrder,
+                pageSize,
+                sortParams,
             });
 
+            logger.info("useJobScreen applyGlobalCompanyStatusFilter getAllJobs called", params);
+            const response = await getAllJobs(params);
+            const jobsArray = Array.isArray(response?.data) ? response.data : [];
+
+            setBaseJobs(jobsArray);
+            setHasGlobalFilters(true);
+        } catch (error) {
+            logger.error("useJobScreen applyGlobalCompanyStatusFilter failed", error);
+            setBaseError(error);
+        } finally {
+            setIsBaseLoading(false);
+        }
+    };
+
+    /**
+     * applyGlobalClientSearch
+     * - Executes a global searchJobs call using the client name as `q`.
+     * - Also sets the search bar value to that client name and applies it as the active search.
+     *
+     * @async
+     * @function applyGlobalClientSearch
+     * @param {string} clientName - Client string selected from dropdown.
+     * @returns {Promise<void>}
+     */
+    const applyGlobalClientSearch = async (clientName) => {
+        const q = String(clientName || "").trim();
+        if (!q) {
+            return;
+        }
+
+        try {
+            setIsBaseLoading(true);
+            setBaseError(null);
+
             const params = {
-                q: trimmedSearch,
+                q,
                 page,
                 size: pageSize,
                 sortField: sortParams.sortField,
                 sortOrder: sortParams.sortOrder,
             };
 
+            logger.info("useJobScreen applyGlobalClientSearch searchJobs called", params);
+
             const response = await searchJobs(params);
-            logger.info("useJobScreen search queryFn success", {
-                count: Array.isArray(response?.data) ? response.data.length : 0,
-                meta: response?.meta,
-            });
-            return response;
-        },
-        enabled: trimmedSearch.length > 0, // only hit API when a search is actually applied
-        keepPreviousData: true,
-    });
+            const jobsArray = Array.isArray(response?.data) ? response.data : [];
+
+            setBaseJobs(jobsArray);
+            setHasGlobalFilters(true);
+
+            // Populate the search bar with the client name and mark it as the active search text.
+            setSearchInput(q);
+            setSearch(q);
+        } catch (error) {
+            logger.error("useJobScreen applyGlobalClientSearch failed", error);
+            setBaseError(error);
+        } finally {
+            setIsBaseLoading(false);
+        }
+    };
+
+    // --- Hook consumers will call these setters directly; we add effects to detect "initial global" logic ---
 
     /**
-     * isUsingSearch
-     * - Indicates whether server-side search is currently active.
+     * Effect: when companyFilter or statusFilter changes, decide if this should trigger
+     * the initial (or edge-case) global getAllJobs call.
      *
-     * @type {boolean}
+     * Rules:
+     * - If no global filters have been applied yet (hasGlobalFilters === false):
+     *    - If companyFilter != "all" OR statusFilter != "all": trigger global getAllJobs.
+     *    - initialGlobalFilterSource will be:
+     *        - "company" if companyFilter changed from "all" to a value.
+     *        - "status"  if statusFilter  changed from "all" to a value.
+     * - Edge case:
+     *    - If initialGlobalFilterSource is "company" and then statusFilter changes from "all" to something,
+     *      trigger another global getAllJobs (now with both companyId & status).
+     *    - If initialGlobalFilterSource is "status" and then companyFilter changes, same rule.
      */
-    const isUsingSearch = trimmedSearch.length > 0;
+    useEffect(() => {
+        // No-op until the initial jobs query has resolved at least once.
+        if (isPendingInitial) return;
+
+        const isCompanyActive = companyFilter !== "all";
+        const isStatusActive = statusFilter !== "all";
+
+        // First time any of the global filters gets activated.
+        if (!hasGlobalFilters && (isCompanyActive || isStatusActive)) {
+            const source = isCompanyActive && !isStatusActive ? "company"
+                : !isCompanyActive && isStatusActive ? "status"
+                    : isCompanyActive && isStatusActive ? "company-status"
+                        : "none";
+
+            logger.info("useJobScreen initial global filter activation", {
+                companyFilter,
+                statusFilter,
+                source,
+            });
+
+            setInitialGlobalFilterSource(source);
+            // Reset pagination to the first page on initial global filter.
+            setPage(1);
+
+            // Global call based on current filters.
+            applyGlobalCompanyStatusFilter();
+            return;
+        }
+
+        // Edge-case: after initial global filter from company, user adds status (or vice versa).
+        if (hasGlobalFilters) {
+            const source = initialGlobalFilterSource;
+
+            const shouldEdgeRequeryFromCompany =
+                source === "company" && isCompanyActive && isStatusActive;
+
+            const shouldEdgeRequeryFromStatus =
+                source === "status" && isCompanyActive && isStatusActive;
+
+            if (shouldEdgeRequeryFromCompany || shouldEdgeRequeryFromStatus) {
+                logger.info("useJobScreen edge global requery (company+status)", {
+                    companyFilter,
+                    statusFilter,
+                    source,
+                });
+                setPage(1);
+                applyGlobalCompanyStatusFilter();
+            }
+        }
+
+    }, [companyFilter, statusFilter, isPendingInitial]);
+
+    /**
+     * Effect: when clientFilter changes from "all" to a real client and no global
+     * filters have been applied yet, perform a global search via searchJobs(q=clientName).
+     *
+     * After this initial client-based global search, additional filter changes
+     * become local only.
+     */
+    useEffect(() => {
+        if (isPendingInitial) return;
+
+        const isClientActive = clientFilter !== "all";
+
+        if (!hasGlobalFilters && isClientActive) {
+            logger.info("useJobScreen initial global filter via client", {
+                clientFilter,
+            });
+            setInitialGlobalFilterSource("client");
+            setPage(1);
+            applyGlobalClientSearch(clientFilter);
+        }
+
+    }, [clientFilter, isPendingInitial]);
+
+    // --- Combined jobs collection used for local filters & sorting ---
 
     /**
      * jobs
-     * - Active job collection used for filtering & rendering.
-     *   - Search mode: the current page from /api/jobs/search.
-     *   - Non-search mode: base list from getAllJobs().
+     * - Active job collection used for local filtering & rendering.
+     *   - Before global filters: initialJobsResponse (base list from getAllJobs()).
+     *   - After global filters: baseJobs (from getAllJobs/searchJobs with params).
      *
      * @type {Array}
      */
     const jobs = useMemo(() => {
-        if (isUsingSearch) {
-            return Array.isArray(searchResponse?.data) ? searchResponse.data : [];
+        if (hasGlobalFilters) {
+            return Array.isArray(baseJobs) ? baseJobs : [];
         }
-        return Array.isArray(baseJobs) ? baseJobs : [];
-    }, [isUsingSearch, searchResponse, baseJobs]);
+        return Array.isArray(initialJobsResponse) ? initialJobsResponse : [];
+    }, [hasGlobalFilters, baseJobs, initialJobsResponse]);
 
     /**
      * isPending
-     * - Controls initial full-screen loading state.
-     * - We only block the whole screen while the base list is loading.
+     * - Controls top-level loading state.
+     * - Pending when initial list is loading OR a global re-query is in flight.
      *
      * @type {boolean}
      */
-    const isPending = isPendingList;
+    const isPending = isPendingInitial || isBaseLoading;
 
     /**
      * isError
-     * - Combined error flag that prefers search error when in search mode.
+     * - Combined error flag that prefers base/global error, else initial query error.
      *
      * @type {boolean}
      */
-    const isError = isUsingSearch ? isErrorSearch : isErrorList;
+    const isError = Boolean(baseError || (hasGlobalFilters ? baseError : errorInitial));
 
     /**
      * error
-     * - Combined error object from list or search queries (depending on mode).
+     * - Combined error object from global or initial queries.
      *
      * @type {Error | null | undefined}
      */
-    const error = isUsingSearch ? errorSearch : errorList;
+    const error = baseError || errorInitial;
 
     // --- Options for dropdowns (derived from current jobs set) ---
 
@@ -296,6 +537,8 @@ export const useJobScreen = () => {
     /**
      * companyOptions
      * - Unique companyId values for Company filter dropdown.
+     *   After global filters, this is still derived from the current jobs array,
+     *   making subsequent selections "local".
      *
      * @type {Array<{value:string,label:string}>}
      */
@@ -362,8 +605,9 @@ export const useJobScreen = () => {
 
     /**
      * filteredAndSortedJobs
-     * - Applies search, filters, and sort.
-     * - In search mode, text search is done server-side; we only apply filters.
+     * - Applies local search (searchInput/search), local filters, and local sort.
+     * - Global queries already constrain `jobs` by company/status/client; after that
+     *   all remaining filters are only applied locally over `jobs`.
      *
      * @type {Array}
      */
@@ -373,9 +617,7 @@ export const useJobScreen = () => {
         const q = trimmedSearch.toLowerCase();
 
         const baseFiltered = jobs.filter((job) => {
-            // When using server search, skip client text matching; we trust backend.
             const matchesSearch =
-                isUsingSearch ||
                 !q ||
                 String(job.name || "").toLowerCase().includes(q) ||
                 String(job.client || "").toLowerCase().includes(q) ||
@@ -394,11 +636,6 @@ export const useJobScreen = () => {
 
             return matchesSearch && matchesCompany && matchesClient && matchesStatus;
         });
-
-        if (isUsingSearch) {
-            // Respect backend ordering for search results
-            return baseFiltered;
-        }
 
         const [field, dirRaw] = String(sortKey || "").split("-");
         const dir = dirRaw || "desc";
@@ -426,7 +663,6 @@ export const useJobScreen = () => {
     }, [
         jobs,
         trimmedSearch,
-        isUsingSearch,
         companyFilter,
         clientFilter,
         statusFilter,
@@ -435,19 +671,11 @@ export const useJobScreen = () => {
 
     /**
      * totalJobs
-     * - Total count after filtering.
-     * - In search mode, prefers backend meta.totalRecords if present.
+     * - Total count after local filtering.
      *
      * @type {number}
      */
-    const totalJobs = useMemo(() => {
-        if (isUsingSearch) {
-            const metaTotal = searchResponse?.meta?.totalRecords;
-            if (typeof metaTotal === "number") return metaTotal;
-            return filteredAndSortedJobs.length;
-        }
-        return filteredAndSortedJobs.length;
-    }, [isUsingSearch, searchResponse, filteredAndSortedJobs.length]);
+    const totalJobs = filteredAndSortedJobs.length;
 
     /**
      * totalPages
@@ -474,27 +702,21 @@ export const useJobScreen = () => {
 
     /**
      * paginatedJobs
-     * - Non-search mode: slice filteredAndSortedJobs for current page.
-     * - Search mode: backend already paginates; we return filteredAndSortedJobs as-is.
+     * - Slice filteredAndSortedJobs for current page.
      *
      * @type {Array}
      */
     const paginatedJobs = useMemo(() => {
-        if (isUsingSearch) {
-            // Search results are already paginated server-side
-            return filteredAndSortedJobs;
-        }
-
         if (filteredAndSortedJobs.length === 0) return [];
-
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
         return filteredAndSortedJobs.slice(start, end);
-    }, [isUsingSearch, filteredAndSortedJobs, currentPage, pageSize]);
+    }, [filteredAndSortedJobs, currentPage, pageSize]);
 
     /**
      * handleResetFilters
-     * - Resets filters, search text, sort, and pagination to defaults.
+     * - Resets filters, search text, sort, pagination, and global state to defaults.
+     *   Also clears any cached global-job specific queries to avoid stale data.
      *
      * @function handleResetFilters
      * @returns {void}
@@ -509,6 +731,15 @@ export const useJobScreen = () => {
         setSortKey("date-desc");
         setPage(1);
         setPageSize(DEFAULT_PAGE_SIZE);
+        setHasGlobalFilters(false);
+        setInitialGlobalFilterSource("none");
+        setBaseJobs(Array.isArray(initialJobsResponse) ? initialJobsResponse : []);
+        setBaseError(null);
+        setIsBaseLoading(false);
+
+        // Optional: invalidate global search/list cache so next interaction refetches fresh data.
+        queryClient.invalidateQueries({ queryKey: jobKeys.lists() });
+        queryClient.invalidateQueries({ queryKey: jobKeys.search() });
     };
 
     // --- Public API ---
@@ -529,6 +760,8 @@ export const useJobScreen = () => {
         statusFilter,
         page,
         pageSize,
+        hasGlobalFilters,
+        initialGlobalFilterSource,
 
         // setters / actions
         setSearch, // apply search (used on Enter)

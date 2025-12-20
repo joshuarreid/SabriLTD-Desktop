@@ -4,7 +4,7 @@
  *
  * Pattern is aligned with buildingQueryKeys.js:
  *  - Root key: ['job']
- *  - Lists, filtered lists, detail, create, update, remove keys
+ *  - Lists, filtered lists, search, clients, companies, detail, create, update, remove keys
  *
  * @see https://tanstack.com/query/latest/docs/framework/react/guides/query-keys
  */
@@ -23,14 +23,16 @@ export const JOB = ["job"];
  * Usage examples:
  *   jobKeys.lists()                              // ['job', 'lists']
  *   jobKeys.list({ status: 'Active' })           // ['job', 'lists', { filters: { status: 'Active' } }]
- *   jobKeys.search({ q: 'Audit' })               // ['job', 'search', { q: 'Audit' }]
+ *   jobKeys.search({ q: 'Audit' })               // ['job', 'search', { searchParams: { q: 'Audit' } }]
+ *   jobKeys.clients()                            // ['job', 'clients']
+ *   jobKeys.companies()                          // ['job', 'companies']
  *   jobKeys.detail(401)                          // ['job', 'detail', 401]
  *   jobKeys.create()                             // ['job', 'create']
  *   jobKeys.update(401)                          // ['job', 'detail', 401, 'update']
  *   jobKeys.remove(401)                          // ['job', 'detail', 401, 'remove']
  *
  * These keys are used across:
- *  - useQuery (for fetching jobs and job details)
+ *  - useQuery (for fetching jobs, job search, clients, and companies)
  *  - useMutation (for create/update/delete)
  *  - QueryClient.invalidateQueries / setQueryData
  *
@@ -72,6 +74,43 @@ export const jobKeys = {
      * @returns {Array} React Query key including search params
      */
     search: (searchParams = {}) => [...jobKeys.all, "search", { searchParams }],
+
+    /**
+     * Key for the unique clients list (GET /api/jobs/clients).
+     * Use this when fetching the de-duplicated client pick list.
+     *
+     * @function
+     * @returns {Array} React Query key for unique clients
+     */
+    clients: () => [...jobKeys.all, "clients"],
+
+    /**
+     * Key for a clients list scoped by optional filters.
+     * Example: jobKeys.clientsList({ companyId: 301 })
+     *
+     * @function
+     * @param {object} [filters={}] - Optional filters to scope the clients key.
+     * @returns {Array} React Query key for clients list
+     */
+    clientsList: (filters = {}) => [...jobKeys.clients(), { filters }],
+
+    /**
+     * Key for the unique companies list (GET /api/jobs/companies).
+     * Use this when fetching the de-duplicated company pick list.
+     *
+     * @function
+     * @returns {Array} React Query key for unique companies
+     */
+    companies: () => [...jobKeys.all, "companies"],
+
+    /**
+     * Key for a companies list scoped by optional filters.
+     *
+     * @function
+     * @param {object} [filters={}] - Optional filters to scope the companies key.
+     * @returns {Array} React Query key for companies list
+     */
+    companiesList: (filters = {}) => [...jobKeys.companies(), { filters }],
 
     /**
      * Key for a single job detail by id.
