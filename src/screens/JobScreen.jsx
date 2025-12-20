@@ -46,32 +46,48 @@ const JobScreen = () => {
     logger.info("JobScreen rendered");
 
     const {
-        jobs,
+        // data
+        paginatedJobs,
+        totalJobs,
+        totalPages,
+        currentPage,
+
+        // loading / error
         isPending,
         isError,
         error,
-        search,
+
+        // search & filters
         searchInput,
         sortKey,
         companyFilter,
         clientFilter,
         statusFilter,
+
         setSearch,
         setSearchInput,
         setSortKey,
         setCompanyFilter,
         setClientFilter,
         setStatusFilter,
+
+        // dropdown options
         sortOptionsForDropdown,
         companyOptions,
         clientOptions,
         statusOptions,
-        paginatedJobs,
-        totalJobs,
-        totalPages,
-        currentPage,
+
+        // pagination (centralized via useJobScreenPagination)
         pageSize,
-        setPage,
+        hasPrevious,
+        hasNext,
+        handlePageChange,
+        handleNextPage,
+        handlePreviousPage,
+        itemStart,
+        itemEnd,
+
+        // actions
         handleResetFilters,
     } = useJobScreen();
 
@@ -103,25 +119,9 @@ const JobScreen = () => {
             const value = searchInput.trim();
             logger.info("JobScreen search submitted via Enter", { value });
             setSearch(value);
-            setPage(1);
+            handlePageChange(1);
         }
     };
-
-    /**
-     * handlePageChange
-     * - Handles pagination navigation.
-     *
-     * @function handlePageChange
-     * @param {number} nextPage
-     * @returns {void}
-     */
-    const handlePageChange = (nextPage) => {
-        logger.info("JobScreen handlePageChange", { nextPage });
-        setPage(nextPage);
-    };
-
-    const hasPrevious = currentPage > 1;
-    const hasNext = currentPage < totalPages;
 
     /**
      * buildCompanySearchOptions
@@ -181,7 +181,7 @@ const JobScreen = () => {
                     options={sortOptionsForDropdown}
                     onChange={(value) => {
                         setSortKey(value);
-                        setPage(1);
+                        handlePageChange(1);
                     }}
                     displaySelection
                 />
@@ -196,7 +196,7 @@ const JobScreen = () => {
                             value: normalized,
                         });
                         setCompanyFilter(normalized);
-                        setPage(1);
+                        handlePageChange(1);
                     }}
                 />
 
@@ -210,7 +210,7 @@ const JobScreen = () => {
                             value: normalized,
                         });
                         setClientFilter(normalized);
-                        setPage(1);
+                        handlePageChange(1);
                     }}
                 />
 
@@ -220,7 +220,7 @@ const JobScreen = () => {
                     options={statusOptions}
                     onChange={(value) => {
                         setStatusFilter(value);
-                        setPage(1);
+                        handlePageChange(1);
                     }}
                     displaySelection
                 />
@@ -241,16 +241,16 @@ const JobScreen = () => {
                 </div>
             </div>
 
-
             {/* Folder grid (animated JobInfoCard components) */}
             <section className={styles.folderGridSection}>
                 {isError ? (
                     <div className={styles.error}>
                         Error: {error?.message || "Failed to load jobs."}
                     </div>
+                ) : isPending ? (
+                    <div className={styles.loadingState}></div>
                 ) : paginatedJobs.length === 0 ? (
-                    <div className={styles.emptyState}>
-                    </div>
+                    <div className={styles.emptyState} />
                 ) : (
                     <motion.div
                         className={styles.folderGrid}
@@ -299,8 +299,7 @@ const JobScreen = () => {
                         "Showing 0 jobs"
                     ) : (
                         <>
-                            Showing {(currentPage - 1) * pageSize + 1}–
-                            {Math.min(currentPage * pageSize, totalJobs)} of {totalJobs} jobs
+                            Showing {itemStart}–{itemEnd} of {totalJobs} jobs
                         </>
                     )}
                 </div>
@@ -308,7 +307,7 @@ const JobScreen = () => {
                     <button
                         type="button"
                         className={styles.paginationButton}
-                        onClick={() => handlePageChange(currentPage - 1)}
+                        onClick={handlePreviousPage}
                         disabled={!hasPrevious}
                     >
                         Previous
@@ -319,7 +318,7 @@ const JobScreen = () => {
                     <button
                         type="button"
                         className={styles.paginationButton}
-                        onClick={() => handlePageChange(currentPage + 1)}
+                        onClick={handleNextPage}
                         disabled={!hasNext}
                     >
                         Next
