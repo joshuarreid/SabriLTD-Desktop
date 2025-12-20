@@ -28,7 +28,7 @@ const logger = {
  *
  * @component
  * @param {Object} props
- * @param {string} props.label - Title/label for the control (e.g., "Company").
+ * @param {string} props.label - Title/label for the control (e.g., "Client", "Company").
  * @param {Array<{value:string,label:string}>} props.options - Options, already sorted by most‑recent first.
  * @param {string} props.value - Currently selected value or "" when none is selected.
  * @param {(value:string)=>void} props.onChange - Called when user selects a value.
@@ -173,6 +173,23 @@ const FilterDropdownSearch = ({
         .filter(Boolean)
         .join(" ");
 
+    /**
+     * searchPlaceholder
+     * - Contextual placeholder text based on the dropdown label.
+     *   Example: label "Client" -> "Search Clients".
+     *
+     * @type {string}
+     */
+    const searchPlaceholder = useMemo(() => {
+        const base = label.trim();
+        if (!base) return "Search";
+        const plural =
+            base.toLowerCase().endsWith("y")
+                ? `${base.slice(0, -1)}ies`
+                : `${base}s`;
+        return `Search ${plural}`;
+    }, [label]);
+
     return (
         <div
             ref={rootRef}
@@ -194,7 +211,6 @@ const FilterDropdownSearch = ({
                 >
                     {label.toUpperCase()}
                 </span>
-                {/* When a value is selected, show it below the title to make it obvious */}
                 {hasSelection && (
                     <span className={styles.filterSelectedValue}>
                         {selectedLabel}
@@ -212,23 +228,20 @@ const FilterDropdownSearch = ({
                     {/* Search row */}
                     <div className={styles.searchRow}>
                         <FiSearch
-                            size={14}
+                            size={16}
                             className={styles.searchIcon}
                             aria-hidden="true"
                         />
                         <input
                             ref={searchInputRef}
-                            type="text"
+                            type="search"
                             className={styles.searchInput}
-                            placeholder="Search"
+                            placeholder={searchPlaceholder}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            aria-label="Search"
+                            aria-label={searchPlaceholder}
                         />
                     </div>
-
-                    {/* Divider */}
-                    <div className={styles.menuDivider} />
 
                     {/* Options */}
                     {visibleOptions.length === 0 ? (
