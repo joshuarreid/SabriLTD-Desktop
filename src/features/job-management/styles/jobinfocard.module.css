@@ -13,13 +13,18 @@
     cursor: pointer;
     user-select: none;
     outline: none;
-    transition: transform 0.14s ease, color 0.12s ease;
+    /* Smooth local motion for hover/focus + parent grid animations */
+    transition:
+            transform 160ms cubic-bezier(0.16, 1, 0.3, 1),
+            color 0.12s ease,
+            box-shadow 160ms ease;
 }
 
 /* Small focus / hover affordance (no heavy background) */
 .jobInfoRoot:hover,
 .jobInfoRoot:focus-visible {
     transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
 }
 
 /* Icon wrapper sized to match previous folder tile proportions */

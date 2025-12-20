@@ -2,9 +2,16 @@
  * JobScreen.jsx
  *
  * Presentational jobs screen.
+ * - Wide search bar at the top ("Search jobs")
+ * - Filter row: Sort by, Company, Client, Status (using generic FilterDropdown)
+ * - Animated grid of minimal job items (JobInfoCard) using Framer Motion layout transitions
+ * - Pagination controls pinned to the bottom (page indicator + navigation)
+ *
+ * All data fetching and business logic is handled by useJobScreen.
  */
 
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import styles from "../features/job-management/styles/jobscreen.module.css";
 import JobInfoCard from "../features/job-management/components/JobInfoCard";
 import WideSearchBar from "../components/searchbar/WideSearchBar";
@@ -22,6 +29,13 @@ const logger = {
     error: (...args) => console.error("[JobScreen]", ...args),
 };
 
+/**
+ * JobScreen
+ * Top-level presentational container for the jobs view.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const JobScreen = () => {
     logger.info("JobScreen rendered");
 
@@ -59,13 +73,13 @@ const JobScreen = () => {
      * handleSearchChange
      * - Updates local input only; does NOT trigger API until Enter is pressed.
      *
+     * @function handleSearchChange
      * @param {React.ChangeEvent<HTMLInputElement>} event
      * @returns {void}
      */
     const handleSearchChange = (event) => {
         const next = event.target.value;
         setSearchInput(next);
-        // keep page as-is until Enter, to avoid jumping user around while typing
         logger.info("Job search input changed", { value: next });
     };
 
@@ -73,6 +87,7 @@ const JobScreen = () => {
      * handleSearchKeyDown
      * - Applies search when user presses Enter.
      *
+     * @function handleSearchKeyDown
      * @param {React.KeyboardEvent<HTMLInputElement>} event
      * @returns {void}
      */
@@ -81,14 +96,16 @@ const JobScreen = () => {
             event.preventDefault();
             const value = searchInput.trim();
             logger.info("Job search submitted via Enter", { value });
-            setSearch(value); // triggers searchJobs query when non-empty
+            setSearch(value);
             setPage(1);
         }
     };
 
     /**
      * handlePageChange
+     * - Handles pagination navigation.
      *
+     * @function handlePageChange
      * @param {number} nextPage
      * @returns {void}
      */
@@ -100,7 +117,7 @@ const JobScreen = () => {
     if (isPending) {
         return (
             <div className={styles.jobScreen}>
-                <div className={styles.loading}>Loading jobs...</div>
+                <div className={styles.loading}></div>
             </div>
         );
     }
@@ -191,33 +208,54 @@ const JobScreen = () => {
                 </div>
             </div>
 
-            {/* Folder grid (minimal JobInfoCard components) */}
+            {/* Folder grid (animated JobInfoCard components) */}
             <section className={styles.folderGridSection}>
                 {paginatedJobs.length === 0 ? (
                     <div className={styles.emptyState}>
-                        {jobs.length === 0
-                            ? "No jobs found."
-                            : "No jobs match your search or filters."}
                     </div>
                 ) : (
-                    <div className={styles.folderGrid}>
-                        {paginatedJobs.map((job) => (
-                            <JobInfoCard
-                                key={job.jobId}
-                                job={{
-                                    jobId: job.jobId,
-                                    name: job.name,
-                                    companyName: job.client,
-                                    status: job.status,
-                                }}
-                                onClick={() =>
-                                    logger.info("Job item clicked", {
-                                        jobId: job.jobId,
-                                    })
-                                }
-                            />
-                        ))}
-                    </div>
+                    <motion.div
+                        className={styles.folderGrid}
+                        /**
+                         * layout
+                         * - Enables FLIP-based layout animations when children change
+                         *   (e.g., filters, search, or pagination).
+                         */
+                        layout
+                        transition={{
+                            layout: { duration: 0.25, ease: [0.16, 1, 0.3, 1] },
+                        }}
+                    >
+                        <AnimatePresence>
+                            {paginatedJobs.map((job) => (
+                                <motion.div
+                                    key={job.jobId}
+                                    layout
+                                    initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -10, scale: 0.96 }}
+                                    transition={{
+                                        duration: 0.22,
+                                        ease: [0.16, 1, 0.3, 1],
+                                    }}
+                                >
+                                    <JobInfoCard
+                                        job={{
+                                            jobId: job.jobId,
+                                            name: job.name,
+                                            companyName: job.client,
+                                            status: job.status,
+                                        }}
+                                        onClick={() =>
+                                            logger.info("Job item clicked", {
+                                                jobId: job.jobId,
+                                            })
+                                        }
+                                    />
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </motion.div>
                 )}
             </section>
 
