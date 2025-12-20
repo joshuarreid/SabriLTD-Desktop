@@ -18,10 +18,9 @@ const logger = {
  * Generic square dropdown used for filter/sort controls.
  *
  * Behavior:
- * - The button shows ONLY the section label (e.g., "STATUS") like your reference.
- * - When the current value is not the "all" sentinel, the label is visually
- *   emphasized via a bold style (CSS class).
- * - The selected value itself is not shown in the button, only in the menu.
+ * - Button shows ONLY the section label (e.g., "STATUS").
+ * - Label and button chrome become stronger when a non-all value is selected.
+ * - Label text is centered with caret, per design reference.
  *
  * @component
  * @param {Object} props
@@ -77,6 +76,8 @@ const FilterDropdown = ({
 
     /**
      * Closes dropdown when a click occurs outside of this component.
+     *
+     * @returns {void}
      */
     useEffect(() => {
         if (!open) return;
@@ -108,6 +109,13 @@ const FilterDropdown = ({
         }
     };
 
+    const controlClassName = [
+        styles.filterControl,
+        hasActiveFilter ? styles.filterControlActive : "",
+    ]
+        .filter(Boolean)
+        .join(" ");
+
     return (
         <div
             ref={rootRef}
@@ -115,7 +123,7 @@ const FilterDropdown = ({
         >
             <button
                 type="button"
-                className={styles.filterControl}
+                className={controlClassName}
                 onClick={handleToggle}
                 onKeyDown={handleKeyDown}
                 aria-haspopup="listbox"
