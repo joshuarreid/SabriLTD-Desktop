@@ -2,6 +2,12 @@
  * JobScreen.jsx
  *
  * Presentational jobs screen.
+ * - Wide search bar at the top ("Search jobs")
+ * - Filter row: Sort by, Company, Client, Status (company/client use FilterDropdownSearch)
+ * - Animated grid of minimal job items (JobInfoCard) using Framer Motion layout transitions
+ * - Pagination controls pinned to the bottom (page indicator + navigation)
+ *
+ * All data fetching and business logic is handled by useJobScreen.
  */
 
 import React from "react";
@@ -13,11 +19,24 @@ import FilterDropdown from "../components/filterdropdown/FilterDropdown";
 import FilterDropdownSearch from "../components/filterdropdown/FilterDropdownSearch";
 import { useJobScreen } from "../features/job-management/hooks/useJobScreen";
 
+/**
+ * Standardized logger for JobScreen.
+ *
+ * @constant
+ * @type {{info: Function, error: Function}}
+ */
 const logger = {
     info: (...args) => console.log("[JobScreen]", ...args),
     error: (...args) => console.error("[JobScreen]", ...args),
 };
 
+/**
+ * JobScreen
+ * Top-level presentational container for the jobs view.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
 const JobScreen = () => {
     logger.info("JobScreen rendered");
 
@@ -53,7 +72,7 @@ const JobScreen = () => {
         clientOptions,
         statusOptions,
 
-        // pagination
+        // pagination (centralized via useJobScreenPagination)
         hasPrevious,
         hasNext,
         handlePageChange,
@@ -66,27 +85,56 @@ const JobScreen = () => {
         handleResetFilters,
     } = useJobScreen();
 
+    /**
+     * handleSearchChange
+     * - Updates local search input only; does NOT trigger filtering until Enter.
+     *
+     * @function handleSearchChange
+     * @param {React.ChangeEvent<HTMLInputElement>} event
+     * @returns {void}
+     */
     const handleSearchChange = (event) => {
         const next = event.target.value;
         setSearchInput(next);
-        logger.info("JobScreen search input changed", { value: next });
+        logger.info("[JobScreen] search input changed", { value: next });
     };
 
+    /**
+     * handleSearchKeyDown
+     * - Applies search when user presses Enter.
+     *
+     * @function handleSearchKeyDown
+     * @param {React.KeyboardEvent<HTMLInputElement>} event
+     * @returns {void}
+     */
     const handleSearchKeyDown = (event) => {
         if (event.key === "Enter") {
             event.preventDefault();
             const value = searchInput.trim();
-            logger.info("JobScreen search submitted via Enter", { value });
+            logger.info("[JobScreen] search submitted via Enter", { value });
             setSearch(value);
             handlePageChange(1);
         }
     };
 
+    /**
+     * buildCompanySearchOptions
+     * - Maps companyOptions into label/value pairs for FilterDropdownSearch,
+     *   excluding the "all" sentinel option.
+     *
+     * @returns {Array<{value:string,label:string}>}
+     */
     const buildCompanySearchOptions = () =>
         (companyOptions || [])
             .filter((opt) => opt.value !== "all")
             .map((opt) => ({ value: opt.value, label: opt.label }));
 
+    /**
+     * buildClientSearchOptions
+     * - Maps unique clients from clientOptions into label/value pairs for FilterDropdownSearch.
+     *
+     * @returns {Array<{value:string,label:string}>}
+     */
     const buildClientSearchOptions = () =>
         (clientOptions || [])
             .filter((opt) => opt.value !== "all")
@@ -95,12 +143,24 @@ const JobScreen = () => {
     const companySearchOptions = buildCompanySearchOptions();
     const clientSearchOptions = buildClientSearchOptions();
 
+    logger.info("[JobScreen] render snapshot", {
+        totalJobs,
+        totalPages,
+        currentPage,
+        itemStart,
+        itemEnd,
+        hasPrevious,
+        hasNext,
+        paginatedJobsLength: paginatedJobs.length,
+    });
+
     return (
         <div className={styles.jobScreen}>
             <header className={styles.headerRow}>
                 <h2 className={styles.title}>Jobs</h2>
             </header>
 
+            {/* Top search bar – full-width and aligned with title & filters */}
             <div className={styles.searchRow}>
                 <WideSearchBar
                     value={searchInput}
@@ -112,12 +172,14 @@ const JobScreen = () => {
                 />
             </div>
 
+            {/* Filters row: Sort by, Company, Client, Status */}
             <div className={styles.filtersRow} role="region" aria-label="Job filters">
                 <FilterDropdown
                     label="Sort by"
                     value={sortKey}
                     options={sortOptionsForDropdown}
                     onChange={(value) => {
+                        logger.info("[JobScreen] sort changed", { value });
                         setSortKey(value);
                         handlePageChange(1);
                     }}
@@ -130,7 +192,7 @@ const JobScreen = () => {
                     options={companySearchOptions}
                     onChange={(nextValue) => {
                         const normalized = nextValue || "all";
-                        logger.info("JobScreen company filter changed", {
+                        logger.info("[JobScreen] company filter changed", {
                             value: normalized,
                         });
                         setCompanyFilter(normalized);
@@ -144,7 +206,7 @@ const JobScreen = () => {
                     options={clientSearchOptions}
                     onChange={(nextValue) => {
                         const normalized = nextValue || "all";
-                        logger.info("JobScreen client filter changed", {
+                        logger.info("[JobScreen] client filter changed", {
                             value: normalized,
                         });
                         setClientFilter(normalized);
@@ -157,6 +219,7 @@ const JobScreen = () => {
                     value={statusFilter}
                     options={statusOptions}
                     onChange={(value) => {
+                        logger.info("[JobScreen] status filter changed", { value });
                         setStatusFilter(value);
                         handlePageChange(1);
                     }}
@@ -171,7 +234,7 @@ const JobScreen = () => {
                         className={styles.clearButton}
                         onClick={() => {
                             handleResetFilters();
-                            logger.info("JobScreen filters cleared");
+                            logger.info("[JobScreen] filters cleared");
                         }}
                     >
                         Clear
@@ -179,6 +242,7 @@ const JobScreen = () => {
                 </div>
             </div>
 
+            {/* Folder grid (animated JobInfoCard components) */}
             <section className={styles.folderGridSection}>
                 {isError ? (
                     <div className={styles.error}>
@@ -217,7 +281,7 @@ const JobScreen = () => {
                                             status: job.status,
                                         }}
                                         onClick={() =>
-                                            logger.info("JobScreen job clicked", {
+                                            logger.info("[JobScreen] job clicked", {
                                                 jobId: job.jobId,
                                             })
                                         }
@@ -229,6 +293,7 @@ const JobScreen = () => {
                 )}
             </section>
 
+            {/* Pagination footer pinned at bottom of page content */}
             <footer className={styles.paginationFooter} aria-label="Job pagination">
                 <div className={styles.paginationSummary}>
                     {totalJobs === 0 ? (

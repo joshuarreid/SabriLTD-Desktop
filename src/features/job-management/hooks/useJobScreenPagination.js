@@ -2,17 +2,9 @@
  * useJobScreenPagination.js
  *
  * Centralized pagination logic for the JobScreen.
- *
- * Responsibilities:
- * - Manage current page and pageSize for server-side pagination.
- * - Expose derived metadata: hasPrevious, hasNext, item range, etc.
- * - Provide handlers for changing pages from the UI.
- *
- * This hook does NOT fetch data. It is meant to be composed with useJobSearch
- * (or any other data hook) and consumed by useJobScreen / JobScreen.jsx.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 
 const logger = {
     info: (...args) => console.log("[useJobScreenPagination]", ...args),
@@ -28,11 +20,6 @@ const logger = {
  *   totalItems?: number | null,
  *   totalPagesFromServer?: number | null,
  * }} options
- *
- * - totalItems / totalPagesFromServer are optional and can be updated from the outside.
- *   This hook will:
- *   - Prefer totalPagesFromServer if provided.
- *   - Otherwise derive totalPages from totalItems & pageSize.
  */
 export const useJobScreenPagination = ({
                                            initialPage = 1,
@@ -40,60 +27,69 @@ export const useJobScreenPagination = ({
                                            totalItems = null,
                                            totalPagesFromServer = null,
                                        } = {}) => {
-    /** @type {[number, Function]} */
     const [page, setPage] = useState(initialPage);
-
-    /** @type {[number, Function]} */
     const [pageSize, setPageSize] = useState(initialPageSize);
 
-    /**
-     * totalPages
-     * - Prefer server-provided total pages; fallback to derived value.
-     */
+    // Log incoming props every render
+    useEffect(() => {
+        logger.info("props changed", {
+            initialPage,
+            initialPageSize,
+            totalItems,
+            totalPagesFromServer,
+        });
+    }, [initialPage, initialPageSize, totalItems, totalPagesFromServer]);
+
     const totalPages = useMemo(() => {
-        if (typeof totalPagesFromServer === "number" && totalPagesFromServer > 0) {
-            return totalPagesFromServer;
-        }
+        const fromServer =
+            typeof totalPagesFromServer === "number" && totalPagesFromServer > 0
+                ? totalPagesFromServer
+                : null;
 
-        if (typeof totalItems === "number" && totalItems > 0) {
-            return Math.max(1, Math.ceil(totalItems / pageSize));
-        }
+        const fromItems =
+            typeof totalItems === "number" && totalItems > 0
+                ? Math.max(1, Math.ceil(totalItems / pageSize))
+                : null;
 
-        return 1;
+        const value = fromServer ?? fromItems ?? 1;
+
+        logger.info("compute totalPages", {
+            totalPagesFromServer,
+            totalItems,
+            pageSize,
+            chosen: value,
+        });
+
+        return value;
     }, [totalPagesFromServer, totalItems, pageSize]);
 
-    /**
-     * currentPage
-     * - Page number clamped to a valid range.
-     */
     const currentPage = useMemo(() => {
-        if (page < 1) return 1;
-        if (page > totalPages) return totalPages;
-        return page;
+        let value = page;
+        if (value < 1) value = 1;
+        if (value > totalPages) value = totalPages;
+
+        logger.info("compute currentPage", { raw: page, clamped: value, totalPages });
+
+        return value;
     }, [page, totalPages]);
 
     const hasPrevious = currentPage > 1;
     const hasNext = currentPage < totalPages;
 
-    /**
-     * itemStart / itemEnd
-     * - 1-based item range for the current page, given totalItems (if provided).
-     *   Safe defaults when totalItems is null/unknown.
-     */
     const itemStart = useMemo(() => {
         if (!totalItems || totalItems === 0) return 0;
-        return (currentPage - 1) * pageSize + 1;
+        const start = (currentPage - 1) * pageSize + 1;
+        logger.info("compute itemStart", { totalItems, currentPage, pageSize, start });
+        return start;
     }, [currentPage, pageSize, totalItems]);
 
     const itemEnd = useMemo(() => {
         if (!totalItems || totalItems === 0) return 0;
-        return Math.min(currentPage * pageSize, totalItems);
+        const end = Math.min(currentPage * pageSize, totalItems);
+        logger.info("compute itemEnd", { totalItems, currentPage, pageSize, end });
+        return end;
     }, [currentPage, pageSize, totalItems]);
 
-    /**
-     * handlePageChange
-     * - Safely update the page, clamped to [1, totalPages].
-     */
     const handlePageChange = useCallback(
         (nextPage) => {
             if (typeof nextPage !== "number" || Number.isNaN(nextPage)) return;
@@ -112,28 +108,18 @@ export const useJobScreenPagination = ({
         [totalPages],
     );
 
-    /**
-     * handleNext
-     * - Move to next page if exists.
-     */
     const handleNext = useCallback(() => {
+        logger.info("handleNext clicked", { hasNext, currentPage, totalPages });
         if (!hasNext) return;
         handlePageChange(currentPage + 1);
-    }, [hasNext, currentPage, handlePageChange]);
+    }, [hasNext, currentPage, totalPages, handlePageChange]);
 
-    /**
-     * handlePrevious
-     * - Move to previous page if exists.
-     */
     const handlePrevious = useCallback(() => {
+        logger.info("handlePrevious clicked", { hasPrevious, currentPage, totalPages });
         if (!hasPrevious) return;
         handlePageChange(currentPage - 1);
-    }, [hasPrevious, currentPage, handlePageChange]);
+    }, [hasPrevious, currentPage, totalPages, handlePageChange]);
 
-    /**
-     * resetPagination
-     * - Reset page and pageSize back to initial values.
-     */
     const resetPagination = useCallback(() => {
         logger.info("resetPagination", {
             initialPage,
@@ -142,6 +128,18 @@ export const useJobScreenPagination = ({
         setPage(initialPage);
         setPageSize(initialPageSize);
     }, [initialPage, initialPageSize]);
+
+    useEffect(() => {
+        logger.info("state snapshot", {
+            page,
+            pageSize,
+            currentPage,
+            totalPages,
+            totalItems,
+            itemStart,
+            itemEnd,
+        });
+    }, [page, pageSize, currentPage, totalPages, totalItems, itemStart, itemEnd]);
 
     return {
         // state
