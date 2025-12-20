@@ -2,6 +2,13 @@
  * useJobScreen.js
  *
  * Data-fetching and global filter/search orchestration for the JobScreen.
+ *
+ * Responsibilities:
+ * - Load the base jobs collection from the Job API (getAllJobs / searchJobs).
+ * - Load the unique companies list (GET /api/jobs/companies) for the Company dropdown.
+ * - Load the unique clients list (GET /api/jobs/clients), optionally scoped by companyId.
+ * - Decide when filters are global vs local, per JobScreen product rules.
+ * - Delegate all local filter/search/sort/pagination behavior to useJobFilterAndSearch.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -19,6 +26,12 @@ import {
     DEFAULT_PAGE_SIZE,
 } from "./useJobFilterAndSearch";
 
+/**
+ * logger for useJobScreen hook.
+ *
+ * @constant
+ * @type {{info: Function, error: Function}}
+ */
 const logger = {
     info: (...args) => console.log("[useJobScreen]", ...args),
     error: (...args) => console.error("[useJobScreen]", ...args),
@@ -103,18 +116,63 @@ const buildGlobalJobParams = ({
  * useJobScreen
  * - Top-level hook for the JobScreen route with global vs local filter orchestration.
  *
+ * Global rules:
+ * - If the initial filter is Company -> call getAllJobs({ companyId })
+ * - If the initial filter is Status  -> call getAllJobs({ status })
+ * - If the initial filter is Client -> call searchJobs({ q: clientName })
+ * - After the initial global filter is applied, remaining dropdowns become local
+ *   (filter the in-memory job list only), except:
+ *   - Edge: if initial is company and then status is added (or vice versa),
+ *     do another global getAllJobs with both params.
+ *   - Edge: when company filter is active after a global search, the Client
+ *     dropdown uses GET /api/jobs/clients?companyId=... to populate options.
+ *   - Edge: if Client was the initial global filter and is then cleared via
+ *     the dropdown Clear button, perform a full global reset back to the
+ *     initial unfiltered jobs collection.
+ *
  * @function useJobScreen
- * @returns {object}
+ * @returns {object} Aggregated JobScreen state, options, and derived lists.
  */
 export const useJobScreen = () => {
     logger.info("useJobScreen initialized");
 
+    /**
+     * baseJobs
+     * - Local copy of jobs that reflect the latest "global" query results.
+     *   Once any global filter is applied, baseJobs is overwritten by the
+     *   results of that global call and then used for all local filtering.
+     *
+     * @type {[Array, Function]}
+     */
     const [baseJobs, setBaseJobs] = useState([]);
+
+    /**
+     * hasGlobalFilters
+     * - Tracks whether any global filter (company/status/client) has been
+     *   applied yet. Before this is true, filters may trigger global refetches.
+     *   After it becomes true, filters are local-only (except the company+status
+     *   edge case).
+     *
+     * @type {[boolean, Function]}
+     */
     const [hasGlobalFilters, setHasGlobalFilters] = useState(false);
+
+    /**
+     * initialGlobalFilterSource
+     * - Records which dimension first triggered a global filter:
+     *   'none' | 'company' | 'status' | 'client' | 'company-status'
+     *
+     * @type {[string, Function]}
+     */
     const [initialGlobalFilterSource, setInitialGlobalFilterSource] =
         useState("none");
 
-    // --- Initial unfiltered jobs load ---
+    /**
+     * initialJobsQuery
+     * - Initial unfiltered jobs collection (default Get Jobs).
+     * - Used as the "starting" dataset before any global filters are applied,
+     *   and as the reset dataset when clearing filters globally.
+     */
     const {
         data: initialJobsResponse,
         isPending: isPendingInitialJobs,
@@ -133,7 +191,11 @@ export const useJobScreen = () => {
         },
     });
 
-    // --- Companies for dropdown ---
+    /**
+     * uniqueCompaniesQuery
+     * - Loads the de-duplicated list of companies that have at least one job.
+     * - Used to populate the Company dropdown with human-readable names.
+     */
     const {
         data: uniqueCompanies = [],
         isError: isErrorCompanies,
@@ -150,7 +212,10 @@ export const useJobScreen = () => {
         },
     });
 
-    // Keep baseJobs in sync with initial unfiltered load until a global filter is applied
+    /**
+     * Effect: synchronize baseJobs from the initial jobs query
+     * until a global filter has been applied.
+     */
     useEffect(() => {
         if (!hasGlobalFilters && Array.isArray(initialJobsResponse)) {
             logger.info("useJobScreen syncing baseJobs from initialJobsResponse", {
@@ -160,6 +225,12 @@ export const useJobScreen = () => {
         }
     }, [initialJobsResponse, hasGlobalFilters]);
 
+    /**
+     * jobs
+     * - Raw jobs array that will be fed into the local filter/search hook.
+     *
+     * @type {Array}
+     */
     const jobs = useMemo(() => {
         const arr = Array.isArray(baseJobs) ? baseJobs : [];
         logger.info("useJobScreen using baseJobs as jobs source", {
@@ -168,7 +239,11 @@ export const useJobScreen = () => {
         return arr;
     }, [baseJobs]);
 
-    // Local client-side filter/search/sort/pagination
+    /**
+     * filterAndSearch
+     * - Local UI state and derived collections driven by useJobFilterAndSearch.
+     * - This hook is pure client-side: it does not perform any data fetching.
+     */
     const filterAndSearch = useJobFilterAndSearch(jobs, {
         initialSortKey: DEFAULT_SORT_KEY,
         initialPageSize: DEFAULT_PAGE_SIZE,
@@ -183,11 +258,29 @@ export const useJobScreen = () => {
         pageSize,
     } = filterAndSearch;
 
+    /**
+     * isPending
+     * - Top-level pending flag for the screen.
+     *
+     * @type {boolean}
+     */
     const isPending = isPendingInitialJobs;
+
+    /**
+     * Combined error state from jobs & unique companies queries.
+     */
     const isError = Boolean(isErrorInitialJobs || isErrorCompanies);
     const error = errorInitialJobs || errorCompanies;
 
-    // --- Global filter helpers (unchanged from previous version) ---
+    /**
+     * applyGlobalCompanyStatusFilter
+     * - Executes a global getAllJobs call using current company/status filters
+     *   and updates baseJobs + global flags.
+     *
+     * @async
+     * @function applyGlobalCompanyStatusFilter
+     * @returns {Promise<void>}
+     */
     const applyGlobalCompanyStatusFilter = async () => {
         logger.info("useJobScreen applyGlobalCompanyStatusFilter called", {
             companyFilter,
@@ -234,6 +327,17 @@ export const useJobScreen = () => {
         }
     };
 
+    /**
+     * applyGlobalClientSearch
+     * - Executes a global searchJobs call using the current clientFilter as q.
+     *   (Design choice: q = client name; server-side search returns jobs where
+     *    name/description/client match this text.)
+     *
+     * @async
+     * @function applyGlobalClientSearch
+     * @param {string} clientName
+     * @returns {Promise<void>}
+     */
     const applyGlobalClientSearch = async (clientName) => {
         const trimmedClient = clientName?.trim();
         if (!trimmedClient) return;
@@ -272,7 +376,15 @@ export const useJobScreen = () => {
         }
     };
 
-    // Global behavior for company + status initial / edge cases
+    /**
+     * Effect: global behavior for company & status initial / edge cases.
+     *
+     * Rules:
+     * - If hasGlobalFilters is false and either company or status is set (not "all"):
+     *   -> perform a global getAllJobs call.
+     * - Edge: if initial filter was company and status is then set (or vice versa),
+     *   and both are active, perform a second global getAllJobs with both params.
+     */
     useEffect(() => {
         const isCompanyActive = companyFilter !== "all";
         const isStatusActive = statusFilter !== "all";
@@ -316,7 +428,14 @@ export const useJobScreen = () => {
         initialGlobalFilterSource,
     ]);
 
-    // Global behavior for initial client filter
+    /**
+     * Effect: global behavior for initial client filter.
+     *
+     * Rules:
+     * - If hasGlobalFilters is false and clientFilter is set (not "all"):
+     *   -> perform a global searchJobs with q = clientFilter.
+     * - After that, further client filter changes are local-only.
+     */
     useEffect(() => {
         if (hasGlobalFilters) return;
         if (clientFilter === "all") return;
@@ -327,7 +446,16 @@ export const useJobScreen = () => {
         applyGlobalClientSearch(clientFilter);
     }, [clientFilter, hasGlobalFilters]);
 
-    // Scoped clients when company filter + global filters are active
+    /**
+     * Scoped clients query:
+     * - Active only when we already have global filters AND a specific company selected.
+     * - Fetches unique clients for that company via GET /api/jobs/clients?companyId=...
+     *
+     * This powers the edge case:
+     *   - After the initial filter is set to company, the client filter should use
+     *     /clients API with the filtered company as a parameter to get the new
+     *     unique list of clients for that company.
+     */
     const {
         data: scopedClients = [],
         isError: isErrorScopedClients,
@@ -374,6 +502,13 @@ export const useJobScreen = () => {
         );
     }
 
+    /**
+     * companyOptions
+     * - Company filter dropdown options built from UniqueCompanyResponse list.
+     *   Uses companyId as the value and companyName as the label.
+     *
+     * @type {Array<{value:string,label:string}>}
+     */
     const companyOptions = useMemo(() => {
         if (!Array.isArray(uniqueCompanies) || uniqueCompanies.length === 0) {
             return [{ value: "all", label: "All Companies" }];
@@ -392,6 +527,17 @@ export const useJobScreen = () => {
         ];
     }, [uniqueCompanies]);
 
+    /**
+     * clientOptions
+     * - Client filter dropdown options.
+     *
+     * Rules:
+     * - If we have global filters AND a company filter is active, prefer the
+     *   API-backed unique client list for that company (scopedClients).
+     * - Otherwise, fall back to local unique clients from useJobFilterAndSearch.
+     *
+     * @type {Array<{value:string,label:string}>}
+     */
     const clientOptions = useMemo(() => {
         if (
             hasGlobalFilters &&
@@ -466,13 +612,44 @@ export const useJobScreen = () => {
         }
     };
 
+    /**
+     * Effect: when client was the initial global filter and is cleared back to "all",
+     * perform a full global reset (clear global filters + restore initial jobs).
+     *
+     * Edge case covered:
+     *  - User uses Client as the first/only filter (global searchJobs)
+     *  - Then clicks "Clear" inside the Client dropdown
+     */
+    useEffect(() => {
+        const clientWasInitialGlobal =
+            initialGlobalFilterSource === "client" && hasGlobalFilters;
+
+        if (!clientWasInitialGlobal) return;
+
+        if (clientFilter === "all") {
+            logger.info(
+                "useJobScreen client filtered globally then cleared; performing global reset",
+                {
+                    initialGlobalFilterSource,
+                    hasGlobalFilters,
+                },
+            );
+            handleResetAll();
+        }
+    }, [clientFilter, initialGlobalFilterSource, hasGlobalFilters]);
+
+    // --- Public API: merge query layer with local filter/search layer ---
+
     return {
+        // base jobs from server (before local filters)
         jobs: filterAndSearch.jobs,
 
+        // network state
         isPending,
         isError,
         error,
 
+        // state from filter/search hook
         search: filterAndSearch.search,
         searchInput: filterAndSearch.searchInput,
         sortKey: filterAndSearch.sortKey,
@@ -482,6 +659,7 @@ export const useJobScreen = () => {
         page: filterAndSearch.page,
         pageSize: filterAndSearch.pageSize,
 
+        // setters / actions from filter/search hook
         setSearch: filterAndSearch.setSearch,
         setSearchInput: filterAndSearch.setSearchInput,
         setSortKey: filterAndSearch.setSortKey,
@@ -491,17 +669,21 @@ export const useJobScreen = () => {
         setPage: filterAndSearch.setPage,
         setPageSize: filterAndSearch.setPageSize,
 
-        // Use the new reset (global + local)
+        // Use the combined reset (global + local)
         handleResetFilters: handleResetAll,
 
+        // dropdown options (companyOptions overridden with API-backed names,
+        // clientOptions optionally overridden with /clients?companyId= list)
         sortOptionsForDropdown: filterAndSearch.sortOptionsForDropdown,
         companyOptions,
         clientOptions,
         statusOptions: filterAndSearch.statusOptions,
 
+        // derived collections
         filteredAndSortedJobs: filterAndSearch.filteredAndSortedJobs,
         paginatedJobs: filterAndSearch.paginatedJobs,
 
+        // pagination meta
         totalJobs: filterAndSearch.totalJobs,
         totalPages: filterAndSearch.totalPages,
         currentPage: filterAndSearch.currentPage,
