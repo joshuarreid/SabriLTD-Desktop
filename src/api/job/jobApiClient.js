@@ -139,6 +139,51 @@ export default class JobApiClient extends ApiClient {
     }
 
     /**
+     * searchJobs
+     * Performs a case-insensitive text search across job `name` and `description`
+     * using the /api/jobs/search endpoint.
+     *
+     * Mirrors:
+     *   GET /api/jobs/search?q=Audit&page=1&size=5&sortField=name&sortOrder=asc
+     *
+     * @async
+     * @function searchJobs
+     * @param {Object} params - Search query params:
+     * @param {string} params.q - Search text to match in name or description (required, non-blank).
+     * @param {number} [params.page] - 1-based page index (optional, default handled by API).
+     * @param {number} [params.size] - Page size (optional, default handled by API).
+     * @param {string} [params.sortField] - Field to sort by (optional, defaults to "name").
+     * @param {"asc"|"desc"} [params.sortOrder] - Sort direction (optional, defaults to "asc").
+     * @returns {Promise<Object>} API response object with:
+     *   - data: Array<JobResponse>
+     *   - meta: { page, size, totalRecords, totalPages, searchText, sortField, sortOrder }
+     *   - status, transactionId, errors
+     * @throws {Error} If token is missing, request fails, or API returns an error.
+     */
+    async searchJobs(params) {
+        logger.info("searchJobs called", params);
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error("searchJobs failed: No token available");
+                throw new Error("No authentication token found");
+            }
+            const response = await this.get("/search", params, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            logger.info("searchJobs success", {
+                count: Array.isArray(response?.data) ? response.data.length : 0,
+            });
+            return response;
+        } catch (error) {
+            logger.error("searchJobs failed", error);
+            throw error;
+        }
+    }
+
+    /**
      * fetchJobById
      * Fetches a single job by its id.
      *

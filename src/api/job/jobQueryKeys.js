@@ -21,12 +21,13 @@ export const JOB = ["job"];
  * Canonical Job query/mutation cache keys.
  *
  * Usage examples:
- *   jobKeys.lists()                           // ['job', 'lists']
- *   jobKeys.list({ status: 'Active' })        // ['job', 'lists', { filters: { status: 'Active' } }]
- *   jobKeys.detail(401)                       // ['job', 'detail', 401]
- *   jobKeys.create()                          // ['job', 'create']
- *   jobKeys.update(401)                       // ['job', 'detail', 401, 'update']
- *   jobKeys.remove(401)                       // ['job', 'detail', 401, 'remove']
+ *   jobKeys.lists()                              // ['job', 'lists']
+ *   jobKeys.list({ status: 'Active' })           // ['job', 'lists', { filters: { status: 'Active' } }]
+ *   jobKeys.search({ q: 'Audit' })               // ['job', 'search', { q: 'Audit' }]
+ *   jobKeys.detail(401)                          // ['job', 'detail', 401]
+ *   jobKeys.create()                             // ['job', 'create']
+ *   jobKeys.update(401)                          // ['job', 'detail', 401, 'update']
+ *   jobKeys.remove(401)                          // ['job', 'detail', 401, 'remove']
  *
  * These keys are used across:
  *  - useQuery (for fetching jobs and job details)
@@ -61,6 +62,16 @@ export const jobKeys = {
      * @returns {Array} React Query key including filters
      */
     list: (filters = {}) => [...jobKeys.lists(), { filters }],
+
+    /**
+     * Key for a server-side job search.
+     * Use this for /api/jobs/search queries, scoped by search params.
+     *
+     * @function
+     * @param {object} [searchParams={}] - Search params, e.g. { q: 'Audit', page: 1, size: 20 }
+     * @returns {Array} React Query key including search params
+     */
+    search: (searchParams = {}) => [...jobKeys.all, "search", { searchParams }],
 
     /**
      * Key for a single job detail by id.

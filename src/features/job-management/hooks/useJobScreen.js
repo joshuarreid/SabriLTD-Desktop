@@ -3,18 +3,14 @@
  *
  * Business logic and UI state for the JobScreen.
  * - Loads jobs via TanStack Query (getAllJobs).
- * - Manages client-side search, sort, and filter state (company/status/client).
- * - Manages simple client-side pagination (page, pageSize).
- * - Exposes a filtered, sorted, and paginated jobs list for JobScreen.
- *
- * Follows Bulletproof React conventions:
- *  - UI concerns live in JobScreen.jsx
- *  - Data/state and side effects live in this hook.
+ * - Uses server-side search via /api/jobs/search when search text is submitted (Enter).
+ * - Manages client-side sort and filter state (company/status/client).
+ * - Manages simple client-side pagination (page, pageSize) over the active dataset.
  */
 
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getAllJobs } from "../../../api/job/job";
+import { getAllJobs, searchJobs } from "../../../api/job/job";
 import { jobKeys } from "../../../api/job/jobQueryKeys";
 
 /**
@@ -30,11 +26,7 @@ const logger = {
 
 /**
  * SORT_OPTIONS
- * Sort options for the "Sort by" dropdown.
- *
- * NOTE:
- *  - "Newest" / "Oldest" use dateAdded.
- *  - "Date Modified" uses dateUpdated with a fallback to dateAdded.
+ * - Sort options for the "Sort by" dropdown.
  *
  * @constant
  * @type {Array<{ key: string, label: string }>}
@@ -47,7 +39,7 @@ const SORT_OPTIONS = [
 
 /**
  * DEFAULT_PAGE_SIZE
- * Default number of jobs per page for JobScreen pagination.
+ * - Default number of jobs per page for JobScreen pagination.
  *
  * @constant
  * @type {number}
@@ -55,41 +47,76 @@ const SORT_OPTIONS = [
 const DEFAULT_PAGE_SIZE = 50;
 
 /**
+ * deriveSortParams
+ * Maps internal sortKey to API sort parameters for the search endpoint.
+ *
+ * @function deriveSortParams
+ * @param {string} sortKey - Current sort key (e.g., "date-desc", "modified-desc").
+ * @returns {{ sortField: (string|undefined), sortOrder: ('asc'|'desc'|undefined) }} Derived sort field and order.
+ */
+const deriveSortParams = (sortKey) => {
+    if (!sortKey) return { sortField: undefined, sortOrder: undefined };
+
+    const [field, dirRaw] = String(sortKey).split("-");
+    const dir = dirRaw === "asc" ? "asc" : "desc";
+
+    if (field === "date") {
+        return { sortField: "dateAdded", sortOrder: dir };
+    }
+    if (field === "modified") {
+        return { sortField: "dateUpdated", sortOrder: dir };
+    }
+
+    // Fallback: allow backend to use its own default sort
+    return { sortField: undefined, sortOrder: undefined };
+};
+
+/**
  * useJobScreen
  *
- * Encapsulates state and derived values for JobScreen:
- * - Fetches jobs from the real Job API via React Query.
- * - Owns search text, sort key, company, client & status filters.
- * - Computes dropdown option lists and filtered/sorted jobs.
- * - Provides client-side pagination (page, pageSize).
+ * Main hook encapsulating data fetching, server-side search, filters, sort,
+ * and pagination behavior for the jobs screen.
  *
- * @returns {object} Hook API consumed by JobScreen.jsx
+ * @function useJobScreen
+ * @returns {object} Hook API consumed by JobScreen.jsx.
  */
 export const useJobScreen = () => {
     logger.info("useJobScreen initialized");
 
-    // --- Query: jobs list from real API ---
+    // --- Query: load all jobs once (V8 behavior) ---
 
     /**
-     * jobsQuery
-     * Uses jobKeys.lists() as the canonical cache key and getAllJobs as the fetcher.
-     * Currently no server-side filters; all filtering is done client-side.
+     * Base list query:
+     * - Loads all jobs with a single call to getAllJobs().
+     * - All filtering/sorting/pagination for non-search mode is client-side.
      */
     const {
-        data: jobs = [],
-        isPending,
-        isError,
-        error,
+        data: baseJobs = [],
+        isPending: isPendingList,
+        isError: isErrorList,
+        error: errorList,
     } = useQuery({
         queryKey: jobKeys.lists(),
-        queryFn: () => getAllJobs(),
+        queryFn: () => {
+            logger.info("useJobScreen base list queryFn called");
+            return getAllJobs();
+        },
     });
 
     // --- Local UI state ---
 
     /**
+     * searchInput
+     * - Current value in the search input field (NOT yet applied until Enter).
+     *
+     * @type {[string, Function]}
+     */
+    const [searchInput, setSearchInput] = useState("");
+
+    /**
      * search
-     * Current search input value.
+     * - Active search text that has been "applied" (e.g., via Enter key).
+     * - Only this value triggers server-side /api/jobs/search.
      *
      * @type {[string, Function]}
      */
@@ -97,7 +124,7 @@ export const useJobScreen = () => {
 
     /**
      * sortKey
-     * Current sort key, one of SORT_OPTIONS keys.
+     * - Current sort key (one of SORT_OPTIONS keys).
      *
      * @type {[string, Function]}
      */
@@ -105,7 +132,7 @@ export const useJobScreen = () => {
 
     /**
      * companyFilter
-     * Current company filter, "all" or a specific companyId (stringified).
+     * - "all" or a specific companyId (stringified).
      *
      * @type {[string, Function]}
      */
@@ -113,7 +140,7 @@ export const useJobScreen = () => {
 
     /**
      * clientFilter
-     * Current client filter, "all" or a specific client string.
+     * - "all" or a specific client string.
      *
      * @type {[string, Function]}
      */
@@ -121,7 +148,7 @@ export const useJobScreen = () => {
 
     /**
      * statusFilter
-     * Current status filter, "all" or a specific status string.
+     * - "all" or a specific job status string.
      *
      * @type {[string, Function]}
      */
@@ -129,7 +156,7 @@ export const useJobScreen = () => {
 
     /**
      * page
-     * Current page index, 1-based.
+     * - Current page index (1-based).
      *
      * @type {[number, Function]}
      */
@@ -137,17 +164,127 @@ export const useJobScreen = () => {
 
     /**
      * pageSize
-     * Current page size. Default 50 per user requirements.
+     * - Current page size (default 50).
      *
      * @type {[number, Function]}
      */
     const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-    // --- Derived option lists for dropdowns ---
+    /**
+     * sortParams
+     * - Derived server-side sort parameters from sortKey.
+     *
+     * @type {{sortField: (string|undefined), sortOrder: ('asc'|'desc'|undefined)}}
+     */
+    const sortParams = useMemo(
+        () => deriveSortParams(sortKey),
+        [sortKey],
+    );
+
+    const trimmedSearch = search.trim();
+    const trimmedSearchInput = searchInput.trim();
+
+    // --- Server search query (only when search text has been "applied") ---
+
+    /**
+     * searchJobsQuery
+     * - Uses /api/jobs/search when search text has been applied.
+     * - Does not run while user is still typing (only when trimmedSearch has content).
+     */
+    const {
+        data: searchResponse,
+        isPending: isPendingSearch,
+        isError: isErrorSearch,
+        error: errorSearch,
+    } = useQuery({
+        queryKey: jobKeys.search({
+            q: trimmedSearch || null,
+            page,
+            size: pageSize,
+            sortField: sortParams.sortField,
+            sortOrder: sortParams.sortOrder,
+        }),
+        queryFn: async () => {
+            logger.info("useJobScreen search queryFn called", {
+                q: trimmedSearch,
+                page,
+                size: pageSize,
+                sortField: sortParams.sortField,
+                sortOrder: sortParams.sortOrder,
+            });
+
+            const params = {
+                q: trimmedSearch,
+                page,
+                size: pageSize,
+                sortField: sortParams.sortField,
+                sortOrder: sortParams.sortOrder,
+            };
+
+            const response = await searchJobs(params);
+            logger.info("useJobScreen search queryFn success", {
+                count: Array.isArray(response?.data) ? response.data.length : 0,
+                meta: response?.meta,
+            });
+            return response;
+        },
+        enabled: trimmedSearch.length > 0, // only hit API when a search is actually applied
+        keepPreviousData: true,
+    });
+
+    /**
+     * isUsingSearch
+     * - Indicates whether server-side search is currently active.
+     *
+     * @type {boolean}
+     */
+    const isUsingSearch = trimmedSearch.length > 0;
+
+    /**
+     * jobs
+     * - Active job collection used for filtering & rendering.
+     *   - Search mode: the current page from /api/jobs/search.
+     *   - Non-search mode: base list from getAllJobs().
+     *
+     * @type {Array}
+     */
+    const jobs = useMemo(() => {
+        if (isUsingSearch) {
+            return Array.isArray(searchResponse?.data) ? searchResponse.data : [];
+        }
+        return Array.isArray(baseJobs) ? baseJobs : [];
+    }, [isUsingSearch, searchResponse, baseJobs]);
+
+    /**
+     * isPending
+     * - Controls initial full-screen loading state.
+     * - We only block the whole screen while the base list is loading.
+     *
+     * @type {boolean}
+     */
+    const isPending = isPendingList;
+
+    /**
+     * isError
+     * - Combined error flag that prefers search error when in search mode.
+     *
+     * @type {boolean}
+     */
+    const isError = isUsingSearch ? isErrorSearch : isErrorList;
+
+    /**
+     * error
+     * - Combined error object from list or search queries (depending on mode).
+     *
+     * @type {Error | null | undefined}
+     */
+    const error = isUsingSearch ? errorSearch : errorList;
+
+    // --- Options for dropdowns (derived from current jobs set) ---
 
     /**
      * sortOptionsForDropdown
-     * SORT_OPTIONS mapped into generic FilterDropdown option shape.
+     * - Sort options mapped into FilterDropdown shape.
      *
      * @type {Array<{value:string,label:string}>}
      */
@@ -158,8 +295,7 @@ export const useJobScreen = () => {
 
     /**
      * companyOptions
-     * Derived list of unique companyId values for the Company filter dropdown.
-     * Uses job.companyId (ID) as both value and label for now.
+     * - Unique companyId values for Company filter dropdown.
      *
      * @type {Array<{value:string,label:string}>}
      */
@@ -181,7 +317,7 @@ export const useJobScreen = () => {
 
     /**
      * clientOptions
-     * Derived list of unique clients for the Client filter dropdown.
+     * - Unique client values for Client filter dropdown.
      *
      * @type {Array<{value:string,label:string}>}
      */
@@ -203,7 +339,7 @@ export const useJobScreen = () => {
 
     /**
      * statusOptions
-     * Derived list of unique statuses for the Status filter dropdown.
+     * - Unique status values for Status filter dropdown.
      *
      * @type {Array<{value:string,label:string}>}
      */
@@ -222,34 +358,24 @@ export const useJobScreen = () => {
         ];
     }, [jobs]);
 
-    // --- Derived data: filtered + sorted jobs (before pagination) ---
+    // --- Derived data: filters, sort, pagination ---
 
     /**
      * filteredAndSortedJobs
-     * Applies search, company/status/client filters, and sorting to the jobs array.
+     * - Applies search, filters, and sort.
+     * - In search mode, text search is done server-side; we only apply filters.
      *
-     * @type {Array<{
-     *   jobId:number,
-     *   name:string,
-     *   companyId:number,
-     *   client:string|null,
-     *   description:string|null,
-     *   status:string|null,
-     *   updatedBy:number|null,
-     *   dateAdded:string,
-     *   dateUpdated:string|null,
-     *   comments:string|null
-     * }>}
+     * @type {Array}
      */
     const filteredAndSortedJobs = useMemo(() => {
-        if (!Array.isArray(jobs) || jobs.length === 0) {
-            return [];
-        }
+        if (!Array.isArray(jobs) || jobs.length === 0) return [];
 
-        const q = search.trim().toLowerCase();
+        const q = trimmedSearch.toLowerCase();
 
         const baseFiltered = jobs.filter((job) => {
+            // When using server search, skip client text matching; we trust backend.
             const matchesSearch =
+                isUsingSearch ||
                 !q ||
                 String(job.name || "").toLowerCase().includes(q) ||
                 String(job.client || "").toLowerCase().includes(q) ||
@@ -269,6 +395,11 @@ export const useJobScreen = () => {
             return matchesSearch && matchesCompany && matchesClient && matchesStatus;
         });
 
+        if (isUsingSearch) {
+            // Respect backend ordering for search results
+            return baseFiltered;
+        }
+
         const [field, dirRaw] = String(sortKey || "").split("-");
         const dir = dirRaw || "desc";
         const result = [...baseFiltered];
@@ -286,28 +417,41 @@ export const useJobScreen = () => {
                 const db = modifiedB ? new Date(modifiedB).getTime() : 0;
                 return dir === "asc" ? da - db : db - da;
             }
-            // default fallback: name sort
             const aa = String(a.name || "").toLowerCase();
             const bb = String(b.name || "").toLowerCase();
             return dir === "asc" ? aa.localeCompare(bb) : bb.localeCompare(aa);
         });
 
         return result;
-    }, [jobs, search, companyFilter, clientFilter, statusFilter, sortKey]);
-
-    // --- Pagination over filtered+sorted list ---
+    }, [
+        jobs,
+        trimmedSearch,
+        isUsingSearch,
+        companyFilter,
+        clientFilter,
+        statusFilter,
+        sortKey,
+    ]);
 
     /**
      * totalJobs
-     * Total count after filtering, before pagination.
+     * - Total count after filtering.
+     * - In search mode, prefers backend meta.totalRecords if present.
      *
      * @type {number}
      */
-    const totalJobs = filteredAndSortedJobs.length;
+    const totalJobs = useMemo(() => {
+        if (isUsingSearch) {
+            const metaTotal = searchResponse?.meta?.totalRecords;
+            if (typeof metaTotal === "number") return metaTotal;
+            return filteredAndSortedJobs.length;
+        }
+        return filteredAndSortedJobs.length;
+    }, [isUsingSearch, searchResponse, filteredAndSortedJobs.length]);
 
     /**
      * totalPages
-     * Total pages given current pageSize.
+     * - Total pages given current pageSize and totalJobs.
      *
      * @type {number}
      */
@@ -318,7 +462,7 @@ export const useJobScreen = () => {
 
     /**
      * currentPage
-     * Page number clamped to valid range (1..totalPages).
+     * - Page number clamped to valid range (1..totalPages).
      *
      * @type {number}
      */
@@ -330,28 +474,34 @@ export const useJobScreen = () => {
 
     /**
      * paginatedJobs
-     * Slice of filteredAndSortedJobs for the current page.
+     * - Non-search mode: slice filteredAndSortedJobs for current page.
+     * - Search mode: backend already paginates; we return filteredAndSortedJobs as-is.
      *
      * @type {Array}
      */
     const paginatedJobs = useMemo(() => {
-        if (totalJobs === 0) {
-            return [];
+        if (isUsingSearch) {
+            // Search results are already paginated server-side
+            return filteredAndSortedJobs;
         }
+
+        if (filteredAndSortedJobs.length === 0) return [];
+
         const start = (currentPage - 1) * pageSize;
         const end = start + pageSize;
         return filteredAndSortedJobs.slice(start, end);
-    }, [filteredAndSortedJobs, currentPage, pageSize, totalJobs]);
+    }, [isUsingSearch, filteredAndSortedJobs, currentPage, pageSize]);
 
     /**
      * handleResetFilters
-     * Resets filters, search, sort, and page to defaults.
+     * - Resets filters, search text, sort, and pagination to defaults.
      *
      * @function handleResetFilters
      * @returns {void}
      */
     const handleResetFilters = () => {
         logger.info("useJobScreen handleResetFilters");
+        setSearchInput("");
         setSearch("");
         setCompanyFilter("all");
         setClientFilter("all");
@@ -371,7 +521,8 @@ export const useJobScreen = () => {
         error,
 
         // state
-        search,
+        search, // applied search text
+        searchInput, // live text in input field
         sortKey,
         companyFilter,
         clientFilter,
@@ -379,8 +530,9 @@ export const useJobScreen = () => {
         page,
         pageSize,
 
-        // setters
-        setSearch,
+        // setters / actions
+        setSearch, // apply search (used on Enter)
+        setSearchInput, // update text as user types
         setSortKey,
         setCompanyFilter,
         setClientFilter,

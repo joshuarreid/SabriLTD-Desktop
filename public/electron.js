@@ -56,7 +56,7 @@ function createMainWindow() {
         height,
         useContentSize: true,
         fullscreen: false,
-        fullscreenable: false,
+        fullscreenable: true,
         autoHideMenuBar: false,
         show: false,
         webPreferences: {
