@@ -34,6 +34,13 @@ const logger = {
  * JobScreen
  * Top-level presentational container for the jobs view.
  *
+ * NOTE:
+ * - We intentionally keep the outer layout mounted even while data is loading
+ *   so that Framer Motion can animate card transitions smoothly.
+ * - isPending is rendered as a subtle inline hint above the grid instead of
+ *   returning a separate full-screen loading view. This mirrors the SearchBar
+ *   behavior where the page does not flash when results update.
+ *
  * @component
  * @returns {JSX.Element}
  */
@@ -115,31 +122,12 @@ const JobScreen = () => {
         setPage(nextPage);
     };
 
-    if (isPending) {
-        return (
-            <div className={styles.jobScreen}>
-                <div className={styles.loading}></div>
-            </div>
-        );
-    }
-
-    if (isError) {
-        return (
-            <div className={styles.jobScreen}>
-                <div className={styles.error}>
-                    Error: {error?.message || "Failed to load jobs."}
-                </div>
-            </div>
-        );
-    }
-
     const hasPrevious = currentPage > 1;
     const hasNext = currentPage < totalPages;
 
     /**
      * buildCompanySearchOptions
      * - Maps unique companyIds from companyOptions into label/value pairs for FilterDropdownSearch.
-     * - Label currently uses the raw companyId; can be updated to show a proper company name when available.
      *
      * @returns {Array<{value:string,label:string}>}
      */
@@ -252,18 +240,22 @@ const JobScreen = () => {
                 </div>
             </div>
 
+
             {/* Folder grid (animated JobInfoCard components) */}
             <section className={styles.folderGridSection}>
-                {paginatedJobs.length === 0 ? (
-                    <div className={styles.emptyState}></div>
+                {isError ? (
+                    <div className={styles.error}>
+                        Error: {error?.message || "Failed to load jobs."}
+                    </div>
+                ) : paginatedJobs.length === 0 ? (
+                    <div className={styles.emptyState}>
+                        {jobs.length === 0
+                            ? "No jobs found."
+                            : "No jobs match your search or filters."}
+                    </div>
                 ) : (
                     <motion.div
                         className={styles.folderGrid}
-                        /**
-                         * layout
-                         * - Enables FLIP-based layout animations when children change
-                         *   (e.g., filters, search, or pagination).
-                         */
                         layout
                         transition={{
                             layout: { duration: 0.25, ease: [0.16, 1, 0.3, 1] },
