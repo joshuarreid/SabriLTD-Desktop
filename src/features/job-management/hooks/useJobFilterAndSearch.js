@@ -40,7 +40,7 @@ export const DEFAULT_SORT_KEY = "modified-desc";
  * @constant
  * @type {number}
  */
-export const DEFAULT_PAGE_SIZE = 50;
+export const DEFAULT_PAGE_SIZE = 25;
 
 /**
  * SORT_OPTIONS
