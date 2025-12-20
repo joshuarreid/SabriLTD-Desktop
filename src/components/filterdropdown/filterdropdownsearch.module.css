@@ -149,6 +149,35 @@
     background: var(--color-bg-surface, #f1f1f3);
 }
 
+/* Pinned current selection row */
+.pinnedRow {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--filter-menu-border);
+    background: #fdfdfd;
+    gap: 4px;
+}
+
+.pinnedClearButton {
+    border: none;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--color-primary-muted, #5d6170);
+    white-space: nowrap;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.pinnedClearButton:hover,
+.pinnedClearButton:focus-visible {
+    background: rgba(148, 163, 184, 0.22);
+    color: var(--color-primary, #333645);
+}
+
 /* Items */
 .filterMenuItem {
     width: 100%;

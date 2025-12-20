@@ -15,6 +15,33 @@ const logger = {
 };
 
 /**
+ * buildPinnedAndRemainingOptions
+ * - Derives a pinned "current selection" option (if any) and the remaining options.
+ * - Pinned option is the one matching the current value.
+ *
+ * @function buildPinnedAndRemainingOptions
+ * @param {Array<{value:string,label:string}>} options
+ * @param {string} value
+ * @returns {{ pinned: {value:string,label:string}|null, rest: Array<{value:string,label:string}> }}
+ */
+const buildPinnedAndRemainingOptions = (options, value) => {
+    if (!Array.isArray(options) || options.length === 0) {
+        return { pinned: null, rest: [] };
+    }
+
+    if (!value) {
+        return { pinned: null, rest: options };
+    }
+
+    const pinned = options.find((opt) => opt.value === value) || null;
+    const rest = pinned
+        ? options.filter((opt) => opt.value !== pinned.value)
+        : options;
+
+    return { pinned, rest };
+};
+
+/**
  * FilterDropdownSearch
  *
  * Variant of FilterDropdown specialized for job / entity selection:
@@ -22,6 +49,10 @@ const logger = {
  * - Menu opens with a search input as the first row.
  * - Initially shows only the first 5 most recently updated options (caller provides sorted list).
  * - Typing in the search input filters the list client-side.
+ * - When a value is selected:
+ *   - The selected value is shown next to the label on the trigger.
+ *   - Inside the menu, the selected option is pinned at the top
+ *     with a "Clear" button to remove the filter.
  *
  * NOTE:
  * - This component is UI-only; fetching and sorting should be handled by a hook.
@@ -69,26 +100,36 @@ const FilterDropdownSearch = ({
     }, [options, value]);
 
     /**
+     * pinned + rest
+     * - Pinned selected option and remaining options for the menu.
+     */
+    const { pinned, rest } = useMemo(
+        () => buildPinnedAndRemainingOptions(options, value),
+        [options, value],
+    );
+
+    /**
      * visibleOptions
      * - Options currently visible in the dropdown based on searchTerm.
-     * - If searchTerm is blank, only the first 5 options are shown.
+     * - If searchTerm is blank, only the first 5 "rest" options are shown
+     *   (the pinned option, if any, is rendered separately above).
      *
      * @type {Array<{value:string,label:string}>}
      */
     const visibleOptions = useMemo(() => {
-        if (!Array.isArray(options) || options.length === 0) {
+        if (!Array.isArray(rest) || rest.length === 0) {
             return [];
         }
         const trimmed = searchTerm.trim().toLowerCase();
         if (!trimmed) {
-            return options.slice(0, 5);
+            return rest.slice(0, 5);
         }
-        return options.filter((opt) =>
+        return rest.filter((opt) =>
             String(opt.label || "")
                 .toLowerCase()
                 .includes(trimmed),
         );
-    }, [options, searchTerm]);
+    }, [rest, searchTerm]);
 
     /**
      * handleToggle
@@ -114,6 +155,19 @@ const FilterDropdownSearch = ({
         logger.info("FilterDropdownSearch option selected", { label, value: nextValue });
         onChange(nextValue);
         setOpen(false);
+    };
+
+    /**
+     * handleClear
+     * - Clears the current selection.
+     *
+     * @function handleClear
+     * @returns {void}
+     */
+    const handleClear = () => {
+        logger.info("FilterDropdownSearch selection cleared", { label });
+        onChange("");
+        // keep menu open so user can immediately re-select
     };
 
     /**
@@ -243,6 +297,28 @@ const FilterDropdownSearch = ({
                         />
                     </div>
 
+                    {/* Pinned current selection row with clear button */}
+                    {pinned && (
+                        <div className={styles.pinnedRow}>
+                            <button
+                                type="button"
+                                className={`${styles.filterMenuItem} ${styles.filterMenuItemActive}`}
+                                onClick={() => handleSelect(pinned.value)}
+                                role="option"
+                                aria-selected
+                            >
+                                {pinned.label}
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.pinnedClearButton}
+                                onClick={handleClear}
+                            >
+                                Clear
+                            </button>
+                        </div>
+                    )}
+
                     {/* Options */}
                     {visibleOptions.length === 0 ? (
                         <div className={styles.emptyRow}>{emptyLabel}</div>
@@ -290,7 +366,7 @@ FilterDropdownSearch.propTypes = {
 
 FilterDropdownSearch.defaultProps = {
     className: "",
-    emptyLabel: "No jobs found",
+    emptyLabel: "No results found",
 };
 
 export default FilterDropdownSearch;

@@ -241,10 +241,6 @@ const JobScreen = () => {
                 </div>
             </div>
 
-            {/* Inline loading hint (no full-screen spinner) */}
-            {isPending && (
-                <div className={styles.inlineLoadingHint}>Updating jobs…</div>
-            )}
 
             {/* Folder grid (animated JobInfoCard components) */}
             <section className={styles.folderGridSection}>
@@ -254,9 +250,6 @@ const JobScreen = () => {
                     </div>
                 ) : paginatedJobs.length === 0 ? (
                     <div className={styles.emptyState}>
-                        {jobs.length === 0
-                            ? "No jobs found."
-                            : "No jobs match your search or filters."}
                     </div>
                 ) : (
                     <motion.div

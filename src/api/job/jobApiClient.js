@@ -307,6 +307,7 @@ export default class JobApiClient extends ApiClient {
      * Calls the unique companies endpoint: GET /api/jobs/companies
      *
      * @async
+     * @function fetchJobCompanies
      * @returns {Promise<Object>} API response with UniqueCompanyResponse[] in `data`
      * @throws {Error} If request fails (network, 401, 500, etc).
      */
@@ -332,5 +333,44 @@ export default class JobApiClient extends ApiClient {
             throw error;
         }
     }
-}
 
+    /**
+     * fetchJobClients
+     * Calls the unique clients endpoint: GET /api/jobs/clients
+     * Optionally scoped by companyId when provided.
+     *
+     * @async
+     * @function fetchJobClients
+     * @param {Object} [params={}] - Optional query params.
+     * @param {number} [params.companyId] - Optional company id to restrict clients to jobs for that company.
+     * @returns {Promise<Object>} API response with UniqueClientResponse[] in `data`
+     * @throws {Error} If request fails (network, 401, 500, etc).
+     */
+    async fetchJobClients(params = {}) {
+        logger.info("fetchJobClients called", params);
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error("fetchJobClients failed: No token available");
+                throw new Error("No authentication token found");
+            }
+
+            // Use "/clients" with query params; companyId is optional.
+            const response = await this.get("/clients", params, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            logger.info("fetchJobClients success", {
+                count: Array.isArray(response?.data) ? response.data.length : 0,
+                companyId: params?.companyId ?? null,
+            });
+
+            return response;
+        } catch (error) {
+            logger.error("fetchJobClients failed", error);
+            throw error;
+        }
+    }
+}
