@@ -253,6 +253,11 @@
     color: var(--color-primary-muted, #6b6f7a);
 }
 
+.searchingHint {
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: var(--color-primary-muted, #7a7f90);
+}
 /* ---------------- FEEDBACK STATES ------------------------------------- */
 
 .emptyState {

@@ -1,13 +1,7 @@
 /**
  * JobScreen.jsx
  *
- * Presentational jobs screen:
- *  - Wide search bar at the top ("Search jobs")
- *  - Filter row: Sort by, Company, Client, Status (using generic FilterDropdown)
- *  - Grid of minimal job items (icon + name) using JobInfoCard (no surrounding tile)
- *  - Pagination controls pinned to the bottom (page indicator + navigation)
- *
- * All data fetching and business logic is handled by useJobScreen.
+ * Presentational jobs screen.
  */
 
 import React from "react";
@@ -28,13 +22,6 @@ const logger = {
     error: (...args) => console.error("[JobScreen]", ...args),
 };
 
-/**
- * JobScreen
- * Top-level presentational container for the jobs view.
- *
- * @component
- * @returns {JSX.Element}
- */
 const JobScreen = () => {
     logger.info("JobScreen rendered");
 
@@ -44,11 +31,13 @@ const JobScreen = () => {
         isError,
         error,
         search,
+        searchInput,
         sortKey,
         companyFilter,
         clientFilter,
         statusFilter,
         setSearch,
+        setSearchInput,
         setSortKey,
         setCompanyFilter,
         setClientFilter,
@@ -67,23 +56,39 @@ const JobScreen = () => {
     } = useJobScreen();
 
     /**
-     * Handles changes in the search bar input.
+     * handleSearchChange
+     * - Updates local input only; does NOT trigger API until Enter is pressed.
      *
-     * @function handleSearchChange
      * @param {React.ChangeEvent<HTMLInputElement>} event
      * @returns {void}
      */
     const handleSearchChange = (event) => {
         const next = event.target.value;
-        setSearch(next);
-        setPage(1);
-        logger.info("Job search changed", { value: next });
+        setSearchInput(next);
+        // keep page as-is until Enter, to avoid jumping user around while typing
+        logger.info("Job search input changed", { value: next });
     };
 
     /**
-     * Handles pagination navigation.
+     * handleSearchKeyDown
+     * - Applies search when user presses Enter.
      *
-     * @function handlePageChange
+     * @param {React.KeyboardEvent<HTMLInputElement>} event
+     * @returns {void}
+     */
+    const handleSearchKeyDown = (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            const value = searchInput.trim();
+            logger.info("Job search submitted via Enter", { value });
+            setSearch(value); // triggers searchJobs query when non-empty
+            setPage(1);
+        }
+    };
+
+    /**
+     * handlePageChange
+     *
      * @param {number} nextPage
      * @returns {void}
      */
@@ -122,8 +127,9 @@ const JobScreen = () => {
             {/* Top search bar – full-width and aligned with title & filters */}
             <div className={styles.searchRow}>
                 <WideSearchBar
-                    value={search}
+                    value={searchInput}
                     onChange={handleSearchChange}
+                    onKeyDown={handleSearchKeyDown}
                     placeholder="Search jobs"
                     ariaLabel="Search jobs"
                     fluid

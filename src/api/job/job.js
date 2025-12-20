@@ -98,6 +98,72 @@ export async function getAllJobs(params = {}) {
 }
 
 /**
+ * searchJobs
+ * Performs a case-insensitive text search across job name and description.
+ *
+ * Mirrors "Search Jobs" endpoint:
+ *   GET /api/jobs/search?q=Audit&page=1&size=5&sortField=name&sortOrder=asc
+ *
+ * NOTE:
+ *  - The backend validates that `q` is non-blank.
+ *  - Pagination and sorting are handled server-side.
+ *
+ * @async
+ * @function searchJobs
+ * @param {{
+ *   q: string,
+ *   page?: number,
+ *   size?: number,
+ *   sortField?: string,
+ *   sortOrder?: 'asc' | 'desc'
+ * }} params - Search query parameters.
+ * @returns {Promise<{
+ *   status?: string,
+ *   data: Array<{
+ *     jobId: number,
+ *     name: string,
+ *     companyId: number,
+ *     client: string|null,
+ *     description: string|null,
+ *     status: string|null,
+ *     updatedBy: number|null,
+ *     dateAdded: string,
+ *     dateUpdated: string|null,
+ *     comments: string|null
+ *   }>,
+ *   meta?: {
+ *     page: number,
+ *     size: number,
+ *     totalRecords: number,
+ *     totalPages: number,
+ *     searchText?: string,
+ *     sortField?: string,
+ *     sortOrder?: string
+ *   },
+ *   transactionId?: string,
+ *   errors?: Array<any>|null
+ * }>} Raw search response ({ status, data, meta, transactionId, errors }).
+ * @throws {Error} If the request fails or search text is invalid.
+ */
+export async function searchJobs(params) {
+    logger.info("searchJobs called", params);
+    try {
+        const response = await apiClient.searchJobs(params);
+        // Pass through the full response so callers can use both data and meta.
+        return {
+            status: response?.status,
+            data: response?.data || [],
+            meta: response?.meta,
+            transactionId: response?.transactionId,
+            errors: response?.errors ?? null,
+        };
+    } catch (error) {
+        logger.error("searchJobs failed", error);
+        throw error;
+    }
+}
+
+/**
  * getJobById
  * Fetches a job by id (requires authentication).
  *
