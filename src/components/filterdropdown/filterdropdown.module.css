@@ -24,16 +24,16 @@
     display: inline-block;
 }
 
-/* Square filter control button */
+/* Square filter control button – aligned with FilterDropdownSearch */
 .filterControl {
     position: relative;
     display: inline-flex;
     align-items: center;
-    justify-content: center; /* center title + caret as a group */
+    justify-content: center; /* center title + selection + caret */
     gap: 6px;
     padding: 8px 18px;
     min-height: 40px;
-    min-width: 150px;
+    min-width: 170px;
     border-radius: 10px;
     border: 1px solid var(--filter-border);
     background: var(--filter-bg);
@@ -48,7 +48,7 @@
             transform 0.08s ease;
 }
 
-/* Hover / keyboard focus */
+/* Hover / keyboard focus – mirror FilterDropdownSearch */
 .filterControl:hover,
 .filterControl:focus-visible {
     border-color: var(--filter-border-strong);
@@ -68,7 +68,7 @@
             0 0 0 1px rgba(255, 255, 255, 0.7) inset;
 }
 
-/* Label text inside the square control */
+/* Label text inside the control */
 .filterLabel {
     font-size: 0.8rem;
     font-weight: 500;
@@ -82,6 +82,36 @@
 .filterLabelActive {
     font-weight: 800;
     color: var(--filter-label-active-color);
+}
+
+/* Secondary selected value label, matching FilterDropdownSearch */
+.filterSelectedValue {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--color-primary-muted, #5d6170);
+    white-space: nowrap;
+}
+
+/* Small "x" clear icon shown when a selection is active */
+.filterClearIcon {
+    font-size: 0.76rem;
+    line-height: 1;
+    padding: 2px 4px;
+    margin-left: 2px;
+    border-radius: 999px;
+    color: var(--color-primary-muted, #5d6170);
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.filterClearIcon:hover,
+.filterClearIcon:focus-visible {
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--color-primary, #333645);
 }
 
 /* Caret icon */
@@ -122,13 +152,13 @@
     transition: background-color 0.12s ease, color 0.12s ease;
 }
 
-/* Hover / focus state – use subtle grey */
+/* Hover / focus state */
 .filterMenuItem:hover,
 .filterMenuItem:focus-visible {
     background: var(--filter-menu-hover-bg);
 }
 
-/* Selected/active item – slightly stronger, using Sabri yellow accent */
+/* Selected/active item */
 .filterMenuItemActive {
     font-weight: 600;
     background: var(--filter-menu-active-bg);
