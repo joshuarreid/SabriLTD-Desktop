@@ -66,31 +66,53 @@ export async function createJob(job) {
  * getAllJobs
  * Fetches jobs with optional filters, pagination, and sorting.
  *
- * Mirrors "Get Jobs" endpoint:
- *   GET /api/jobs?page=1&size=5&sortField=name&sortOrder=asc&status=Active
+ * Mirrors updated "Get Jobs" endpoint:
+ *   GET /api/jobs?page=1&size=5&sortField=name&sortOrder=asc&status=Active&companyId=301&client=Acme
  *
  * @async
  * @function getAllJobs
- * @param {Object} [params={}] - Optional query params: { page, size, sortField, sortOrder, status, ... }
- * @returns {Promise<Array<{
- *   jobId: number,
- *   name: string,
- *   companyId: number,
- *   client: string|null,
- *   description: string|null,
- *   status: string|null,
- *   updatedBy: number|null,
- *   dateAdded: string,
- *   dateUpdated: string|null,
- *   comments: string|null
- * }>>} Array of JobResponse objects (data field)
+ * @param {Object} [params={}] - Optional query params:
+ *   { page, size, sortField, sortOrder, status, companyId, client, ... }
+ * @returns {Promise<{
+ *   status?: string,
+ *   data: Array<{
+ *     jobId: number,
+ *     name: string,
+ *     companyId: number,
+ *     client: string|null,
+ *     description: string|null,
+ *     status: string|null,
+ *     updatedBy: number|null,
+ *     dateAdded: string,
+ *     dateUpdated: string|null,
+ *     comments: string|null
+ *   }>,
+ *   meta?: {
+ *     page: number,
+ *     size: number,
+ *     totalRecords: number,
+ *     totalPages: number,
+ *     filterCriteria?: Record<string, any>,
+ *     sortField?: string,
+ *     sortOrder?: string,
+ *     totalRelatedCount?: number
+ *   },
+ *   transactionId?: string,
+ *   errors?: Array<any>|null
+ * }>} Raw list response ({ status, data, meta, transactionId, errors }).
  * @throws {Error} If request fails (network, 401, 500, etc).
  */
 export async function getAllJobs(params = {}) {
     logger.info("getAllJobs called", params);
     try {
         const response = await apiClient.fetchAllJobs(params);
-        return response?.data || [];
+        return {
+            status: response?.status,
+            data: response?.data || [],
+            meta: response?.meta,
+            transactionId: response?.transactionId,
+            errors: response?.errors ?? null,
+        };
     } catch (error) {
         logger.error("getAllJobs failed", error);
         throw error;
@@ -99,14 +121,14 @@ export async function getAllJobs(params = {}) {
 
 /**
  * searchJobs
- * Performs a case-insensitive text search across job name and description.
+ * Performs a case-insensitive text search across job name, description and client.
  *
- * Mirrors "Search Jobs" endpoint:
+ * Mirrors updated "Search Jobs" endpoint:
  *   GET /api/jobs/search?q=Audit&page=1&size=5&sortField=name&sortOrder=asc
  *
  * NOTE:
- *  - The backend validates that `q` is non-blank.
- *  - Pagination and sorting are handled server-side.
+ *  - `q` is required and must be non-blank.
+ *  - Company-scoped searches are NOT supported on this endpoint.
  *
  * @async
  * @function searchJobs
@@ -115,7 +137,7 @@ export async function getAllJobs(params = {}) {
  *   page?: number,
  *   size?: number,
  *   sortField?: string,
- *   sortOrder?: 'asc' | 'desc'
+ *   sortOrder?: 'asc'|'desc'
  * }} params - Search query parameters.
  * @returns {Promise<{
  *   status?: string,
