@@ -2,17 +2,6 @@
  * useJobScreen.js
  *
  * Orchestration hook for JobScreen.
- *
- * Responsibilities:
- * - Manage global search (always server-side via searchJobs when query present).
- * - Manage global vs local filters per business rules:
- *   * First non-"all" company/status uses getAllJobs (global).
- *   * First non-"all" client uses searchJobs (global).
- *   * After initial global, other filters are local-only, except:
- *       - company+status combo triggers another global getAllJobs.
- *       - client options for company/global come from getJobClients(companyId).
- * - Manage baseJobs for local filtering via useJobFilters.
- * - Integrate server-side pagination via useJobScreenPagination.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -39,7 +28,7 @@ export const useJobScreen = () => {
     const [clientFilter, setClientFilter] = useState("all");
     const [sortKey, setSortKey] = useState(DEFAULT_SORT_KEY);
 
-    // Global search query: when non-empty, we always use searchJobs for the base list.
+    // Global search query: when non-empty, use searchJobs in useJobSearch.
     const [globalSearchQuery, setGlobalSearchQuery] = useState("");
 
     // Track global filter behavior (company/status/client-based) on top of global search.
@@ -453,6 +442,30 @@ export const useJobScreen = () => {
         setServerPageSize(DEFAULT_PAGE_SIZE);
     };
 
+    // ---- Global search API from JobScreen ----
+    const applyGlobalSearch = (query) => {
+        logger.info("useJobScreen applyGlobalSearch", { query });
+
+        // Clear all filters when a global search is performed
+        setCompanyFilter("all");
+        setStatusFilter("all");
+        setClientFilter("all");
+        filters.handleResetFilters();
+
+        // Reset global filter tracking
+        setHasGlobalFilters(false);
+        setInitialGlobalFilterSource("none");
+        setScopedClients([]);
+        setBaseJobs([]); // let useJobSearch repopulate baseJobs from baseListJobs
+
+        // Set global search query (drives useJobSearch -> searchJobs)
+        setGlobalSearchQuery(query || "");
+
+        // Reset pagination to first page
+        pagination.resetPagination();
+        setServerPage(1);
+    };
+
     // ---- Meta derived values ----
     const totalJobs = serverMeta?.totalRecords ?? baseTotalJobs;
     const totalPages = pagination.totalPages;
@@ -470,7 +483,7 @@ export const useJobScreen = () => {
         error,
 
         // search & filters
-        search: filters.search,         // local (unused by global search)
+        search: filters.search,
         searchInput: filters.searchInput,
         sortKey,
         companyFilter,
@@ -478,15 +491,15 @@ export const useJobScreen = () => {
         statusFilter,
 
         // setters
-        setSearch: filters.setSearch,   // still used for local filter text if you want
+        setSearch: filters.setSearch,
         setSearchInput: filters.setSearchInput,
         setSortKey: handleSetSortKey,
         setCompanyFilter: handleCompanyFilterChange,
         setClientFilter: handleClientFilterChange,
         setStatusFilter: handleStatusFilterChange,
 
-        // GLOBAL search setter (called from JobScreen on Enter)
-        setGlobalSearchQuery,
+        // global search entrypoint for JobScreen
+        applyGlobalSearch,
 
         // pagination
         pageSize: pagination.pageSize,
