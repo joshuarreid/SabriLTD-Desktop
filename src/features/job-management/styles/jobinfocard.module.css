@@ -1,0 +1,65 @@
+:root {
+    --accent: var(--color-secondary, #ffd600);
+    --text-muted: var(--color-text-muted, #868099);
+}
+
+/* Root for the minimal job info item (no background card) */
+.jobInfoRoot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+    /* Smooth local motion for hover/focus + parent grid animations */
+    transition:
+            transform 160ms cubic-bezier(0.16, 1, 0.3, 1),
+            color 0.12s ease,
+            box-shadow 160ms ease;
+}
+
+/* Small focus / hover affordance (no heavy background) */
+.jobInfoRoot:hover,
+.jobInfoRoot:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+}
+
+/* Icon wrapper sized to match previous folder tile proportions */
+.iconWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+}
+
+/* Icon styling */
+.icon {
+    font-size: 2.4rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
+}
+
+/* Name wrapper */
+.nameWrap {
+    text-align: center;
+    max-width: 140px;
+    word-break: break-word;
+}
+
+/* Job name (primary) */
+.name {
+    font-size: 0.94rem;
+    font-weight: 600;
+    color: var(--color-primary, #333645);
+    line-height: 1.1;
+}
+
+/* Optional muted subline (not shown by default in this minimal wireframe) */
+.subline {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
