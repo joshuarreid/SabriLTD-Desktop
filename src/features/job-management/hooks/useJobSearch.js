@@ -1,13 +1,13 @@
 /**
  * useJobSearch.js
  *
- * Encapsulates all job API calls and server-side pagination/sorting logic.
+ * Encapsulates job API calls and base server-side pagination/sorting logic.
  *
  * Responsibilities:
- * - Fetch jobs from the Job API (getAllJobs / searchJobs) with page/pageSize.
- * - Map local sortKey into API sortField/sortOrder.
- * - Apply server-side company/status/client filters.
- * - Optionally fetch company & client metadata for dropdowns.
+ * - Fetch jobs from the Job API with page/pageSize.
+ * - When globalSearchQuery is set, use searchJobs(q=...) instead of getAllJobs.
+ * - Expose base jobs and metadata; all global re-queries with filters are
+ *   orchestrated in useJobScreen.
  */
 
 import { useMemo } from "react";
@@ -15,7 +15,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
     getAllJobs,
     getJobCompanies,
-    getJobClients,
     searchJobs,
 } from "../../../api/job/job";
 import { jobKeys } from "../../../api/job/jobQueryKeys";
@@ -28,10 +27,6 @@ const logger = {
 /**
  * deriveApiSortParams
  * - Maps the local sortKey into API sortField/sortOrder for server calls.
- *
- * @function deriveApiSortParams
- * @param {string} sortKey
- * @returns {{ sortField: string|null, sortOrder: 'asc'|'desc' }}
  */
 const deriveApiSortParams = (sortKey) => {
     if (!sortKey) return { sortField: null, sortOrder: "asc" };
@@ -50,80 +45,32 @@ const deriveApiSortParams = (sortKey) => {
 };
 
 /**
- * buildJobParams
- * - Helper that converts current filter/search/sort state into API params.
- *
- * @function buildJobParams
- */
-const buildJobParams = ({
-                            companyFilter,
-                            statusFilter,
-                            clientFilter,
-                            page,
-                            pageSize,
-                            sortKey,
-                        }) => {
-    const { sortField, sortOrder } = deriveApiSortParams(sortKey);
-
-    const params = {
-        page,
-        size: pageSize,
-    };
-
-    if (sortField) {
-        params.sortField = sortField;
-        params.sortOrder = sortOrder;
-    }
-
-    if (companyFilter !== "all") {
-        params.companyId = Number(companyFilter);
-    }
-
-    if (statusFilter !== "all") {
-        params.status = statusFilter;
-    }
-
-    if (clientFilter !== "all") {
-        params.client = clientFilter;
-    }
-
-    return params;
-};
-
-/**
  * useJobSearch
- * - Primary server-side data hook for the JobScreen.
  *
  * @param {{
- *   companyFilter: string,
- *   statusFilter: string,
- *   clientFilter: string,
- *   sortKey: string,
  *   page: number,
  *   pageSize: number,
- *   clientSearchMode?: boolean, // optional: if true, use searchJobs(q=clientFilter)
+ *   sortKey: string,
+ *   globalSearchQuery?: string,
  * }} options
  */
 export const useJobSearch = ({
-                                 companyFilter,
-                                 statusFilter,
-                                 clientFilter,
-                                 sortKey,
                                  page,
                                  pageSize,
-                                 clientSearchMode = false,
+                                 sortKey,
+                                 globalSearchQuery = "",
                              }) => {
     logger.info("useJobSearch initialized", {
-        companyFilter,
-        statusFilter,
-        clientFilter,
-        sortKey,
         page,
         pageSize,
-        clientSearchMode,
+        sortKey,
+        globalSearchQuery,
     });
 
-    // --- Jobs list (server-side pagination) ---
+    const trimmedQuery = globalSearchQuery.trim();
+    const isGlobalSearchActive = trimmedQuery.length > 0;
+
+    // --- Jobs list (base or global search) ---
     const {
         data: jobsResponse,
         isPending: isPendingJobs,
@@ -133,48 +80,37 @@ export const useJobSearch = ({
         queryKey: jobKeys.list({
             page,
             size: pageSize,
-            companyFilter,
-            statusFilter,
-            clientFilter: clientSearchMode ? "all" : clientFilter,
             sortKey,
-            clientSearchMode,
+            globalSearchQuery: trimmedQuery || null,
         }),
         queryFn: async () => {
-            const params = buildJobParams({
-                companyFilter,
-                statusFilter,
-                clientFilter: clientSearchMode ? "all" : clientFilter,
-                page,
-                pageSize,
-                sortKey,
-            });
+            const { sortField, sortOrder } = deriveApiSortParams(sortKey);
 
-            logger.info("useJobSearch jobs queryFn called", {
-                clientSearchMode,
-                params,
-            });
+            // Build base params shared by both endpoints
+            const baseParams = {
+                page,
+                size: pageSize,
+            };
+            if (sortField) {
+                baseParams.sortField = sortField;
+                baseParams.sortOrder = sortOrder;
+            }
 
             let response;
-            if (clientSearchMode && clientFilter !== "all") {
-                // Global client search mode uses searchJobs with q
-                const trimmedClient = clientFilter.trim();
-                const { sortField, sortOrder } = deriveApiSortParams(sortKey);
-
+            if (isGlobalSearchActive) {
                 const searchParams = {
-                    q: trimmedClient,
-                    page,
-                    size: pageSize,
+                    ...baseParams,
+                    q: trimmedQuery,
                 };
-                if (sortField) {
-                    searchParams.sortField = sortField;
-                    searchParams.sortOrder = sortOrder;
-                }
-
-                logger.info("useJobSearch using searchJobs", { searchParams });
+                logger.info("useJobSearch using searchJobs (global)", {
+                    searchParams,
+                });
                 response = await searchJobs(searchParams);
             } else {
-                logger.info("useJobSearch using getAllJobs", { params });
-                response = await getAllJobs(params);
+                logger.info("useJobSearch using getAllJobs (base)", {
+                    params: baseParams,
+                });
+                response = await getAllJobs(baseParams);
             }
 
             const jobsArray = Array.isArray(response?.data)
@@ -183,6 +119,7 @@ export const useJobSearch = ({
             logger.info("useJobSearch jobs queryFn success", {
                 count: jobsArray.length,
                 meta: response?.meta,
+                isGlobalSearchActive,
             });
             return response;
         },
@@ -242,74 +179,8 @@ export const useJobSearch = ({
         ];
     }, [uniqueCompanies]);
 
-    // --- Scoped clients list (optional) ---
-    const {
-        data: scopedClients = [],
-        isError: isErrorScopedClients,
-        error: errorScopedClients,
-    } = useQuery({
-        queryKey: jobKeys.clientsList(
-            companyFilter !== "all" ? { companyId: Number(companyFilter) } : {},
-        ),
-        queryFn: async () => {
-            if (companyFilter === "all") {
-                logger.info(
-                    "useJobSearch scoped clients queryFn skipped (no company)",
-                    {
-                        companyFilter,
-                    },
-                );
-                return [];
-            }
-
-            const companyId = Number(companyFilter);
-            logger.info("useJobSearch scoped clients queryFn called", {
-                companyId,
-            });
-
-            const clients = await getJobClients({ companyId });
-
-            logger.info("useJobSearch scoped clients queryFn success", {
-                count: Array.isArray(clients) ? clients.length : 0,
-                companyId,
-            });
-
-            return clients;
-        },
-        enabled: companyFilter !== "all",
-    });
-
-    if (isErrorScopedClients) {
-        logger.error(
-            "useJobSearch scoped clients query encountered an error",
-            errorScopedClients,
-        );
-    }
-
-    const clientOptionsFromServer = useMemo(() => {
-        if (!Array.isArray(scopedClients) || scopedClients.length === 0) {
-            return null;
-        }
-
-        const sorted = [...scopedClients].sort((a, b) =>
-            String(a.clientName || "").localeCompare(
-                String(b.clientName || ""),
-            ),
-        );
-
-        return [
-            { value: "all", label: "All" },
-            ...sorted.map((client) => ({
-                value: client.clientName,
-                label: client.clientName,
-            })),
-        ];
-    }, [scopedClients]);
-
-    const isError = Boolean(
-        isErrorJobs || isErrorCompanies || isErrorScopedClients,
-    );
-    const error = errorJobs || errorCompanies || errorScopedClients;
+    const isError = Boolean(isErrorJobs || isErrorCompanies);
+    const error = errorJobs || errorCompanies;
     const isPending = isPendingJobs;
 
     return {
@@ -318,19 +189,15 @@ export const useJobSearch = ({
         totalJobs,
         totalPages,
         currentPage,
+        serverMeta,
 
         // loading / error
         isPending,
         isError,
         error,
 
-        // server-driven options
+        // options
         companyOptionsFromServer,
-        clientOptionsFromServer,
-
-        // raw response/meta if needed
-        jobsResponse,
-        serverMeta,
     };
 };
 

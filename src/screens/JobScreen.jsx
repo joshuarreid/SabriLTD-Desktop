@@ -2,12 +2,8 @@
  * JobScreen.jsx
  *
  * Presentational jobs screen.
- * - Wide search bar at the top ("Search jobs")
- * - Filter row: Sort by, Company, Client, Status (company/client use FilterDropdownSearch)
- * - Animated grid of minimal job items (JobInfoCard) using Framer Motion layout transitions
- * - Pagination controls pinned to the bottom (page indicator + navigation)
- *
- * All data fetching and business logic is handled by useJobScreen.
+ * Top search bar now ALWAYS performs a global server-side search
+ * via setGlobalSearchQuery in useJobScreen.
  */
 
 import React from "react";
@@ -19,60 +15,44 @@ import FilterDropdown from "../components/filterdropdown/FilterDropdown";
 import FilterDropdownSearch from "../components/filterdropdown/FilterDropdownSearch";
 import { useJobScreen } from "../features/job-management/hooks/useJobScreen";
 
-/**
- * Standardized logger for JobScreen.
- *
- * @constant
- * @type {{info: Function, error: Function}}
- */
 const logger = {
     info: (...args) => console.log("[JobScreen]", ...args),
     error: (...args) => console.error("[JobScreen]", ...args),
 };
 
-/**
- * JobScreen
- * Top-level presentational container for the jobs view.
- *
- * @component
- * @returns {JSX.Element}
- */
 const JobScreen = () => {
     logger.info("JobScreen rendered");
 
     const {
-        // data
         paginatedJobs,
         totalJobs,
         totalPages,
         currentPage,
 
-        // loading / error
         isPending,
         isError,
         error,
 
-        // search & filters
         searchInput,
         sortKey,
         companyFilter,
         clientFilter,
         statusFilter,
 
-        setSearch,
         setSearchInput,
         setSortKey,
         setCompanyFilter,
         setClientFilter,
         setStatusFilter,
 
-        // dropdown options
+        // NEW: from useJobScreen (global search setter)
+        setGlobalSearchQuery,
+
         sortOptionsForDropdown,
         companyOptions,
         clientOptions,
         statusOptions,
 
-        // pagination (centralized via useJobScreenPagination)
         hasPrevious,
         hasNext,
         handlePageChange,
@@ -81,18 +61,9 @@ const JobScreen = () => {
         itemStart,
         itemEnd,
 
-        // actions
         handleResetFilters,
     } = useJobScreen();
 
-    /**
-     * handleSearchChange
-     * - Updates local search input only; does NOT trigger filtering until Enter.
-     *
-     * @function handleSearchChange
-     * @param {React.ChangeEvent<HTMLInputElement>} event
-     * @returns {void}
-     */
     const handleSearchChange = (event) => {
         const next = event.target.value;
         setSearchInput(next);
@@ -100,41 +71,27 @@ const JobScreen = () => {
     };
 
     /**
-     * handleSearchKeyDown
-     * - Applies search when user presses Enter.
-     *
-     * @function handleSearchKeyDown
-     * @param {React.KeyboardEvent<HTMLInputElement>} event
-     * @returns {void}
+     * Global search on Enter:
+     * - Updates globalSearchQuery in useJobScreen (server-side searchJobs).
+     * - Resets to page 1.
      */
     const handleSearchKeyDown = (event) => {
         if (event.key === "Enter") {
             event.preventDefault();
             const value = searchInput.trim();
-            logger.info("[JobScreen] search submitted via Enter", { value });
-            setSearch(value);
+            logger.info("[JobScreen] global search submitted via Enter", {
+                value,
+            });
+            setGlobalSearchQuery(value);
             handlePageChange(1);
         }
     };
 
-    /**
-     * buildCompanySearchOptions
-     * - Maps companyOptions into label/value pairs for FilterDropdownSearch,
-     *   excluding the "all" sentinel option.
-     *
-     * @returns {Array<{value:string,label:string}>}
-     */
     const buildCompanySearchOptions = () =>
         (companyOptions || [])
             .filter((opt) => opt.value !== "all")
             .map((opt) => ({ value: opt.value, label: opt.label }));
 
-    /**
-     * buildClientSearchOptions
-     * - Maps unique clients from clientOptions into label/value pairs for FilterDropdownSearch.
-     *
-     * @returns {Array<{value:string,label:string}>}
-     */
     const buildClientSearchOptions = () =>
         (clientOptions || [])
             .filter((opt) => opt.value !== "all")
@@ -160,7 +117,6 @@ const JobScreen = () => {
                 <h2 className={styles.title}>Jobs</h2>
             </header>
 
-            {/* Top search bar – full-width and aligned with title & filters */}
             <div className={styles.searchRow}>
                 <WideSearchBar
                     value={searchInput}
@@ -172,7 +128,6 @@ const JobScreen = () => {
                 />
             </div>
 
-            {/* Filters row: Sort by, Company, Client, Status */}
             <div className={styles.filtersRow} role="region" aria-label="Job filters">
                 <FilterDropdown
                     label="Sort by"
@@ -242,7 +197,6 @@ const JobScreen = () => {
                 </div>
             </div>
 
-            {/* Folder grid (animated JobInfoCard components) */}
             <section className={styles.folderGridSection}>
                 {isError ? (
                     <div className={styles.error}>
@@ -293,7 +247,6 @@ const JobScreen = () => {
                 )}
             </section>
 
-            {/* Pagination footer pinned at bottom of page content */}
             <footer className={styles.paginationFooter} aria-label="Job pagination">
                 <div className={styles.paginationSummary}>
                     {totalJobs === 0 ? (
