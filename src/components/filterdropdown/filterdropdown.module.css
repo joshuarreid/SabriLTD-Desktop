@@ -1,0 +1,166 @@
+:root {
+    /* Use global design tokens from App.css so dropdowns stay on-brand */
+    --filter-bg: var(--color-bg-surface, #ffffff);
+    --filter-bg-hover: var(--color-bg-subtle, #f5f5f7);
+    --filter-bg-active: rgba(255, 214, 0, 0.06); /* subtle Sabri yellow wash when active */
+
+    --filter-border: var(--color-border-subtle, #e4e6ec);
+    --filter-border-strong: var(--color-border-strong, #777c88);
+    --filter-border-active: rgba(255, 214, 0, 0.7);
+
+    --filter-label-color: var(--color-primary-muted, #5d6170);
+    --filter-label-active-color: var(--color-primary, #333645);
+    --filter-caret-color: var(--color-primary-muted, #777c88);
+
+    --filter-menu-bg: var(--color-bg-surface, #ffffff);
+    --filter-menu-border: var(--color-border-subtle, #e4e6ec);
+    --filter-menu-hover-bg: rgba(148, 163, 184, 0.1); /* soft grey */
+    --filter-menu-active-bg: rgba(255, 214, 0, 0.14); /* Sabri yellow muted */
+}
+
+/* Root wrapper for a dropdown control + its floating menu */
+.filterDropdownRoot {
+    position: relative;
+    display: inline-block;
+}
+
+/* Square filter control button – aligned with FilterDropdownSearch */
+.filterControl {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center; /* center title + selection + caret */
+    gap: 6px;
+    padding: 8px 18px;
+    min-height: 40px;
+    min-width: 170px;
+    border-radius: 10px;
+    border: 1px solid var(--filter-border);
+    background: var(--filter-bg);
+    box-shadow:
+            0 1px 0 rgba(255, 255, 255, 0.75),
+            0 1px 3px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition:
+            box-shadow 0.15s ease,
+            border-color 0.15s ease,
+            background-color 0.15s ease,
+            transform 0.08s ease;
+}
+
+/* Hover / keyboard focus – mirror FilterDropdownSearch */
+.filterControl:hover,
+.filterControl:focus-visible {
+    border-color: var(--filter-border-strong);
+    box-shadow:
+            0 2px 6px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    background: var(--filter-bg-hover);
+    transform: translateY(-1px);
+}
+
+/* When filter is active (value !== all) – stronger Sabri-style emphasis */
+.filterControlActive {
+    border-color: var(--filter-border-active);
+    background: var(--filter-bg-active);
+    box-shadow:
+            0 3px 10px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+}
+
+/* Label text inside the control */
+.filterLabel {
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--filter-label-color);
+    white-space: nowrap;
+}
+
+/* Bold/strong label when a filter is active (not "all") */
+.filterLabelActive {
+    font-weight: 800;
+    color: var(--filter-label-active-color);
+}
+
+/* Secondary selected value label, matching FilterDropdownSearch */
+.filterSelectedValue {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--color-primary-muted, #5d6170);
+    white-space: nowrap;
+}
+
+/* Small "x" clear icon shown when a selection is active */
+.filterClearIcon {
+    font-size: 0.76rem;
+    line-height: 1;
+    padding: 2px 4px;
+    margin-left: 2px;
+    border-radius: 999px;
+    color: var(--color-primary-muted, #5d6170);
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.filterClearIcon:hover,
+.filterClearIcon:focus-visible {
+    background: rgba(148, 163, 184, 0.15);
+    color: var(--color-primary, #333645);
+}
+
+/* Caret icon */
+.filterCaret {
+    font-size: 0.7rem;
+    color: var(--filter-caret-color);
+}
+
+/* Floating dropdown menu under the control */
+.filterMenu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 190px;
+    background: var(--filter-menu-bg);
+    border-radius: 10px;
+    border: 1px solid var(--filter-menu-border);
+    box-shadow:
+            0 10px 30px rgba(0, 0, 0, 0.16),
+            0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+    padding: 6px 0;
+    z-index: 20;
+}
+
+/* Individual menu item row */
+.filterMenuItem {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    padding: 6px 12px;
+    font-size: 0.9rem;
+    color: var(--color-text-main, #191919);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+/* Hover / focus state */
+.filterMenuItem:hover,
+.filterMenuItem:focus-visible {
+    background: var(--filter-menu-hover-bg);
+}
+
+/* Selected/active item */
+.filterMenuItemActive {
+    font-weight: 600;
+    background: var(--filter-menu-active-bg);
+    color: var(--color-primary, #333645);
+}

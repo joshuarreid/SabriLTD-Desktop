@@ -4,6 +4,7 @@ import { FiSearch } from "react-icons/fi";
 
 /**
  * logger for WideSearchBar component.
+ *
  * @constant
  * @type {{info: Function, error: Function}}
  */
@@ -15,7 +16,8 @@ const logger = {
 /**
  * WideSearchBar
  * - Reusable full-width search input with leading search icon.
- * - Intentionally matches the card-wide search bar styling used in TagSettingsTab.
+ * - Default layout centers the bar with a max-width (legacy behavior).
+ * - When `fluid` is true, the bar stretches to fill its container width.
  *
  * @component
  * @param {Object} props
@@ -25,6 +27,8 @@ const logger = {
  * @param {string} [props.placeholder="Search"] - Input placeholder text.
  * @param {boolean} [props.disabled=false] - Whether the search is disabled.
  * @param {string} [props.ariaLabel="Search"] - Accessible label for screen readers.
+ * @param {boolean} [props.fluid=false] - If true, uses a full-width, left-aligned layout instead of centered/95% width.
+ * @param {string} [props.className] - Optional additional className applied to the outer wrapper.
  * @returns {JSX.Element}
  */
 const WideSearchBar = ({
@@ -34,12 +38,28 @@ const WideSearchBar = ({
                            placeholder = "Search",
                            disabled = false,
                            ariaLabel = "Search",
+                           fluid = false,
+                           className = "",
                        }) => {
-    logger.info("WideSearchBar rendered", { disabled });
+    logger.info("WideSearchBar rendered", { disabled, fluid });
 
-    // NOTE: onKeyDown is forwarded so parents (e.g. TagSettingsTab) can handle Enter.
+    /**
+     * Computes the outer wrapper className, supporting both legacy and fluid modes.
+     *
+     * @constant
+     * @type {string}
+     */
+    const wrapperClassName = [
+        styles.cardSearchTopBarWrap,
+        fluid ? styles.cardSearchTopBarWrapFluid : "",
+        className,
+    ]
+        .filter(Boolean)
+        .join(" ");
+
+    // NOTE: onKeyDown is forwarded so parents (e.g. TagSettingsTab, JobScreen) can handle Enter.
     return (
-        <div className={styles.cardSearchTopBarWrap}>
+        <div className={wrapperClassName}>
             <label className={styles.cardSearchBarContainer}>
                 <FiSearch size={25} className={styles.cardSearchIcon} />
                 <input
