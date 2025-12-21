@@ -84,8 +84,30 @@ export const useJobScreen = () => {
         logger.info("useJobScreen handlePageChange (from UI)", {
             nextPage,
         });
-        pagination.setPage(nextPage);
-        setServerPage(nextPage);
+        pagination.setPage(nextPage);   // updates local pagination
+        setServerPage(nextPage);        // triggers new API call
+    };
+
+    const handleNextPage = () => {
+        const next = pagination.page + 1;
+        logger.info("useJobScreen handleNextPage", {
+            current: pagination.page,
+            next,
+        });
+        if (!pagination.hasNext) return;
+        pagination.handleNext();        // updates local pagination
+        setServerPage(next);            // triggers new API call
+    };
+
+    const handlePreviousPage = () => {
+        const prev = pagination.page - 1;
+        logger.info("useJobScreen handlePreviousPage", {
+            current: pagination.page,
+            prev,
+        });
+        if (!pagination.hasPrevious) return;
+        pagination.handlePrevious();    // updates local pagination
+        setServerPage(prev);            // triggers new API call
     };
 
     const handleSetPageSize = (nextSize) => {
@@ -210,8 +232,8 @@ export const useJobScreen = () => {
         hasPrevious: pagination.hasPrevious,
         hasNext: pagination.hasNext,
         handlePageChange,
-        handleNextPage: pagination.handleNext,
-        handlePreviousPage: pagination.handlePrevious,
+        handleNextPage,
+        handlePreviousPage,
         itemStart: pagination.itemStart,
         itemEnd: pagination.itemEnd,
 
@@ -228,7 +250,7 @@ export const useJobScreen = () => {
 
         // actions
         handleResetFilters,
-        handleSetPageSize, // not used yet but logged
+        handleSetPageSize,
     };
 };
 
