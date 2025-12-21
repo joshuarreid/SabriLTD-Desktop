@@ -446,11 +446,18 @@ export const useJobScreen = () => {
     const applyGlobalSearch = (query) => {
         logger.info("useJobScreen applyGlobalSearch", { query });
 
-        // Clear all filters when a global search is performed
+        // Clear all filters when a global search is performed, but DO NOT clear searchInput.
         setCompanyFilter("all");
         setStatusFilter("all");
         setClientFilter("all");
-        filters.handleResetFilters();
+
+        // Reset only filter-related local state (not search/searchInput)
+        filters.setCompanyFilter("all");
+        filters.setClientFilter("all");
+        filters.setStatusFilter("all");
+        filters.setSortKey(DEFAULT_SORT_KEY);
+        filters.setPage(1);
+        filters.setPageSize(DEFAULT_PAGE_SIZE);
 
         // Reset global filter tracking
         setHasGlobalFilters(false);
