@@ -271,6 +271,7 @@ const JobScreen = () => {
                                             name: job.name,
                                             companyName: job.client,
                                             status: job.status,
+                                            description: job.description, // NEW: pass description to show under name
                                         }}
                                         onClick={() =>
                                             logger.info("[JobScreen] job clicked", {
