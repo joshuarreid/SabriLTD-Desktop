@@ -84,10 +84,6 @@ const JobScreen = () => {
     /**
      * handleSearchChange
      * - Updates local search input only; does NOT trigger filtering until Enter.
-     *
-     * @function handleSearchChange
-     * @param {React.ChangeEvent<HTMLInputElement>} event
-     * @returns {void}
      */
     const handleSearchChange = (event) => {
         const next = event.target.value;
@@ -101,10 +97,6 @@ const JobScreen = () => {
      *   - Clears all filters.
      *   - Sets global search query (server-side searchJobs).
      *   - Resets pagination to page 1.
-     *
-     * @function handleSearchKeyDown
-     * @param {React.KeyboardEvent<HTMLInputElement>} event
-     * @returns {void}
      */
     const handleSearchKeyDown = (event) => {
         if (event.key === "Enter") {
@@ -121,8 +113,6 @@ const JobScreen = () => {
      * buildCompanySearchOptions
      * - Maps companyOptions into label/value pairs for FilterDropdownSearch,
      *   excluding the "all" sentinel option.
-     *
-     * @returns {Array<{value:string,label:string}>}
      */
     const buildCompanySearchOptions = () =>
         (companyOptions || [])
@@ -132,8 +122,6 @@ const JobScreen = () => {
     /**
      * buildClientSearchOptions
      * - Maps unique clients from clientOptions into label/value pairs for FilterDropdownSearch.
-     *
-     * @returns {Array<{value:string,label:string}>}
      */
     const buildClientSearchOptions = () =>
         (clientOptions || [])
@@ -181,7 +169,7 @@ const JobScreen = () => {
                     onChange={(value) => {
                         const normalized = value || sortKey;
                         logger.info("[JobScreen] sort changed", { value: normalized });
-                        setSortKey(normalized);
+                        setSortKey(normalized);        // calls handleSetSortKey in useJobScreen
                         handlePageChange(1);
                     }}
                     displaySelection
@@ -196,7 +184,7 @@ const JobScreen = () => {
                         logger.info("[JobScreen] company filter changed", {
                             value: normalized,
                         });
-                        setCompanyFilter(normalized);
+                        setCompanyFilter(normalized);  // calls handleCompanyFilterChange
                         handlePageChange(1);
                     }}
                 />
@@ -210,7 +198,7 @@ const JobScreen = () => {
                         logger.info("[JobScreen] client filter changed", {
                             value: normalized,
                         });
-                        setClientFilter(normalized);
+                        setClientFilter(normalized);   // calls handleClientFilterChange
                         handlePageChange(1);
                     }}
                 />
@@ -220,10 +208,11 @@ const JobScreen = () => {
                     value={statusFilter || "all"}
                     options={statusOptions}
                     onChange={(value) => {
-                        // Normalize falsy/empty values to "all" explicitly before setting.
                         const normalized = value || "all";
-                        logger.info("[JobScreen] status filter changed", { value: normalized });
-                        setStatusFilter(normalized);
+                        logger.info("[JobScreen] status filter changed", {
+                            value: normalized,
+                        });
+                        setStatusFilter(normalized);   // calls handleStatusFilterChange
                         handlePageChange(1);
                     }}
                     displaySelection
