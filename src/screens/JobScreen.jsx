@@ -179,8 +179,9 @@ const JobScreen = () => {
                     value={sortKey}
                     options={sortOptionsForDropdown}
                     onChange={(value) => {
-                        logger.info("[JobScreen] sort changed", { value });
-                        setSortKey(value);
+                        const normalized = value || sortKey;
+                        logger.info("[JobScreen] sort changed", { value: normalized });
+                        setSortKey(normalized);
                         handlePageChange(1);
                     }}
                     displaySelection
@@ -216,11 +217,13 @@ const JobScreen = () => {
 
                 <FilterDropdown
                     label="Status"
-                    value={statusFilter}
+                    value={statusFilter || "all"}
                     options={statusOptions}
                     onChange={(value) => {
-                        logger.info("[JobScreen] status filter changed", { value });
-                        setStatusFilter(value);
+                        // Normalize falsy/empty values to "all" explicitly before setting.
+                        const normalized = value || "all";
+                        logger.info("[JobScreen] status filter changed", { value: normalized });
+                        setStatusFilter(normalized);
                         handlePageChange(1);
                     }}
                     displaySelection

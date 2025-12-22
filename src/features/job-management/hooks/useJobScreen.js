@@ -363,6 +363,13 @@ export const useJobScreen = () => {
 
         const isStatusActive = normalized !== "all";
 
+        // Helper: is status the ONLY active filter (no company, no client, no global search)?
+        const isStatusOnlyFilter =
+            companyFilter === "all" &&
+            clientFilter === "all" &&
+            (globalSearchQuery || "").trim() === "";
+
+        // Case 1: first time status is used and it's not "all" -> global getAllJobs(status=...)
         if (!hasGlobalFilters && isStatusActive) {
             await applyGlobalCompanyStatusFilter({
                 companyFilter: "all",
@@ -382,7 +389,29 @@ export const useJobScreen = () => {
                 companyFilter,
                 statusFilter: normalized,
             });
+            return;
         }
+
+        // NEW: If status was the only filter, and we go back to "all",
+        // issue a global getAllJobs with no status to restore the full set.
+        if (
+            hasGlobalFilters &&
+            initialGlobalFilterSource === "status" &&
+            !isStatusActive &&
+            isStatusOnlyFilter
+        ) {
+            logger.info(
+                "useJobScreen clearing global status filter (back to all, status-only case)",
+            );
+            await applyGlobalCompanyStatusFilter({
+                companyFilter: "all",
+                statusFilter: "all",
+            });
+            // applyGlobalCompanyStatusFilter will reset initialGlobalFilterSource appropriately
+            return;
+        }
+
+        // Otherwise: going back to "all" is local-only (no extra server call)
     };
 
     // ---- Client filter handler (global only on first use) ----
