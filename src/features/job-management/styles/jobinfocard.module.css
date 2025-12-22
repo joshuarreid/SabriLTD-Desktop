@@ -35,12 +35,25 @@
     width: 56px;
     height: 56px;
     border-radius: 8px;
+    position: relative; /* for check positioning */
 }
 
 /* Icon styling */
 .icon {
     font-size: 2.4rem;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
+}
+
+/* Green check overlay for active jobs - TOP RIGHT, nudged 1px to the right */
+.activeCheck {
+    position: absolute;
+    top: 0;
+    right: -7px; /* moved 1px further right */
+    font-size: 0.95rem;
+    color: var(--color-success, #48d18e);
+    background: #ffffff;
+    border-radius: 999px;
+    box-shadow: 0 0 0 2px #ffffff;
 }
 
 /* Name wrapper */
@@ -58,8 +71,16 @@
     line-height: 1.1;
 }
 
-/* Optional muted subline (not shown by default in this minimal wireframe) */
+/* Optional muted subline (legacy) */
 .subline {
     font-size: 0.82rem;
     color: var(--text-muted);
+}
+
+/* Job description under the name, smaller and muted */
+.description {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    line-height: 1.2;
 }
