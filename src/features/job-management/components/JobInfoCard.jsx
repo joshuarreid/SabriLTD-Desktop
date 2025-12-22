@@ -15,6 +15,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import styles from "../styles/jobinfocard.module.css";
 import { FcFolder } from "react-icons/fc";
+import { TbProgressCheck } from "react-icons/tb";
 
 /**
  * logger for JobInfoCard.
@@ -26,10 +27,25 @@ const logger = {
 };
 
 /**
+ * truncate
+ * - Truncate a string to maxLength characters, adding "..." if truncated.
+ *
+ * @param {string} text
+ * @param {number} maxLength
+ * @returns {string}
+ */
+const truncate = (text, maxLength) => {
+    if (!text) return "";
+    const str = String(text);
+    if (str.length <= maxLength) return str;
+    return `${str.slice(0, maxLength)}...`;
+};
+
+/**
  * JobInfoCard
  *
  * @param {Object} props
- * @param {{jobId:number, name:string, companyName?:string, status?:string}} props.job - Job data
+ * @param {{jobId:number, name:string, companyName?:string, status?:string, description?:string}} props.job - Job data
  * @param {function} [props.onClick] - Click handler (optional)
  * @returns {JSX.Element}
  */
@@ -44,6 +60,9 @@ const JobInfoCard = ({ job, onClick }) => {
         }
     };
 
+    const truncatedDescription = truncate(job?.description || "", 22);
+    const isActive = String(job?.status || "").toLowerCase() === "active";
+
     return (
         <div
             className={styles.jobInfoRoot}
@@ -51,13 +70,25 @@ const JobInfoCard = ({ job, onClick }) => {
             tabIndex={onClick ? 0 : undefined}
             onClick={() => onClick && onClick(job)}
             onKeyPress={handleKeyPress}
-            aria-label={job?.name ? `Open job ${job.name}` : "Open job"}
+            aria-label={
+                job?.name
+                    ? `Open job ${job.name}`
+                    : "Open job"
+            }
         >
             <div className={styles.iconWrap} aria-hidden>
                 <FcFolder className={styles.icon} />
+                {isActive && (
+                    <TbProgressCheck className={styles.activeCheck} />
+                )}
             </div>
             <div className={styles.nameWrap}>
                 <div className={styles.name}>{job?.name}</div>
+                {truncatedDescription && (
+                    <div className={styles.description}>
+                        {truncatedDescription}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -69,6 +100,7 @@ JobInfoCard.propTypes = {
         name: PropTypes.string.isRequired,
         companyName: PropTypes.string,
         status: PropTypes.string,
+        description: PropTypes.string,
     }).isRequired,
     onClick: PropTypes.func,
 };
