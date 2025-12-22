@@ -58,8 +58,16 @@
     line-height: 1.1;
 }
 
-/* Optional muted subline (not shown by default in this minimal wireframe) */
+/* Optional muted subline (legacy) */
 .subline {
     font-size: 0.82rem;
     color: var(--text-muted);
+}
+
+/* Job description under the name, smaller and muted */
+.description {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    line-height: 1.2;
 }

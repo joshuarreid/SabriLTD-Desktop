@@ -26,12 +26,12 @@ const logger = {
 /**
  * DEFAULT_SORT_KEY
  * - Default sort key for jobs grids using this hook.
- *   Per JobScreen requirements this is "Date Modified" (modified-desc).
+ *   Per JobScreen requirements this is "Status first, then Date Modified".
  *
  * @constant
  * @type {string}
  */
-export const DEFAULT_SORT_KEY = "modified-desc";
+export const DEFAULT_SORT_KEY = "status-first";
 
 /**
  * DEFAULT_PAGE_SIZE
@@ -50,6 +50,7 @@ export const DEFAULT_PAGE_SIZE = 25;
  * @type {Array<{ key: string, label: string }>}
  */
 export const SORT_OPTIONS = [
+    { key: "status-first", label: "Status" },
     { key: "modified-desc", label: "Date Modified" },
     { key: "date-desc", label: "Newest" },
     { key: "date-asc", label: "Oldest" },
@@ -65,6 +66,11 @@ export const SORT_OPTIONS = [
  */
 const deriveSortParams = (sortKey) => {
     if (!sortKey) return { field: null, direction: "desc" };
+
+    if (sortKey === "status-first") {
+        // Special sentinel handled explicitly in sort logic
+        return { field: "status-first", direction: "desc" };
+    }
 
     const [field, dirRaw] = String(sortKey).split("-");
     const direction = dirRaw === "asc" ? "asc" : "desc";
@@ -251,6 +257,34 @@ export const useJobFilters = (
         const { field, direction } = sortParams;
         const result = [...baseFiltered];
 
+        // Special: status-first => Active status at the top,
+        // and within each group sort by Date Modified (dateUpdated or dateAdded) DESC.
+        if (field === "status-first") {
+            result.sort((a, b) => {
+                const aStatus = String(a.status || "").toLowerCase();
+                const bStatus = String(b.status || "").toLowerCase();
+
+                const aActive = aStatus === "active";
+                const bActive = bStatus === "active";
+
+                if (aActive && !bActive) return -1; // a before b
+                if (!aActive && bActive) return 1;  // b before a
+
+                // Same group (both Active or both non-Active):
+                // sort by "modified" (dateUpdated or dateAdded), newest first.
+                const modifiedA = a.dateUpdated || a.dateAdded;
+                const modifiedB = b.dateUpdated || b.dateAdded;
+                const da = modifiedA ? new Date(modifiedA).getTime() : 0;
+                const db = modifiedB ? new Date(modifiedB).getTime() : 0;
+
+                // Newest first regardless of direction in this special mode.
+                return db - da;
+            });
+
+            return result;
+        }
+
+        // Existing sort behavior for other modes
         result.sort((a, b) => {
             if (field === "dateAdded") {
                 const da = a.dateAdded ? new Date(a.dateAdded).getTime() : 0;
