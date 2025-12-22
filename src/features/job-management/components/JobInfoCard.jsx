@@ -15,6 +15,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import styles from "../styles/jobinfocard.module.css";
 import { FcFolder } from "react-icons/fc";
+import { TbProgressCheck } from "react-icons/tb";
 
 /**
  * logger for JobInfoCard.
@@ -60,6 +61,7 @@ const JobInfoCard = ({ job, onClick }) => {
     };
 
     const truncatedDescription = truncate(job?.description || "", 22);
+    const isActive = String(job?.status || "").toLowerCase() === "active";
 
     return (
         <div
@@ -76,6 +78,9 @@ const JobInfoCard = ({ job, onClick }) => {
         >
             <div className={styles.iconWrap} aria-hidden>
                 <FcFolder className={styles.icon} />
+                {isActive && (
+                    <TbProgressCheck className={styles.activeCheck} />
+                )}
             </div>
             <div className={styles.nameWrap}>
                 <div className={styles.name}>{job?.name}</div>
