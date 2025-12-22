@@ -4,9 +4,12 @@
  * Orchestration hook for JobScreen.
  *
  * Rules:
- * - First non-"all" filter (company, client or status) triggers a GLOBAL fetch.
- * - After that, ALL filters (including the ones that were first) are LOCAL ONLY.
- * - BUT: If you CLEAR the filter that was used first globally (set it back to "all"),
+ * - First non-"all" filter (company, client or status) becomes the PRIMARY GLOBAL FILTER.
+ * - While that primary filter is active:
+ *   - Changes to that SAME filter (e.g., Active -> Closed, Coca Cola -> Fiserv)
+ *     remain GLOBAL and re-query the server.
+ *   - Other filters are LOCAL ONLY.
+ * - If you CLEAR the primary filter (set it back to "all"),
  *   we UNDO that global narrowing and go back to the base/globalSearch list.
  * - Status options are static and come from useJobFilters.
  * - Client options for dropdown come from useJobFilters (unique clients in current baseJobs),
@@ -50,7 +53,7 @@ export const useJobScreen = () => {
     // Track whether we've already done a global-filtering call via a filter.
     const [hasGlobalFilterApplied, setHasGlobalFilterApplied] = useState(false);
 
-    // Track WHICH filter triggered that first global call: "company" | "status" | "client"
+    // Track WHICH filter triggered (and owns) the global filtering: "company" | "status" | "client"
     const [firstGlobalFilterKey, setFirstGlobalFilterKey] = useState(null);
 
     // ---- Server pagination (drives API) ----
@@ -139,7 +142,7 @@ export const useJobScreen = () => {
         initialPageSize: baseJobs.length || DEFAULT_PAGE_SIZE,
     });
 
-    // ---- Helpers for global API calls for the first filter ----
+    // ---- Helpers for global API calls for the primary filter ----
     const deriveApiSortParams = (sortKeyValue) => {
         if (!sortKeyValue) return { sortField: null, sortOrder: "asc" };
 
@@ -199,7 +202,7 @@ export const useJobScreen = () => {
             sortKey,
         });
 
-        logger.info("applyGlobalCompanyStatusFilter called (first filter)", {
+        logger.info("applyGlobalCompanyStatusFilter called (global filter)", {
             companyFilter: cFilter,
             statusFilter: sFilter,
             params,
@@ -235,7 +238,7 @@ export const useJobScreen = () => {
             params.sortOrder = sortOrder;
         }
 
-        logger.info("applyGlobalClientSearch (first filter) called", {
+        logger.info("applyGlobalClientSearch (global filter) called", {
             clientName: trimmedClient,
             params,
         });
@@ -243,7 +246,7 @@ export const useJobScreen = () => {
         const response = await searchJobs(params);
         const jobsArray = Array.isArray(response?.data) ? response.data : [];
 
-        logger.info("applyGlobalClientSearch (first filter) success", {
+        logger.info("applyGlobalClientSearch (global filter) success", {
             count: jobsArray.length,
             meta: response?.meta,
         });
@@ -254,7 +257,7 @@ export const useJobScreen = () => {
         return response;
     };
 
-    // ---- Scoped client options when first filter was company(/status) ----
+    // ---- Scoped client options when global is company(/status) ----
     const [scopedClients, setScopedClients] = useState([]);
 
     useEffect(() => {
@@ -340,8 +343,15 @@ export const useJobScreen = () => {
 
         const isCompanyActive = normalized !== "all";
 
-        // First non-"all" filter -> global getAllJobs, then others local-only
-        if (!hasGlobalFilterApplied && isCompanyActive) {
+        // Determine if this filter should act globally:
+        const isFirstGlobal = !hasGlobalFilterApplied && isCompanyActive;
+        const isPrimaryGlobal =
+            hasGlobalFilterApplied &&
+            firstGlobalFilterKey === "company" &&
+            isCompanyActive;
+
+        // First-time or subsequent change on primary global filter -> GLOBAL call
+        if (isFirstGlobal || isPrimaryGlobal) {
             await applyGlobalCompanyStatusFilter({
                 companyFilter: normalized,
                 statusFilter: "all",
@@ -350,7 +360,7 @@ export const useJobScreen = () => {
             return;
         }
 
-        // If company was first global filter and we're clearing it back to "all",
+        // If company was primary global filter and we're clearing it back to "all",
         // undo the global narrowing and go back to base/globalSearch list.
         if (
             hasGlobalFilterApplied &&
@@ -384,8 +394,13 @@ export const useJobScreen = () => {
 
         const isStatusActive = normalized !== "all";
 
-        // First non-"all" filter -> global getAllJobs, then others local-only
-        if (!hasGlobalFilterApplied && isStatusActive) {
+        const isFirstGlobal = !hasGlobalFilterApplied && isStatusActive;
+        const isPrimaryGlobal =
+            hasGlobalFilterApplied &&
+            firstGlobalFilterKey === "status" &&
+            isStatusActive;
+
+        if (isFirstGlobal || isPrimaryGlobal) {
             await applyGlobalCompanyStatusFilter({
                 companyFilter: "all",
                 statusFilter: normalized,
@@ -394,8 +409,6 @@ export const useJobScreen = () => {
             return;
         }
 
-        // If status was first global filter and we're clearing it back to "all",
-        // undo the global narrowing and go back to base/globalSearch list.
         if (
             hasGlobalFilterApplied &&
             firstGlobalFilterKey === "status" &&
@@ -428,15 +441,18 @@ export const useJobScreen = () => {
 
         const isClientActive = normalized !== "all";
 
-        // First non-"all" filter -> global searchJobs(q=clientName)
-        if (!hasGlobalFilterApplied && isClientActive) {
+        const isFirstGlobal = !hasGlobalFilterApplied && isClientActive;
+        const isPrimaryGlobal =
+            hasGlobalFilterApplied &&
+            firstGlobalFilterKey === "client" &&
+            isClientActive;
+
+        if (isFirstGlobal || isPrimaryGlobal) {
             await applyGlobalClientSearch(normalized);
             setFirstGlobalFilterKey("client");
             return;
         }
 
-        // If client was first global filter and we're clearing it back to "all",
-        // undo the global narrowing and go back to base/globalSearch list.
         if (
             hasGlobalFilterApplied &&
             firstGlobalFilterKey === "client" &&
@@ -460,7 +476,6 @@ export const useJobScreen = () => {
         [companyOptionsFromServer, filters.companyOptions],
     );
 
-    // Client options: prefer scoped clients when we have them, otherwise local unique clients.
     const clientOptions = useMemo(() => {
         if (Array.isArray(scopedClientOptions) && scopedClientOptions.length > 0) {
             return scopedClientOptions;
