@@ -202,24 +202,19 @@ export const useJobFilters = (
 
     /**
      * statusOptions
-     * - Unique statuses from current jobs.
+     * - Status dropdown is FIXED: All, Active, Closed.
+     *   It does NOT depend on what is present locally.
      *
      * @type {Array<{value:string,label:string}>}
      */
-    const statusOptions = useMemo(() => {
-        const setStatus = new Set();
-        (jobs || []).forEach((job) => {
-            if (job.status) {
-                setStatus.add(job.status);
-            }
-        });
-        return [
+    const statusOptions = useMemo(
+        () => [
             { value: "all", label: "All" },
-            ...Array.from(setStatus)
-                .sort()
-                .map((s) => ({ value: s, label: s })),
-        ];
-    }, [jobs]);
+            { value: "Active", label: "Active" },
+            { value: "Closed", label: "Closed" },
+        ],
+        [],
+    );
 
     /**
      * filteredAndSortedJobs
