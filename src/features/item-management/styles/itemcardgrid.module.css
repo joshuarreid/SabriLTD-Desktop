@@ -1,0 +1,111 @@
+:root {
+    --item-card-gap-row: 24px;
+    --item-card-gap-col: 20px;
+    --item-card-min-width: 140px;
+}
+
+/**
+ * Root section for the item grid.
+ */
+.itemGridSection {
+    margin-top: 16px;
+}
+
+/**
+ * Header row (title, future controls).
+ */
+.headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+/**
+ * Grid container for ItemInfoCard tiles.
+ * Column count is provided via inline style (gridTemplateColumns)
+ * so the grid can be configured per usage.
+ */
+.itemGrid {
+    display: grid;
+    row-gap: var(--item-card-gap-row);
+    column-gap: var(--item-card-gap-col);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Empty state text */
+.emptyState {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 0.96rem;
+    color: var(--color-text-muted, #868099);
+}
+
+/* Pagination footer – mirrors JobScreen pagination styles */
+.paginationFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-subtle, #e4e6ec);
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #6b6f7a);
+}
+
+.paginationSummary {
+    white-space: nowrap;
+}
+
+.paginationControls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.paginationButton {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border-subtle, #e4e6ec);
+    background: #f8f7ff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-primary-muted, #55586b);
+    cursor: pointer;
+    transition:
+            background-color 0.12s ease,
+            border-color 0.12s ease,
+            color 0.12s ease,
+            transform 0.08s ease,
+            box-shadow 0.12s ease;
+}
+
+.paginationButton:hover:not(:disabled) {
+    background: #ecebff;
+    border-color: var(--color-border-strong, #c0c6e4);
+    color: var(--color-primary, #333645);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+.paginationButton:disabled {
+    opacity: 0.45;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+}
+
+.paginationIndicator {
+    font-size: 0.88rem;
+    color: var(--color-primary-muted, #6b6f7a);
+}
