@@ -12,11 +12,12 @@ const logger = {
 };
 
 /**
- * Retrieves the session token from Electron main process via preload bridge.
+ * getTokenFromElectron
+ * - Retrieves the session token from Electron via the preload bridge.
  *
  * @async
  * @function getTokenFromElectron
- * @returns {Promise<string|null>} The authentication token, or null if unavailable.
+ * @returns {Promise<string|null>} The authentication token or null if unavailable.
  */
 const getTokenFromElectron = async () => {
     logger.info("getTokenFromElectron called");
@@ -37,7 +38,7 @@ const getTokenFromElectron = async () => {
 /**
  * ItemApiClient
  * - Concrete ApiClient for /api/items endpoints.
- * - Normalizes wrapped responses into { status, data, meta, transactionId, errors }.
+ * - Handles all API calls for item CRUD and search.
  *
  * @class
  * @extends ApiClient
@@ -57,33 +58,22 @@ export default class ItemApiClient extends ApiClient {
 
     /**
      * createItem
-     * - Calls POST /api/items to create a new item.
+     * - POST /api/items
      *
      * @async
-     * @function createItem
      * @param {Object} payload - ItemRequest payload.
-     * @returns {Promise<Object>} Raw normalized API response.
-     * @throws {Error} If validation fails, duplicate, or server error.
+     * @returns {Promise<Object>} Normalized API response.
+     * @throws {Error} If creation fails.
      */
     async createItem(payload) {
         logger.info("createItem called", { name: payload?.name });
         try {
             const token = await getTokenFromElectron();
-            if (!token) {
-                logger.error("createItem failed: No token available");
-                throw new Error("No authentication token found");
-            }
-
+            if (!token) throw new Error("No authentication token found");
             const raw = await this.post("", payload, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
-
-            logger.info("createItem success", {
-                itemId: raw?.data?.itemId ?? raw?.data?.id ?? null,
-            });
-
+            logger.info("createItem success", { itemId: raw?.data?.itemId });
             return raw;
         } catch (error) {
             logger.error("createItem failed", error);
@@ -93,60 +83,23 @@ export default class ItemApiClient extends ApiClient {
 
     /**
      * fetchAllItems
-     * - Calls GET /api/items with optional filters/pagination/sorting.
-     *
-     * Backend returns a wrapped response at the top level:
-     * {
-     *   status: "OK",
-     *   page: 1,
-     *   size: 25,
-     *   totalRecords: 33,
-     *   totalPages: 2,
-     *   filterCriteria: {...},
-     *   sortField: "...",
-     *   sortOrder: "...",
-     *   data: [ ...ItemResponse ],
-     *   transactionId: "...",
-     *   errors: [...]
-     * }
+     * - GET /api/items
      *
      * @async
-     * @function fetchAllItems
-     * @param {Object} [params={}] - Query params: { page, size, sortField, sortOrder, ...filters }.
-     * @returns {Promise<{
-     *   status?: string,
-     *   data: Array,
-     *   meta?: {
-     *     page: number|null,
-     *     size: number|null,
-     *     totalRecords: number|null,
-     *     totalPages: number|null,
-     *     filterCriteria?: Record<string, any>|null,
-     *     sortField?: string|null,
-     *     sortOrder?: string|null,
-     *     totalRelatedCount?: number|null
-     *   },
-     *   transactionId?: string,
-     *   errors?: Array<any>|null
-     * }>}
+     * @param {Object} [params={}] - Query params e.g. { page, size, filters }
+     * @returns {Promise<Object>} Normalized list response.
      * @throws {Error} If the request fails.
      */
     async fetchAllItems(params = {}) {
         logger.info("fetchAllItems called", params);
         try {
             const token = await getTokenFromElectron();
-            if (!token) {
-                logger.error("fetchAllItems failed: No token available");
-                throw new Error("No authentication token found");
-            }
-
-            // Use '' (empty string) to avoid trailing-slash issues.
+            if (!token) throw new Error("No authentication token found");
             const raw = await this.get("", params, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
 
+            // Compose "meta" in the same format as jobs
             const meta = {
                 page: raw?.page ?? null,
                 size: raw?.size ?? null,
@@ -157,14 +110,8 @@ export default class ItemApiClient extends ApiClient {
                 sortOrder: raw?.sortOrder ?? null,
                 totalRelatedCount: raw?.totalRelatedCount ?? null,
             };
-
             const itemsArray = Array.isArray(raw?.data) ? raw.data : [];
-
-            logger.info("fetchAllItems success", {
-                count: itemsArray.length,
-                meta,
-            });
-
+            logger.info("fetchAllItems success", { count: itemsArray.length, meta });
             return {
                 status: raw?.status,
                 data: itemsArray,
@@ -180,30 +127,17 @@ export default class ItemApiClient extends ApiClient {
 
     /**
      * fetchItemById
-     * - Calls GET /api/items/{itemId}.
-     *
-     * @async
-     * @function fetchItemById
-     * @param {number} itemId - Item identifier.
-     * @returns {Promise<Object>} Raw response with ItemResponse in `data`.
-     * @throws {Error} If not found or request fails.
+     * - GET /api/items/{itemId}
      */
     async fetchItemById(itemId) {
         logger.info("fetchItemById called", { itemId });
         try {
             const token = await getTokenFromElectron();
-            if (!token) {
-                logger.error("fetchItemById failed: No token available");
-                throw new Error("No authentication token found");
-            }
+            if (!token) throw new Error("No authentication token found");
             const raw = await this.get(`${itemId}`, {}, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
-            logger.info("fetchItemById success", {
-                itemId: raw?.data?.itemId ?? itemId,
-            });
+            logger.info("fetchItemById success", { itemId: raw?.data?.itemId ?? itemId });
             return raw;
         } catch (error) {
             logger.error("fetchItemById failed", error);
@@ -213,30 +147,17 @@ export default class ItemApiClient extends ApiClient {
 
     /**
      * fetchItemDetails
-     * - Calls GET /api/items/{itemId}/details for expanded details.
-     *
-     * @async
-     * @function fetchItemDetails
-     * @param {number} itemId - Item identifier.
-     * @returns {Promise<Object>} Raw response with ItemDetailsResponse in `data`.
-     * @throws {Error} If not found or request fails.
+     * - GET /api/items/{itemId}/details
      */
     async fetchItemDetails(itemId) {
         logger.info("fetchItemDetails called", { itemId });
         try {
             const token = await getTokenFromElectron();
-            if (!token) {
-                logger.error("fetchItemDetails failed: No token available");
-                throw new Error("No authentication token found");
-            }
+            if (!token) throw new Error("No authentication token found");
             const raw = await this.get(`${itemId}/details`, {}, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
-            logger.info("fetchItemDetails success", {
-                itemId: raw?.data?.itemId ?? itemId,
-            });
+            logger.info("fetchItemDetails success", { itemId: raw?.data?.itemId ?? itemId });
             return raw;
         } catch (error) {
             logger.error("fetchItemDetails failed", error);
@@ -246,31 +167,17 @@ export default class ItemApiClient extends ApiClient {
 
     /**
      * updateItem
-     * - Calls PUT /api/items/{itemId} to update an existing item.
-     *
-     * @async
-     * @function updateItem
-     * @param {number} itemId - Item identifier.
-     * @param {Object} payload - ItemRequest payload.
-     * @returns {Promise<Object>} Raw response with ItemResponse in `data`.
-     * @throws {Error} If not found, validation fails, or request fails.
+     * - PUT /api/items/{itemId}
      */
     async updateItem(itemId, payload) {
         logger.info("updateItem called", { itemId });
         try {
             const token = await getTokenFromElectron();
-            if (!token) {
-                logger.error("updateItem failed: No token available");
-                throw new Error("No authentication token found");
-            }
+            if (!token) throw new Error("No authentication token found");
             const raw = await this.put(`${itemId}`, payload, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
-            logger.info("updateItem success", {
-                itemId: raw?.data?.itemId ?? itemId,
-            });
+            logger.info("updateItem success", { itemId: raw?.data?.itemId ?? itemId });
             return raw;
         } catch (error) {
             logger.error("updateItem failed", error);
@@ -280,26 +187,15 @@ export default class ItemApiClient extends ApiClient {
 
     /**
      * deleteItem
-     * - Calls DELETE /api/items/{itemId}`.
-     *
-     * @async
-     * @function deleteItem
-     * @param {number} itemId - Item identifier to delete.
-     * @returns {Promise<Object>} Raw API response.
-     * @throws {Error} If item not found or request fails.
+     * - DELETE /api/items/{itemId}
      */
     async deleteItem(itemId) {
         logger.info("deleteItem called", { itemId });
         try {
             const token = await getTokenFromElectron();
-            if (!token) {
-                logger.error("deleteItem failed: No token available");
-                throw new Error("No authentication token found");
-            }
+            if (!token) throw new Error("No authentication token found");
             const raw = await this.delete(`${itemId}`, {}, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
             logger.info("deleteItem success", { itemId });
             return raw;
@@ -311,32 +207,18 @@ export default class ItemApiClient extends ApiClient {
 
     /**
      * deleteItemsBatch
-     * - Calls DELETE /api/items/batch with an array of itemIds.
-     *
-     * @async
-     * @function deleteItemsBatch
-     * @param {Array<number>} itemIds - Array of item identifiers to delete.
-     * @returns {Promise<Object>} Raw API response.
-     * @throws {Error} If request fails.
+     * - DELETE /api/items/batch
+     * @param {Array<number>} itemIds
      */
     async deleteItemsBatch(itemIds) {
-        logger.info("deleteItemsBatch called", {
-            count: Array.isArray(itemIds) ? itemIds.length : 0,
-        });
+        logger.info("deleteItemsBatch called", { count: Array.isArray(itemIds) ? itemIds.length : 0 });
         try {
             const token = await getTokenFromElectron();
-            if (!token) {
-                logger.error("deleteItemsBatch failed: No token available");
-                throw new Error("No authentication token found");
-            }
+            if (!token) throw new Error("No authentication token found");
             const raw = await this.delete("batch", itemIds, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
-            logger.info("deleteItemsBatch success", {
-                count: Array.isArray(itemIds) ? itemIds.length : 0,
-            });
+            logger.info("deleteItemsBatch success", { count: Array.isArray(itemIds) ? itemIds.length : 0 });
             return raw;
         } catch (error) {
             logger.error("deleteItemsBatch failed", error);
@@ -346,60 +228,23 @@ export default class ItemApiClient extends ApiClient {
 
     /**
      * searchItems
-     * - Calls POST /api/items/search for Meilisearch-backed item search.
-     *
-     * Backend contracts:
-     *   Request: { query, filters, page, size, sort, ... }
-     *   Response wrapper:
-     *   {
-     *     status: "OK",
-     *     data: { hits, hitsCount, totalHits, page, size, sort },
-     *     transactionId,
-     *     errors
-     *   }
-     *
-     * @async
-     * @function searchItems
-     * @param {Object} payload - ItemSearchRequest payload.
-     * @returns {Promise<{
-     *   status?: string,
-     *   data: {
-     *     hits: Array,
-     *     hitsCount: number,
-     *     totalHits: number,
-     *     page: number,
-     *     size: number,
-     *     sort?: string|null
-     *   }|null,
-     *   meta?: any,
-     *   transactionId?: string,
-     *   errors?: Array<any>|null
-     * }>}
-     * @throws {Error} If token missing or request fails.
+     * - POST /api/items/search (Meilisearch-powered)
+     * @param {Object} payload - { query, filters, page, size, sort }
+     * @returns {Promise<Object>} Search results, shape: { hits, totalHits, ... }
      */
     async searchItems(payload) {
         logger.info("searchItems called", payload);
         try {
             const token = await getTokenFromElectron();
-            if (!token) {
-                logger.error("searchItems failed: No token available");
-                throw new Error("No authentication token found");
-            }
-
+            if (!token) throw new Error("No authentication token found");
             const raw = await this.post("search", payload, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
-
             const searchData = raw?.data ?? null;
-
             logger.info("searchItems success", {
                 hitsCount: searchData?.hitsCount ?? 0,
                 totalHits: searchData?.totalHits ?? 0,
             });
-
-            // For search we keep the structure under data, meta is not used.
             return {
                 status: raw?.status,
                 data: searchData,

@@ -1,18 +1,8 @@
-/**
- * ItemCardGrid.jsx
- *
- * Responsive, paginated grid for ItemInfoCard components.
- * - Configurable rows and columns per page.
- * - Uses useItemCardGrid for pagination + layout.
- * - Purely presentational: no data fetching or business logic.
- */
-
 import React from "react";
 import PropTypes from "prop-types";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../styles/itemcardgrid.module.css";
 import ItemInfoCard from "./ItemInfoCard";
-import { useItemCardGrid } from "../hooks/useItemCardGrid";
 
 /**
  * logger for ItemCardGrid.
@@ -27,43 +17,65 @@ const logger = {
 
 /**
  * ItemCardGrid
- * - Renders a grid of ItemInfoCard components with configurable
- *   columns and rows per page and JobScreen-style pagination controls.
+ * - Renders a responsive paginated grid of ItemInfoCard components.
+ * - Accepts page, pagination controls, error, and loading state as props.
  *
  * @component
  * @param {Object} props
- * @param {Array<{
- *   itemId: number,
- *   name: string,
- *   conditionName?: string|null,
- *   photoUrl?: string|null
- * }>} props.items - Full collection of items to render.
- * @param {number} [props.columns=5] - Number of columns in the grid.
- * @param {number} [props.rows=3] - Number of rows per page (controls page size).
- * @param {string} [props.title="Items"] - Optional title shown above the grid.
- * @param {(itemId:number)=>void} [props.onItemClick] - Optional click handler for cards.
+ * @param {Array} props.items - Array of item objects to render.
+ * @param {number} props.columns - Grid columns.
+ * @param {number} props.rows - Grid rows shown per page.
+ * @param {string} [props.title="Items"] - Title above the grid.
+ * @param {(itemId:number)=>void} [props.onItemClick] - Optional click handler per card.
+ * @param {boolean} [props.isPending] - Query loading state.
+ * @param {boolean} [props.isError] - Query error state.
+ * @param {any} [props.error] - Error object if any.
+ * @param {number} [props.page] - Current page.
+ * @param {Function} [props.setPage] - Setter for current page.
+ * @param {number} [props.pageSize] - Page size.
+ * @param {number} [props.totalPages] - Server totalPages.
+ * @param {number} [props.totalItems] - Server total records.
+ * @param {number} [props.itemStart] - Pager calculated from query meta.
+ * @param {number} [props.itemEnd] - Pager calculated from query meta.
+ * @param {boolean} [props.hasPrevious] - Has previous page flag.
+ * @param {boolean} [props.hasNext] - Has next page flag.
+ * @param {Function} [props.handleNext] - Next page handler.
+ * @param {Function} [props.handlePrevious] - Previous page handler.
+ * @param {Function} [props.refetch] - Query refetch handler.
  * @returns {JSX.Element}
  */
 const ItemCardGrid = ({
-                          items,
+                          items = [],
                           columns = 5,
                           rows = 3,
                           title = "Items",
                           onItemClick,
+                          isPending,
+                          isError,
+                          error,
+                          page,
+                          setPage,
+                          totalPages,
+                          totalItems,
+                          itemStart,
+                          itemEnd,
+                          hasPrevious,
+                          hasNext,
+                          handleNext,
+                          handlePrevious,
+                          pageSize,
+                          refetch,
                       }) => {
-    const {
-        pageItems,
-        totalItems,
+    const gridTemplateColumns = `repeat(${Math.max(1, Number(columns))}, minmax(120px, 1fr))`;
+
+    logger.info("ItemCardGrid render", {
+        itemsCount: items.length,
+        columns,
+        rows,
+        pageSize,
         page,
         totalPages,
-        hasPrevious,
-        hasNext,
-        itemStart,
-        itemEnd,
-        handleNext,
-        handlePrevious,
-        gridTemplateColumns,
-    } = useItemCardGrid({ items, columns, rows });
+    });
 
     return (
         <section className={styles.itemGridSection} aria-label={title}>
@@ -71,7 +83,13 @@ const ItemCardGrid = ({
                 <h2 className={styles.title}>{title}</h2>
             </header>
 
-            {totalItems === 0 ? (
+            {isError ? (
+                <div className={styles.error}>
+                    Error: {error?.message || "Failed to load items."}
+                </div>
+            ) : isPending ? (
+                <div className={styles.loading}>Loading items…</div>
+            ) : items.length === 0 ? (
                 <div className={styles.emptyState}>No items found.</div>
             ) : (
                 <>
@@ -84,7 +102,7 @@ const ItemCardGrid = ({
                         }}
                     >
                         <AnimatePresence>
-                            {pageItems.map((item) => (
+                            {items.map((item) => (
                                 <motion.div
                                     key={item.itemId}
                                     layout
@@ -100,7 +118,7 @@ const ItemCardGrid = ({
                                         item={{
                                             itemId: item.itemId,
                                             name: item.name,
-                                            conditionName: item.conditionName,
+                                            conditionName: item.condition,
                                             photoUrl: item.photoUrl,
                                         }}
                                         onClick={() => {
@@ -117,10 +135,7 @@ const ItemCardGrid = ({
                         </AnimatePresence>
                     </motion.div>
 
-                    <footer
-                        className={styles.paginationFooter}
-                        aria-label="Item pagination"
-                    >
+                    <footer className={styles.paginationFooter} aria-label="Item pagination">
                         <div className={styles.paginationSummary}>
                             {totalItems === 0 ? (
                                 "Showing 0 items"
@@ -134,18 +149,18 @@ const ItemCardGrid = ({
                             <button
                                 type="button"
                                 className={styles.paginationButton}
-                                onClick={handlePrevious}
+                                onClick={() => handlePrevious?.()}
                                 disabled={!hasPrevious}
                             >
                                 Previous
                             </button>
                             <span className={styles.paginationIndicator}>
-                                Page {page} of {totalPages}
-                            </span>
+                Page {page} of {totalPages}
+              </span>
                             <button
                                 type="button"
                                 className={styles.paginationButton}
-                                onClick={handleNext}
+                                onClick={() => handleNext?.()}
                                 disabled={!hasNext}
                             >
                                 Next
@@ -166,18 +181,26 @@ ItemCardGrid.propTypes = {
             conditionName: PropTypes.string,
             photoUrl: PropTypes.string,
         }),
-    ).isRequired,
+    ),
     columns: PropTypes.number,
     rows: PropTypes.number,
     title: PropTypes.string,
     onItemClick: PropTypes.func,
-};
-
-ItemCardGrid.defaultProps = {
-    columns: 5,
-    rows: 3,
-    title: "Items",
-    onItemClick: undefined,
+    isPending: PropTypes.bool,
+    isError: PropTypes.bool,
+    error: PropTypes.any,
+    page: PropTypes.number,
+    setPage: PropTypes.func,
+    totalPages: PropTypes.number,
+    totalItems: PropTypes.number,
+    itemStart: PropTypes.number,
+    itemEnd: PropTypes.number,
+    hasPrevious: PropTypes.bool,
+    hasNext: PropTypes.bool,
+    handleNext: PropTypes.func,
+    handlePrevious: PropTypes.func,
+    pageSize: PropTypes.number,
+    refetch: PropTypes.func,
 };
 
 export default ItemCardGrid;

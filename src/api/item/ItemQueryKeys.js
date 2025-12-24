@@ -2,13 +2,11 @@
  * ItemQueryKeys.js
  *
  * Canonical React Query keys for Item-related queries & mutations.
- * Mirrors the pattern used by jobQueryKeys to prevent cache bugs
- * and to keep query key shapes consistent across the app.
+ * Follows Bulletproof React and jobQueryKeys for consistency.
  */
 
 /**
  * Top-level item query cache key.
- *
  * @constant
  * @type {Array}
  */
@@ -16,7 +14,7 @@ export const ITEM = ["item"];
 
 /**
  * itemKeys
- * - Factory for canonical Item query/mutation cache keys.
+ * - Factory for all canonical item query/mutation keys.
  *
  * @constant
  * @type {{
@@ -29,96 +27,82 @@ export const ITEM = ["item"];
  *   create: () => Array,
  *   update: (itemId: number|string) => Array,
  *   remove: (itemId: number|string) => Array,
- *   batchRemove: () => Array
+ *   batchRemove: () => Array,
  * }}
  */
 export const itemKeys = {
     /**
      * Root key for all item queries.
-     *
      * @type {Array}
      */
     all: ITEM,
 
     /**
-     * Key for all item lists (with/without filters/pagination).
-     * Typically used for general item collection queries.
-     *
+     * items lists root key.
      * @function
-     * @returns {Array} React Query key for items lists root.
+     * @returns {Array}
      */
     lists: () => [...itemKeys.all, "lists"],
 
     /**
-     * Key for a filtered items list.
-     * Encodes filters & pagination into the key.
-     *
+     * Key for a filtered/paginated items list.
      * @function
-     * @param {object} [filters={}] - Arbitrary filters, e.g. { page:1, size:25, archived:false }.
-     * @returns {Array} React Query key including filters.
+     * @param {object} [filters={}]
+     * @returns {Array}
      */
     list: (filters = {}) => [...itemKeys.lists(), { filters }],
 
     /**
-     * Key for server-side item search (Meilisearch-backed).
-     * Intended for POST /api/items/search with body params.
-     *
+     * Key for server-side item search (Meilisearch).
      * @function
-     * @param {object} [searchParams={}] - Search params, e.g. { query:'laptop', page:1, size:25 }.
-     * @returns {Array} React Query key including search params.
+     * @param {object} [searchParams={}]
+     * @returns {Array}
      */
     search: (searchParams = {}) => [...itemKeys.all, "search", { searchParams }],
 
     /**
-     * Key for a single basic item detail by id.
-     * Maps to GET /api/items/{itemId}.
-     *
+     * Key for single item summary/detail (by id).
      * @function
-     * @param {number|string} itemId - Item identifier.
-     * @returns {Array} React Query key for a specific item detail.
+     * @param {number|string} itemId
+     * @returns {Array}
      */
     detail: (itemId) => [...itemKeys.all, "detail", itemId],
 
     /**
-     * Key for expanded item details (GET /api/items/{itemId}/details).
-     *
+     * Key for expanded details (GET /details).
      * @function
-     * @param {number|string} itemId - Item identifier.
-     * @returns {Array} React Query key for expanded item details.
+     * @param {number|string} itemId
+     * @returns {Array}
      */
     details: (itemId) => [...itemKeys.all, "details", itemId],
 
     /**
      * Key for create-item mutation.
-     *
      * @function
-     * @returns {Array} React Query key for create-item mutation.
+     * @returns {Array}
      */
     create: () => [...itemKeys.all, "create"],
 
     /**
      * Key for update-item mutation.
-     *
      * @function
-     * @param {number|string} itemId - Item identifier.
-     * @returns {Array} React Query key for update-item mutation.
+     * @param {number|string} itemId
+     * @returns {Array}
      */
     update: (itemId) => [...itemKeys.detail(itemId), "update"],
 
     /**
      * Key for delete-item mutation.
-     *
      * @function
-     * @param {number|string} itemId - Item identifier.
-     * @returns {Array} React Query key for delete-item mutation.
+     * @param {number|string} itemId
+     * @returns {Array}
      */
     remove: (itemId) => [...itemKeys.detail(itemId), "remove"],
 
     /**
-     * Key for batch delete-items mutation.
-     *
+     * Key for batch remove mutation.
      * @function
-     * @returns {Array} React Query key for batch-delete mutation.
+     * @returns {Array}
      */
     batchRemove: () => [...itemKeys.all, "batch-remove"],
 };
