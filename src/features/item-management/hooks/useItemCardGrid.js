@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo, useCallback, useEffect } from "react";
-import {getAllItems} from "../../../api/item/item";
+import { searchItems } from "../../../api/item/item";
 import itemKeys from "../../../api/item/ItemQueryKeys";
 
 /**
@@ -15,16 +15,45 @@ const logger = {
 };
 
 /**
+ * Converts fixed filters (object) to Meilisearch filters string if needed.
+ * E.g.: { jobId: 123, status: "Active" } => "jobIds = 123 AND status = 'Active'"
+ *
+ * @param {object} filters
+ * @returns {string} Meilisearch filters string
+ */
+function buildFiltersString(filters = {}) {
+    const filterParts = Object.entries(filters)
+        .filter(([key, value]) => value !== undefined && value !== null && value !== '')
+        .map(([key, value]) => {
+            if (typeof value === "string") {
+                return `${key} = '${value}'`;
+            }
+            if (Array.isArray(value)) {
+                // jobIds: [401, 402] -> (jobIds = 401 OR jobIds = 402)
+                return value.length > 0
+                    ? `(${value.map(v => `${key} = ${typeof v === "string" ? `'${v}'` : v}`).join(" OR ")})`
+                    : "";
+            }
+            return `${key} = ${value}`;
+        })
+        .filter(Boolean);
+    return filterParts.length > 0 ? filterParts.join(" AND ") : "";
+}
+
+/**
  * useItemCardGrid
- * Provides paginated, always-filtered items for ItemCardGrid.
+ * - Provides paginated, always-filtered items for ItemCardGrid.
+ * - Uses the Meilisearch-backed POST /api/items/search endpoint, not GET.
  *
  * @function useItemCardGrid
  * @param {Object} [options]
  * @param {Object} [options.fixedFilters={}] - Filters always applied to all API requests (e.g. { jobId, status, archived }).
+ * @param {string} [options.query=""] - Optional search string.
  * @param {number} [options.initialPage=1] - Initial page number.
  * @param {number} [options.pageSize=15] - Items per page.
  * @param {string} [options.sortField="name"] - Sort field.
  * @param {"asc"|"desc"} [options.sortOrder="asc"] - Sort order.
+ * @param {boolean} [options.includeArchived] - (optional) Pass true to override default and show archived.
  * @returns {{
  *   items: Array,
  *   isPending: boolean,
@@ -47,24 +76,58 @@ const logger = {
  */
 export const useItemCardGrid = ({
                                     fixedFilters = {},
+                                    query = "",
                                     initialPage = 1,
                                     pageSize: defaultPageSize = 15,
                                     sortField = "name",
                                     sortOrder = "asc",
+                                    includeArchived,
                                 } = {}) => {
-    // --- Pagination state ---
+    // --- Pagination state
     const [page, setPage] = useState(initialPage);
     const [pageSize, setPageSize] = useState(defaultPageSize);
 
-    // --- Query key includes fixedFilters, page, pageSize, sort ---
-    const queryKey = useMemo(
-        () => itemKeys.list({ ...fixedFilters, page, size: pageSize, sortField, sortOrder }),
-        [fixedFilters, page, pageSize, sortField, sortOrder]
+    // --- Convert sorting to Meilisearch format: field:order (e.g., name:asc)
+    const sortKey = useMemo(() => {
+        if (!sortField) return undefined;
+        return `${sortField}:${sortOrder}`;
+    }, [sortField, sortOrder]);
+
+    // --- Build Meilisearch-compatible filters string
+    const filtersString = useMemo(
+        () => buildFiltersString(fixedFilters),
+        [fixedFilters]
     );
 
-    // --- Main API query ---
+    // --- Compose POST /api/items/search payload (respects doc signature)
+    const searchPayload = useMemo(() => {
+        const payload = {
+            query,
+            filters: filtersString,
+            page,
+            size: pageSize,
+            sort: sortKey,
+        };
+        // Only include if explicitly set
+        if (typeof includeArchived === "boolean") {
+            payload.includeArchived = includeArchived;
+        }
+        return payload;
+    }, [query, filtersString, page, pageSize, sortKey, includeArchived]);
+
+    // --- Query key is canonical (search endpoint, inputs as POST body)
+    const queryKey = useMemo(
+        () =>
+            itemKeys.search(searchPayload),
+        [searchPayload]
+    );
+
+    /**
+     * Fetches items via POST /api/items/search (Meilisearch).
+     * Full payload per Search API docs.
+     */
     const {
-        data: itemsResponse,
+        data: searchResponse,
         isPending,
         isError,
         error,
@@ -72,42 +135,46 @@ export const useItemCardGrid = ({
     } = useQuery({
         queryKey,
         queryFn: async () => {
-            logger.info("API query called", {
-                fixedFilters,
-                page,
-                pageSize,
-                sortField,
-                sortOrder,
-            });
-            const res = await getAllItems({
-                ...fixedFilters,
-                page,
-                size: pageSize,
-                sortField,
-                sortOrder,
-            });
-            logger.info("API success", {
-                count: Array.isArray(res?.data) ? res.data.length : 0,
-                meta: res?.meta,
-            });
-            return res;
+            logger.info("useItemCardGrid API query called", searchPayload);
+            try {
+                const res = await searchItems(searchPayload);
+                logger.info("useItemCardGrid API success", {
+                    hitsCount: res?.data?.hitsCount,
+                    totalHits: res?.data?.totalHits,
+                    page: res?.data?.page,
+                    size: res?.data?.size,
+                    sort: res?.data?.sort,
+                    includeArchived: res?.data?.includeArchived,
+                });
+                return res;
+            } catch (apiError) {
+                logger.error("useItemCardGrid searchItems failed (API)", apiError);
+                throw apiError;
+            }
         },
         keepPreviousData: true,
     });
 
-    // --- Server meta ---
-    const meta = itemsResponse?.meta || {};
-    const items = itemsResponse?.data || [];
-    const totalItems = typeof meta.totalRecords === "number" ? meta.totalRecords : 0;
-    const totalPages = typeof meta.totalPages === "number" ? meta.totalPages : 1;
-    const currentPage = typeof meta.page === "number" ? meta.page : page;
+    // --- Response parsing (full doc pattern, see API docs)
+    const data = searchResponse?.data || {};
+    // Most canonical search returns: { hits, totalHits, ... }
+    const items = Array.isArray(data.hits) ? data.hits : [];
+    const totalItems = typeof data.totalHits === "number" ? data.totalHits : 0;
+    const totalPages =
+        typeof data.size === "number" && data.size > 0
+            ? Math.max(1, Math.ceil(totalItems / data.size))
+            : 1;
+    const currentPage =
+        typeof data.page === "number" ? data.page : page;
 
     const hasPrevious = currentPage > 1;
     const hasNext = currentPage < totalPages;
     const itemStart = totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0;
     const itemEnd = totalItems > 0 ? Math.min(currentPage * pageSize, totalItems) : 0;
 
-    // --- Pagination event handlers ---
+    /**
+     * Pagination event handlers
+     */
     const handleNext = useCallback(() => {
         if (hasNext) setPage(currentPage + 1);
     }, [hasNext, currentPage]);
@@ -117,13 +184,14 @@ export const useItemCardGrid = ({
     }, [hasPrevious, currentPage]);
 
     useEffect(() => {
-        logger.info("Pagination:", {
+        logger.info("useItemCardGrid pagination snapshot", {
             page,
             pageSize,
             totalPages,
             totalItems,
+            filtersString,
         });
-    }, [page, pageSize, totalPages, totalItems]);
+    }, [page, pageSize, totalPages, totalItems, filtersString]);
 
     return {
         items,
