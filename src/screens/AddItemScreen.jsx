@@ -2,9 +2,7 @@
  * AddItemScreen.jsx
  *
  * Presents a grid of all pending photos (not yet linked to an item)
- * and a button to upload a new photo (single photo only).
- * Displays a saving indicator next to upload photo while async uploads are pending.
- * Follows Bulletproof React conventions for clarity and separation.
+ * and buttons for uploading and batch operations following Bulletproof React conventions.
  *
  * @component
  */
@@ -35,8 +33,8 @@ const AddItemScreen = () => {
     logger.info("AddItemScreen rendered");
 
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
+    const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
 
-    // Query for all pending photos
     const {
         pendingPhotos,
         isPending,
@@ -44,7 +42,6 @@ const AddItemScreen = () => {
         error,
     } = usePendingPhotos();
 
-    // Single-file upload mutation
     const {
         mutate: uploadPhoto,
         isPending: isUploading,
@@ -54,7 +51,6 @@ const AddItemScreen = () => {
 
     /**
      * Opens the upload modal.
-     * @function
      */
     const handleOpenUploadModal = useCallback(() => {
         logger.info("Upload modal opened");
@@ -63,7 +59,6 @@ const AddItemScreen = () => {
 
     /**
      * Handles closing the upload modal.
-     * @function
      */
     const handleCloseUploadModal = useCallback(() => {
         logger.info("Upload modal closed");
@@ -73,7 +68,6 @@ const AddItemScreen = () => {
 
     /**
      * Handles single photo file upload after selection.
-     * @function
      * @param {File} file - Single photo file to upload
      */
     const handleUploadPhotoFile = useCallback(
@@ -94,10 +88,76 @@ const AddItemScreen = () => {
         [uploadPhoto]
     );
 
+    /**
+     * Toggles selection of a photoId.
+     * @param {number} photoId
+     */
+    const handleTogglePhotoSelect = useCallback(
+        (photoId) => {
+            setSelectedPhotoIds((prev) => {
+                if (prev.includes(photoId)) {
+                    logger.info("Photo deselected", photoId);
+                    return prev.filter((id) => id !== photoId);
+                } else {
+                    logger.info("Photo selected", photoId);
+                    return [...prev, photoId];
+                }
+            });
+        },
+        []
+    );
+
+    /**
+     * Clears all selected photoIds.
+     */
+    const handleClearSelection = useCallback(() => {
+        logger.info("Clear photo selection");
+        setSelectedPhotoIds([]);
+    }, []);
+
+    /**
+     * Handles clicking "New Item" (opens a TODO modal for now).
+     */
+    const handleNewItem = useCallback(() => {
+        logger.info("New Item clicked with selected photos:", selectedPhotoIds);
+        // TODO: Open New Item modal using the selectedPhotoIds for pre-filling
+        alert(
+            `TODO: Open New Item modal with selected photoIds: ${selectedPhotoIds.join(
+                ", "
+            )}`
+        );
+    }, [selectedPhotoIds]);
+
     return (
         <div className={styles.addItemPanel}>
             <div className={styles.headerSection}>
-                <h2 className={styles.sectionTitle}>Add New Item</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div className={styles.actionButtonWrapper}>
+                        <button
+                            type="button"
+                            className={styles.newItemBtn}
+                            onClick={handleNewItem}
+                            disabled={selectedPhotoIds.length === 0}
+                            aria-disabled={selectedPhotoIds.length === 0}
+                        >
+                            New Item
+                            {selectedPhotoIds.length > 0 && (
+                                <span className={styles.selectionCountBubble}>
+                                    {selectedPhotoIds.length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+                    <button
+                        type="button"
+                        className={styles.clearSelectionsBtn}
+                        onClick={handleClearSelection}
+                        disabled={selectedPhotoIds.length === 0}
+                        aria-disabled={selectedPhotoIds.length === 0}
+                    >
+                        Clear Selection
+                    </button>
+                </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <button
                         type="button"
@@ -107,7 +167,6 @@ const AddItemScreen = () => {
                     >
                         + Upload Photo
                     </button>
-                    {/* Show upload status ONLY while uploading */}
                     {isUploading && (
                         <SaveStatus status="saving" savingText="Uploading..." />
                     )}
@@ -125,6 +184,8 @@ const AddItemScreen = () => {
                         <PhotoInfoCard
                             key={photo.photoId}
                             photo={photo}
+                            selected={selectedPhotoIds.includes(photo.photoId)}
+                            onClick={() => handleTogglePhotoSelect(photo.photoId)}
                         />
                     ))
                 )}
