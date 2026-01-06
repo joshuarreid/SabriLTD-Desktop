@@ -2,8 +2,9 @@
  * AddItemScreen.jsx
  *
  * Presents a grid of all pending photos (not yet linked to an item)
- * and a button to upload a new photo. Mimics styling and organizational
- * conventions from CompanySettingsTab/CompanyInfoCard for consistency.
+ * and a button to upload new photos (supports bulk upload).
+ * Displays a saving indicator next to the upload photo button while async uploads are pending.
+ * Follows Bulletproof React conventions for clarity and separation.
  *
  * @component
  */
@@ -12,8 +13,10 @@ import React, { useState, useCallback } from "react";
 import styles from "../features/item-management/styles/additemscreen.module.css";
 import PhotoInfoCard from "../features/item-management/components/photoInfoCard";
 import { usePendingPhotos } from "../features/item-management/hooks/useAddItemScreen";
-import { useUploadPhoto } from "../features/item-management/hooks/useUploadPhoto";
+import { useBulkUploadPhotos } from "../features/item-management/hooks/useUploadPhoto";
 import UploadPhotoModal from "../features/item-management/components/UploadPhotoModal";
+import SaveStatus from "../components/save/SaveStatus";
+
 
 /**
  * logger for AddItemScreen.
@@ -41,12 +44,13 @@ const AddItemScreen = () => {
         error,
     } = usePendingPhotos();
 
+    // Correct hook usage: use the `mutate` function from react-query
     const {
-        mutate: uploadPhoto,
-        isPending: isUploading,
+        mutate, // The correct function to trigger the mutation
+        isPending: isBulkUploading,
+        reset: resetBulkUpload,
         error: uploadError,
-        reset: resetUpload,
-    } = useUploadPhoto();
+    } = useBulkUploadPhotos();
 
     /**
      * Handles the upload photo modal opening.
@@ -64,46 +68,51 @@ const AddItemScreen = () => {
     const handleCloseUploadModal = useCallback(() => {
         logger.info("Upload modal closed");
         setUploadModalOpen(false);
-        resetUpload();
-    }, [resetUpload]);
+        resetBulkUpload();
+    }, [resetBulkUpload]);
 
     /**
-     * Handles actual photo file upload after selection.
+     * Handles bulk photo file upload after selection. Accepts an array of Files.
      * @function
-     * @param {File} file - Photo file to upload
+     * @param {File[]} files - Array of up to 25 photo files to upload
      */
-    const handlePhotoFileUpload = useCallback(
-        (file) => {
-            logger.info("handlePhotoFileUpload called", file?.name);
-            if (file) {
-                uploadPhoto(
-                    { photoFile: file },
-                    {
-                        onSuccess: () => {
-                            logger.info("Photo uploaded successfully");
-                            setUploadModalOpen(false);
-                        },
-                        onError: (err) => {
-                            logger.error("Photo upload failed:", err);
-                        },
-                    }
-                );
+    const handleBulkPhotoFileUpload = useCallback(
+        (files) => {
+            logger.info("handleBulkPhotoFileUpload called", files.map(f => f?.name));
+            if (files && files.length > 0) {
+                // Correct usage: call mutate(files, options)
+                mutate(files, {
+                    onSuccess: () => {
+                        logger.info("Bulk photo upload succeeded");
+                        setUploadModalOpen(false);
+                    },
+                    onError: (err) => {
+                        logger.error("Bulk photo upload failed:", err);
+                    },
+                });
             }
         },
-        [uploadPhoto]
+        [mutate]
     );
 
     return (
         <div className={styles.addItemPanel}>
             <div className={styles.headerSection}>
                 <h2 className={styles.sectionTitle}>Add New Item</h2>
-                <button
-                    type="button"
-                    className={styles.uploadPhotoBtn}
-                    onClick={handleOpenUploadModal}
-                >
-                    + Upload Photo
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <button
+                        type="button"
+                        className={styles.uploadPhotoBtn}
+                        onClick={handleOpenUploadModal}
+                        disabled={isBulkUploading}
+                    >
+                        + Upload Photo
+                    </button>
+                    {/* Show upload status ONLY while uploading */}
+                    {isBulkUploading && (
+                        <SaveStatus status="saving" savingText="Uploading..." />
+                    )}
+                </div>
             </div>
             <div className={styles.gridContainer}>
                 {isPending ? (
@@ -117,7 +126,6 @@ const AddItemScreen = () => {
                         <PhotoInfoCard
                             key={photo.photoId}
                             photo={photo}
-                            // Additional props for click/edit/delete can be added later
                         />
                     ))
                 )}
@@ -125,9 +133,10 @@ const AddItemScreen = () => {
             <UploadPhotoModal
                 open={uploadModalOpen}
                 onClose={handleCloseUploadModal}
-                onUpload={handlePhotoFileUpload}
-                isUploading={isUploading}
+                onUpload={handleBulkPhotoFileUpload}
+                isUploading={isBulkUploading}
                 error={uploadError ? uploadError.message : null}
+                maxFiles={25}
             />
         </div>
     );

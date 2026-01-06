@@ -1,16 +1,17 @@
 /**
  * UploadPhotoModal.jsx
  *
- * Modal for uploading a photo (drag & drop or file select).
- * Borrows styling and accessibility patterns from EditBuildingModal.
+ * Modal for uploading one or multiple photos (drag & drop or file select).
+ * Styled per system convention. Supports up to 25 files at a time.
  *
  * @component
  * @param {object} props
  * @param {boolean} props.open - If the modal is open
  * @param {function} props.onClose - Close/cancel callback
- * @param {function} props.onUpload - Handler for when upload is confirmed. Receives the selected File.
+ * @param {function} props.onUpload - Handler for when upload is confirmed. Receives an array of File objects.
  * @param {boolean} [props.isUploading] - Show spinner/disabled state if uploading
  * @param {string|null} [props.error] - Error message string to display (optional)
+ * @param {number} [props.maxFiles=25] - Maximum number of files allowed per upload
  * @returns {JSX.Element|null}
  */
 
@@ -25,38 +26,48 @@ const logger = {
 const MAX_FILE_SIZE_MB = 25;
 const SUPPORTED_FORMATS = ["image/png", "image/jpeg"];
 
+const getTotalFileSizeMB = (files) =>
+    files.reduce((acc, file) => acc + file.size, 0) / (1024 * 1024);
+
 export const UploadPhotoModal = ({
                                      open,
                                      onClose,
                                      onUpload,
                                      isUploading = false,
                                      error = null,
+                                     maxFiles = 25,
                                  }) => {
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const [dragActive, setDragActive] = useState(false);
     const [fileError, setFileError] = useState(null);
     const fileInputRef = useRef(null);
 
     /** Handles file selection or drop. */
-    const handleFiles = useCallback((files) => {
-        const file = files?.[0];
-        logger.info("File selected/dropped", file);
+    const handleFiles = useCallback((fileList) => {
+        let files = Array.from(fileList || []);
+        logger.info("Files selected/dropped", files.map(f => f?.name));
 
-        if (!file) return;
-
-        if (!SUPPORTED_FORMATS.includes(file.type)) {
-            setFileError("Only PNG and JPG files are supported.");
-            setSelectedFile(null);
+        if (files.length > maxFiles) {
+            setFileError(`You may upload up to ${maxFiles} photos at a time.`);
+            setSelectedFiles([]);
             return;
         }
-        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-            setFileError(`Maximum file size is ${MAX_FILE_SIZE_MB}MB.`);
-            setSelectedFile(null);
+        const invalid = files.find(
+            (f) => !SUPPORTED_FORMATS.includes(f.type)
+                || f.size > MAX_FILE_SIZE_MB * 1024 * 1024
+        );
+        if (invalid) {
+            setFileError(
+                !SUPPORTED_FORMATS.includes(invalid.type)
+                    ? "Only PNG and JPG files are supported."
+                    : `Each file max size is ${MAX_FILE_SIZE_MB}MB.`
+            );
+            setSelectedFiles([]);
             return;
         }
         setFileError(null);
-        setSelectedFile(file);
-    }, []);
+        setSelectedFiles(files);
+    }, [maxFiles]);
 
     /** Handles drag over event to show visual feedback. */
     const handleDragOver = (e) => {
@@ -90,15 +101,15 @@ export const UploadPhotoModal = ({
 
     /** Handles modal cancel/close (ESC or overlay). */
     const handleCancel = () => {
-        setSelectedFile(null);
+        setSelectedFiles([]);
         setFileError(null);
         onClose();
     };
 
     /** Handles upload button click. */
     const handleUpload = () => {
-        if (selectedFile && !fileError) {
-            onUpload(selectedFile);
+        if (selectedFiles.length > 0 && !fileError) {
+            onUpload(selectedFiles);
         }
     };
 
@@ -120,7 +131,7 @@ export const UploadPhotoModal = ({
                 aria-labelledby="upload-photo-modal-title"
             >
                 <h2 className={styles.modalTitle} id="upload-photo-modal-title">
-                    Upload Photo
+                    Upload Photo{maxFiles > 1 ? "s" : ""}
                 </h2>
                 <form
                     className={styles.uploadForm}
@@ -149,36 +160,37 @@ export const UploadPhotoModal = ({
                             className={styles.fileInput}
                             onChange={handleInputChange}
                             tabIndex={-1}
+                            multiple={!!maxFiles && maxFiles > 1}
                         />
                         <div className={styles.dropZoneInner}>
-                            <svg
-                                width="38"
-                                height="38"
-                                viewBox="0 0 38 38"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className={styles.cloudIcon}
-                                aria-hidden="true"
-                            >
-                                <path
-                                    d="M19 28V14M12 20L19 13L26 20"
-                                    stroke="#A0A4B0"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                                <path
-                                    d="M31.222 23.841A8.334 8.334 0 1 0 9.633 23.87"
-                                    stroke="#A0A4B0"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
-                            {!selectedFile ? (
+                            {selectedFiles.length === 0 ? (
                                 <>
+                                    <svg
+                                        width="38"
+                                        height="38"
+                                        viewBox="0 0 38 38"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={styles.cloudIcon}
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            d="M19 28V14M12 20L19 13L26 20"
+                                            stroke="#A0A4B0"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                        <path
+                                            d="M31.222 23.841A8.334 8.334 0 1 0 9.633 23.87"
+                                            stroke="#A0A4B0"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        />
+                                    </svg>
                                     <span className={styles.dragText}>
-                                        Drag & Drop your photo or{" "}
+                                        Drag & Drop up to {maxFiles} photos or{" "}
                                         <button
                                             type="button"
                                             className={styles.browseLink}
@@ -190,18 +202,25 @@ export const UploadPhotoModal = ({
                                     </span>
                                 </>
                             ) : (
-                                <span className={styles.fileName}>
-                                    Selected: {selectedFile.name}
-                                </span>
+                                <div className={styles.fileName}>
+                                    Selected:
+                                    <ul className={styles.selectedFilesList}>
+                                        {selectedFiles.map((f, i) => (
+                                            <li key={f.name + i}>
+                                                {f.name}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
                             )}
                         </div>
                     </div>
                     <div className={styles.metaRow}>
                         <span className={styles.metaLeft}>
-                            Supported formats: <b>PNG, JPG</b>
+                            Supported: <b>PNG, JPG</b>
                         </span>
                         <span className={styles.metaRight}>
-                            Maximum size: <b>{MAX_FILE_SIZE_MB}MB</b>
+                            Each: <b>{MAX_FILE_SIZE_MB}MB</b> | Max files: <b>{maxFiles}</b>
                         </span>
                     </div>
                     {(fileError || error) && (
@@ -213,8 +232,8 @@ export const UploadPhotoModal = ({
                         <button
                             type="submit"
                             className={styles.uploadButton}
-                            disabled={!selectedFile || !!fileError || isUploading}
-                            aria-disabled={!selectedFile || !!fileError || isUploading}
+                            disabled={selectedFiles.length === 0 || !!fileError || isUploading}
+                            aria-disabled={selectedFiles.length === 0 || !!fileError || isUploading}
                         >
                             {isUploading ? "Uploading…" : "Upload"}
                         </button>
