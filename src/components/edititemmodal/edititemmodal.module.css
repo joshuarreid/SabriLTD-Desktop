@@ -1,0 +1,263 @@
+.modalOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(36, 14, 41, 0.12);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modalCard {
+    position: relative;
+    background: var(--color-bg-surface, #fff);
+    border-radius: 20px;
+    box-shadow:
+            0 8px 40px 0 rgba(0,0,0,0.16),
+            0 4px 10px 0 rgba(0,0,0,0.08);
+    padding: 2.2rem 2.1rem 1.7rem 2.2rem;
+    min-width: 700px;
+    min-height: 336px;
+    max-width: 75vw;
+    width: 75vw;
+    max-height: 75vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    outline: none;
+    animation: modalIn 0.24s cubic-bezier(.21,.95,.19,1.04);
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(40px) scale(.97); }
+    to   { opacity: 1; transform: none; }
+}
+.splitContainer {
+    display: flex;
+    gap: 0;
+    min-height: 280px;
+    height: 100%;
+}
+.photoPreviewCol {
+    flex: 0 0 320px;
+    min-width: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1.4px solid var(--color-border-subtle, #e4e6ec);
+    padding-right: 22px;
+    margin-right: 28px;
+    height: 100%;
+}
+.photoPreviewWrapper {
+    position: relative;
+    width: 280px;
+    height: 360px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--color-bg-subtle, #f5f5f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px 0 rgba(44,47,59,0.08);
+}
+.photoPreviewImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+    background: #eaeaea;
+}
+.photoPreviewPlaceholder {
+    color: var(--color-text-muted, #777c88);
+    font-size: 1.07rem;
+    text-align: center;
+    padding: 2em;
+    width: 100%;
+}
+.photoNavWrapper {
+    position: absolute;
+    left: 0; right: 0; bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.arrowBtn {
+    font-size: 1.35rem;
+    background: #fff;
+    border: 1px solid var(--color-border-subtle, #ecdefa);
+    color: var(--color-primary, #333645);
+    border-radius: 40px;
+    padding: 4px 13px;
+    cursor: pointer;
+    opacity: 0.87;
+    box-shadow: 0 2px 7px #33364514;
+    transition: background 0.13s, color 0.13s, border-color 0.13s;
+}
+.arrowBtn:disabled {
+    color: #aaa;
+    background: #f4f4f7;
+    border-color: #e4e6ec;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.arrowBtn:hover:not(:disabled),
+.arrowBtn:focus-visible:not(:disabled) {
+    background: var(--color-hover, #ffd60015);
+    color: var(--color-secondary, #c87c02);
+    border-color: var(--color-secondary, #ffd600);
+}
+.photoDotRow {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    justify-content: center;
+}
+.photoDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #c3c6d1;
+    border: none;
+    cursor: pointer;
+    margin: 0 1.5px;
+    transition: background 0.17s, box-shadow 0.17s;
+    box-shadow: 0 2px 6px #33364508;
+}
+.photoDotActive {
+    background: var(--color-secondary, #ffd600);
+    box-shadow: 0 3px 12px #ffd60036;
+}
+.fieldsCol {
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-width: 280px;
+    height: 100%;
+}
+.itemTitle {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0 0 20px 0;
+    letter-spacing: 0.012em;
+}
+.itemForm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+.fieldBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+.input {
+    background: var(--color-bg-subtle, #f5f5f7);
+    border-radius: 8px;
+    border: 1.5px solid var(--color-border-subtle, #ecdefa);
+    padding: 9px 14px;
+    font-size: 1.09rem;
+    color: var(--color-primary, #333645);
+    transition: border-color 0.13s, background-color 0.13s;
+}
+.sizesRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 2px;
+}
+.sizeBtn {
+    padding: 8px 13px;
+    background: var(--color-bg-subtle, #f5f5f7);
+    border-radius: 7px;
+    font-size: 1.05rem;
+    color: var(--color-primary, #333645);
+    border: 1px solid var(--color-border-subtle, #ecdefa);
+    font-weight: 500;
+    cursor: not-allowed;
+    opacity: 0.84;
+    margin-bottom: 3px;
+}
+.formActions {
+    display: flex;
+    gap: 18px;
+    margin-top: 10px;
+    margin-bottom: 7px;
+}
+.saveButton {
+    background: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #fff);
+    padding: 8px 21px;
+    font-size: 1.01rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-strong, #777c88);
+    font-weight: 600;
+    cursor: not-allowed;
+    opacity: 0.56;
+    transition: background 0.14s, border-color 0.14s, transform 0.12s, box-shadow 0.14s;
+}
+.cancelButton {
+    background: none;
+    color: var(--color-primary-muted, #5d6170);
+    font-size: 1.01rem;
+    padding: 8px 18px;
+    border: none;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.13s;
+}
+.cancelButton:hover,
+.cancelButton:focus-visible {
+    background: rgba(255, 214, 0, 0.12);
+    color: var(--color-primary, #333645);
+}
+.saveFeedback {
+    margin: 8px 0 0 0;
+    min-height: 22px;
+    display: flex;
+    align-items: center;
+}
+
+/* Responsive tweaks */
+@media (max-width: 1200px) {
+    .modalCard {
+        min-width: 350px;
+        padding: 0.7rem 0.7rem 0.7rem 0.7rem;
+        width: 97vw;
+        max-width: 97vw;
+    }
+    .splitContainer {
+        flex-direction: column;
+        gap: 24px;
+        min-height: 120px;
+        height: auto;
+    }
+    .photoPreviewCol {
+        border-right: none;
+        border-bottom: 1.2px solid var(--color-border-subtle,#e4e6ec);
+        padding-right: 0;
+        margin-right: 0;
+        margin-bottom: 22px;
+        min-width: 0;
+        width: 100%;
+    }
+    .fieldsCol {
+        min-width: 0;
+        width: 100%;
+        height: auto;
+    }
+    .photoPreviewWrapper {
+        width: 100%;
+        height: 220px;
+        min-width: 190px;
+        min-height: 110px;
+    }
+}
