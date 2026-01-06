@@ -1,0 +1,90 @@
+.photoCard {
+    background: var(--color-bg-subtle, #f5f5f7);
+    border: 1.5px solid var(--color-border-subtle, #e4e6ec);
+    border-radius: 14px;
+    padding: 18px 14px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.11s, box-shadow 0.11s;
+    min-height: 190px;
+    outline: none;
+}
+
+.photoCard:hover,
+.photoCard:focus-visible {
+    border-color: var(--color-secondary, #ffd600);
+    box-shadow: 0 4px 16px rgba(255,214,0,0.07);
+}
+
+.selectedCard {
+    border-color: var(--color-secondary, #ffd600);
+    background: rgba(255,214,0,0.09);
+}
+
+.statusDot {
+    display: block;
+    position: absolute;
+    left: 12px;
+    top: 14px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-secondary, #ffd600);
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+
+.photoCard:hover .statusDot,
+.photoCard:focus .statusDot,
+.selectedCard .statusDot {
+    opacity: 1;
+}
+
+.photoThumbContainer {
+    margin-bottom: 12px;
+    width: 95px;
+    height: 95px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--color-border-subtle, #e4e6ec);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photoThumb {
+    width: 95px;
+    height: 95px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #ddd;
+}
+
+.photoPlaceholder {
+    color: var(--color-text-muted, #777c88);
+    font-size: 0.98rem;
+    text-align: center;
+}
+
+.photoInfo {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.97rem;
+    color: var(--color-text-main, #191919);
+}
+
+.photoIdLabel {
+    font-weight: 500;
+    margin-bottom: 3px;
+    font-size: 1.002rem;
+}
+
+.photoMeta {
+    font-size: 0.91rem;
+    color: var(--color-text-muted, #777c88);
+}

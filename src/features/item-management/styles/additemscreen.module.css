@@ -1,0 +1,52 @@
+.addItemPanel {
+    padding: 36px;
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 16px;
+    box-shadow: 0 2px 18px 0 rgba(44,47,59,0.05);
+    min-height: 430px;
+    width: 100%;
+    box-sizing: border-box;
+}
+.headerSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 26px;
+}
+.sectionTitle {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--color-primary, #333645);
+    margin: 0;
+}
+.uploadPhotoBtn {
+    padding: 8px 22px;
+    font-size: 1.07rem;
+    background: var(--color-secondary, #ffd600);
+    color: var(--color-primary, #333645);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.16s;
+}
+.uploadPhotoBtn:hover,
+.uploadPhotoBtn:focus-visible {
+    background: rgba(255,214,0, 0.23);
+}
+
+/* Grid of photo cards */
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
+    gap: 18px;
+}
+
+.loading,
+.error {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 42px 0;
+    color: var(--color-text-muted, #5d6170);
+    font-size: 1.10rem;
+}

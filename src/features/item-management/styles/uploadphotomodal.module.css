@@ -1,0 +1,195 @@
+.modalOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(36, 14, 41, 0.12);
+    z-index: 2200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalCard {
+    position: relative;
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 20px;
+    box-shadow:
+            0 8px 40px 0 rgba(0, 0, 0, 0.16),
+            0 4px 10px 0 rgba(0, 0, 0, 0.08);
+    padding: 2.1rem 2.2rem 1.8rem 2.2rem;
+    min-width: 375px;
+    max-width: 99vw;
+    max-height: 98vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    outline: none;
+    animation: modalIn 0.25s cubic-bezier(.21,.95,.19,1.04);
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(40px) scale(.97); }
+    to   { opacity: 1; transform: none; }
+}
+
+.modalTitle {
+    font-size: 1.19rem;
+    font-weight: 700;
+    margin: 0 0 25px 0;
+    color: var(--color-primary, #333645);
+    text-align: left;
+    letter-spacing: 0.015em;
+}
+
+.uploadForm {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.dropZone {
+    background: var(--color-bg-subtle, #f5f5f7);
+    border: 2px dashed var(--sabri-grey-400, #a0a4b0);
+    border-radius: 12px;
+    min-height: 175px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: border-color 0.20s, background 0.18s;
+    text-align: center;
+    cursor: pointer;
+    padding: 15px 10px;
+    margin-bottom: 5px;
+    outline: none;
+}
+
+/* Drag active highlight */
+.dragActive {
+    border-color: var(--color-secondary, #ffd600);
+    background: rgba(255,214,0,0.13);
+}
+
+.errorZone {
+    border-color: #e24c4b !important;
+}
+
+.fileInput {
+    display: none;
+}
+
+.dropZoneInner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 15px;
+    min-height: 90px;
+}
+
+.cloudIcon {
+    margin-bottom: 9px;
+    opacity: 0.46;
+}
+
+.dragText {
+    font-size: 1.08rem;
+    color: var(--color-text-muted, #777c88);
+}
+
+.browseLink {
+    background: none;
+    border: none;
+    color: var(--color-secondary, #ffd600);
+    font-weight: 600;
+    text-decoration: underline;
+    font-size: inherit;
+    cursor: pointer;
+    padding: 0;
+    margin: 0 0.2em;
+}
+
+.fileName {
+    display: block;
+    font-weight: 600;
+    color: var(--color-primary, #191919);
+    font-size: 1.04rem;
+    margin-top: 0.6em;
+    margin-bottom: 0.2em;
+}
+
+.metaRow {
+    display: flex;
+    justify-content: space-between;
+    color: var(--color-text-muted, #a0a4b0);
+    font-size: 0.97rem;
+    margin-top: -18px;
+    margin-bottom: 0.9em;
+    padding: 0 1px;
+}
+
+.metaLeft, .metaRight {
+    font-size: 0.98rem;
+}
+
+.errorMsg {
+    color: #c5473f;
+    background: #fff5f3;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 1.03rem;
+    margin: 7px 0 0 0;
+    text-align: left;
+}
+
+.formActions {
+    display: flex;
+    gap: 15px;
+    margin-top: 0.1em;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.uploadButton {
+    background: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #fff);
+    padding: 8px 30px;
+    font-size: 1.06rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-strong, #777c88);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.14s, border-color 0.13s, box-shadow 0.13s, transform 0.13s;
+}
+
+.uploadButton:disabled,
+.uploadButton[aria-disabled="true"] {
+    opacity: 0.56;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.uploadButton:not(:disabled):hover {
+    background: var(--sabri-grey-900, #191919);
+    border-color: var(--color-secondary,#ffd600);
+    transform: translateY(-1px);
+}
+
+.cancelButton {
+    background: none;
+    color: var(--color-primary-muted, #5d6170);
+    font-size: 1.05rem;
+    padding: 8px 22px;
+    border: none;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.12s;
+}
+
+.cancelButton:hover,
+.cancelButton:focus {
+    background: rgba(255, 214, 0, 0.12);
+    color: var(--color-primary, #333645);
+}
