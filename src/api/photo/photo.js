@@ -54,6 +54,29 @@ export async function getAllPhotos() {
 }
 
 /**
+ * Fetches all pending photos (staged, not linked to itemId).
+ * @returns {Object} { status, data, transactionId, errors }
+ */
+export async function getPendingPhotos() {
+    logger.info("getPendingPhotos called");
+    try {
+        const response = await apiClient.fetchPendingPhotos();
+        logger.info("getPendingPhotos success", {
+            dataCount: Array.isArray(response?.data) ? response.data.length : 0,
+        });
+        return {
+            status: response?.status,
+            data: response?.data || [],
+            transactionId: response?.transactionId,
+            errors: response?.errors ?? null,
+        };
+    } catch (error) {
+        logger.error("getPendingPhotos failed", error);
+        throw error;
+    }
+}
+
+/**
  * Fetches a photo by its ID.
  * @param {number} photoId
  * @returns {Object|null} PhotoResponse or null

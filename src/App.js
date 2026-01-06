@@ -80,6 +80,15 @@ function App() {
                                         </ProtectedLayout>
                                     }
                                 />
+                                {/* Settings route wrapped in ProtectedLayout */}
+                                <Route
+                                    path="/add-item"
+                                    element={
+                                        <ProtectedLayout>
+                                            <AddItemScreen />
+                                        </ProtectedLayout>
+                                    }
+                                />
                             </Route>
                         </Routes>
                     </div>

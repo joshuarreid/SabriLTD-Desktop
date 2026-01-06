@@ -5,29 +5,43 @@
  * Pattern is aligned with jobQueryKeys.js:
  *  - Root key: ['photo']
  *  - Lists, filtered lists, detail, upload, update, remove keys
+ *  - Pending list keys, scoped keys for pending
  *
  * Usage examples:
- *   photoKeys.lists()                                   // ['photo', 'lists']
- *   photoKeys.list({ itemId: 1001 })                    // ['photo', 'lists', { filters: { itemId: 1001 } }]
- *   photoKeys.detail(2001)                              // ['photo', 'detail', 2001]
- *   photoKeys.upload()                                  // ['photo', 'upload']
- *   photoKeys.update(2001)                              // ['photo', 'detail', 2001, 'update']
- *   photoKeys.remove(2001)                              // ['photo', 'detail', 2001, 'remove']
+ *   photoKeys.lists()                                         // ['photo', 'lists']
+ *   photoKeys.list({ itemId: 1001 })                          // ['photo', 'lists', { filters: { itemId: 1001 } }]
+ *   photoKeys.pendingList()                                   // ['photo', 'pending', 'lists']
+ *   photoKeys.pendingList({ updatedBy: 55 })                  // ['photo', 'pending', 'lists', { filters: { updatedBy: 55 } }]
+ *   photoKeys.detail(2001)                                    // ['photo', 'detail', 2001]
+ *   photoKeys.upload()                                        // ['photo', 'upload']
+ *   photoKeys.update(2001)                                    // ['photo', 'detail', 2001, 'update']
+ *   photoKeys.remove(2001)                                    // ['photo', 'detail', 2001, 'remove']
  *
  * These keys are used for:
- *  - useQuery (for fetching photo lists/byId)
+ *  - useQuery (for fetching photo lists/byId/pending)
  *  - useMutation (for upload/update/delete)
  *  - QueryClient.invalidateQueries / setQueryData
  *
  * Keeping the shape canonical prevents subtle cache bugs.
  */
+
+/**
+ * Root key for all photo queries.
+ * @constant
+ * @type {Array}
+ */
 export const PHOTO = ["photo"];
 
+/**
+ * Query key utility for photo endpoints.
+ * @namespace photoKeys
+ */
 export const photoKeys = {
     /**
      * The root key for all photo queries.
      *
-     * @type {Array}
+     * @constant
+     * @returns {Array}
      */
     all: PHOTO,
 
@@ -48,6 +62,24 @@ export const photoKeys = {
      * @returns {Array}
      */
     list: (filters = {}) => [...photoKeys.lists(), { filters }],
+
+    /**
+     * Key for the pending photo list (not yet linked to itemId).
+     *
+     * @function
+     * @returns {Array}
+     */
+    pendingList: () => [...photoKeys.all, "pending", "lists"],
+
+    /**
+     * Key for a filtered pending photo list.
+     * Use to scope cache entries for staged/pending photos by filters.
+     *
+     * @function
+     * @param {object} [filters={}] - filters object (e.g., { updatedBy: 55 })
+     * @returns {Array}
+     */
+    pendingListFiltered: (filters = {}) => [...photoKeys.pendingList(), { filters }],
 
     /**
      * Key for a single photo detail by id.

@@ -108,6 +108,33 @@ export default class PhotoApiClient extends ApiClient {
     }
 
     /**
+     * Fetches pending photos (itemId is null).
+     * @returns {Object}
+     */
+    async fetchPendingPhotos() {
+        logger.info("fetchPendingPhotos called");
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error("fetchPendingPhotos failed: No token available");
+                throw new Error("No authentication token found");
+            }
+            const response = await this.get("pending", {}, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            logger.info("fetchPendingPhotos success", {
+                count: Array.isArray(response?.data) ? response.data.length : 0,
+            });
+            return response;
+        } catch (error) {
+            logger.error("fetchPendingPhotos failed", error);
+            throw error;
+        }
+    }
+
+    /**
      * Fetches a photo by its ID.
      * @param {number} photoId
      * @returns {Object}
