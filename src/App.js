@@ -10,6 +10,7 @@ import UserProfileScreen from './screens/UserProfileScreen.jsx';
 import SettingsScreen from './screens/SettingsScreen.jsx';
 import JobScreen from "./screens/JobScreen";
 import InventoryDashboardScreen from './screens/InventoryDashboardScreen.jsx';
+import AddItemScreen from "./screens/AddItemScreen";
 
 /**
  * ProtectedRoute
