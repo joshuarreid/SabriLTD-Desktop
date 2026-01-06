@@ -2,8 +2,8 @@
  * AddItemScreen.jsx
  *
  * Presents a grid of all pending photos (not yet linked to an item)
- * with upload and batch operations following Bulletproof React conventions.
- * Wires in EditItemModal for "New Item" action using selected photos (with navigation).
+ * with upload on the left, batch operations (New Item, Clear Selection) on the right.
+ * Follows Bulletproof React conventions, robust logging, JSDoc, and modularity.
  *
  * @component
  */
@@ -27,7 +27,7 @@ const logger = {
 };
 
 /**
- * AddItemScreen - main add item interface
+ * AddItemScreen - main add item interface with upload left, actions right.
  *
  * @returns {JSX.Element}
  */
@@ -54,6 +54,7 @@ const AddItemScreen = () => {
 
     /**
      * Opens the upload modal.
+     * @function
      */
     const handleOpenUploadModal = useCallback(() => {
         logger.info("Upload modal opened");
@@ -62,6 +63,7 @@ const AddItemScreen = () => {
 
     /**
      * Handles closing the upload modal.
+     * @function
      */
     const handleCloseUploadModal = useCallback(() => {
         logger.info("Upload modal closed");
@@ -71,6 +73,7 @@ const AddItemScreen = () => {
 
     /**
      * Handles single photo file upload after selection.
+     * @function
      * @param {File} file - Single photo file to upload
      */
     const handleUploadPhotoFile = useCallback(
@@ -93,6 +96,7 @@ const AddItemScreen = () => {
 
     /**
      * Toggles selection of a photoId.
+     * @function
      * @param {number} photoId
      */
     const handleTogglePhotoSelect = useCallback(
@@ -112,6 +116,7 @@ const AddItemScreen = () => {
 
     /**
      * Clears all selected photoIds.
+     * @function
      */
     const handleClearSelection = useCallback(() => {
         logger.info("Clear photo selection");
@@ -121,18 +126,17 @@ const AddItemScreen = () => {
     /**
      * Handles clicking "New Item" and opens the EditItemModal
      * showing all selected photos for navigation.
+     * @function
      */
     const handleNewItem = useCallback(() => {
         logger.info("New Item clicked with selected photos:", selectedPhotoIds);
         if (!selectedPhotoIds.length) return;
 
         // Find photo objects by IDs, preserve selection order.
-        const selectedPhotos =
-            selectedPhotoIds
-                .map(id => (pendingPhotos ?? []).find(photo => photo.photoId === id))
-                .filter(photo => !!photo);
+        const selectedPhotos = selectedPhotoIds
+            .map(id => (pendingPhotos ?? []).find(photo => photo.photoId === id))
+            .filter(photo => !!photo);
 
-        // Must have at least one valid photo
         if (selectedPhotos.length > 0) {
             setEditItemModalOpen(true);
         } else {
@@ -141,7 +145,8 @@ const AddItemScreen = () => {
     }, [selectedPhotoIds, pendingPhotos]);
 
     /**
-     * Handles closing the EditItemModal.
+     * Handles closing the EditItemModal (resets selection).
+     * @function
      */
     const handleCloseEditItemModal = useCallback(() => {
         logger.info("EditItemModal closed");
@@ -152,8 +157,21 @@ const AddItemScreen = () => {
     // --- RENDER ---
     return (
         <div className={styles.addItemPanel}>
-            <div className={styles.headerSection}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div className={styles.headerSectionSwapped}>
+                <div className={styles.headerLeft}>
+                    <button
+                        type="button"
+                        className={styles.uploadPhotoBtn}
+                        onClick={handleOpenUploadModal}
+                        disabled={isUploading}
+                    >
+                        + Upload Photo
+                    </button>
+                    {isUploading && (
+                        <SaveStatus status="saving" savingText="Uploading..." />
+                    )}
+                </div>
+                <div className={styles.headerRight}>
                     <div className={styles.actionButtonWrapper}>
                         <button
                             type="button"
@@ -179,19 +197,6 @@ const AddItemScreen = () => {
                     >
                         Clear Selection
                     </button>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <button
-                        type="button"
-                        className={styles.uploadPhotoBtn}
-                        onClick={handleOpenUploadModal}
-                        disabled={isUploading}
-                    >
-                        + Upload Photo
-                    </button>
-                    {isUploading && (
-                        <SaveStatus status="saving" savingText="Uploading..." />
-                    )}
                 </div>
             </div>
             <div className={styles.gridContainer}>
