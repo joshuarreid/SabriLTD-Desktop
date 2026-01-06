@@ -1,50 +1,89 @@
 /**
- * useUploadPhoto
- * Mutation hook for uploading a new pending photo (standalone, not linked to itemId).
+ * useBulkUploadPhotos
+ * Mutation hook for uploading up to 25 pending photos asynchronously.
  *
- * @returns {object} Mutation object from @tanstack/react-query
+ * Follows Bulletproof React conventions for separation, robust logging,
+ * and cache management on upload.
+ *
+ * @returns {object} Mutation object from @tanstack/react-query with .mutate()
  */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {uploadPhoto} from "../../../api/photo/photo";
-import {photoKeys} from "../../../api/photo/photoQueryKeys";
-
+import { photoKeys } from "../../../api/photo/photoQueryKeys";
+import { uploadPhoto } from "../../../api/photo/photo";
+import { useCurrentUser } from "../../../hooks/useCurrentUser";
 
 /**
- * logger for useUploadPhoto
+ * logger for useBulkUploadPhotos
  * @constant
  */
 const logger = {
-    info: (...args) => console.log("[useUploadPhoto]", ...args),
-    error: (...args) => console.error("[useUploadPhoto]", ...args),
+    info: (...args) => console.log("[useBulkUploadPhotos]", ...args),
+    error: (...args) => console.error("[useBulkUploadPhotos]", ...args),
 };
 
-export const useUploadPhoto = () => {
+/**
+ * Bulk upload photos (async in parallel).
+ * @async
+ * @function bulkUploadFn
+ * @param {File[]} files - Array of File objects to upload (max 25)
+ * @param {number} updatedBy - userId of the person uploading (required)
+ * @returns {Promise<Object[]>} Array of upload results or throws on first error
+ */
+const bulkUploadFn = async ({ files, updatedBy }) => {
+    logger.info("bulkUploadFn called", files.map((f) => f.name), { updatedBy });
+    if (!Array.isArray(files) || files.length === 0) {
+        throw new Error("You must select at least one photo.");
+    }
+    if (files.length > 25) {
+        throw new Error("You may only upload up to 25 photos at a time.");
+    }
+    if (!updatedBy) {
+        throw new Error("Cannot determine user for upload.");
+    }
+    // Upload all files in parallel
+    const uploadPromises = files.map((photoFile) =>
+        uploadPhoto({ photoFile, updatedBy })
+    );
+    return await Promise.all(uploadPromises);
+};
+
+/**
+ * useBulkUploadPhotos
+ * - Handles async bulk photo uploads (up to 25), invalidates cache on success.
+ *
+ * @returns {object} Mutation hook for bulk upload (destructure .mutate to use)
+ */
+export const useBulkUploadPhotos = () => {
     const queryClient = useQueryClient();
 
     /**
-     * Mutation function for uploading photo.
-     * @async
-     * @function
-     * @param {{ photoFile: File }} fields
-     * @returns {Promise<Object>} API response data
-     * @throws {Error} If upload fails
+     * Current user (from useCurrentUser hook)
      */
-    const mutationFn = async ({ photoFile }) => {
-        logger.info("Uploading photo");
-        // Optionally get current userId from auth context for updatedBy. Here we default to 1 for demo
-        const updatedBy = 1;
-        return await uploadPhoto({ photoFile, updatedBy });
+    const { user, loading, error: userError } = useCurrentUser();
+
+    /**
+     * Internal wrapper that injects the authenticated updatedBy
+     * @async
+     * @param {File[]} files
+     * @returns {Promise<Object[]>}
+     */
+    const handleBulkUpload = async (files) => {
+        if (loading) throw new Error("Current user not loaded yet");
+        if (userError) throw userError || new Error("Unable to determine current user");
+        const updatedBy = user?.userId;
+        if (!updatedBy) throw new Error("No valid user id");
+        return await bulkUploadFn({ files, updatedBy });
     };
 
     return useMutation({
-        mutationFn,
+        mutationFn: handleBulkUpload,
         onSuccess: () => {
-            logger.info("Photo upload succeeded, invalidate pending photos");
+            logger.info("Bulk photo upload succeeded, invalidating pending grid.");
             queryClient.invalidateQueries({ queryKey: photoKeys.pendingList() });
         },
         onError: (error) => {
-            logger.error("Photo upload failed", error);
+            logger.error("Bulk photo upload failed", error);
         },
     });
 };
