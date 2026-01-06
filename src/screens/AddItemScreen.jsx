@@ -2,7 +2,8 @@
  * AddItemScreen.jsx
  *
  * Presents a grid of all pending photos (not yet linked to an item)
- * and buttons for uploading and batch operations following Bulletproof React conventions.
+ * with upload and batch operations following Bulletproof React conventions.
+ * Wires in EditItemModal for "New Item" action using selected photos (with navigation).
  *
  * @component
  */
@@ -14,6 +15,7 @@ import { usePendingPhotos } from "../features/item-management/hooks/useAddItemSc
 import { useUploadPhoto } from "../features/item-management/hooks/useUploadPhoto";
 import UploadPhotoModal from "../features/item-management/components/UploadPhotoModal";
 import SaveStatus from "../components/save/SaveStatus";
+import EditItemModal from "../components/edititemmodal/EditItemModal";
 
 /**
  * logger for AddItemScreen.
@@ -34,6 +36,7 @@ const AddItemScreen = () => {
 
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
+    const [editItemModalOpen, setEditItemModalOpen] = useState(false);
 
     const {
         pendingPhotos,
@@ -116,18 +119,37 @@ const AddItemScreen = () => {
     }, []);
 
     /**
-     * Handles clicking "New Item" (opens a TODO modal for now).
+     * Handles clicking "New Item" and opens the EditItemModal
+     * showing all selected photos for navigation.
      */
     const handleNewItem = useCallback(() => {
         logger.info("New Item clicked with selected photos:", selectedPhotoIds);
-        // TODO: Open New Item modal using the selectedPhotoIds for pre-filling
-        alert(
-            `TODO: Open New Item modal with selected photoIds: ${selectedPhotoIds.join(
-                ", "
-            )}`
-        );
-    }, [selectedPhotoIds]);
+        if (!selectedPhotoIds.length) return;
 
+        // Find photo objects by IDs, preserve selection order.
+        const selectedPhotos =
+            selectedPhotoIds
+                .map(id => (pendingPhotos ?? []).find(photo => photo.photoId === id))
+                .filter(photo => !!photo);
+
+        // Must have at least one valid photo
+        if (selectedPhotos.length > 0) {
+            setEditItemModalOpen(true);
+        } else {
+            logger.error("No valid photos found for EditItemModal.");
+        }
+    }, [selectedPhotoIds, pendingPhotos]);
+
+    /**
+     * Handles closing the EditItemModal.
+     */
+    const handleCloseEditItemModal = useCallback(() => {
+        logger.info("EditItemModal closed");
+        setEditItemModalOpen(false);
+        setSelectedPhotoIds([]);
+    }, []);
+
+    // --- RENDER ---
     return (
         <div className={styles.addItemPanel}>
             <div className={styles.headerSection}>
@@ -197,6 +219,17 @@ const AddItemScreen = () => {
                 isUploading={isUploading}
                 error={uploadError ? uploadError.message : null}
             />
+            {editItemModalOpen && selectedPhotoIds.length > 0 && (
+                <EditItemModal
+                    photos={
+                        selectedPhotoIds
+                            .map(id => (pendingPhotos ?? []).find(photo => photo.photoId === id))
+                            .filter(photo => !!photo)
+                    }
+                    open={editItemModalOpen}
+                    onClose={handleCloseEditItemModal}
+                />
+            )}
         </div>
     );
 };
