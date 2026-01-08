@@ -1,8 +1,9 @@
 /**
  * EditItemModal.jsx
  *
- * Modal for editing an item's details: left side = photo preview with navigation, right side = editable fields as placeholders.
- * Now supports multi-photo navigation (dots and arrows) and responsive 75% modal size.
+ * Modal for editing or creating an item, nearly full screen.
+ * Photo preview on left, fields right. Save/cancel in bottom right.
+ * Close "x" button in top left.
  *
  * @component
  * @param {object} props
@@ -11,9 +12,10 @@
  * @param {function} props.onClose - Close handler for modal
  * @returns {JSX.Element|null}
  */
-import React, { useState } from "react";
+import React from "react";
 import styles from "./edititemmodal.module.css";
 import SaveStatus from "../save/SaveStatus";
+import { useEditItemModal } from "./useEditItemModal";
 
 /**
  * logger for EditItemModal.
@@ -24,55 +26,28 @@ const logger = {
     error: (...args) => console.error("[EditItemModal]", ...args),
 };
 
-/**
- * EditItemModal main component.
- * @param {object} props
- * @param {Array<{photoId:number, url:string}>} props.photos
- * @param {boolean} props.open
- * @param {function} props.onClose
- * @returns {JSX.Element|null}
- */
-const EditItemModal = ({
-                           photos = [],
-                           open,
-                           onClose,
-                       }) => {
+const EditItemModal = ({ photos = [], open, onClose }) => {
     logger.info("EditItemModal rendered", { photos, open });
-    const [current, setCurrent] = useState(0);
 
-    if (!open || !photos.length) return null;
+    const {
+        photo,
+        current,
+        photos: allPhotos,
+        handlePrev,
+        handleNext,
+        handleSelect,
+        handleCancel,
+        isFirst,
+        isLast,
+    } = useEditItemModal({ photos, open, onClose });
 
-    /**
-     * Handles modal cancel/close.
-     */
-    const handleCancel = () => {
-        logger.info("EditItemModal cancelled");
-        onClose();
-    };
+    // --- Item form wireframe state (only input/textarea wired for now) ---
+    const [itemName, setItemName] = React.useState("");
+    const [itemDescription, setItemDescription] = React.useState("");
+    const [storageDesc, setStorageDesc] = React.useState("");
+    const [comments, setComments] = React.useState("");
 
-    /**
-     * Go to previous photo.
-     */
-    const handlePrev = () => {
-        setCurrent((prev) => Math.max(prev - 1, 0));
-    };
-
-    /**
-     * Go to next photo.
-     */
-    const handleNext = () => {
-        setCurrent((prev) => Math.min(prev + 1, photos.length - 1));
-    };
-
-    /**
-     * Select photo by index (dot click).
-     * @param {number} idx
-     */
-    const handleSelect = (idx) => {
-        setCurrent(idx);
-    };
-
-    const photo = photos[current];
+    if (!open || !allPhotos.length) return null;
 
     return (
         <div
@@ -82,48 +57,56 @@ const EditItemModal = ({
             aria-modal="true"
         >
             <div
-                className={styles.modalCard}
+                className={styles.modalCardXXLCompact}
                 onClick={e => e.stopPropagation()}
                 tabIndex={0}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="edit-item-modal-title"
             >
-                <div className={styles.splitContainer}>
-                    {/* Left: Photo Preview + controls */}
-                    <div className={styles.photoPreviewCol}>
-                        <div className={styles.photoPreviewWrapper}>
+                {/* Close "X" button */}
+                <button
+                    type="button"
+                    className={styles.closeButtonTopLeft}
+                    onClick={handleCancel}
+                    title="Close"
+                    aria-label="Close modal"
+                >
+                    &times;
+                </button>
+                <div className={styles.splitModernContainerXXL}>
+                    {/* Left: Modern square photo preview with nav controls */}
+                    <div className={styles.photoModernColXXL}>
+                        <div className={styles.photoModernSquareFrameXXL}>
                             {photo?.url ? (
                                 <img
                                     src={photo.url}
                                     alt="Item photo preview"
-                                    className={styles.photoPreviewImg}
+                                    className={styles.photoModernSquareImgXXL}
                                 />
                             ) : (
-                                <div className={styles.photoPreviewPlaceholder}>
+                                <div className={styles.photoModernPlaceholderXXL}>
                                     No Photo Available
                                 </div>
                             )}
-
-                            <div className={styles.photoNavWrapper}>
+                            <div className={styles.photoModernSquareNavXXL}>
                                 <button
-                                    className={styles.arrowBtn}
+                                    className={styles.photoModernSquareArrowXXL}
                                     onClick={handlePrev}
-                                    disabled={current === 0}
+                                    disabled={isFirst}
                                     aria-label="Previous photo"
                                     tabIndex={0}
                                 >
-                                    ◀
+                                    <span>&#9664;</span>
                                 </button>
-                                {photos.length > 1 && (
-                                    <div className={styles.photoDotRow}>
-                                        {photos.map((_, idx) => (
-                                            <button
+                                {allPhotos.length > 1 && (
+                                    <div className={styles.photoModernSquareDotsXXL}>
+                                        {allPhotos.map((_, idx) => (
+                                            <span
                                                 key={idx}
-                                                type="button"
                                                 className={
-                                                    styles.photoDot +
-                                                    (idx === current ? ` ${styles.photoDotActive}` : "")
+                                                    styles.photoModernSquareDotXXL +
+                                                    (idx === current ? ` ${styles.photoModernSquareDotActiveXXL}` : "")
                                                 }
                                                 onClick={() => handleSelect(idx)}
                                                 aria-label={
@@ -137,75 +120,110 @@ const EditItemModal = ({
                                     </div>
                                 )}
                                 <button
-                                    className={styles.arrowBtn}
+                                    className={styles.photoModernSquareArrowXXL}
                                     onClick={handleNext}
-                                    disabled={current === photos.length - 1}
+                                    disabled={isLast}
                                     aria-label="Next photo"
                                     tabIndex={0}
                                 >
-                                    ▶
+                                    <span>&#9654;</span>
                                 </button>
                             </div>
                         </div>
                     </div>
-
-                    {/* Right: Editable placeholder fields */}
-                    <div className={styles.fieldsCol}>
-                        <h2 className={styles.itemTitle} id="edit-item-modal-title">
-                            Edit Item
-                        </h2>
-                        <form className={styles.itemForm} onSubmit={e => e.preventDefault()}>
-                            <div className={styles.fieldBlock}>
-                                <label htmlFor="edit-item-title">Title</label>
+                    {/* Right: Form wireframe */}
+                    <div className={styles.fieldsModernColXXLCompact}>
+                        <form className={styles.itemModernFormXXLCompact} onSubmit={e => e.preventDefault()}>
+                            <div className={styles.itemModernTitleXXL}>Edit Item</div>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL} htmlFor="edit-item-title">Title</label>
                                 <input
                                     id="edit-item-title"
                                     type="text"
-                                    value="Minecraft Orange Character Print T-Shirt"
-                                    className={styles.input}
-                                    disabled
+                                    placeholder="Enter item name"
+                                    value={itemName}
+                                    onChange={e => setItemName(e.target.value)}
+                                    className={styles.inputModernXXLCompact}
+                                    autoComplete="off"
                                 />
                             </div>
-                            <div className={styles.fieldBlock}>
-                                <label htmlFor="edit-item-price">Price</label>
-                                <input
-                                    id="edit-item-price"
-                                    type="text"
-                                    value="£6"
-                                    className={styles.input}
-                                    disabled
-                                />
-                            </div>
-                            <div className={styles.fieldBlock}>
-                                <label>Sizes</label>
-                                <div className={styles.sizesRow}>
-                                    {["4-5 Yrs", "5-6 Yrs", "7-8 Yrs", "9-10 Yrs", "10-11 Yrs", "11-12 Yrs", "13-14 Yrs"].map(size => (
-                                        <button type="button" key={size} className={styles.sizeBtn} disabled>
-                                            {size}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className={styles.fieldBlock}>
-                                <label htmlFor="edit-item-description">Description</label>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL} htmlFor="edit-item-description">Description</label>
                                 <textarea
                                     id="edit-item-description"
-                                    value="(Placeholder) Cool Minecraft T-Shirt, orange, kids sizes."
-                                    className={styles.input}
-                                    rows={3}
-                                    disabled
+                                    placeholder="Enter a longer description for this item"
+                                    value={itemDescription}
+                                    onChange={e => setItemDescription(e.target.value)}
+                                    className={styles.inputModernXXLCompact}
+                                    rows={2}
                                 />
                             </div>
-                            <div className={styles.formActions}>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL}>Condition</label>
+                                <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
+                                    [Condition dropdown placeholder]
+                                </div>
+                            </div>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL}>Jobs</label>
+                                <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
+                                    [Job dropdown with search placeholder]
+                                </div>
+                            </div>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL}>Storage</label>
+                                <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
+                                    [Storage dropdown placeholder]
+                                </div>
+                            </div>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL} htmlFor="edit-item-storage-desc">Storage Description</label>
+                                <input
+                                    id="edit-item-storage-desc"
+                                    type="text"
+                                    placeholder="Enter storage location/notes"
+                                    value={storageDesc}
+                                    onChange={e => setStorageDesc(e.target.value)}
+                                    className={styles.inputModernXXLCompact}
+                                    autoComplete="off"
+                                />
+                            </div>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL}>Tag Category</label>
+                                <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
+                                    [Tag category dropdown placeholder]
+                                </div>
+                            </div>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL}>Tags</label>
+                                <button type="button" className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
+                                    [Tags modal placeholder]
+                                </button>
+                            </div>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL} htmlFor="edit-item-comments">Comments</label>
+                                <input
+                                    id="edit-item-comments"
+                                    type="text"
+                                    placeholder="Add comments"
+                                    value={comments}
+                                    onChange={e => setComments(e.target.value)}
+                                    className={styles.inputModernXXLCompact}
+                                    autoComplete="off"
+                                />
+                            </div>
+                            {/* The Save/Cancel actions are absolutely placed bottom right of the modal */}
+                            <div className={styles.modernFormActionRowXXLCompact}>
                                 <button
-                                    type="button"
-                                    className={styles.saveButton}
+                                    type="submit"
+                                    className={styles.saveModernButtonXXLCompact}
                                     disabled
                                 >
                                     Save
                                 </button>
                                 <button
                                     type="button"
-                                    className={styles.cancelButton}
+                                    className={styles.cancelModernButtonXXLCompact}
                                     onClick={handleCancel}
                                 >
                                     Cancel
