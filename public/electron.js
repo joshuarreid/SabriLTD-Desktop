@@ -1,31 +1,36 @@
 /**
- * Electron main process (minimal template).
+ * Electron main process (SabriLTD Inventory App).
  *
- * Notes:
- * - Uses a simple heuristic for isDev to avoid requiring ESM-only packages.
- * - Exposes basic IPC handlers that the template renderer can call:
- *   - 'ping' => returns a small object
- *   - 'select-destination-folder' => shows native open dialog for folder
- *   - 'transfer-albums' => demo transfer that emits 'transfer-progress' events (simulated)
+ * - Handles secure token management and best-effort logout on both app open and app close.
+ * - Implements robust, standardized logging.
+ * - IPC handlers expose token operations and file/folder pickers to the renderer.
+ * - On *open*: tries best-effort logout+token delete to prevent session reuse on abnormal shutdown.
+ * - On *close*: best-effort logout and secure token deletion before exiting.
  *
- * Keep console logs in place for dev debugging. Replace with a production logger like
- * electron-log when packaging.
+ * See: Bulletproof conventions (robust logging, side-effect separation, JSDoc)
  */
+
 const path = require('path');
 const { app, BrowserWindow, ipcMain, dialog, screen } = require('electron');
-
 const keytar = require('keytar');
+const axios = require('axios');
 
+/**
+ * Service name and account for keytar-secured session token.
+ */
 const SERVICE_NAME = 'SabriLTD-Inventory';
 const ACCOUNT_NAME = 'InventoryAuthToken';
 
-
-
-console.log('[electron-main] Starting main process', { argv: process.argv.slice(1) });
+/**
+ * Standard logger for electron main process.
+ */
+const logger = {
+    info: (...args) => console.log('[electron-main]', ...args),
+    error: (...args) => console.error('[electron-main]', ...args),
+};
 
 /**
- * Heuristic to detect development.
- * Avoids requiring electron-is-dev (ESM) to prevent ERR_REQUIRE_ESM.
+ * Heuristic for detecting development mode (no ESM-only deps).
  */
 const isDev = (() => {
     try {
@@ -33,24 +38,149 @@ const isDev = (() => {
         const defaultApp = !!process.defaultApp;
         const execPathMatches = /node_modules[\\/](react-scripts|electron)[\\/]/.test(process.execPath);
         const result = envDev || defaultApp || execPathMatches;
-        console.log('[electron-main] isDev heuristic result=%s (NODE_ENV=%s, defaultApp=%s)', result, process.env.NODE_ENV, !!process.defaultApp);
+        logger.info('isDev heuristic result=%s (NODE_ENV=%s, defaultApp=%s)', result, process.env.NODE_ENV, !!process.defaultApp);
         return result;
     } catch (err) {
-        console.warn('[electron-main] isDev heuristic failed, defaulting to true', err && err.message);
+        logger.error('isDev heuristic failed, defaulting to true', err?.message);
         return true;
     }
 })();
 
 /**
- * Create the main BrowserWindow and load either CRA dev server or production index.
+ * Get the API base URL for logout, from env var `API_URL`.
+ * @returns {string|null}
+ */
+function getApiUrl() {
+    if (process.env.API_URL && typeof process.env.API_URL === 'string' && process.env.API_URL.trim() !== '') {
+        return String(process.env.API_URL).replace(/\/+$/, '');
+    }
+    return null;
+}
+
+/**
+ * Attempts to logout session against Inventory API and then delete cached JWT token.
+ * Never logs sensitive token value. No-ops on error.
+ * Can be called at app startup (to clean up zombie tokens) and on shutdown.
+ *
+ * @async
+ * @function bestEffortLogoutAndClearToken
+ * @returns {Promise<void>}
+ */
+async function bestEffortLogoutAndClearToken() {
+    try {
+        logger.info('bestEffortLogoutAndClearToken: Checking for session token...');
+        const token = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);
+        const apiUrl = getApiUrl();
+
+        if (token && apiUrl) {
+            logger.info('Session token found, attempting server-side logout');
+            try {
+                // POST /api/auth/logout with Authorization: Bearer <token>
+                await axios.post(
+                    `${apiUrl}/api/auth/logout`,
+                    null,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            Accept: 'application/json'
+                        },
+                        timeout: 2500
+                    }
+                );
+                logger.info('Remote logout successful (or no error thrown)');
+            } catch (err) {
+                logger.error('Remote logout errored - continuing anyway.', err?.message);
+            }
+        } else if (!token) {
+            logger.info('No session token found (safe to continue)');
+        } else if (!apiUrl) {
+            logger.info('API_URL not configured - skipping remote logout');
+        }
+
+        // Always try to remove token from keytar.
+        try {
+            const deleted = await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME);
+            if (deleted) {
+                logger.info('Session token deleted from secure store');
+            } else {
+                logger.info('No session token deleted (none present)');
+            }
+        } catch (err) {
+            logger.error('Error removing token from keytar', err?.message);
+        }
+    } catch (err) {
+        logger.error('bestEffortLogoutAndClearToken: Unexpected error', err?.message);
+    }
+}
+
+/**
+ * On application open: try to clear any zombie session token and log out if token is present.
+ * This prevents lingering sessions if the app or OS was quit abnormally.
+ */
+app.once('ready', async () => {
+    logger.info('App ready - performing startup session cleanup');
+    await bestEffortLogoutAndClearToken();
+    try {
+        createMainWindow();
+    } catch (err) {
+        logger.error('Error during createMainWindow', err?.message);
+    }
+
+    app.on('activate', () => {
+        logger.info('app activate');
+        if (BrowserWindow.getAllWindows().length === 0) {
+            createMainWindow();
+        }
+    });
+});
+
+/**
+ * Before app shutdown: attempt logout and session token deletion (clean exit).
+ * Defers quitting briefly to allow cleanup but will force-close if taking too long.
+ */
+let quittingCleanupStarted = false;
+app.on('before-quit', (event) => {
+    if (quittingCleanupStarted) {
+        return;
+    }
+    quittingCleanupStarted = true;
+
+    logger.info('App is quitting - running shutdown logout/token cleanup');
+    event.preventDefault();
+
+    const CLEANUP_TIMEOUT_MS = 3500;
+    let finished = false;
+    const finishQuit = (exitCode = 0) => {
+        if (finished) return;
+        finished = true;
+        logger.info('Cleanup finished, exiting app');
+        app.exit(exitCode);
+    };
+
+    bestEffortLogoutAndClearToken()
+        .then(() => finishQuit(0))
+        .catch((err) => {
+            logger.error('Cleanup encountered error', err?.message);
+            finishQuit(0);
+        });
+
+    setTimeout(() => {
+        logger.error('Cleanup timeout reached, forcing app exit');
+        finishQuit(0);
+    }, CLEANUP_TIMEOUT_MS);
+});
+
+/**
+ * Create and manage main BrowserWindow (with robust logging).
+ * Loads dev URL if in dev, else loads production build.
+ *
+ * @returns {BrowserWindow}
  */
 function createMainWindow() {
-    console.log('[electron-main] createMainWindow - creating BrowserWindow');
-
+    logger.info('createMainWindow - creating BrowserWindow');
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-    console.log('[electron-main] primary display workAreaSize', { width, height });
+    logger.info('primary display workAreaSize', { width, height });
 
-    console.log('[electron-main] createMainWindow - creating BrowserWindow');
     const mainWindow = new BrowserWindow({
         width,
         height,
@@ -67,160 +197,99 @@ function createMainWindow() {
     });
 
     mainWindow.once('ready-to-show', () => {
-        console.log('[electron-main] mainWindow ready-to-show -> showing');
+        logger.info('mainWindow ready-to-show -> showing');
         mainWindow.show();
     });
-
-    mainWindow.on('closed', () => {
-        console.log('[electron-main] mainWindow closed');
-    });
+    mainWindow.on('closed', () => logger.info('mainWindow closed'));
 
     if (isDev) {
         const devUrl = 'http://localhost:3000';
-        console.log('[electron-main] Loading dev URL:', devUrl);
+        logger.info('Loading dev URL:', devUrl);
         mainWindow.loadURL(devUrl).then(() => {
-            console.log('[electron-main] Dev URL loaded');
-        }).catch(err => {
-            console.error('[electron-main] Error loading dev URL', err);
-        });
+            logger.info('Dev URL loaded');
+        }).catch(err => logger.error('Error loading dev URL', err?.message));
         try {
             mainWindow.webContents.openDevTools({ mode: 'detach' });
         } catch (err) {
-            console.warn('[electron-main] openDevTools failed', err && err.message);
+            logger.error('openDevTools failed', err?.message);
         }
     } else {
         const indexPath = path.join(app.getAppPath(), 'build', 'index.html');
-        console.log('[electron-main] Loading production index file:', indexPath);
+        logger.info('Loading production index file:', indexPath);
         mainWindow.loadFile(indexPath).then(() => {
-            console.log('[electron-main] Production index.html loaded');
-        }).catch(err => {
-            console.error('[electron-main] Error loading production index.html', err);
-        });
+            logger.info('Production index.html loaded');
+        }).catch(err => logger.error('Error loading production index.html', err?.message));
     }
-
     return mainWindow;
 }
 
+// --- IPC/Token/File Handlers below (no business logic, just wrappers) ---
+
 /**
- * Basic IPC handlers
+ * Ping the main process for testing.
  */
 ipcMain.handle('ping', async (event, payload) => {
-    console.log('[electron-main] ipcHandler ping received', { payload });
+    logger.info('ipcHandler ping received', { payload });
     const response = { pong: true, received: payload, ts: new Date().toISOString() };
-    console.log('[electron-main] ipcHandler ping responding', response);
+    logger.info('ipcHandler ping responding', response);
     return response;
 });
 
+/**
+ * Open a folder picker dialog via IPC.
+ */
 ipcMain.handle('select-destination-folder', async () => {
-    console.log('[electron-main] select-destination-folder invoked');
+    logger.info('select-destination-folder invoked');
     const result = await dialog.showOpenDialog({
         properties: ['openDirectory'],
         title: 'Select Destination Folder'
     });
     if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
-        console.log('[electron-main] select-destination-folder canceled');
+        logger.info('select-destination-folder canceled');
         return null;
     }
-    console.log('[electron-main] select-destination-folder path=', result.filePaths[0]);
+    logger.info('select-destination-folder path=', result.filePaths[0]);
     return result.filePaths[0];
 });
 
 /**
- * Simulated transfer handler.
- * - Accepts { albums, destination } and sends progress updates via 'transfer-progress' event.
- * - This is a demo / template implementation. Replace with real copy logic in production.
+ * Stores auth token via IPC into keytar.
  */
-ipcMain.handle('transfer-albums', async (event, data) => {
-    console.log('[electron-main] transfer-albums invoked', { albumsCount: Array.isArray(data?.albums) ? data.albums.length : 0, destination: data?.destination });
-    try {
-        // Simulate work with progress updates
-        const totalSteps = 20;
-        for (let step = 1; step <= totalSteps; step++) {
-            const pct = Math.round((step / totalSteps) * 100);
-            // Send progress to renderer
-            event.sender.send('transfer-progress', pct);
-            // Short delay to simulate work
-            await new Promise(resolve => setTimeout(resolve, 80));
-        }
-        console.log('[electron-main] transfer-albums complete');
-        return { success: true };
-    } catch (err) {
-        console.error('[electron-main] transfer-albums error', err);
-        return { success: false, message: err.message || String(err) };
-    }
-});
-
 ipcMain.handle('token-store', async (event, { token }) => {
-    /**
-     * Stores the token securely using Keytar.
-     * @param {string} token
-     * @returns {boolean} True if stored successfully, else false.
-     */
     try {
         await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, token);
-        console.log('[electron-main] token-store: token stored');
+        logger.info('token-store: token stored');
         return { success: true };
     } catch (err) {
-        console.error('[electron-main] token-store error', err);
-        return { success: false, message: err.message };
-    }
-});
-
-ipcMain.handle('token-get', async () => {
-    /**
-     * Retrieves the auth token from Keytar.
-     * @returns {string|null} The token or null if not found.
-     */
-    try {
-        const token = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);
-        console.log('[electron-main] token-get: token retrieved');
-        return { success: true, token };
-    } catch (err) {
-        console.error('[electron-main] token-get error', err);
-        return { success: false, message: err.message };
-    }
-});
-
-ipcMain.handle('token-delete', async () => {
-    /**
-     * Deletes the auth token from Keytar.
-     * @returns {boolean} True if deleted successfully.
-     */
-    try {
-        await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME);
-        console.log('[electron-main] token-delete: token deleted');
-        return { success: true };
-    } catch (err) {
-        console.error('[electron-main] token-delete error', err);
-        return { success: false, message: err.message };
+        logger.error('token-store error', err?.message);
+        return { success: false, message: err?.message };
     }
 });
 
 /**
- * App lifecycle
+ * Reads auth token from keytar.
  */
-app.on('ready', () => {
-    console.log('[electron-main] app ready');
+ipcMain.handle('token-get', async () => {
     try {
-        createMainWindow();
+        const token = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);
+        logger.info('token-get: token presence status:', !!token);
+        return { success: true, token };
     } catch (err) {
-        console.error('[electron-main] Error creating main window', err);
+        logger.error('token-get error', err?.message);
+        return { success: false, message: err?.message };
     }
-
-    app.on('activate', () => {
-        console.log('[electron-main] app activate');
-        if (BrowserWindow.getAllWindows().length === 0) {
-            createMainWindow();
-        }
-    });
 });
 
-app.on('window-all-closed', () => {
-    console.log('[electron-main] window-all-closed platform=%s', process.platform);
-    if (process.platform !== 'darwin') {
-        console.log('[electron-main] quitting app');
-        app.quit();
-    } else {
-        console.log('[electron-main] macOS - keeping app active');
+/**
+ * Deletes auth token in keytar.
+ */
+ipcMain.handle('token-delete', async () => {
+    try {
+        await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME);
+        logger.info('token-delete: token deleted');
+        return { success: true };
+    } catch (err) {
+        logger.error('token-delete error', err?.message);
+        return { success: false, message: err?.message };
     }
 });
