@@ -1,110 +1,138 @@
 .modalOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(36,14,41,0.13);
+    background: rgba(36, 14, 41, 0.13);
     z-index: 2000;
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Prevent scroll chaining to page while modal is open */
+    overscroll-behavior: contain;
 }
+
 .modalCardXXLCompact {
-    background: #f6f6fa;
-    border-radius: 38px;
-    box-shadow: 0 24px 98px 0 rgba(57,55,81,0.19), 0 7px 40px rgba(44,47,59,0.10);
+    background: var(--color-bg-subtle, #f5f5f7);
+    border-radius: 32px;
+    box-shadow: 0 24px 98px 0 rgba(36,14,41,0.13), 0 7px 40px rgba(44,47,59,0.09);
     width: 98vw;
     height: 97vh;
     outline: none;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: hidden; /* keep internal scroll within contentArea */
     position: relative;
     padding: 0;
-    min-width: 0;
-    min-height: 0;
 }
+
+/* NEW: Scrollable content wrapper to avoid overlap with bottom action row */
+.contentArea {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Reserve space so the absolute action bar never overlaps content */
+    padding-bottom: 140px;
+    /* Create stacking context so inner z-index doesn't leak */
+    isolation: isolate;
+}
+
 .closeButtonTopLeft {
     position: absolute;
-    top: 19px;
-    left: 25px;
+    top: 20px;
+    left: 34px;
     z-index: 16;
     background: none;
     border: none;
-    color: #aeb1c0;
-    font-size: 1.64rem;
+    color: var(--color-primary-muted, #aeb1c0);
+    font-size: 1.72rem;
     cursor: pointer;
-    padding: 6px 10px 3px 4px;
-    border-radius: 14px;
-    transition: background 0.13s, color 0.13s;
+    padding: 6px 12px 3px 4px;
+    border-radius: 16px;
+    transition: background 0.14s, color 0.14s;
 }
 .closeButtonTopLeft:hover,
 .closeButtonTopLeft:focus-visible {
-    background: #f6f6fa;
-    color: #585a75;
+    background: var(--sabri-grey-100, #f5f5f7);
+    color: var(--sabri-grey-800, #333645);
 }
 
 /* --- Header Row: General + Photo, full height matched --- */
 .headerRowGrid {
     display: grid;
-    grid-template-columns: 2.2fr 1fr;
-    gap: 36px;
-    padding: 38px 56px 22px 56px;
+    width: 100%;
+    grid-template-columns: 2.35fr 1fr;
+    gap: 38px;
+    padding: 52px 65px 10px 65px;
     align-items: stretch;
+    box-sizing: border-box;
+    position: relative; /* ensure proper stacking */
+    z-index: 1;
 }
+
 .formPanelCardGeneral {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 2px 13px #d2d4e125, 0 0.5px 2px #d1d4ea19;
-    padding: 32px 36px 32px 32px;
+    background: var(--color-bg-surface, #fff);
+    border-radius: 17px;
+    box-shadow: 0 2px 13px #e4e6ec20, 0 0.5px 2px #d1d4ea13;
+    padding: 36px 44px 36px 38px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    height: 100%;
+    min-height: 290px;
 }
+
 .inputModernXXLDescription {
-    background: #f9fafe;
-    border-radius: 6px;
-    border: 1px solid #eaecf4;
-    padding: 14px 12px;
-    font-size: 1.07em;
-    color: #36364a;
+    background: var(--color-bg-subtle, #f6f6fa);
+    border-radius: 7px;
+    border: 1px solid var(--color-border-subtle, #e4e6ec);
+    padding: 18px 14px;
+    font-size: 1.04rem;
+    color: var(--color-primary, #333645);
     width: 100%;
     outline: none;
     resize: vertical;
-    min-height: 105px;
-    max-height: 220px;
+    min-height: 120px;
+    max-height: 250px;
+    margin-bottom: 0;
 }
+
 .photoModernCardStyledTall {
     width: 340px;
+    min-width: 240px;
+    max-width: 340px;
     height: 100%;
     min-height: 340px;
-    border-radius: 22px;
-    background: #fff;
-    box-shadow: 0 3px 22px 0 #dcdefa11, 0 1.5px 7px #34365a0d;
-    padding: 30px;
+    border-radius: 19px;
+    background: var(--color-bg-surface, #fff);
+    box-shadow: 0 2px 21px 0 #e4e6ec29, 0 1.5px 5px #34365a0c;
+    padding: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
 .photoModernSquareFrameXXLTall {
     width: 100%;
     aspect-ratio: 1/1;
-    border-radius: 18px;
-    background: #f4f6fb;
-    box-shadow: 0 3px 14px #ccd3ff23;
+    border-radius: 15px;
+    background: var(--color-bg-subtle, #f5f5f7);
+    box-shadow: 0 2px 10px #ccd3ff13;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
 }
+
 .photoModernSquareImgXXLTall {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 18px;
+    border-radius: 15px;
     background: #eaeaea;
 }
+
 .photoModernPlaceholderXXL {
-    color: #92929e;
+    color: var(--color-primary-muted, #92929e);
     font-size: 1.08rem;
     text-align: center;
     width: 100%;
@@ -114,6 +142,7 @@
     align-items: center;
     justify-content: center;
 }
+
 .photoModernSquareNavXXL {
     position: absolute;
     width: 100%;
@@ -122,25 +151,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     pointer-events: none;
 }
 .photoModernSquareArrowXXL {
     pointer-events: all;
-    font-size: 1.09rem;
+    font-size: 1.08rem;
     background: #fff;
     border: none;
-    color: #78769e;
+    color: var(--color-primary-muted, #78769e);
     border-radius: 1.25em;
-    width: 32px;
-    height: 32px;
+    width: 31px;
+    height: 31px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 1px 4px #8883;
-    transition: background 0.17s, color 0.17s, box-shadow 0.17s;
+    transition: background 0.16s, color 0.16s, box-shadow 0.16s;
     margin: 0 2px;
-    border: 1px solid #f2f2fa;
+    border: 1px solid var(--color-border-subtle, #ececf5);
 }
 .photoModernSquareArrowXXL:disabled {
     opacity: 0.34;
@@ -148,68 +177,72 @@
 }
 .photoModernSquareArrowXXL:hover:not(:disabled),
 .photoModernSquareArrowXXL:focus-visible:not(:disabled) {
-    background: #ffeeb2;
+    background: var(--sabri-yellow, #ffeeb2);
     color: #ffb700;
-    box-shadow: 0 2.5px 10px #ffd02233;
+    box-shadow: 0 2.5px 10px #ffd02235;
 }
 .photoModernSquareDotsXXL {
     pointer-events: all;
     display: flex;
-    gap: 6px;
+    gap: 5px;
     align-items: center;
     margin: 0 2px;
 }
 .photoModernSquareDotXXL {
     display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background: #e3e3e8;
     box-shadow: 0 0.5px 2.5px #8881;
     cursor: pointer;
     border: none;
-    transition: background 0.17s, box-shadow 0.17s;
+    transition: background 0.15s, box-shadow 0.16s;
 }
 .photoModernSquareDotActiveXXL {
-    background: #ffd600;
+    background: var(--color-secondary, #ffd600);
     box-shadow: 0 3px 10px #ffd60044;
 }
 
-/* --- Middle: Associations and Comments L, Tagging R --- */
+/* --- Middle Section: Associations/Comments left, Tag right --- */
 .middleMatchHeightRow {
     display: grid;
-    grid-template-columns: 2.1fr 1fr;
+    grid-template-columns: 2.09fr 1fr;
     gap: 36px;
-    padding: 0 56px 0 56px;
+    padding: 100px 65px 0 65px;
     align-items: stretch;
+    position: relative; /* ensure proper stacking */
+    z-index: 1;
 }
 .middleStackedCardsCol {
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    gap: 26px;
     height: 100%;
+    min-width: 0;
 }
+/* Card re-use, tall version for right tag section */
 .formPanelCard {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 2px 13px #d2d4e125, 0 0.5px 2px #d1d4ea19;
-    padding: 28px 32px 20px 32px;
+    background: var(--color-bg-surface, #fff);
+    border-radius: 15px;
+    box-shadow: 0 2px 13px #e4e6ec1b, 0 0.5px 2px #d1d4ea13;
+    padding: 26px 30px 19px 30px;
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 .formPanelCardTagTall {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 2px 13px #d2d4ea23, 0 0.5px 2px #d1d4ea18;
-    padding: 28px 32px 20px 32px;
+    background: var(--color-bg-surface, #fff);
+    border-radius: 15px;
+    box-shadow: 0 2px 13px #e4e6ec1b, 0 0.5px 2px #d1d4ea13;
+    padding: 26px 30px 19px 30px;
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
     height: 100%;
-    min-height: 235px;
+    min-height: 180px;
 }
 .tagCardTall {
     height: 100%;
@@ -220,10 +253,10 @@
 
 /* --- Shared fields/buttons/panel CSS --- */
 .itemModernTitleXXL {
-    font-size: 1.01rem;
+    font-size: 1.09rem;
     font-weight: 700;
-    color: #232442;
-    margin-bottom: 6px;
+    color: var(--color-primary, #232442);
+    margin-bottom: 8px;
     text-align: left;
     letter-spacing: 0.02em;
 }
@@ -234,7 +267,7 @@
     gap: 2px;
 }
 .labelModernXXL {
-    color: #7a7a96;
+    color: var(--color-primary-muted, #7a7a96);
     font-size: 0.96rem;
     font-weight: 700;
     margin-bottom: 0.5px;
@@ -242,19 +275,19 @@
     letter-spacing: 0.01em;
 }
 .inputModernXXLCompact {
-    background: #f9fafe;
+    background: var(--color-bg-subtle, #f6f6fa);
     border-radius: 6px;
-    border: 1px solid #eaecf4;
-    padding: 7px 10px;
-    font-size: 0.98em;
-    color: #36364a;
+    border: 1px solid var(--color-border-subtle, #eaecf4);
+    padding: 9px 11px;
+    font-size: 0.97em;
+    color: var(--color-primary, #36364a);
     transition: border-color 0.13s, background-color 0.13s;
     width: 100%;
     outline: none;
     box-shadow: none;
 }
 .inputModernXXLCompact:focus {
-    border-color: #ffd600;
+    border-color: var(--color-secondary, #ffd600);
     background: #fffef8;
 }
 .sizeModernBtn {
@@ -281,13 +314,16 @@
     gap: 15px;
     align-items: center;
     z-index: 5;
+    pointer-events: auto;
+    /* subtle backdrop to visually separate from content if overlapping ever occurs */
+    /* background: linear-gradient(to top, rgba(245,245,247,0.92), rgba(245,245,247,0)); */
 }
 .saveModernButtonXXLCompact {
-    background: #6d6d91;
-    color: #fff;
-    border-radius: 6px;
-    font-size: 0.96em;
-    padding: 10px 32px;
+    background: var(--sabri-grey-500, #777c88);
+    color: var(--color-primary-contrast, #fff);
+    border-radius: 7px;
+    font-size: 0.97em;
+    padding: 11px 36px;
     font-weight: 700;
     border: none;
     margin-right: 8px;
@@ -302,20 +338,20 @@
 }
 .cancelModernButtonXXLCompact {
     background: none;
-    color: #a7a7b3;
-    font-size: 0.96em;
-    padding: 10px 19px;
+    color: var(--sabri-grey-400, #a7a7b3);
+    font-size: 0.97em;
+    padding: 11px 23px;
     border: none;
     font-weight: 700;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
     transition: background 0.1s, color 0.12s;
     letter-spacing: 0.01em;
 }
 .cancelModernButtonXXLCompact:hover,
 .cancelModernButtonXXLCompact:focus-visible {
-    background: #f7f7fb;
-    color: #36364a;
+    background: var(--color-bg-subtle, #f7f7fb);
+    color: var(--color-primary, #36364a);
 }
 .saveFeedback {
     margin: 3px 0 0 0;
@@ -328,12 +364,12 @@
 @media (max-width: 1200px) {
     .headerRowGrid {
         grid-template-columns: 1fr;
-        padding: 28px 6vw 10px 6vw;
-        gap: 18px;
+        padding: 22px 5vw 10px 5vw;
+        gap: 16px;
     }
     .middleMatchHeightRow {
         grid-template-columns: 1fr;
-        padding: 0 6vw 0 6vw;
+        padding: 0 5vw 0 5vw;
     }
     .photoModernCardStyledTall {
         width: 95vw;
@@ -342,12 +378,15 @@
         height: auto;
     }
     .formPanelCardGeneral {
-        padding: 18px 9vw 18px 3vw;
+        padding: 16px 5vw 16px 3vw;
     }
     .formPanelCard, .formPanelCardTagTall {
-        padding: 18px 9vw 14px 3vw;
+        padding: 14px 5vw 12px 3vw;
     }
     .modernFormActionRowXXLCompact {
-        padding: 0 12vw 24px 0;
+        padding: 0 8vw 24px 0;
+    }
+    .contentArea {
+        padding-bottom: 100px; /* reduce reserved space on smaller screens */
     }
 }
