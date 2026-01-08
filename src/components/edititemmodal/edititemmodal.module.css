@@ -35,6 +35,29 @@
     isolation: isolate;
 }
 
+/* NEW: Two-column vertical stacks to keep spacing consistent */
+.twoPaneGrid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 2.35fr 1fr;
+    gap: 38px;
+    padding: 52px 65px 0 65px;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+.leftColumnStack,
+.rightColumnStack {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    height: 100%;
+    min-width: 0; /* allow flex children to shrink without overflow */
+}
+.rightColumnStack {
+    /* Right column keeps the photo width feel but allows full-height tagging */
+}
+
+/* Close button */
 .closeButtonTopLeft {
     position: absolute;
     top: 20px;
@@ -55,19 +78,7 @@
     color: var(--sabri-grey-800, #333645);
 }
 
-/* --- Header Row: General + Photo, full height matched --- */
-.headerRowGrid {
-    display: grid;
-    width: 100%;
-    grid-template-columns: 2.35fr 1fr;
-    gap: 38px;
-    padding: 52px 65px 10px 65px;
-    align-items: stretch;
-    box-sizing: border-box;
-    position: relative; /* ensure proper stacking */
-    z-index: 1;
-}
-
+/* --- Cards --- */
 .formPanelCardGeneral {
     background: var(--color-bg-surface, #fff);
     border-radius: 17px;
@@ -204,34 +215,7 @@
     box-shadow: 0 3px 10px #ffd60044;
 }
 
-/* --- Middle Section: Associations/Comments left, Tag right --- */
-.middleMatchHeightRow {
-    display: grid;
-    grid-template-columns: 2.09fr 1fr;
-    gap: 36px;
-    padding: 100px 65px 0 65px;
-    align-items: stretch;
-    position: relative; /* ensure proper stacking */
-    z-index: 1;
-}
-.middleStackedCardsCol {
-    display: flex;
-    flex-direction: column;
-    gap: 26px;
-    height: 100%;
-    min-width: 0;
-}
-/* Card re-use, tall version for right tag section */
-.formPanelCard {
-    background: var(--color-bg-surface, #fff);
-    border-radius: 15px;
-    box-shadow: 0 2px 13px #e4e6ec1b, 0 0.5px 2px #d1d4ea13;
-    padding: 26px 30px 19px 30px;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+/* Tag card should grow to match left column height */
 .formPanelCardTagTall {
     background: var(--color-bg-surface, #fff);
     border-radius: 15px;
@@ -241,14 +225,26 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    height: 100%;
     min-height: 180px;
+    flex: 1 1 auto; /* fill remaining right column height */
 }
 .tagCardTall {
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: stretch;
+}
+
+/* Generic form panel card */
+.formPanelCard {
+    background: var(--color-bg-surface, #fff);
+    border-radius: 15px;
+    box-shadow: 0 2px 13px #e4e6ec1b, 0 0.5px 2px #d1d4ea13;
+    padding: 26px 30px 19px 30px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 /* --- Shared fields/buttons/panel CSS --- */
@@ -315,8 +311,6 @@
     align-items: center;
     z-index: 5;
     pointer-events: auto;
-    /* subtle backdrop to visually separate from content if overlapping ever occurs */
-    /* background: linear-gradient(to top, rgba(245,245,247,0.92), rgba(245,245,247,0)); */
 }
 .saveModernButtonXXLCompact {
     background: var(--sabri-grey-500, #777c88);
@@ -362,14 +356,10 @@
 
 /* Responsive: stacks cards vertically rather than grid on mobile */
 @media (max-width: 1200px) {
-    .headerRowGrid {
+    .twoPaneGrid {
         grid-template-columns: 1fr;
-        padding: 22px 5vw 10px 5vw;
+        padding: 22px 5vw 0 5vw;
         gap: 16px;
-    }
-    .middleMatchHeightRow {
-        grid-template-columns: 1fr;
-        padding: 0 5vw 0 5vw;
     }
     .photoModernCardStyledTall {
         width: 95vw;
