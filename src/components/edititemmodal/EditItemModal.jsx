@@ -1,12 +1,9 @@
 /**
  * EditItemModal.jsx
  *
- * Modal for editing or creating an item, full-width, clean card-panel layout.
- * Arrangement directly mirrors the provided reference (screenshot 8).
- * - Photo/media preview card at top-left (not inside field grid)
- * - General, Associations, Tagging, Comments below as horizontally-aligned cards
- * - Save/Cancel at bottom right, Close "x" top left.
- * All fields and buttons maintain compact, modern style conventions.
+ * Modal for editing or creating an item, modern dashboard-style, with Photo Media top-right,
+ * "General Information" to the left, and other fields in two cards below, as shown in your latest screenshots.
+ * Save/cancel bottom-right. Close "x" top-left. Fully follows Bulletproof React practices.
  *
  * @component
  * @param {object} props
@@ -15,7 +12,6 @@
  * @param {function} props.onClose - Close handler for modal
  * @returns {JSX.Element|null}
  */
-
 import React from "react";
 import styles from "./edititemmodal.module.css";
 import SaveStatus from "../save/SaveStatus";
@@ -37,14 +33,7 @@ const tagCategoryPlaceholder = "[Tag category dropdown placeholder]";
 const tagsPlaceholder = "[Tags modal placeholder]";
 
 /**
- * EditItemModal
- * Main modal UI for edit/create item, screenshot-matched arrangement.
- *
- * @param {object} props
- * @param {array} props.photos
- * @param {boolean} props.open
- * @param {function} props.onClose
- * @returns {JSX.Element|null}
+ * EditItemModal main UI component.
  */
 const EditItemModal = ({ photos = [], open, onClose }) => {
     logger.info("EditItemModal rendered", { photos, open });
@@ -92,9 +81,38 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                 >
                     &times;
                 </button>
-                <div className={styles.mainGridPanelsLayout}>
-                    {/* Top row: Photo/media card (only) */}
-                    <div className={styles.panelRowPhotoOnly}>
+
+                <div className={styles.panelSplitGrid}>
+                    {/* Top Row: General Information (Left) and Photo Media (Right) */}
+                    <div className={styles.topRowGrid}>
+                        <div className={styles.formPanelCard}>
+                            <div className={styles.itemModernTitleXXL}>General Information</div>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL} htmlFor="edit-item-title">Title</label>
+                                <input
+                                    id="edit-item-title"
+                                    type="text"
+                                    placeholder="Enter item name"
+                                    value={itemName}
+                                    onChange={e => setItemName(e.target.value)}
+                                    className={styles.inputModernXXLCompact}
+                                    autoComplete="off"
+                                />
+                            </div>
+                            <div className={styles.fieldModernBlockXXLCompact}>
+                                <label className={styles.labelModernXXL} htmlFor="edit-item-description">
+                                    Description
+                                </label>
+                                <textarea
+                                    id="edit-item-description"
+                                    placeholder="Enter a longer description for this item"
+                                    value={itemDescription}
+                                    onChange={e => setItemDescription(e.target.value)}
+                                    className={styles.inputModernXXLCompact}
+                                    rows={2}
+                                />
+                            </div>
+                        </div>
                         <div className={styles.photoModernCardStyled}>
                             <div className={styles.photoModernSquareFrameXXL}>
                                 {photo?.url ? (
@@ -151,36 +169,8 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                             </div>
                         </div>
                     </div>
-                    {/* Second row: General, Associations */}
-                    <div className={styles.panelRowGrid}>
-                        <div className={styles.formPanelCard}>
-                            <div className={styles.itemModernTitleXXL}>General Information</div>
-                            <div className={styles.fieldModernBlockXXLCompact}>
-                                <label className={styles.labelModernXXL} htmlFor="edit-item-title">Title</label>
-                                <input
-                                    id="edit-item-title"
-                                    type="text"
-                                    placeholder="Enter item name"
-                                    value={itemName}
-                                    onChange={e => setItemName(e.target.value)}
-                                    className={styles.inputModernXXLCompact}
-                                    autoComplete="off"
-                                />
-                            </div>
-                            <div className={styles.fieldModernBlockXXLCompact}>
-                                <label className={styles.labelModernXXL} htmlFor="edit-item-description">
-                                    Description
-                                </label>
-                                <textarea
-                                    id="edit-item-description"
-                                    placeholder="Enter a longer description for this item"
-                                    value={itemDescription}
-                                    onChange={e => setItemDescription(e.target.value)}
-                                    className={styles.inputModernXXLCompact}
-                                    rows={2}
-                                />
-                            </div>
-                        </div>
+                    {/* Middle Row: Associations card */}
+                    <div className={styles.middleRowGrid}>
                         <div className={styles.formPanelCard}>
                             <div className={styles.itemModernTitleXXL}>Associations</div>
                             <div className={styles.fieldModernBlockXXLCompact}>
@@ -217,8 +207,8 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                             </div>
                         </div>
                     </div>
-                    {/* Third row: Tagging, Comments */}
-                    <div className={styles.panelRowGrid}>
+                    {/* Bottom Row: Tagging (left) and Comments (right) */}
+                    <div className={styles.bottomRowGrid}>
                         <div className={styles.formPanelCard}>
                             <div className={styles.itemModernTitleXXL}>Tagging</div>
                             <div className={styles.fieldModernBlockXXLCompact}>
@@ -253,6 +243,7 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                         </div>
                     </div>
                 </div>
+
                 {/* Bottom-right save/cancel */}
                 <div className={styles.modernFormActionRowXXLCompact}>
                     <button
