@@ -2,10 +2,9 @@
  * EditItemModal.jsx
  *
  * Modal layout polished for dashboard creation:
- * - General Information (with larger Description for paragraph) at top left
- * - Large Photo Media preview at top right; same vertical size as General
- * - Associations and Comments stacked vertically left below General
- * - Tagging alone on right under Photo, stretching full height to match left column
+ * - General Information and Photo in two vertical columns
+ * - Left column stacks: General, Associations, Comments
+ * - Right column stacks: Photo, Tagging (fills remaining right column height)
  * - Save/Cancel bottom right, close X top left
  * Follows Bulletproof React, logging, and JSDoc standards.
  */
@@ -37,7 +36,7 @@ const tagsPlaceholder = "[Tags modal placeholder]";
 
 /**
  * EditItemModal - UI-only modal for editing an inventory item.
- * Keeps arrangement, adds scrollable content area to avoid overlap.
+ * Keeps arrangement, adds scrollable content area and two vertical columns to avoid overlap and ensure spacing.
  *
  * @component
  * @param {Object} props
@@ -95,96 +94,39 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
 
                 {/* Scrollable content wrapper to prevent overlap with action bar */}
                 <div className={styles.contentArea}>
-                    {/* Top Section: General & Photo in row, vertically equal */}
-                    <div className={styles.headerRowGrid}>
-                        <div className={styles.formPanelCardGeneral}>
-                            <div className={styles.itemModernTitleXXL}>General Information</div>
-                            <div className={styles.fieldModernBlockXXLCompact}>
-                                <label className={styles.labelModernXXL} htmlFor="edit-item-title">Title</label>
-                                <input
-                                    id="edit-item-title"
-                                    type="text"
-                                    placeholder="Enter item name"
-                                    value={itemName}
-                                    onChange={e => setItemName(e.target.value)}
-                                    className={styles.inputModernXXLCompact}
-                                    autoComplete="off"
-                                />
-                            </div>
-                            <div className={styles.fieldModernBlockXXLCompact}>
-                                <label className={styles.labelModernXXL} htmlFor="edit-item-description">
-                                    Description
-                                </label>
-                                <textarea
-                                    id="edit-item-description"
-                                    placeholder="Enter a longer description for this item"
-                                    value={itemDescription}
-                                    onChange={e => setItemDescription(e.target.value)}
-                                    className={styles.inputModernXXLDescription}
-                                    rows={5}
-                                />
-                            </div>
-                        </div>
-                        <div className={styles.photoModernCardStyledTall}>
-                            <div className={styles.photoModernSquareFrameXXLTall}>
-                                {photo?.url ? (
-                                    <img
-                                        src={photo.url}
-                                        alt="Item photo preview"
-                                        className={styles.photoModernSquareImgXXLTall}
+                    {/* Two vertical columns */}
+                    <div className={styles.twoPaneGrid}>
+                        {/* Left column: General + Associations + Comments */}
+                        <div className={styles.leftColumnStack}>
+                            <div className={styles.formPanelCardGeneral}>
+                                <div className={styles.itemModernTitleXXL}>General Information</div>
+                                <div className={styles.fieldModernBlockXXLCompact}>
+                                    <label className={styles.labelModernXXL} htmlFor="edit-item-title">Title</label>
+                                    <input
+                                        id="edit-item-title"
+                                        type="text"
+                                        placeholder="Enter item name"
+                                        value={itemName}
+                                        onChange={e => setItemName(e.target.value)}
+                                        className={styles.inputModernXXLCompact}
+                                        autoComplete="off"
                                     />
-                                ) : (
-                                    <div className={styles.photoModernPlaceholderXXL}>
-                                        No Photo Available
-                                    </div>
-                                )}
-                                <div className={styles.photoModernSquareNavXXL}>
-                                    <button
-                                        className={styles.photoModernSquareArrowXXL}
-                                        onClick={handlePrev}
-                                        disabled={isFirst}
-                                        aria-label="Previous photo"
-                                        tabIndex={0}
-                                    >
-                                        <span>&#9664;</span>
-                                    </button>
-                                    {allPhotos.length > 1 && (
-                                        <div className={styles.photoModernSquareDotsXXL}>
-                                            {allPhotos.map((_, idx) => (
-                                                <span
-                                                    key={idx}
-                                                    className={
-                                                        styles.photoModernSquareDotXXL +
-                                                        (idx === current ? ` ${styles.photoModernSquareDotActiveXXL}` : "")
-                                                    }
-                                                    onClick={() => handleSelect(idx)}
-                                                    aria-label={
-                                                        idx === current
-                                                            ? `Photo ${idx + 1} (current)`
-                                                            : `Go to photo ${idx + 1}`
-                                                    }
-                                                    tabIndex={0}
-                                                />
-                                            ))}
-                                        </div>
-                                    )}
-                                    <button
-                                        className={styles.photoModernSquareArrowXXL}
-                                        onClick={handleNext}
-                                        disabled={isLast}
-                                        aria-label="Next photo"
-                                        tabIndex={0}
-                                    >
-                                        <span>&#9654;</span>
-                                    </button>
+                                </div>
+                                <div className={styles.fieldModernBlockXXLCompact}>
+                                    <label className={styles.labelModernXXL} htmlFor="edit-item-description">
+                                        Description
+                                    </label>
+                                    <textarea
+                                        id="edit-item-description"
+                                        placeholder="Enter a longer description for this item"
+                                        value={itemDescription}
+                                        onChange={e => setItemDescription(e.target.value)}
+                                        className={styles.inputModernXXLDescription}
+                                        rows={5}
+                                    />
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    {/* Middle Section: Associations (left = 2/3) | Tagging (right = 1/3) */}
-                    <div className={styles.middleMatchHeightRow}>
-                        <div className={styles.middleStackedCardsCol}>
                             <div className={styles.formPanelCard}>
                                 <div className={styles.itemModernTitleXXL}>Associations</div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
@@ -220,6 +162,7 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                     />
                                 </div>
                             </div>
+
                             <div className={styles.formPanelCard}>
                                 <div className={styles.itemModernTitleXXL}>Comments</div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
@@ -236,7 +179,65 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                 </div>
                             </div>
                         </div>
-                        <div className={styles.tagCardTall}>
+
+                        {/* Right column: Photo + Tagging fills remaining height */}
+                        <div className={styles.rightColumnStack}>
+                            <div className={styles.photoModernCardStyledTall}>
+                                <div className={styles.photoModernSquareFrameXXLTall}>
+                                    {photo?.url ? (
+                                        <img
+                                            src={photo.url}
+                                            alt="Item photo preview"
+                                            className={styles.photoModernSquareImgXXLTall}
+                                        />
+                                    ) : (
+                                        <div className={styles.photoModernPlaceholderXXL}>
+                                            No Photo Available
+                                        </div>
+                                    )}
+                                    <div className={styles.photoModernSquareNavXXL}>
+                                        <button
+                                            className={styles.photoModernSquareArrowXXL}
+                                            onClick={handlePrev}
+                                            disabled={isFirst}
+                                            aria-label="Previous photo"
+                                            tabIndex={0}
+                                        >
+                                            <span>&#9664;</span>
+                                        </button>
+                                        {allPhotos.length > 1 && (
+                                            <div className={styles.photoModernSquareDotsXXL}>
+                                                {allPhotos.map((_, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className={
+                                                            styles.photoModernSquareDotXXL +
+                                                            (idx === current ? ` ${styles.photoModernSquareDotActiveXXL}` : "")
+                                                        }
+                                                        onClick={() => handleSelect(idx)}
+                                                        aria-label={
+                                                            idx === current
+                                                                ? `Photo ${idx + 1} (current)`
+                                                                : `Go to photo ${idx + 1}`
+                                                        }
+                                                        tabIndex={0}
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
+                                        <button
+                                            className={styles.photoModernSquareArrowXXL}
+                                            onClick={handleNext}
+                                            disabled={isLast}
+                                            aria-label="Next photo"
+                                            tabIndex={0}
+                                        >
+                                            <span>&#9654;</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className={styles.formPanelCardTagTall}>
                                 <div className={styles.itemModernTitleXXL}>Tagging</div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
