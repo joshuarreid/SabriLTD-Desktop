@@ -7,7 +7,6 @@
     align-items: center;
     justify-content: center;
 }
-
 .modalCardXXLCompact {
     background: #f6f6fa;
     border-radius: 38px;
@@ -23,7 +22,6 @@
     min-width: 0;
     min-height: 0;
 }
-
 .closeButtonTopLeft {
     position: absolute;
     top: 19px;
@@ -44,37 +42,49 @@
     color: #585a75;
 }
 
-.panelSplitGrid {
-    width: 100%;
+/* --- Header Row: General + Photo, full height matched --- */
+.headerRowGrid {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr;
+    gap: 36px;
+    padding: 38px 56px 22px 56px;
+    align-items: stretch;
+}
+.formPanelCardGeneral {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 13px #d2d4e125, 0 0.5px 2px #d1d4ea19;
+    padding: 32px 36px 32px 32px;
     display: flex;
     flex-direction: column;
-    gap: 26px;
-    padding: 38px 0 110px 0;
-    box-sizing: border-box;
+    justify-content: flex-start;
 }
-
-/* First row: General info and Photo (side-by-side, photo on right) */
-.topRowGrid {
+.inputModernXXLDescription {
+    background: #f9fafe;
+    border-radius: 6px;
+    border: 1px solid #eaecf4;
+    padding: 14px 12px;
+    font-size: 1.07em;
+    color: #36364a;
     width: 100%;
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 32px;
-    align-items: start;
-    padding: 0 60px 0 60px;
-    box-sizing: border-box;
+    outline: none;
+    resize: vertical;
+    min-height: 105px;
+    max-height: 220px;
 }
-
-.photoModernCardStyled {
+.photoModernCardStyledTall {
     width: 340px;
+    height: 100%;
+    min-height: 340px;
     border-radius: 22px;
     background: #fff;
     box-shadow: 0 3px 22px 0 #dcdefa11, 0 1.5px 7px #34365a0d;
     padding: 30px;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
-.photoModernSquareFrameXXL {
+.photoModernSquareFrameXXLTall {
     width: 100%;
     aspect-ratio: 1/1;
     border-radius: 18px;
@@ -82,12 +92,11 @@
     box-shadow: 0 3px 14px #ccd3ff23;
     overflow: hidden;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     position: relative;
 }
-.photoModernSquareImgXXL {
+.photoModernSquareImgXXLTall {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -166,25 +175,20 @@
     box-shadow: 0 3px 10px #ffd60044;
 }
 
-/* Second row: one Associations card centered under the first row */
-.middleRowGrid {
-    width: 100%;
+/* --- Middle: Associations and Comments L, Tagging R --- */
+.middleMatchHeightRow {
     display: grid;
-    grid-template-columns: 1fr;
-    justify-content: center;
-    padding: 0 250px 0 250px;
+    grid-template-columns: 2.1fr 1fr;
+    gap: 36px;
+    padding: 0 56px 0 56px;
+    align-items: stretch;
 }
-
-/* Third row: Tagging and Comments side-by-side */
-.bottomRowGrid {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    padding: 0 60px 0 60px;
+.middleStackedCardsCol {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    height: 100%;
 }
-
-/* Individual cards styling (shared) */
 .formPanelCard {
     background: #fff;
     border-radius: 16px;
@@ -195,6 +199,26 @@
     flex-direction: column;
     gap: 10px;
 }
+.formPanelCardTagTall {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 13px #d2d4ea23, 0 0.5px 2px #d1d4ea18;
+    padding: 28px 32px 20px 32px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    min-height: 235px;
+}
+.tagCardTall {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+}
+
+/* --- Shared fields/buttons/panel CSS --- */
 .itemModernTitleXXL {
     font-size: 1.01rem;
     font-weight: 700;
@@ -245,7 +269,7 @@
     opacity: 0.6;
 }
 
-/* Save/cancel in bottom right */
+/* --- Save/cancel in bottom right --- */
 .modernFormActionRowXXLCompact {
     position: absolute;
     right: 0;
@@ -300,27 +324,30 @@
     align-items: center;
 }
 
-/* Responsive: stack columns/cards on smaller screens */
+/* Responsive: stacks cards vertically rather than grid on mobile */
 @media (max-width: 1200px) {
-    .panelSplitGrid {
-        padding: 22px 0 100px 0;
-        gap: 14px;
-    }
-    .topRowGrid,
-    .bottomRowGrid {
+    .headerRowGrid {
         grid-template-columns: 1fr;
-        padding: 0 8vw;
-        gap: 22px;
+        padding: 28px 6vw 10px 6vw;
+        gap: 18px;
     }
-    .middleRowGrid {
-        padding: 0 8vw;
+    .middleMatchHeightRow {
+        grid-template-columns: 1fr;
+        padding: 0 6vw 0 6vw;
     }
-    .formPanelCard {
-        padding: 18px 13px 14px 13px;
-    }
-    .photoModernCardStyled {
-        width: 92vw;
+    .photoModernCardStyledTall {
+        width: 95vw;
         min-width: 120px;
         padding: 10px;
+        height: auto;
+    }
+    .formPanelCardGeneral {
+        padding: 18px 9vw 18px 3vw;
+    }
+    .formPanelCard, .formPanelCardTagTall {
+        padding: 18px 9vw 14px 3vw;
+    }
+    .modernFormActionRowXXLCompact {
+        padding: 0 12vw 24px 0;
     }
 }
