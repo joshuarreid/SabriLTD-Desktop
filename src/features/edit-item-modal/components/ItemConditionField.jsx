@@ -2,8 +2,9 @@
  * ItemConditionField.jsx
  *
  * Fetches item conditions from the API and renders horizontal pill-style selectable buttons
- * within an input-styled box. Pills are washed out until selected; clicking a selected pill will deselect it.
- * Handles loading, error, selection, and styling per Bulletproof React.
+ * within an input-styled box. Uses the shared ItemConditionPill for condition rendering.
+ * Pills are washed out until selected; clicking a selected pill will deselect it.
+ * Follows Bulletproof React conventions and pin UX standards.
  *
  * @component
  * @param {object} props
@@ -13,22 +14,9 @@
  */
 import React from "react";
 import { useItemConditionField } from "../hooks/useItemConditionField";
-import styles from "../styles/itemconditionfield.module.css";
 
-/**
- * Maps canonical API condition name to a style suffix for color pill.
- * @param {string} name
- * @returns {string}
- */
-const getConditionStyleClass = (name) => {
-    const k = String(name).toLowerCase();
-    if (k === "damaged") return styles['pill-damaged'];
-    if (k === "needs repair") return styles['pill-needsrepair'];
-    if (k === "fair") return styles['pill-fair'];
-    if (k === "good") return styles['pill-good'];
-    if (k === "new") return styles['pill-new'];
-    return "";
-};
+import styles from "../styles/itemconditionfield.module.css";
+import ItemConditionPill from "../../../components/itemconditionpill/ItemConditionPill";
 
 /**
  * Ordered canonical conditions for UX.
@@ -36,17 +24,23 @@ const getConditionStyleClass = (name) => {
  */
 const ORDERED_CONDITIONS = ["Damaged", "Needs Repair", "Fair", "Good", "New"];
 
+/**
+ * logger for ItemConditionField.
+ */
 const logger = {
     info: (...args) => console.log("[ItemConditionField]", ...args),
     error: (...args) => console.error("[ItemConditionField]", ...args),
 };
 
+/**
+ * Renders the ItemConditionField using shared pill styles.
+ */
 export const ItemConditionField = ({ value, onChange }) => {
     const { options, loading, error } = useItemConditionField();
 
     logger.info("ItemConditionField rendered", { value, options, loading, error });
 
-    // Sort by UX order constant
+    // Sort options according to canonical UX order.
     const orderedOptions = React.useMemo(() => {
         if (!options) return [];
         return [...options].sort(
@@ -62,7 +56,6 @@ export const ItemConditionField = ({ value, onChange }) => {
      */
     const handlePillClick = (clickedId) => {
         logger.info("Pill clicked", clickedId);
-        // Deselect if already selected, otherwise select
         onChange?.(value === clickedId ? null : clickedId);
     };
 
@@ -78,26 +71,17 @@ export const ItemConditionField = ({ value, onChange }) => {
                     <div className={styles.status} style={{ color: "#c00" }}>{error}</div>
                 ) : (
                     <div className={styles.pillRow}>
-                        {orderedOptions.map(opt => {
-                            const pillClass = getConditionStyleClass(opt.name);
-                            const isSelected = opt.conditionId === value;
-                            return (
-                                <button
-                                    key={opt.conditionId}
-                                    type="button"
-                                    className={[
-                                        styles.pill,
-                                        pillClass,
-                                        isSelected ? styles.pillSelected : ""
-                                    ].join(" ")}
-                                    aria-pressed={isSelected}
-                                    onClick={() => handlePillClick(opt.conditionId)}
-                                    tabIndex={0}
-                                >
-                                    {opt.name}
-                                </button>
-                            );
-                        })}
+                        {orderedOptions.map(opt => (
+                            <ItemConditionPill
+                                key={opt.conditionId}
+                                conditionName={opt.name}
+                                selected={opt.conditionId === value}
+                                as="button"
+                                aria-pressed={opt.conditionId === value}
+                                onClick={() => handlePillClick(opt.conditionId)}
+                                tabIndex={0}
+                            />
+                        ))}
                     </div>
                 )}
             </div>
