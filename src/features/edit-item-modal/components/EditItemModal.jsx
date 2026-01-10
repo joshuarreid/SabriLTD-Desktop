@@ -99,7 +99,6 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                         {/* Left column: General + Associations + Comments */}
                         <div className={styles.leftColumnStack}>
                             <div className={styles.formPanelCardGeneral}>
-                                <div className={styles.itemModernTitleXXL}>General Information</div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
                                     <label className={styles.labelModernXXL} htmlFor="edit-item-title">Title</label>
                                     <input
@@ -128,7 +127,6 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                             </div>
 
                             <div className={styles.formPanelCard}>
-                                <div className={styles.itemModernTitleXXL}>Associations</div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
                                     <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
                                         <ItemConditionField

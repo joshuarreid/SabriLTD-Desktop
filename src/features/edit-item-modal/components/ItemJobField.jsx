@@ -97,6 +97,9 @@ export const ItemJobField = ({ value = [], onChange }) => {
     return (
         <div className={styles.root}>
             {/* Selected jobs always shown, never search filtered */}
+            <label htmlFor="item-condition" className={styles.label}>
+                Jobs
+            </label>
             <div className={styles.selectedJobsRow}>
                 <AnimatePresence>
                     {selectedJobs.map(job => (
