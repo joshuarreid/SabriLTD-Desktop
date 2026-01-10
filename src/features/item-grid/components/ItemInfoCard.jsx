@@ -3,12 +3,14 @@
  *
  * Minimal, square-photo item card used in ItemCardGrid.
  * - Fixed square thumbnail that crops overflow.
- * - Shows item name and condition.
+ * - Shows item name and condition, with unified pill styling.
  */
 
 import React from "react";
 import PropTypes from "prop-types";
 import styles from "../styles/iteminfocard.module.css";
+import ItemConditionPill from "../../../components/itemconditionpill/ItemConditionPill";
+
 
 /**
  * logger for ItemInfoCard.
@@ -38,12 +40,15 @@ const logger = {
 const ItemInfoCard = ({ item, onClick }) => {
     const { itemId, name, conditionName, photoUrl } = item;
 
+    /**
+     * Handles card click events for logging and optional parent callback.
+     *
+     * @function
+     */
     const handleClick = () => {
         logger.info("ItemInfoCard clicked", { itemId });
         if (onClick) onClick();
     };
-
-    const conditionLabel = conditionName || "Unknown";
 
     return (
         <button
@@ -72,7 +77,10 @@ const ItemInfoCard = ({ item, onClick }) => {
                 <div className={styles.name} title={name}>
                     {name}
                 </div>
-                <div className={styles.condition}>{conditionLabel}</div>
+                <ItemConditionPill
+                    conditionName={conditionName}
+                    className={styles.condition}
+                />
             </div>
         </button>
     );
