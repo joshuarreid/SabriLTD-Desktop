@@ -58,7 +58,7 @@ export default class PhotoApiClient extends ApiClient {
             }
             if (!fields?.photoFile || !fields?.updatedBy) {
                 logger.error("uploadPhoto validation failed: missing photoFile or updatedBy");
-                throw new Error("Missing required fields for photo upload");
+                throw new Error("Missing required inputfields for photo upload");
             }
 
             const formData = new FormData();

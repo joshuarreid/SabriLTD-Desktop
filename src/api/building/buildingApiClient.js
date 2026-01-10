@@ -65,7 +65,7 @@ export default class BuildingApiClient extends ApiClient {
     /**
      * Creates a new building (requires authentication).
      * @async
-     * @param {Object} payload - The building fields { name, address, manager }
+     * @param {Object} payload - The building inputfields { name, address, manager }
      * @returns {Promise<Object>} API response with new building
      * @throws {Error} If request fails, duplicate/invalid, or validation error.
      */
@@ -150,7 +150,7 @@ export default class BuildingApiClient extends ApiClient {
      * Updates an existing building by buildingId (requires authentication).
      * @async
      * @param {number} buildingId - The building ID to update
-     * @param {Object} payload - The fields to update { name, address, manager }
+     * @param {Object} payload - The inputfields to update { name, address, manager }
      * @returns {Promise<Object>} API response with updated building
      * @throws {Error} If not found, validation fails, or request fails.
      */

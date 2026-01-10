@@ -57,7 +57,7 @@ export const useEditBuildingModal = (building, isSaving) => {
 
     /**
      * Validates and submits the edit/add building form.
-     * - All fields required, trimmed
+     * - All inputfields required, trimmed
      * - No unchanged submit in edit mode
      * @param {React.FormEvent} e
      * @param {function} onSave - (buildingId, payload)
@@ -66,7 +66,7 @@ export const useEditBuildingModal = (building, isSaving) => {
         e.preventDefault();
         if (!draft.name.trim() || !draft.address.trim() || !draft.manager.trim()) {
             setFormError("Name, address and manager are required.");
-            logger.error("Validation error on save: missing fields");
+            logger.error("Validation error on save: missing inputfields");
             return;
         }
         if (
@@ -90,7 +90,7 @@ export const useEditBuildingModal = (building, isSaving) => {
     };
 
     /**
-     * Resets the draft/fields to default values and clears form error.
+     * Resets the draft/inputfields to default values and clears form error.
      */
     const resetDraft = () => {
         if (building) setDraft({

@@ -64,7 +64,7 @@ const EditCompanyModal = ({
 
     /**
      * Determine add vs edit mode.
-     * Add mode when no companyId and fields are empty.
+     * Add mode when no companyId and inputfields are empty.
      */
     const isAddCompany =
         !company.companyId &&

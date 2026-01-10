@@ -65,7 +65,7 @@ export default class CategoryApiClient extends ApiClient {
     /**
      * Creates a new tag category (requires authentication).
      * @async
-     * @param {Object} payload - The category fields { name }
+     * @param {Object} payload - The category inputfields { name }
      * @returns {Promise<Object>} API response with new category
      * @throws {Error} If request fails or validation error.
      */
@@ -150,7 +150,7 @@ export default class CategoryApiClient extends ApiClient {
      * Updates an existing tag category by id (requires authentication).
      * @async
      * @param {number} categoryId - The category id to update
-     * @param {Object} payload - The fields to update { name }
+     * @param {Object} payload - The inputfields to update { name }
      * @returns {Promise<Object>} API response with updated category
      * @throws {Error} If not found, validation fails, or request fails.
      */

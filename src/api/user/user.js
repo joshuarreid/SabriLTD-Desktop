@@ -122,7 +122,7 @@ export async function createUser(user) {
  * @async
  * @function updateUser
  * @param {number} userId - The ID to update
- * @param {{name: string, email: string}} user - The fields to update
+ * @param {{name: string, email: string}} user - The inputfields to update
  * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} Updated user
  * @throws {Error} If not found, validation fails, or request fails.
  */
