@@ -1,129 +1,192 @@
+:root {
+    --accent: var(--color-secondary, #ffd600);
+    --accent-muted: rgba(255,214,0,0.08);
+    --accent-border: rgba(255,214,0,0.32);
+    --primary: var(--color-primary, #333645);
+    --text-main: var(--color-text-main, #2e314b);
+    --border-subtle: var(--color-border-subtle, #ebeaf4);
+    --bg-surface: var(--color-bg-surface, #fff);
+    --bg-subtle: var(--color-bg-subtle, #f5f5f7);
+    --shadow-soft: rgba(44,47,59,0.07);
+    --shadow-strong: rgba(44,47,59,0.11);
+}
+
 .root {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
     width: 100%;
-    align-items: center;
-}
-
-.label {
-    color: var(--color-primary-muted, #7a7a96);
-    font-size: 1.06rem;
-    font-weight: 700;
-    margin-bottom: 6px;
-    letter-spacing: 0.01em;
-    text-align: center;
-}
-
-.inputLikeBox {
-    background: rgba(250, 250, 250, 0.86);
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--bg-surface);
     border-radius: 16px;
-    border: none;
-    box-shadow: 0 2px 12px 0 #ebeef433, 0 0.5px 3px #bdc7e625;
-    padding: 12px 16px;
-    width: 100%;
-    max-width: 650px;
-    outline: none;
-    transition:
-            box-shadow 0.18s cubic-bezier(.4,2,.6,1),
-            background 0.24s cubic-bezier(.4,2,.6,1);
+    box-shadow: 0 3px 14px 0 var(--shadow-soft);
+    padding: 26px 30px 24px 30px;
+    border: 1.5px solid var(--border-subtle);
+    min-height: 250px; /* static height to prevent resize flicker */
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin: 0 auto 12px auto;
-    min-height: 0;
+    align-items: stretch;
+    position: relative;
+    transition: min-height 0.2s cubic-bezier(.16,1,.3,1);
 }
 
-/* Search bar at top */
-.searchBar {
-    width: 96%;
-    max-width: 450px;
+.selectedJobsRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.44em;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 36px;
     margin-bottom: 10px;
-    padding: 7px 12px;
-    border-radius: 7px;
-    border: 1.2px solid var(--color-border-subtle, #e4e6ec);
-    font-size: 0.99rem;
-    color: var(--color-primary, #232442);
-    background: var(--color-bg-surface, #fff);
-    transition: border-color 0.13s, background-color 0.13s;
+    margin-top: 0;
+    padding: 0 4px 0 2px;
+    transition: min-height 0.18s;
+}
+
+/* Pill style for SELECTED jobs */
+.jobPill.selected,
+.jobPill.removable {
+    border: 1.55px solid var(--accent-border);
+    background: var(--accent-muted);
+    color: var(--primary);
+    box-shadow: 0 4px 12px var(--shadow-soft);
+    font-weight: 700;
+    padding-right: 2.2em;
+    font-size: 0.96rem;
+    letter-spacing: 0.1em;
+    transition: border 0.20s, color 0.18s, background 0.18s, box-shadow 0.19s;
+}
+
+/* Pill style -- base, matches condition pills size! */
+.jobPill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    font-size: 0.87rem;
+    font-weight: 600;
+    padding: 4.5px 18px 3.5px 16px;
+    border: 1.32px solid var(--border-subtle);
+    background: var(--bg-surface);
+    color: var(--text-main);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin: 0 0.11em 0.35em 0;
     outline: none;
+    box-shadow: 0 1.1px 6px var(--shadow-soft);
+    transition:
+            border 0.18s,
+            background 0.13s,
+            color 0.14s,
+            box-shadow 0.16s,
+            transform 0.12s;
+    will-change: color, background, border, box-shadow, transform;
+}
+
+/* Remove icon -- minimal and proportionate */
+.removeIcon {
+    position: absolute;
+    right: 1.1em;
+    font-size: 1.14em;
+    color: var(--accent);
+    cursor: pointer;
+    background: none;
+    border-radius: 999px;
+    padding: 0;
+    top: 51%;
+    transform: translateY(-50%);
+    font-weight: 700;
+    opacity: 0.83;
+    transition: opacity 0.12s, color 0.15s;
+}
+
+.jobPill.removable:hover .removeIcon,
+ .jobPill.removable:focus-visible .removeIcon {
+     color: #ff9800;
+     opacity: 1;
+ }
+
+.searchBarRow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 13px;
+    width: 100%;
+    min-height: 40px;
+}
+
+/* Search bar sizing visually matches condition field pills */
+.searchBar {
+    flex: 1;
+    min-width: 0;
+    background: #fff;
+    border-radius: 999px;
+    border: 1.3px solid var(--accent-border);
+    box-shadow: 0 1px 3px var(--accent-muted);
+    padding: 7px 32px 7px 2.15em;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    outline: none;
+    margin: 0 auto;
+    text-align: left;
+    transition: border-color 0.13s, background-color 0.13s, box-shadow 0.15s;
 }
 
 .searchBar:focus {
-    border-color: var(--color-secondary, #ffd600);
-    background: #fffef8;
+    border-color: var(--accent, #ffd600);
+    background: #fffde3;
+    box-shadow: 0 0 0 2.5px #ffdb5c25;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.47;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+/* Jobs grid: pills wrap, match static rows 2 lines, never collapse */
+.jobsGrid {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.41em 0.55em;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 12px 2px 0 2px;
+    min-height: 60px; /* always 2 grid rows visible */
+}
+
+/* Animation: as in JobScreen */
+@keyframes pillPop {
+    0%   { transform: scale(0.93); box-shadow: none; }
+    54%  { transform: scale(1.10) translateY(-1px); }
+    100% { transform: scale(1) translateY(0); }
+}
+
+.jobPill.selected,
+.jobPill.removable {
+    animation: pillPop 0.19s cubic-bezier(.16,1,.3,1);
+}
+
+.jobPill:hover,
+.jobPill:focus-visible {
+    border: 1.6px solid var(--accent-border);
+    background: var(--accent-muted);
+    color: var(--primary);
+    box-shadow: 0 5px 13px var(--shadow-strong);
+    font-weight: 700;
+    transform: translateY(-1.2px);
 }
 
 .status {
     width: 100%;
     color: #bbb;
-    text-align: center;
-    font-size: 1rem;
+    text-align: left;
+    font-size: 0.97rem;
     opacity: 0.93;
-    margin-top: 8px;
+    margin: 10px 0 0 2px;
     letter-spacing: 0.01em;
-}
-
-/* 4 wide, 2 high grid for pills (max 8) */
-.pillGrid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, auto);
-    gap: 16px 18px;
-    width: 100%;
-    justify-items: center;
-    align-items: center;
-    margin-top: 2px;
-}
-
-.jobPill {
-    border-radius: 999px;
-    font-size: 0.94rem;
-    font-weight: 600;
-    padding: 6px 20px;
-    border: 1.6px solid var(--color-border-subtle, #ceceea);
-    background: var(--color-bg-surface, #fff);
-    color: var(--color-primary, #232442);
-    letter-spacing: 0.08em;
-    text-transform: capitalize;
-    cursor: pointer;
-    box-shadow: 0 2px 8px 0 #dedeea13;
-    outline: none;
-    user-select: none;
-    position: relative;
-    transition:
-            border-color 0.19s cubic-bezier(.8,.2,.2,1.2),
-            color 0.13s cubic-bezier(.4,.23,.37,1.4),
-            background 0.22s cubic-bezier(.4,2,.6,1),
-            box-shadow 0.19s cubic-bezier(.36,.4,.22,1.18),
-            transform 0.16s cubic-bezier(.39,1.8,.4,1.16),
-            filter 0.13s;
-    opacity: 0.86;
-    will-change: transform, box-shadow, background, border-color;
-    z-index: 1;
-}
-
-.jobPill:hover,
-.jobPill:focus-visible {
-    background: var(--color-secondary-muted, #fffcc9);
-    border-color: var(--color-secondary, #ffd600);
-    transform: scale(1.07) translateY(-2px);
-    box-shadow: 0 4px 16px #ffd60021;
-    opacity: 1;
-}
-
-.selected {
-    background: rgba(255,255,189,0.92);
-    border-width: 1.6px;
-    border-color: var(--color-secondary, #ffd600);
-    box-shadow: 0 0 0 3px var(--color-secondary, #ffd600), 0 2px 16px #ffd70022;
-    filter: none;
-    z-index: 2;
-    animation: pillPop 0.22s cubic-bezier(.64,1.45,.32,.88) 1;
-}
-
-@keyframes pillPop {
-    0%   { transform: scale(0.91); box-shadow: none; }
-    60%  { transform: scale(1.13) translateY(-2px); }
-    100% { transform: scale(1) translateY(-1px); }
 }
