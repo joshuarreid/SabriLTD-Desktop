@@ -7,6 +7,7 @@
  * - Below search bar is a responsive pill grid of jobs (recent or filtered).
  * - Clicking a job toggles selection; selected jobs are pinned at the top.
  * - Powered by job API (getAllJobs for recent, searchJobs for search).
+ * - Uses framer-motion for pill animations (entry/exit/move), matching job screen UX.
  *
  * @component
  * @param {Object} props
@@ -16,6 +17,7 @@
  */
 
 import React, { useState, useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import useItemJobField from "../hooks/useItemJobField";
 import styles from "../styles/itemjobfield.module.css";
 import ItemJobPill from "./ItemJobPill";
@@ -26,6 +28,16 @@ import ItemJobPill from "./ItemJobPill";
 const logger = {
     info: (...args) => console.log("[ItemJobField]", ...args),
     error: (...args) => console.error("[ItemJobField]", ...args),
+};
+
+/**
+ * Framer Motion animation variants for pills.
+ */
+const pillMotion = {
+    initial: { opacity: 0, y: 18, scale: 0.96 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: -14, scale: 0.93 },
+    transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] },
 };
 
 /**
@@ -54,7 +66,10 @@ export const ItemJobField = ({ value = [], onChange }) => {
         return jobs.filter(job => !value.includes(job.jobId));
     }, [jobs, value]);
 
-    /** Handle pill selection toggle */
+    /**
+     * Handles pill selection toggle
+     * @param {number} jobId
+     */
     const handleSelect = jobId => {
         logger.info("Job pill toggled", jobId);
         if (value.includes(jobId)) {
@@ -68,16 +83,26 @@ export const ItemJobField = ({ value = [], onChange }) => {
         <div className={styles.root}>
             {/* Selected jobs pinned at top */}
             <div className={styles.selectedJobsRow}>
-                {selectedJobs.length > 0 &&
-                    selectedJobs.map(job => (
-                        <ItemJobPill
-                            key={job.jobId}
-                            jobName={job.name}
-                            selected
-                            removable
-                            onClick={() => handleSelect(job.jobId)}
-                        />
-                    ))}
+                <AnimatePresence>
+                    {selectedJobs.length > 0 &&
+                        selectedJobs.map(job => (
+                            <motion.div
+                                key={job.jobId}
+                                layout
+                                initial={pillMotion.initial}
+                                animate={pillMotion.animate}
+                                exit={pillMotion.exit}
+                                transition={pillMotion.transition}
+                            >
+                                <ItemJobPill
+                                    jobName={job.name}
+                                    selected
+                                    removable
+                                    onClick={() => handleSelect(job.jobId)}
+                                />
+                            </motion.div>
+                        ))}
+                </AnimatePresence>
             </div>
 
             {/* Search bar with icon */}
@@ -91,11 +116,11 @@ export const ItemJobField = ({ value = [], onChange }) => {
                     aria-label="Search jobs"
                 />
                 <span className={styles.searchIcon} aria-hidden>
-          <svg width="20" height="20">
-            <circle cx="9" cy="9" r="7.5" stroke="#aaa" strokeWidth="2" fill="none"/>
-            <line x1="15.5" y1="15.5" x2="11.9" y2="11.9" stroke="#aaa" strokeWidth="2"/>
-          </svg>
-        </span>
+                    <svg width="20" height="20">
+                        <circle cx="9" cy="9" r="7.5" stroke="#aaa" strokeWidth="2" fill="none"/>
+                        <line x1="15.5" y1="15.5" x2="11.9" y2="11.9" stroke="#aaa" strokeWidth="2"/>
+                    </svg>
+                </span>
             </div>
 
             {/* Jobs grid (filtered or recent) */}
@@ -105,18 +130,37 @@ export const ItemJobField = ({ value = [], onChange }) => {
                 ) : error ? (
                     <div className={styles.status} style={{ color: "#c00" }}>{error}</div>
                 ) : (
-                    otherJobs.length > 0 ? (
-                        otherJobs.map(job => (
-                            <ItemJobPill
-                                key={job.jobId}
-                                jobName={job.name}
-                                selected={value.includes(job.jobId)}
-                                onClick={() => handleSelect(job.jobId)}
-                            />
-                        ))
-                    ) : (
-                        <div className={styles.status}>No jobs found.</div>
-                    )
+                    <AnimatePresence>
+                        {otherJobs.length > 0 ? (
+                            otherJobs.map(job => (
+                                <motion.div
+                                    key={job.jobId}
+                                    layout
+                                    initial={pillMotion.initial}
+                                    animate={pillMotion.animate}
+                                    exit={pillMotion.exit}
+                                    transition={pillMotion.transition}
+                                >
+                                    <ItemJobPill
+                                        jobName={job.name}
+                                        selected={value.includes(job.jobId)}
+                                        onClick={() => handleSelect(job.jobId)}
+                                    />
+                                </motion.div>
+                            ))
+                        ) : (
+                            <motion.div
+                                key="no-jobs"
+                                initial={pillMotion.initial}
+                                animate={pillMotion.animate}
+                                exit={pillMotion.exit}
+                                transition={pillMotion.transition}
+                                className={styles.status}
+                            >
+                                No jobs found.
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 )}
             </div>
         </div>
