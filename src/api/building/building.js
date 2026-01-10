@@ -85,7 +85,7 @@ export async function getBuildingById(buildingId) {
  * @async
  * @function updateBuilding
  * @param {number} buildingId - The building id to update
- * @param {{name: string, address: string, manager: string}} building - The fields to update
+ * @param {{name: string, address: string, manager: string}} building - The inputfields to update
  * @returns {Promise<{buildingId: number, name: string, address: string, manager: string}>} Updated building
  * @throws {Error} If not found, validation fails, or request fails.
  */

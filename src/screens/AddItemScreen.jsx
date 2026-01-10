@@ -9,13 +9,13 @@
  */
 
 import React, { useState, useCallback } from "react";
-import styles from "../features/item-management/styles/additemscreen.module.css";
-import PhotoInfoCard from "../features/item-management/components/photoInfoCard";
-import { usePendingPhotos } from "../features/item-management/hooks/useAddItemScreen";
-import { useUploadPhoto } from "../features/item-management/hooks/useUploadPhoto";
-import UploadPhotoModal from "../features/item-management/components/UploadPhotoModal";
+import styles from "../features/add-item-screen/styles/additemscreen.module.css";
+import PhotoInfoCard from "../features/add-item-screen/components/photoInfoCard";
+import { usePendingPhotos } from "../features/add-item-screen/hooks/useAddItemScreen";
+import { useUploadPhoto } from "../features/add-item-screen/hooks/useUploadPhoto";
+import UploadPhotoModal from "../features/add-item-screen/components/UploadPhotoModal";
 import SaveStatus from "../components/save/SaveStatus";
-import EditItemModal from "../components/edititemmodal/EditItemModal";
+import EditItemModal from "../features/edit-item-modal/components/EditItemModal";
 
 /**
  * logger for AddItemScreen.

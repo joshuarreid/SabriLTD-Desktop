@@ -10,9 +10,11 @@
  */
 
 import React from "react";
-import styles from "./edititemmodal.module.css";
-import SaveStatus from "../save/SaveStatus";
-import { useEditItemModal } from "./useEditItemModal";
+import styles from "../styles/edititemmodal.module.css";
+import SaveStatus from "../../../components/save/SaveStatus";
+import { useEditItemModal } from "../hooks/useEditItemModal";
+import ItemConditionField from "./ItemConditionField";
+
 
 /**
  * logger for EditItemModal.
@@ -23,8 +25,6 @@ const logger = {
     error: (...args) => console.error("[EditItemModal]", ...args),
 };
 
-/** @constant */
-const conditionPlaceholder = "[Condition dropdown placeholder]";
 /** @constant */
 const jobPlaceholder = "[Job dropdown with search placeholder]";
 /** @constant */
@@ -62,6 +62,7 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
 
     const [itemName, setItemName] = React.useState("");
     const [itemDescription, setItemDescription] = React.useState("");
+    const [conditionId, setConditionId] = React.useState(null); // <- for ItemConditionField
     const [storageDesc, setStorageDesc] = React.useState("");
     const [comments, setComments] = React.useState("");
 
@@ -130,9 +131,11 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                             <div className={styles.formPanelCard}>
                                 <div className={styles.itemModernTitleXXL}>Associations</div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL}>Condition</label>
-                                    <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
-                                        {conditionPlaceholder}
+                                    <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
+                                        <ItemConditionField
+                                            value={conditionId}
+                                            onChange={setConditionId}
+                                        />
                                     </div>
                                 </div>
                                 <div className={styles.fieldModernBlockXXLCompact}>

@@ -85,7 +85,7 @@ export async function getCategoryById(categoryId) {
  * @async
  * @function updateCategory
  * @param {number} categoryId - The category id to update
- * @param {{name: string}} category - The fields to update
+ * @param {{name: string}} category - The inputfields to update
  * @returns {Promise<{categoryId: number, name: string, dateAdded: string, dateUpdated: string|null}>} Updated category
  * @throws {Error} If not found, validation fails, or request fails.
  */

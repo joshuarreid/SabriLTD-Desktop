@@ -70,7 +70,7 @@ export const useUserProfile = () => {
             logger.info('Profile state initialized from user', user);
         }
         // If user "changes" due to re-fetch after save, don't reset saveState!
-        // Only reset form fields if the id has changed (i.e., logout/login of a diff user)
+        // Only reset form inputfields if the id has changed (i.e., logout/login of a diff user)
         // Otherwise, keep profile and saveState as-is so green check stays visible.
     }, [user && user.userId]); // Only react to userId change (new login), not every server update
 

@@ -61,7 +61,7 @@ const EditBuildingModal = ({
 
     /**
      * Determines if in add or edit mode.
-     * Add mode: no buildingId and all fields are blank
+     * Add mode: no buildingId and all inputfields are blank
      */
     const isAddBuilding =
         !building.buildingId &&

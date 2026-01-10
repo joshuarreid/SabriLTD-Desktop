@@ -63,7 +63,7 @@ const EditUserProfileModal = ({
 
     /**
      * Determines if in add or edit mode.
-     * Add mode: no userId and all fields are blank.
+     * Add mode: no userId and all inputfields are blank.
      */
     const isAddUser =
         !user.userId &&
