@@ -1,0 +1,129 @@
+.root {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    align-items: center;
+}
+
+.label {
+    color: var(--color-primary-muted, #7a7a96);
+    font-size: 1.06rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+
+.inputLikeBox {
+    background: rgba(250, 250, 250, 0.86);
+    border-radius: 16px;
+    border: none;
+    box-shadow: 0 2px 12px 0 #ebeef433, 0 0.5px 3px #bdc7e625;
+    padding: 12px 16px;
+    width: 100%;
+    max-width: 650px;
+    outline: none;
+    transition:
+            box-shadow 0.18s cubic-bezier(.4,2,.6,1),
+            background 0.24s cubic-bezier(.4,2,.6,1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto 12px auto;
+    min-height: 0;
+}
+
+/* Search bar at top */
+.searchBar {
+    width: 96%;
+    max-width: 450px;
+    margin-bottom: 10px;
+    padding: 7px 12px;
+    border-radius: 7px;
+    border: 1.2px solid var(--color-border-subtle, #e4e6ec);
+    font-size: 0.99rem;
+    color: var(--color-primary, #232442);
+    background: var(--color-bg-surface, #fff);
+    transition: border-color 0.13s, background-color 0.13s;
+    outline: none;
+}
+
+.searchBar:focus {
+    border-color: var(--color-secondary, #ffd600);
+    background: #fffef8;
+}
+
+.status {
+    width: 100%;
+    color: #bbb;
+    text-align: center;
+    font-size: 1rem;
+    opacity: 0.93;
+    margin-top: 8px;
+    letter-spacing: 0.01em;
+}
+
+/* 4 wide, 2 high grid for pills (max 8) */
+.pillGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 16px 18px;
+    width: 100%;
+    justify-items: center;
+    align-items: center;
+    margin-top: 2px;
+}
+
+.jobPill {
+    border-radius: 999px;
+    font-size: 0.94rem;
+    font-weight: 600;
+    padding: 6px 20px;
+    border: 1.6px solid var(--color-border-subtle, #ceceea);
+    background: var(--color-bg-surface, #fff);
+    color: var(--color-primary, #232442);
+    letter-spacing: 0.08em;
+    text-transform: capitalize;
+    cursor: pointer;
+    box-shadow: 0 2px 8px 0 #dedeea13;
+    outline: none;
+    user-select: none;
+    position: relative;
+    transition:
+            border-color 0.19s cubic-bezier(.8,.2,.2,1.2),
+            color 0.13s cubic-bezier(.4,.23,.37,1.4),
+            background 0.22s cubic-bezier(.4,2,.6,1),
+            box-shadow 0.19s cubic-bezier(.36,.4,.22,1.18),
+            transform 0.16s cubic-bezier(.39,1.8,.4,1.16),
+            filter 0.13s;
+    opacity: 0.86;
+    will-change: transform, box-shadow, background, border-color;
+    z-index: 1;
+}
+
+.jobPill:hover,
+.jobPill:focus-visible {
+    background: var(--color-secondary-muted, #fffcc9);
+    border-color: var(--color-secondary, #ffd600);
+    transform: scale(1.07) translateY(-2px);
+    box-shadow: 0 4px 16px #ffd60021;
+    opacity: 1;
+}
+
+.selected {
+    background: rgba(255,255,189,0.92);
+    border-width: 1.6px;
+    border-color: var(--color-secondary, #ffd600);
+    box-shadow: 0 0 0 3px var(--color-secondary, #ffd600), 0 2px 16px #ffd70022;
+    filter: none;
+    z-index: 2;
+    animation: pillPop 0.22s cubic-bezier(.64,1.45,.32,.88) 1;
+}
+
+@keyframes pillPop {
+    0%   { transform: scale(0.91); box-shadow: none; }
+    60%  { transform: scale(1.13) translateY(-2px); }
+    100% { transform: scale(1) translateY(-1px); }
+}

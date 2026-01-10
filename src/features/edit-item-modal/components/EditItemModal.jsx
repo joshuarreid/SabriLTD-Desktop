@@ -1,11 +1,11 @@
 /**
  * EditItemModal.jsx
  *
- * Modal layout polished for dashboard creation:
- * - General Information and Photo in two vertical columns
- * - Left column stacks: General, Associations, Comments
- * - Right column stacks: Photo, Tagging (fills remaining right column height)
- * - Save/Cancel bottom right, close X top left
+ * Modal layout for dashboard item editing:
+ * - General Information, Photo, and two vertical columns.
+ * - Left stacks: General, Associations, Comments.
+ * - Right stacks: Photo, Tagging (fills remaining right column height).
+ * - Save/Cancel bottom right, close X top left.
  * Follows Bulletproof React, logging, and JSDoc standards.
  */
 
@@ -14,7 +14,7 @@ import styles from "../styles/edititemmodal.module.css";
 import SaveStatus from "../../../components/save/SaveStatus";
 import { useEditItemModal } from "../hooks/useEditItemModal";
 import ItemConditionField from "./ItemConditionField";
-
+import ItemJobField from "./ItemJobField";
 
 /**
  * logger for EditItemModal.
@@ -26,8 +26,6 @@ const logger = {
 };
 
 /** @constant */
-const jobPlaceholder = "[Job dropdown with search placeholder]";
-/** @constant */
 const storagePlaceholder = "[Storage dropdown placeholder]";
 /** @constant */
 const tagCategoryPlaceholder = "[Tag category dropdown placeholder]";
@@ -35,15 +33,15 @@ const tagCategoryPlaceholder = "[Tag category dropdown placeholder]";
 const tagsPlaceholder = "[Tags modal placeholder]";
 
 /**
- * EditItemModal - UI-only modal for editing an inventory item.
- * Keeps arrangement, adds scrollable content area and two vertical columns to avoid overlap and ensure spacing.
+ * EditItemModal
+ * UI-only modal for editing an inventory item (Bulletproof React).
  *
  * @component
  * @param {Object} props
- * @param {Array<{url?: string}>} [props.photos=[]] - Photos to preview in the modal.
+ * @param {Array<{url?: string}>} [props.photos=[]] - Photos to preview.
  * @param {boolean} props.open - Whether the modal is open.
- * @param {Function} props.onClose - Callback invoked on cancel/close.
- * @returns {JSX.Element|null} Modal element or null when closed/no photos.
+ * @param {Function} props.onClose - Callback for cancel/close.
+ * @returns {JSX.Element|null}
  */
 const EditItemModal = ({ photos = [], open, onClose }) => {
     logger.info("EditItemModal rendered", { photos, open });
@@ -62,7 +60,8 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
 
     const [itemName, setItemName] = React.useState("");
     const [itemDescription, setItemDescription] = React.useState("");
-    const [conditionId, setConditionId] = React.useState(null); // <- for ItemConditionField
+    const [conditionId, setConditionId] = React.useState(null);
+    const [jobIds, setJobIds] = React.useState([]); // <-- NEW
     const [storageDesc, setStorageDesc] = React.useState("");
     const [comments, setComments] = React.useState("");
 
@@ -93,7 +92,7 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                     &times;
                 </button>
 
-                {/* Scrollable content wrapper to prevent overlap with action bar */}
+                {/* Scrollable content wrapper */}
                 <div className={styles.contentArea}>
                     {/* Two vertical columns */}
                     <div className={styles.twoPaneGrid}>
@@ -139,9 +138,12 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                     </div>
                                 </div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL}>Jobs</label>
-                                    <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
-                                        {jobPlaceholder}
+                                    {/* Jobs pill grid search field */}
+                                    <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
+                                        <ItemJobField
+                                            value={jobIds}
+                                            onChange={setJobIds}
+                                        />
                                     </div>
                                 </div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
