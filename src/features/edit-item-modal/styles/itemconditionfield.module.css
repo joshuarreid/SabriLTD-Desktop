@@ -16,16 +16,16 @@
     text-align: center;
 }
 
-/* Field container: more airy, less boxy, remove heavy outlines */
+/* Field container: slimmer and less vertical space */
 .inputLikeBox {
     background: rgba(250, 250, 250, 0.86);
     border-radius: 16px;
     border: none;
     box-shadow: 0 2px 12px 0 #ebeef433, 0 0.5px 3px #bdc7e625;
-    padding: 28px 18px 18px 18px;
+    padding: 8px 12px;              /* Reduced top/bottom padding (was 28px 18px 18px 18px) */
     width: 100%;
     max-width: 650px;
-    min-height: 64px;
+    min-height: 0;                  /* Remove any min-height so height is not expanded */
     outline: none;
     transition:
             box-shadow 0.18s cubic-bezier(.4,2,.6,1),
