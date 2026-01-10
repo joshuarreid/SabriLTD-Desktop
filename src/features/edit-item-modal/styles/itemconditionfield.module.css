@@ -3,6 +3,7 @@
     max-width: 920px;
     margin: 0 auto;
     background: var(--bg-surface);
+    border: .75px solid var(--border-subtle);
     border-radius: 16px;
     box-shadow: 0 3px 14px 0 var(--shadow-soft);
     padding: 26px 30px 24px 30px;
