@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "../styles/buildinginfocard.module.css";
+import styles from "./buildinginfocard.module.css";
 import { FcOrganization } from "react-icons/fc";
 import { FaHouse } from "react-icons/fa6";
 import { FcInTransit } from "react-icons/fc";

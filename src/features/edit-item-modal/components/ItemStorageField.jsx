@@ -17,8 +17,8 @@
 import React from "react";
 import { useItemStorageField } from "../hooks/useItemStorageField";
 import styles from "../styles/itemstoragefield.module.css";
-import StorageInfoCard from "../../settings/storagesettings/components/StorageInfoCard";
-import BuildingInfoCard from "../../settings/storagesettings/components/BuildingInfoCard";
+import StorageInfoCard from "../../../components/storageinfocards/StorageInfoCard";
+import BuildingInfoCard from "../../../components/storageinfocards/BuildingInfoCard";
 
 /**
  * logger for ItemStorageField.

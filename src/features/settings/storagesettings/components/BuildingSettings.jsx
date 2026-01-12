@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import BuildingInfoCard from "./BuildingInfoCard";
+import BuildingInfoCard from "../../../../components/storageinfocards/BuildingInfoCard";
 import EditBuildingModal from "../../../../components/editbuildingmodal/EditBuildingModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 
