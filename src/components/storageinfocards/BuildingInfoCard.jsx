@@ -52,7 +52,7 @@ function getBuildingIcon(name) {
 
 /**
  * BuildingInfoCard
- * Renders a single building card with icon, meta, and edit button.
+ * Renders a single building card with icon, meta, and optional edit button.
  *
  * @component
  * @param {object} props
@@ -60,10 +60,17 @@ function getBuildingIcon(name) {
  * @param {boolean} props.selected - Is this building selected
  * @param {function} props.onClick - Callback when card is clicked
  * @param {function} [props.onEdit] - (Optional) Edit callback for this building
+ * @param {boolean} [props.showActions=true] - Show edit pencil (default: true for backwards compatibility)
  * @returns {JSX.Element}
  */
-const BuildingInfoCard = ({ building, selected, onClick, onEdit }) => {
-    logger.info("BuildingInfoCard rendered", { buildingId: building?.buildingId, selected });
+const BuildingInfoCard = ({
+                              building,
+                              selected,
+                              onClick,
+                              onEdit,
+                              showActions = true,
+                          }) => {
+    logger.info("BuildingInfoCard rendered", { buildingId: building?.buildingId, selected, showActions });
     return (
         <button
             type="button"
@@ -78,21 +85,23 @@ const BuildingInfoCard = ({ building, selected, onClick, onEdit }) => {
                     : `Building ${building.name}`
             }
         >
-            <div className={styles.buildingCardActions}>
-                <button
-                    type="button"
-                    className={styles.buildingCardActionBtn}
-                    aria-label="Edit building"
-                    tabIndex={0}
-                    // Prevent bubbling to onClick select logic
-                    onClick={e => {
-                        e.stopPropagation();
-                        if (onEdit) onEdit(building);
-                    }}
-                >
-                    <MdOutlineModeEditOutline size={18} />
-                </button>
-            </div>
+            {showActions && (
+                <div className={styles.buildingCardActions}>
+                    <button
+                        type="button"
+                        className={styles.buildingCardActionBtn}
+                        aria-label="Edit building"
+                        tabIndex={0}
+                        // Prevent bubbling to onClick select logic
+                        onClick={e => {
+                            e.stopPropagation();
+                            if (onEdit) onEdit(building);
+                        }}
+                    >
+                        <MdOutlineModeEditOutline size={18} />
+                    </button>
+                </div>
+            )}
             <div className={styles.buildingIconWrap}>
                 {getBuildingIcon(building.name)}
             </div>
