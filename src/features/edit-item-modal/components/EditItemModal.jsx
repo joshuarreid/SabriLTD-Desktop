@@ -4,8 +4,7 @@
  * Modal layout for dashboard item editing:
  * - General Information, Photo, and two vertical columns.
  * - Left stacks: General, Associations, Comments.
- * - Right stacks: Photo, Tagging (fills remaining right column height).
- * - Save/Cancel bottom right, close X top left.
+ * - Right stacks: Photo, Tagging.
  * Follows Bulletproof React, logging, and JSDoc standards.
  */
 
@@ -15,6 +14,7 @@ import SaveStatus from "../../../components/save/SaveStatus";
 import { useEditItemModal } from "../hooks/useEditItemModal";
 import ItemConditionField from "./ItemConditionField";
 import ItemJobField from "./ItemJobField";
+import ItemStorageField from "./ItemStorageField";
 
 /**
  * logger for EditItemModal.
@@ -25,8 +25,6 @@ const logger = {
     error: (...args) => console.error("[EditItemModal]", ...args),
 };
 
-/** @constant */
-const storagePlaceholder = "[Storage dropdown placeholder]";
 /** @constant */
 const tagCategoryPlaceholder = "[Tag category dropdown placeholder]";
 /** @constant */
@@ -61,7 +59,8 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
     const [itemName, setItemName] = React.useState("");
     const [itemDescription, setItemDescription] = React.useState("");
     const [conditionId, setConditionId] = React.useState(null);
-    const [jobIds, setJobIds] = React.useState([]); // <-- NEW
+    const [jobIds, setJobIds] = React.useState([]);
+    const [storageId, setStorageId] = React.useState(null);
     const [storageDesc, setStorageDesc] = React.useState("");
     const [comments, setComments] = React.useState("");
 
@@ -145,10 +144,11 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                     </div>
                                 </div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL}>Storage</label>
-                                    <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
-                                        {storagePlaceholder}
-                                    </div>
+                                    {/* Storage selection field replaces placeholder */}
+                                    <ItemStorageField
+                                        value={storageId}
+                                        onChange={setStorageId}
+                                    />
                                 </div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
                                     <label className={styles.labelModernXXL} htmlFor="edit-item-storage-desc">

@@ -1,0 +1,133 @@
+/**
+ * Styles ItemStorageField to match the new "input-card" design used for Condition and Job fields.
+ * - Light card background, strong shadow, padding, large border-radius.
+ * - No boxy container borders, no hard insets around cards.
+ */
+:root {
+    width: 100%;
+    max-width: 920px;
+    margin: 0 auto;
+    background: var(--bg-surface);
+    border: .75px solid var(--border-subtle);
+    border-radius: 16px;
+    box-shadow: 0 3px 14px 0 var(--shadow-soft);
+    padding: 26px 30px 24px 30px;
+    min-height: 75px; /* static height to prevent resize flicker */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    position: relative;
+    transition: min-height 0.2s cubic-bezier(.16,1,.3,1);
+    --storage-bldg-radius: 18px;
+    --storage-bldg-selected: #eaf6ff;
+    --storage-shadow: 0 3px 24px 0 #e3e7fd15;
+    --input-card-bg: #fff;
+}
+
+.inputCardRoot {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--input-card-bg);
+    border-radius: 22px;
+    box-shadow: var(--storage-shadow);
+    box-sizing: border-box;
+    padding: 35px 42px 25px 42px;
+    min-width: 240px;
+    max-width: 880px;
+    margin: 0 auto 30px auto;
+    width: 100%;
+    border: none;
+}
+
+.inputCardLabel {
+    font-size: 1.13rem;
+    font-weight: 700;
+    color: var(--color-primary, #373745);
+    margin-bottom: 19px;
+    margin-left: 6px;
+    letter-spacing: 0.02em;
+    text-align: left;
+}
+
+/* Buildings as in settings: row scrollable, gap, no border, matched radius. */
+.storageBuildingsRow {
+    display: flex;
+    flex-direction: row;
+    gap: 28px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+    margin-bottom: 0;
+    align-items: flex-start;
+    /* No explicit margins for consistent with jobs/condition */
+}
+
+/* Each Building "card button" resets styling for card visual */
+.bldgBtn {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: var(--storage-bldg-radius);
+    padding: 0;
+    box-shadow: none;
+    margin: 0;
+    min-width: 184px;
+    min-height: 145px;
+    transition: box-shadow 0.13s, border 0.13s;
+}
+.bldgBtn:focus-visible {
+    outline: 2.5px solid #ffd600;
+    outline-offset: 2.5px;
+}
+.bldgBtnSelected > * {
+    border: 2px solid #52b1ff !important;
+    box-shadow: 0 0 0 2.5px #d0ebff80;
+    background: var(--storage-bldg-selected);
+}
+
+/* Storage section: no extra padding or border. */
+.storageSection {
+    margin-top: 2px;
+}
+
+/* Storage grid: match settings, with gap and full width */
+.storageGrid {
+    width: 100%;
+    display: grid;
+    gap: 20px 24px;
+    grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
+    margin-top: 0px;
+}
+
+/* Storage card button: no background, no border, rounded, focus visible */
+.storageBtn {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: 12px;
+    padding: 0;
+    min-width: 120px;
+    min-height: 50px;
+    box-shadow: none;
+    transition: box-shadow 0.14s, border 0.13s;
+}
+.storageBtn:focus-visible {
+    outline: 2.5px solid #ffd600;
+    outline-offset: 2.5px;
+}
+.storageBtnSelected > * {
+    border: 2px solid #ffd600 !important;
+    box-shadow: 0 0 0 2.5px #fff2b880;
+    background: #fff8e2 !important;
+}
+
+.status {
+    font-size: 1em;
+    color: #9e989f;
+    min-height: 24px;
+    padding: 9px 0;
+    grid-column: 1 / -1;
+    text-align: center;
+}
