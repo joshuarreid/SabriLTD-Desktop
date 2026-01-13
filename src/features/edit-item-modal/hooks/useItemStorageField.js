@@ -4,27 +4,33 @@
  * Business logic/data-fetching for the ItemStorageField UI.
  * - Fetches all buildings, manages selected buildingId state.
  * - Fetches storage options for the selected building.
+ * - Handles add storage mutation and status for "+ New" in the UI.
  * - Handles errors and loading, following Bulletproof React and logging standards.
  *
  * @param {object} param0
  * @param {number|null} [param0.selectedBuildingId]
  * @returns {object}
  */
+
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllBuildings } from "../../../api/building/building";
-import { getAllStorage } from "../../../api/storage/storage";
+import { getAllStorage, createStorage } from "../../../api/storage/storage";
 import { buildingKeys } from "../../../api/building/buildingQueryKeys";
 import { storageKeys } from "../../../api/storage/storageQueryKeys";
 
-/** Logger */
+/**
+ * logger for useItemStorageField
+ * @constant
+ * @type {{info: Function, error: Function}}
+ */
 const logger = {
     info: (...args) => console.log("[useItemStorageField]", ...args),
     error: (...args) => console.error("[useItemStorageField]", ...args),
 };
 
 /**
- * Fetches buildings, selected building/storages, loading/error status.
+ * Fetches buildings, selected building/storages, loading/error status, and handles storage add via mutation.
  */
 export function useItemStorageField({ selectedBuildingId = null } = {}) {
     // Fetch all buildings
@@ -95,6 +101,43 @@ export function useItemStorageField({ selectedBuildingId = null } = {}) {
         [storageRaw]
     );
 
+    // --- Storage ADD mutation and UI states (reflects useStorageSettingsTab's logic) ---
+    const queryClient = useQueryClient();
+
+    const [storageAddStatus, setStorageAddStatus] = useState("idle");
+
+    /**
+     * Invalidates storage queries for a specific building after mutation.
+     * @async
+     * @function invalidateThisBuildingStorage
+     * @param {number} buildingId - Building whose storage queries will be invalidated.
+     */
+    const invalidateThisBuildingStorage = async (buildingId) => {
+        logger.info("Invalidating storage for building", buildingId);
+        await queryClient.invalidateQueries({
+            queryKey: storageKeys.list({ buildingId }),
+        });
+    };
+
+    /**
+     * Storage add mutation. Mirrors settings tab but only for add.
+     */
+    const createStorageMutation = useMutation({
+        mutationFn: createStorage,
+        onMutate: () => setStorageAddStatus("saving"),
+        onSuccess: async (createdStorage) => {
+            logger.info("Storage created, invalidating keys for buildingId:", createdStorage.buildingId);
+            await invalidateThisBuildingStorage(createdStorage.buildingId);
+            setStorageAddStatus("saved");
+            setTimeout(() => setStorageAddStatus("idle"), 1500);
+        },
+        onError: (err) => {
+            logger.error("createStorage failed", err);
+            setStorageAddStatus("error");
+            setTimeout(() => setStorageAddStatus("idle"), 2200);
+        },
+    });
+
     return {
         buildings,
         selectedBldg,
@@ -110,6 +153,8 @@ export function useItemStorageField({ selectedBuildingId = null } = {}) {
             isStoragesError && errorStorages
                 ? errorStorages.message || "Error loading storage"
                 : "",
+        createStorageMutation,
+        storageAddStatus,
     };
 }
 
