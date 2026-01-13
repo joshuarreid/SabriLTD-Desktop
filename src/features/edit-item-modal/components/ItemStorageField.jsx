@@ -3,7 +3,11 @@
  *
  * Item-level field for selecting a building/storage location, styled to match other
  * input fields (Condition and Job): inside a white, shadowed, rounded "card."
- * Renders buildings as a horizontal row, storages as a grid. No edit/trash, select only.
+ * Renders buildings as a horizontal row, storages as a grid.
+ * Animates building/storage cards entry/exit like ItemJobField using framer-motion.
+ *
+ * - Uses useNaturalSort for storages.
+ * - Unselects storage when changing building.
  *
  * @component
  * @param {object} props
@@ -15,10 +19,13 @@
  */
 
 import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useItemStorageField } from "../hooks/useItemStorageField";
+
 import styles from "../styles/itemstoragefield.module.css";
 import StorageInfoCard from "../../../components/storageinfocards/StorageInfoCard";
 import BuildingInfoCard from "../../../components/storageinfocards/BuildingInfoCard";
+import {useNaturalSort} from "../../../components/alphabeticalsortfilter/useNaturalSort";
 
 /**
  * logger for ItemStorageField.
@@ -27,6 +34,17 @@ import BuildingInfoCard from "../../../components/storageinfocards/BuildingInfoC
 const logger = {
     info: (...args) => console.log("[ItemStorageField]", ...args),
     error: (...args) => console.error("[ItemStorageField]", ...args),
+};
+
+/**
+ * Framer Motion animation variants for cards.
+ * @type {Object}
+ */
+const cardMotion = {
+    initial: { opacity: 0, y: 18, scale: 0.96 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: -10, scale: 0.95 },
+    transition: { duration: 0.20, ease: [0.16, 1, 0.3, 1] },
 };
 
 /**
@@ -51,16 +69,19 @@ export const ItemStorageField = ({
         errorStorages,
     } = useItemStorageField({ selectedBuildingId });
 
+    /** Natural sort for storages by name (asc) */
+    const sortedStorages = useNaturalSort(storages, { key: "name", order: "asc" });
+
     /**
      * Handles building card selection.
+     * Unselect the current storage on building change.
      * @param {number} buildingId
      */
     const handleBuildingSelect = (buildingId) => {
         logger.info("Building selected", buildingId);
         setSelectedBldgId(buildingId);
+        if (onChange) onChange(null); // Unselect storage when building changes.
         onBuildingChange?.(buildingId);
-        // Optionally clear storageId if current is not valid for new building
-        // if (!storages.some(s => s.storageId === value)) onChange(null);
     };
 
     /**
@@ -85,29 +106,36 @@ export const ItemStorageField = ({
                 ) : !buildings.length ? (
                     <div className={styles.status}>No buildings found.</div>
                 ) : (
-                    buildings.map((bldg) => (
-                        <button
-                            key={bldg.buildingId}
-                            type="button"
-                            className={[
-                                styles.bldgBtn,
-                                styles.compactBldgBtn, // Add compact class for reduced size
-                                selectedBldg?.buildingId === bldg.buildingId
-                                    ? styles.bldgBtnSelected
-                                    : "",
-                            ].join(" ")}
-                            onClick={() => handleBuildingSelect(bldg.buildingId)}
-                            aria-pressed={selectedBldg?.buildingId === bldg.buildingId}
-                            tabIndex={0}
-                        >
-                            <BuildingInfoCard
-                                building={bldg}
-                                selected={selectedBldg?.buildingId === bldg.buildingId}
-                                showActions={false}
-                                compact
-                            />
-                        </button>
-                    ))
+                    <AnimatePresence>
+                        {buildings.map((bldg) => (
+                            <motion.button
+                                key={bldg.buildingId}
+                                initial={cardMotion.initial}
+                                animate={cardMotion.animate}
+                                exit={cardMotion.exit}
+                                transition={cardMotion.transition}
+                                layout="position"
+                                type="button"
+                                className={[
+                                    styles.bldgBtn,
+                                    styles.compactBldgBtn,
+                                    selectedBldg?.buildingId === bldg.buildingId
+                                        ? styles.bldgBtnSelected
+                                        : "",
+                                ].join(" ")}
+                                onClick={() => handleBuildingSelect(bldg.buildingId)}
+                                aria-pressed={selectedBldg?.buildingId === bldg.buildingId}
+                                tabIndex={0}
+                            >
+                                <BuildingInfoCard
+                                    building={bldg}
+                                    selected={selectedBldg?.buildingId === bldg.buildingId}
+                                    showActions={false}
+                                    compact
+                                />
+                            </motion.button>
+                        ))}
+                    </AnimatePresence>
                 )}
             </div>
 
@@ -118,33 +146,40 @@ export const ItemStorageField = ({
                     <div className={styles.status} style={{ color: "#c00" }}>
                         {errorStorages}
                     </div>
-                ) : !storages.length ? (
+                ) : !sortedStorages.length ? (
                     <div className={styles.status} style={{ color: "#888" }}>
                         No storage locations for this building.
                     </div>
                 ) : (
                     <div className={styles.storageGrid}>
-                        {storages.map((storage) => (
-                            <button
-                                key={storage.storageId}
-                                type="button"
-                                className={[
-                                    styles.storageBtn,
-                                    value === storage.storageId
-                                        ? styles.storageBtnSelected
-                                        : "",
-                                ].join(" ")}
-                                onClick={() => handleStorageSelect(storage.storageId)}
-                                aria-pressed={value === storage.storageId}
-                                tabIndex={0}
-                            >
-                                <StorageInfoCard
-                                    storage={storage}
-                                    selected={value === storage.storageId}
-                                    showActions={false}
-                                />
-                            </button>
-                        ))}
+                        <AnimatePresence>
+                            {sortedStorages.map((storage) => (
+                                <motion.button
+                                    key={storage.storageId}
+                                    initial={cardMotion.initial}
+                                    animate={cardMotion.animate}
+                                    exit={cardMotion.exit}
+                                    transition={cardMotion.transition}
+                                    layout="position"
+                                    type="button"
+                                    className={[
+                                        styles.storageBtn,
+                                        value === storage.storageId
+                                            ? styles.storageBtnSelected
+                                            : "",
+                                    ].join(" ")}
+                                    onClick={() => handleStorageSelect(storage.storageId)}
+                                    aria-pressed={value === storage.storageId}
+                                    tabIndex={0}
+                                >
+                                    <StorageInfoCard
+                                        storage={storage}
+                                        selected={value === storage.storageId}
+                                        showActions={false}
+                                    />
+                                </motion.button>
+                            ))}
+                        </AnimatePresence>
                     </div>
                 )}
             </div>
