@@ -194,7 +194,7 @@ export const ItemStorageField = ({
 
             <div className={styles.storageSection}>
                 {loadingStorages ? (
-                    <div className={styles.status}>Loading storage…</div>
+                    <div className={styles.status}></div>
                 ) : errorStorages ? (
                     <div className={styles.status} style={{ color: "#c00" }}>
                         {errorStorages}
