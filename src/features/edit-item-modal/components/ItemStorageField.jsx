@@ -132,7 +132,9 @@ export const ItemStorageField = ({
 
     return (
         <div className={styles.inputCardRoot}>
-            <label className={styles.inputCardLabel}>Storage</label>
+            <label htmlFor="item-condition" className={styles.label}>
+                Storage Location
+            </label>
             <div className={styles.storageBuildingsRow} role="list">
                 {loadingBuildings ? (
                     <div className={styles.status}>Loading buildings…</div>
@@ -177,7 +179,6 @@ export const ItemStorageField = ({
             </div>
 
             <div className={styles.storageSectionHeaderRow}>
-                <span className={styles.storageSectionLabel}>Storage Locations</span>
                 <button
                     className={styles.addStorageBtn}
                     type="button"
