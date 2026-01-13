@@ -22,12 +22,18 @@ import BuildingInfoCard from "../../../components/storageinfocards/BuildingInfoC
 
 /**
  * logger for ItemStorageField.
+ * @constant
  */
 const logger = {
     info: (...args) => console.log("[ItemStorageField]", ...args),
     error: (...args) => console.error("[ItemStorageField]", ...args),
 };
 
+/**
+ * ItemStorageField component.
+ * @param {object} props - See above.
+ * @returns {JSX.Element}
+ */
 export const ItemStorageField = ({
                                      value,
                                      onChange,
@@ -85,6 +91,7 @@ export const ItemStorageField = ({
                             type="button"
                             className={[
                                 styles.bldgBtn,
+                                styles.compactBldgBtn, // Add compact class for reduced size
                                 selectedBldg?.buildingId === bldg.buildingId
                                     ? styles.bldgBtnSelected
                                     : "",
@@ -97,6 +104,7 @@ export const ItemStorageField = ({
                                 building={bldg}
                                 selected={selectedBldg?.buildingId === bldg.buildingId}
                                 showActions={false}
+                                compact
                             />
                         </button>
                     ))
