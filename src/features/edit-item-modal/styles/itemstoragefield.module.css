@@ -34,15 +34,51 @@
     text-align: left;
 }
 
-/* Buildings matches settings, but is inside the white input card. */
+/* Center the cards and allow wrapping (no horizontal scroll) */
 .storageBuildingsRow {
     display: flex;
     flex-direction: row;
-    gap: 22px;
-    overflow-x: auto;
-    padding-bottom: 11px;
-    margin-bottom: 0;
+    gap: 13px;
+    justify-content: center;
     align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+    padding-bottom: 8px;
+}
+
+/* Reduce card size by 10px in width and 10px in height only for the field! */
+.compactBldgBtn,
+.bldgBtn.compactBldgBtn {
+    min-width: 174px !important; /* 184 - 10 */
+    max-width: 174px !important;
+    min-height: 100px !important; /* 110 - 10 for your new compact default */
+    max-height: 100px !important;
+}
+
+.compactBldgBtn .buildingCard,
+.bldgBtn.compactBldgBtn .buildingCard,
+.bldgBtn .buildingCard.compact {
+    min-width: 174px !important;
+    max-width: 174px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
+    padding-bottom: 8px !important;
+}
+.compactBldgBtn .buildingIconWrap,
+.bldgBtn.compactBldgBtn .buildingIconWrap {
+    min-height: 27px !important;
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+}
+.compactBldgBtn .buildingIcon,
+.bldgBtn.compactBldgBtn .buildingIcon {
+    font-size: 1.25rem !important;
+}
+.compactBldgBtn .buildingName,
+.bldgBtn.compactBldgBtn .buildingName {
+    font-size: 0.93rem !important;
+    font-weight: 600 !important;
+    margin-top: 2px !important;
 }
 
 .bldgBtn {
@@ -53,7 +89,7 @@
     border-radius: var(--storage-bldg-radius);
     padding: 0;
     min-width: 184px;
-    min-height: 145px;
+    min-height: 110px;
     margin: 0;
     box-shadow: none;
     transition: box-shadow 0.13s, border 0.13s;
@@ -62,7 +98,6 @@
     outline: 2px solid #ffd600;
     outline-offset: 1.5px;
 }
-
 .bldgBtnSelected > * {
     border: 2px solid #52b1ff !important;
     box-shadow: 0 0 0 2.5px #d0ebff80;
@@ -77,8 +112,8 @@
 .storageGrid {
     width: 100%;
     display: grid;
-    gap: 16px 18px;
-    grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+    gap: 16px 13px;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
     margin-top: 0px;
 }
 
@@ -89,14 +124,14 @@
     cursor: pointer;
     border-radius: 12px;
     padding: 0;
-    min-width: 110px;
-    min-height: 47px;
+    min-width: 85px;
+    min-height: 41px;
     box-shadow: none;
     transition: box-shadow 0.14s, border 0.13s;
 }
 .storageBtn:focus-visible {
     outline: 2px solid #ffd600;
-    outline-offset: 1.5px;
+    outline-offset: 1px;
 }
 
 .storageBtnSelected > * {
@@ -108,8 +143,8 @@
 .status {
     font-size: 1em;
     color: #9e989f;
-    min-height: 24px;
-    padding: 8px 0;
+    min-height: 18px;
+    padding: 6px 0;
     grid-column: 1 / -1;
     text-align: center;
 }

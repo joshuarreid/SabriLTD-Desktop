@@ -6,7 +6,6 @@
     --card-border: var(--color-border-subtle, #f5f2fa);
     --card-border-strong: var(--color-border-strong, #ede1fb);
 
-    /* Use the global success tokens from App.css directly */
     --card-selected-border: var(--color-success, #48d18e);
     --card-selected-bg: var(--color-success-muted, rgba(72,209,142,0.06));
     --card-selected-text: var(--color-success-contrast, #163821);
@@ -16,7 +15,7 @@
     --building-icon-color: var(--color-secondary, #ffb020);
 }
 
-/* Card root */
+/* Default Card root */
 .buildingCard {
     background: var(--card-bg);
     border-radius: var(--card-radius);
@@ -35,8 +34,6 @@
     outline: none;
     cursor: pointer;
     box-sizing: border-box;
-
-    /* Rendering / composition fixes for crisp borders on transform */
     will-change: transform, box-shadow;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
@@ -47,13 +44,64 @@
     outline: 1px solid transparent;
 }
 
+/* --- COMPACT override for ItemStorageField ONLY --- */
+.compact {
+    min-width: 174px !important;
+    max-width: 174px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
+    padding-bottom: 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Manually size and vertically center the icon and name */
+.compact .buildingIconWrap {
+    min-height: 50px !important;
+    margin-top: 0 !important;
+    margin-bottom: 2px !important;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+}
+.compact .buildingIcon {
+    font-size: 1.5rem !important;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+}
+.compact .buildingInfo {
+    width: 100%;
+    height: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center;
+    flex: 1 0 auto !important;
+}
+.compact .buildingName {
+    font-size: 0.93rem !important;
+    font-weight: 600 !important;
+    margin-top: 2px !important;
+    text-align: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100%;
+    height: 100%;
+    line-height: 1.18 !important;
+}
+
 /* Optional faint border modifier */
 .buildingCard.faintBorder {
     border: 1px solid var(--card-faint-border);
 }
 
-/* Hover / focus for non-selected cards
-   Use translateY only and a slightly stronger shadow to avoid subpixel seams. */
 .buildingCard:hover:not(.selectedCard),
 .buildingCard:focus-visible:not(.selectedCard) {
     box-shadow: 0 10px 30px 0 var(--card-hover-shadow);
@@ -61,9 +109,6 @@
     transform: translateY(-2px) translateZ(0);
 }
 
-/* Selected state (uses global success token explicitly)
-   - Use 2px solid var(--color-success) to visually match other green selected elements.
-*/
 .selectedCard,
 .selectedCard:hover,
 .selectedCard:focus-visible {
@@ -97,7 +142,6 @@
     align-items: center;
     justify-content: center;
 }
-
 .buildingCardActionBtn:hover,
 .buildingCardActionBtn:focus-visible {
     color: var(--color-primary, #333645);
@@ -105,7 +149,6 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-/* Building icon area */
 .buildingIconWrap {
     width: 100%;
     display: flex;
@@ -123,7 +166,6 @@
     transition: transform 0.12s ease, opacity 0.12s ease;
 }
 
-/* Building info section */
 .buildingInfo {
     display: flex;
     flex-direction: column;
@@ -142,7 +184,6 @@
     word-break: break-word;
 }
 
-/* Address and meta */
 .buildingAddress {
     font-size: 0.92rem;
     color: var(--color-text-muted, #938bac);
@@ -150,7 +191,6 @@
     margin-bottom: 6px;
 }
 
-/* Manager badge (tokenized subtle badge) */
 .buildingManager {
     font-size: 0.91rem;
     color: var(--color-primary, #333645);
@@ -167,7 +207,6 @@
     color: var(--color-primary, #333645);
 }
 
-/* Accessibility: keyboard focus outline for the card itself */
 .buildingCard:focus-visible {
     box-shadow: 0 0 0 4px var(--sabri-grey-300, rgba(207,210,218,0.6)), 0 6px 18px rgba(0,0,0,0.04);
     border-color: var(--card-border-strong);
