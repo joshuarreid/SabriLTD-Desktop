@@ -176,8 +176,12 @@
 /* Storage grid (inside card) */
 .storageSection {
     margin-top: 2px;
+    min-height: 500px; /* just enough for 6 rows of storageBtn, grid gaps, and pagination */
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
-
 .storageGrid {
     width: 100%;
     display: grid;
