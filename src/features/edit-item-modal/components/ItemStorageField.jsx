@@ -1,26 +1,13 @@
 /**
  * ItemStorageField.jsx
  *
- * Item-level field for selecting a building/storage location, styled to match other
- * input fields (Condition and Job): inside a white, shadowed, rounded "card."
- * Renders buildings as a horizontal row, storages as a grid.
- * Animates building/storage cards entry/exit like ItemJobField using framer-motion.
- *
- * - Uses useNaturalSort for storages.
- * - Unselects storage when changing building.
- * - Includes a "+ New" storage button that launches the same modal and API as the settings screen.
- * - Business logic for adding storage moved fully into useItemStorageField.
- *
  * @component
- * @param {object} props
- * @param {number|null} props.value - The currently selected storageId (or null).
- * @param {function} props.onChange - Called with updates: (storageId: number|null) => void
- * @param {number|null} [props.selectedBuildingId] - Optionally preselect a building.
- * @param {function} [props.onBuildingChange] - Optional: callback when building changes.
- * @returns {JSX.Element}
+ * See JSDoc above for full contract.
+ *
+ * Shows max 24 StorageInfoCards in a 4x6 grid per page with static height.
+ * Adds page controls at the bottom if >24 storages.
  */
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useItemStorageField } from "../hooks/useItemStorageField";
 import { useNaturalSort } from "../../../components/alphabeticalsortfilter/useNaturalSort";
@@ -38,10 +25,6 @@ const logger = {
     error: (...args) => console.error("[ItemStorageField]", ...args),
 };
 
-/**
- * Framer Motion animation variants for cards.
- * @type {Object}
- */
 const cardMotion = {
     initial: { opacity: 0, y: 18, scale: 0.96 },
     animate: { opacity: 1, y: 0, scale: 1 },
@@ -49,16 +32,11 @@ const cardMotion = {
     transition: { duration: 0.20, ease: [0.16, 1, 0.3, 1] },
 };
 
-/**
- * EMPTY_STORAGE
- * Default storage object for add modal
- * @constant
- */
-const EMPTY_STORAGE = { name: "", description: "", buildingId: "" };
+const STORAGE_PAGE_SIZE = 24;
 
 /**
- * ItemStorageField component.
- * @param {object} props - See above.
+ * ItemStorageField
+ * @param {object} props - see above
  * @returns {JSX.Element}
  */
 export const ItemStorageField = ({
@@ -80,85 +58,66 @@ export const ItemStorageField = ({
         storageAddStatus,
     } = useItemStorageField({ selectedBuildingId });
 
-    /** Natural sort for storages by name (asc) */
     const sortedStorages = useNaturalSort(storages, { key: "name", order: "asc" });
+
+    // --- Pagination state ---
+    const [page, setPage] = useState(1);
+    const totalPages = Math.max(1, Math.ceil(sortedStorages.length / STORAGE_PAGE_SIZE));
+
+    useEffect(() => {
+        setPage(1);
+    }, [selectedBldg?.buildingId, sortedStorages.length]);
+
+    // Current page data (with placeholders if needed)
+    const pagedStorages = useMemo(() => {
+        const start = (page - 1) * STORAGE_PAGE_SIZE;
+        const cards = sortedStorages.slice(start, start + STORAGE_PAGE_SIZE);
+        const pad = STORAGE_PAGE_SIZE - cards.length;
+        return pad > 0 ? [...cards, ...Array(pad).fill(null)] : cards;
+    }, [sortedStorages, page]);
 
     // --- Modal state for Add Storage ---
     const [editStorageModalOpen, setEditStorageModalOpen] = useState(false);
     const [pendingStorage, setPendingStorage] = useState(null);
 
-    /**
-     * Handles add new storage button: open modal for this building.
-     * @function
-     */
     const handleAddStorage = () => {
         logger.info("Opening AddStorageModal (empty), for buildingId", selectedBldg?.buildingId);
         setPendingStorage({
-            ...EMPTY_STORAGE,
-            buildingId: selectedBldg?.buildingId || ""
+            name: "", description: "", buildingId: selectedBldg?.buildingId || ""
         });
         setEditStorageModalOpen(true);
     };
 
-    /**
-     * Handles add storage modal save.
-     * Triggers the storage add mutation from the hook.
-     * @function
-     * @param {number|null} storageId
-     * @param {{name: string, description: string}} payload
-     */
     const handleStorageModalSave = (storageId, payload) => {
         logger.info("handleStorageModalSave (in item field)", { storageId, payload, buildingId: selectedBldg?.buildingId });
-        const fullPayload = {
-            ...payload,
-            buildingId: selectedBldg?.buildingId,
-        };
+        const fullPayload = { ...payload, buildingId: selectedBldg?.buildingId };
         if (!storageId) {
             createStorageMutation.mutate(fullPayload, {
                 onSuccess: () => {
                     setEditStorageModalOpen(false);
                     setPendingStorage(null);
-                },
-                onError: () => {
-                    // Error state handled by modal
                 }
             });
         }
     };
 
-    /**
-     * Close/cancel for storage modal.
-     * @function
-     */
     const handleStorageModalClose = () => {
         setEditStorageModalOpen(false);
         setPendingStorage(null);
     };
 
-    /**
-     * Handles building card selection.
-     * Unselect the current storage on building change.
-     * @param {number} buildingId
-     */
     const handleBuildingSelect = (buildingId) => {
         logger.info("Building selected", buildingId);
         setSelectedBldgId(buildingId);
-        if (onChange) onChange(null); // Unselect storage when building changes.
+        if (onChange) onChange(null);
         onBuildingChange?.(buildingId);
     };
 
-    /**
-     * Handles storage card selection.
-     * @param {number} storageId
-     */
     const handleStorageSelect = (storageId) => {
         logger.info("Storage selected", storageId);
         onChange?.(value === storageId ? null : storageId);
     };
 
-    /**
-     * Side-effect: auto-close modal on successful save, show error otherwise.
-     */
     useEffect(() => {
         if (editStorageModalOpen && storageAddStatus === "saved") {
             setEditStorageModalOpen(false);
@@ -166,12 +125,10 @@ export const ItemStorageField = ({
         }
     }, [editStorageModalOpen, storageAddStatus]);
 
-    /**
-     * Save/Loading/Error for add storage modal.
-     * @type {boolean}
-     */
     const isSaving = createStorageMutation?.isPending || storageAddStatus === "saving";
     const storageError = createStorageMutation?.error?.message || null;
+    const canGoPrev = page > 1;
+    const canGoNext = page < totalPages;
 
     return (
         <div className={styles.inputCardRoot}>
@@ -221,7 +178,6 @@ export const ItemStorageField = ({
 
             <div className={styles.storageSectionHeaderRow}>
                 <span className={styles.storageSectionLabel}>Storage Locations</span>
-                {/* + New button right aligned, same style as settings */}
                 <button
                     className={styles.addStorageBtn}
                     type="button"
@@ -240,45 +196,78 @@ export const ItemStorageField = ({
                     <div className={styles.status} style={{ color: "#c00" }}>
                         {errorStorages}
                     </div>
-                ) : !sortedStorages.length ? (
-                    <div className={styles.status} style={{ color: "#888" }}>
-                        No storage locations for this building.
-                    </div>
                 ) : (
-                    <div className={styles.storageGrid}>
-                        <AnimatePresence>
-                            {sortedStorages.map((storage) => (
-                                <motion.button
-                                    key={storage.storageId}
-                                    initial={cardMotion.initial}
-                                    animate={cardMotion.animate}
-                                    exit={cardMotion.exit}
-                                    transition={cardMotion.transition}
-                                    layout="position"
+                    <>
+                        <div className={styles.storageGrid}>
+                            <AnimatePresence>
+                                {pagedStorages.map((storage, idx) =>
+                                    storage ? (
+                                        <motion.button
+                                            key={storage.storageId}
+                                            initial={cardMotion.initial}
+                                            animate={cardMotion.animate}
+                                            exit={cardMotion.exit}
+                                            transition={cardMotion.transition}
+                                            layout="position"
+                                            type="button"
+                                            className={[
+                                                styles.storageBtn,
+                                                value === storage.storageId
+                                                    ? styles.storageBtnSelected
+                                                    : "",
+                                            ].join(" ")}
+                                            onClick={() => handleStorageSelect(storage.storageId)}
+                                            aria-pressed={value === storage.storageId}
+                                            tabIndex={0}
+                                        >
+                                            <StorageInfoCard
+                                                storage={storage}
+                                                selected={value === storage.storageId}
+                                                showActions={false}
+                                            />
+                                        </motion.button>
+                                    ) : (
+                                        // blank grid placeholder
+                                        <div
+                                            key={`empty-${idx}`}
+                                            className={styles.storageBtn}
+                                            tabIndex={-1}
+                                            aria-hidden="true"
+                                            style={{visibility:"hidden"}}
+                                        />
+                                    )
+                                )}
+                            </AnimatePresence>
+                        </div>
+                        {totalPages > 1 && (
+                            <div className={styles.paginationRow}>
+                                <button
                                     type="button"
-                                    className={[
-                                        styles.storageBtn,
-                                        value === storage.storageId
-                                            ? styles.storageBtnSelected
-                                            : "",
-                                    ].join(" ")}
-                                    onClick={() => handleStorageSelect(storage.storageId)}
-                                    aria-pressed={value === storage.storageId}
-                                    tabIndex={0}
+                                    className={styles.paginationBtn}
+                                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                    disabled={!canGoPrev}
+                                    aria-label="Previous page"
                                 >
-                                    <StorageInfoCard
-                                        storage={storage}
-                                        selected={value === storage.storageId}
-                                        showActions={false}
-                                    />
-                                </motion.button>
-                            ))}
-                        </AnimatePresence>
-                    </div>
+                                    &larr;
+                                </button>
+                                <span className={styles.paginationStatus}>
+                                    Page {page} of {totalPages}
+                                </span>
+                                <button
+                                    type="button"
+                                    className={styles.paginationBtn}
+                                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                    disabled={!canGoNext}
+                                    aria-label="Next page"
+                                >
+                                    &rarr;
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 
-            {/* --- Add Storage Modal, identical to settings --- */}
             <EditStorageModal
                 storage={pendingStorage}
                 selectedBuildingId={selectedBldg?.buildingId}
@@ -288,7 +277,6 @@ export const ItemStorageField = ({
                 saveState={isSaving ? "saving" : ""}
                 onSave={handleStorageModalSave}
                 onClose={handleStorageModalClose}
-                // No delete in embed mode.
                 onDelete={null}
             />
         </div>
