@@ -2,8 +2,8 @@
  * useItemStorageField.js
  *
  * Business logic/data-fetching for the ItemStorageField UI.
- * - Fetches all buildings, manages selected buildingId state.
- * - Fetches storage options for the selected building.
+ * - Fetches all buildings, then manages selected buildingId state.
+ * - Fetches storage options for the selected building only after buildings are loaded.
  * - Handles add storage mutation and status for "+ New" in the UI.
  * - Handles errors and loading, following Bulletproof React and logging standards.
  *
@@ -20,8 +20,7 @@ import { buildingKeys } from "../../../api/building/buildingQueryKeys";
 import { storageKeys } from "../../../api/storage/storageQueryKeys";
 
 /**
- * logger for useItemStorageField
- * @constant
+ * logger for useItemStorageField.
  * @type {{info: Function, error: Function}}
  */
 const logger = {
@@ -30,10 +29,20 @@ const logger = {
 };
 
 /**
- * Fetches buildings, selected building/storages, loading/error status, and handles storage add via mutation.
+ * useItemStorageField
+ * Fetches buildings and storages, and handles storage mutations for item-level storage selection UI.
+ *
+ * - Waits for buildings to be loaded before setting the selected building.
+ * - Only fetches storages for the selected building after buildings are loaded and selection is set.
+ *
+ * @param {object} param0
+ * @param {number|null} [param0.selectedBuildingId] - Optionally preselect a building.
+ * @returns {object}
  */
 export function useItemStorageField({ selectedBuildingId = null } = {}) {
-    // Fetch all buildings
+    /**
+     * Fetch all buildings.
+     */
     const {
         data: buildingsRaw = [],
         isPending: loadingBuildings,
@@ -41,11 +50,14 @@ export function useItemStorageField({ selectedBuildingId = null } = {}) {
         error: errorBuildings,
     } = useQuery({
         queryKey: buildingKeys.lists(),
-        queryFn: getAllBuildings,
+        queryFn: () => getAllBuildings(),
         staleTime: 15 * 60 * 1000, // 15 min
         cacheTime: 60 * 60 * 1000,
     });
 
+    /**
+     * Sorted buildings by name.
+     */
     const buildings = useMemo(
         () =>
             (Array.isArray(buildingsRaw) ? buildingsRaw : []).sort((a, b) =>
@@ -54,22 +66,25 @@ export function useItemStorageField({ selectedBuildingId = null } = {}) {
         [buildingsRaw]
     );
 
-    // Local state for which building is selected for this field
-    const [selectedBldgId, setSelectedBldgId] = useState(
-        selectedBuildingId || (buildings[0]?.buildingId ?? "")
-    );
-    // Keep selectedBldgId in sync with parent prop if present/changes
-    useEffect(() => {
-        if (
-            selectedBuildingId &&
-            (!selectedBldgId || String(selectedBldgId) !== String(selectedBuildingId))
-        ) {
-            setSelectedBldgId(selectedBuildingId);
-        }
-        // eslint-disable-next-line
-    }, [selectedBuildingId]);
+    /**
+     * Selected building id state. Only set after buildings are loaded.
+     */
+    const [selectedBldgId, setSelectedBldgId] = useState(null);
 
-    // Always reflect available selected building object
+    // Set default selected buildingID after buildings load.
+    useEffect(() => {
+        if (!loadingBuildings && buildings.length > 0) {
+            if (selectedBuildingId) {
+                setSelectedBldgId(selectedBuildingId);
+            } else if (!selectedBldgId) {
+                setSelectedBldgId(buildings[0].buildingId);
+            }
+        }
+    }, [loadingBuildings, buildings, selectedBuildingId, selectedBldgId]);
+
+    /**
+     * Always reflect available selected building object.
+     */
     const selectedBldg = useMemo(
         () =>
             buildings.find(
@@ -78,7 +93,10 @@ export function useItemStorageField({ selectedBuildingId = null } = {}) {
         [buildings, selectedBldgId]
     );
 
-    // Fetch storages for selected building
+    /**
+     * Fetch storages for the selected building.
+     * Only enabled if buildings are loaded and selected building is set.
+     */
     const {
         data: storageRaw = [],
         isPending: loadingStorages,
@@ -88,11 +106,14 @@ export function useItemStorageField({ selectedBuildingId = null } = {}) {
         queryKey: storageKeys.list({ buildingId: selectedBldgId }),
         queryFn: () =>
             selectedBldgId ? getAllStorage({ buildingId: selectedBldgId }) : [],
-        enabled: !!selectedBldgId,
+        enabled: !!selectedBldgId && !loadingBuildings && buildings.length > 0,
         staleTime: 12 * 60 * 1000,
         cacheTime: 50 * 60 * 1000,
     });
 
+    /**
+     * Sorted storages by name.
+     */
     const storages = useMemo(
         () =>
             (Array.isArray(storageRaw) ? storageRaw : []).sort((a, b) =>
@@ -101,7 +122,7 @@ export function useItemStorageField({ selectedBuildingId = null } = {}) {
         [storageRaw]
     );
 
-    // --- Storage ADD mutation and UI states (reflects useStorageSettingsTab's logic) ---
+    // --- Storage ADD mutation and UI states ---
     const queryClient = useQueryClient();
 
     const [storageAddStatus, setStorageAddStatus] = useState("idle");
@@ -120,19 +141,19 @@ export function useItemStorageField({ selectedBuildingId = null } = {}) {
     };
 
     /**
-     * Storage add mutation. Mirrors settings tab but only for add.
+     * Storage add mutation. Mirrors useStorageSettingsTab but only for add.
      */
     const createStorageMutation = useMutation({
         mutationFn: createStorage,
         onMutate: () => setStorageAddStatus("saving"),
         onSuccess: async (createdStorage) => {
-            logger.info("Storage created, invalidating keys for buildingId:", createdStorage.buildingId);
+            logger.info("[useItemStorageField] Storage created, invalidating keys for buildingId:", createdStorage.buildingId);
             await invalidateThisBuildingStorage(createdStorage.buildingId);
             setStorageAddStatus("saved");
             setTimeout(() => setStorageAddStatus("idle"), 1500);
         },
         onError: (err) => {
-            logger.error("createStorage failed", err);
+            logger.error("[useItemStorageField] createStorage failed", err);
             setStorageAddStatus("error");
             setTimeout(() => setStorageAddStatus("idle"), 2200);
         },
