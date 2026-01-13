@@ -8,6 +8,8 @@
  *
  * - Uses useNaturalSort for storages.
  * - Unselects storage when changing building.
+ * - Includes a "+ New" storage button that launches the same modal and API as the settings screen.
+ * - Business logic for adding storage moved fully into useItemStorageField.
  *
  * @component
  * @param {object} props
@@ -18,14 +20,14 @@
  * @returns {JSX.Element}
  */
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useItemStorageField } from "../hooks/useItemStorageField";
-
+import { useNaturalSort } from "../../../components/alphabeticalsortfilter/useNaturalSort";
 import styles from "../styles/itemstoragefield.module.css";
 import StorageInfoCard from "../../../components/storageinfocards/StorageInfoCard";
 import BuildingInfoCard from "../../../components/storageinfocards/BuildingInfoCard";
-import {useNaturalSort} from "../../../components/alphabeticalsortfilter/useNaturalSort";
+import EditStorageModal from "../../../components/editstoragemodal/EditStorageModal";
 
 /**
  * logger for ItemStorageField.
@@ -48,6 +50,13 @@ const cardMotion = {
 };
 
 /**
+ * EMPTY_STORAGE
+ * Default storage object for add modal
+ * @constant
+ */
+const EMPTY_STORAGE = { name: "", description: "", buildingId: "" };
+
+/**
  * ItemStorageField component.
  * @param {object} props - See above.
  * @returns {JSX.Element}
@@ -67,10 +76,64 @@ export const ItemStorageField = ({
         errorBuildings,
         loadingStorages,
         errorStorages,
+        createStorageMutation,
+        storageAddStatus,
     } = useItemStorageField({ selectedBuildingId });
 
     /** Natural sort for storages by name (asc) */
     const sortedStorages = useNaturalSort(storages, { key: "name", order: "asc" });
+
+    // --- Modal state for Add Storage ---
+    const [editStorageModalOpen, setEditStorageModalOpen] = useState(false);
+    const [pendingStorage, setPendingStorage] = useState(null);
+
+    /**
+     * Handles add new storage button: open modal for this building.
+     * @function
+     */
+    const handleAddStorage = () => {
+        logger.info("Opening AddStorageModal (empty), for buildingId", selectedBldg?.buildingId);
+        setPendingStorage({
+            ...EMPTY_STORAGE,
+            buildingId: selectedBldg?.buildingId || ""
+        });
+        setEditStorageModalOpen(true);
+    };
+
+    /**
+     * Handles add storage modal save.
+     * Triggers the storage add mutation from the hook.
+     * @function
+     * @param {number|null} storageId
+     * @param {{name: string, description: string}} payload
+     */
+    const handleStorageModalSave = (storageId, payload) => {
+        logger.info("handleStorageModalSave (in item field)", { storageId, payload, buildingId: selectedBldg?.buildingId });
+        const fullPayload = {
+            ...payload,
+            buildingId: selectedBldg?.buildingId,
+        };
+        if (!storageId) {
+            createStorageMutation.mutate(fullPayload, {
+                onSuccess: () => {
+                    setEditStorageModalOpen(false);
+                    setPendingStorage(null);
+                },
+                onError: () => {
+                    // Error state handled by modal
+                }
+            });
+        }
+    };
+
+    /**
+     * Close/cancel for storage modal.
+     * @function
+     */
+    const handleStorageModalClose = () => {
+        setEditStorageModalOpen(false);
+        setPendingStorage(null);
+    };
 
     /**
      * Handles building card selection.
@@ -92,6 +155,23 @@ export const ItemStorageField = ({
         logger.info("Storage selected", storageId);
         onChange?.(value === storageId ? null : storageId);
     };
+
+    /**
+     * Side-effect: auto-close modal on successful save, show error otherwise.
+     */
+    useEffect(() => {
+        if (editStorageModalOpen && storageAddStatus === "saved") {
+            setEditStorageModalOpen(false);
+            setPendingStorage(null);
+        }
+    }, [editStorageModalOpen, storageAddStatus]);
+
+    /**
+     * Save/Loading/Error for add storage modal.
+     * @type {boolean}
+     */
+    const isSaving = createStorageMutation?.isPending || storageAddStatus === "saving";
+    const storageError = createStorageMutation?.error?.message || null;
 
     return (
         <div className={styles.inputCardRoot}>
@@ -139,6 +219,20 @@ export const ItemStorageField = ({
                 )}
             </div>
 
+            <div className={styles.storageSectionHeaderRow}>
+                <span className={styles.storageSectionLabel}>Storage Locations</span>
+                {/* + New button right aligned, same style as settings */}
+                <button
+                    className={styles.addStorageBtn}
+                    type="button"
+                    onClick={handleAddStorage}
+                    disabled={!selectedBldg}
+                    tabIndex={0}
+                >
+                    + New
+                </button>
+            </div>
+
             <div className={styles.storageSection}>
                 {loadingStorages ? (
                     <div className={styles.status}>Loading storage…</div>
@@ -183,6 +277,20 @@ export const ItemStorageField = ({
                     </div>
                 )}
             </div>
+
+            {/* --- Add Storage Modal, identical to settings --- */}
+            <EditStorageModal
+                storage={pendingStorage}
+                selectedBuildingId={selectedBldg?.buildingId}
+                open={editStorageModalOpen}
+                isSaving={isSaving}
+                error={storageError}
+                saveState={isSaving ? "saving" : ""}
+                onSave={handleStorageModalSave}
+                onClose={handleStorageModalClose}
+                // No delete in embed mode.
+                onDelete={null}
+            />
         </div>
     );
 };
