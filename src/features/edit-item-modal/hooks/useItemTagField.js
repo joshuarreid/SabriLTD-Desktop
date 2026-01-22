@@ -65,7 +65,7 @@ function getErrorMessage(err) {
  *   isTagsError: boolean,
  *   tagsError: string,
  *   createTagStatus: 'idle'|'saving'|'saved'|'error',
- *   handleCreateTag: function,
+ *   handleCreateTag: function, // signature: (payload, onSuccessCb?) => void
  *   invalidateTags: function
  * }}
  */
@@ -74,7 +74,9 @@ export function useItemTagField({ selectedCategoryId, tagSearch }) {
 
     const queryClient = useQueryClient();
 
-    // --- Category Query (Sabri DTO and Bulletproof React) ---
+    /**
+     * Query for all tag categories (Sabri API DTO).
+     */
     const {
         data: categoriesResp,
         isPending: isCategoriesPending,
@@ -92,7 +94,9 @@ export function useItemTagField({ selectedCategoryId, tagSearch }) {
         ? getErrorMessage(categoriesResp?.errors?.[0] || categoriesFetchError)
         : "";
 
-    // --- Tag Query (Sabri DTO and Bulletproof React) ---
+    /**
+     * Query for all tags in a category, filtered by search string (Sabri API DTO).
+     */
     const {
         data: tagsResp,
         isPending: isTagsPending,
@@ -121,43 +125,61 @@ export function useItemTagField({ selectedCategoryId, tagSearch }) {
         ? getErrorMessage(tagsResp?.errors?.[0] || tagsFetchError)
         : "";
 
-    // --- Tag creation mutation ---
+    /**
+     * Tag creation mutation (Sabri API DTO), status local to this hook.
+     */
     const [createTagStatus, setCreateTagStatus] = React.useState("idle");
     const createTagMutation = useMutation({
         mutationFn: createTag,
         onMutate: () => setCreateTagStatus("saving"),
-        onSuccess: async (resp) => {
-            logger.info("Tag created (Sabri API)", resp);
-            const createdTag = resp?.data || resp;
-            await queryClient.invalidateQueries({
-                queryKey: tagKeys.list({ categoryId: createdTag.categoryId }),
-            });
-            setCreateTagStatus("saved");
-            setTimeout(() => setCreateTagStatus("idle"), 1100);
-        },
-        onError: (err) => {
-            logger.error("createTag failed", err);
-            setCreateTagStatus("error");
-            setTimeout(() => setCreateTagStatus("idle"), 1700);
-        },
+        // Use mutate callback to accept optimistic callback in invoking scope.
+        // See https://tanstack.com/query/latest/docs/framework/react/guides/mutations#side-effects
+        // and the context of this Space.
     });
 
     /**
-     * Creates a new tag for the selected category.
+     * Creates a new tag for the selected category. Optionally runs a callback (onSuccessCb) with the created tag on success.
+     * @function
      * @param {{categoryId: number, name: string}} payload
+     * @param {Function} [onSuccessCb] - Optional callback for successful creation with the new tag object.
+     * @returns {void}
      */
-    const handleCreateTag = ({ categoryId, name }) => {
+    const handleCreateTag = ({ categoryId, name }, onSuccessCb) => {
         const trimmed = String(name || "").trim();
         if (!trimmed || !categoryId) {
             logger.info("handleCreateTag: empty name or category, aborting");
             return;
         }
         logger.info("Creating tag", { categoryId, name: trimmed });
-        createTagMutation.mutate({ categoryId, name: trimmed });
+        createTagMutation.mutate(
+            { categoryId, name: trimmed },
+            {
+                onSuccess: async (resp) => {
+                    logger.info("Tag created (Sabri API)", resp);
+                    const createdTag = resp?.data || resp;
+                    await queryClient.invalidateQueries({
+                        queryKey: tagKeys.list({ categoryId: createdTag.categoryId }),
+                    });
+                    setCreateTagStatus("saved");
+                    setTimeout(() => setCreateTagStatus("idle"), 1100);
+
+                    // Call parent-provided success callback for selection/search management.
+                    if (onSuccessCb && typeof onSuccessCb === "function") {
+                        onSuccessCb(createdTag);
+                    }
+                },
+                onError: (err) => {
+                    logger.error("createTag failed", err);
+                    setCreateTagStatus("error");
+                    setTimeout(() => setCreateTagStatus("idle"), 1700);
+                },
+            }
+        );
     };
 
     /**
      * Invalidates tags query for the current category.
+     * @returns {Promise<void>}
      */
     const invalidateTags = async () => {
         if (!selectedCategoryId) return;
@@ -176,7 +198,7 @@ export function useItemTagField({ selectedCategoryId, tagSearch }) {
         isTagsError,
         tagsError,
         createTagStatus,
-        handleCreateTag,
+        handleCreateTag, // signature now allows optional onSuccessCb
         invalidateTags,
     };
 }

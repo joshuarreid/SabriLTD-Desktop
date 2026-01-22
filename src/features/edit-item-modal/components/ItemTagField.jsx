@@ -4,6 +4,7 @@
  * Tag/category selector for items in modal—visually matching TagSettings tab.
  * Uses CategoryInfoPill and TagInfoPill to maintain full visual consistency.
  * Allows searching tags by substring and adding a new tag (via Enter) if none match.
+ * Created tags are auto-selected and the search is cleared upon successful creation.
  * Fully presentational—no business logic. All handlers and state are injected.
  *
  * @component
@@ -96,12 +97,22 @@ const ItemTagField = ({
 
     // Unselected tags
     const unselectedTags = useMemo(
-        () =>
-            (tags || []).filter(tag => !selectedTagIds.includes(tag.tagId)),
+        () => (tags || []).filter(tag => !selectedTagIds.includes(tag.tagId)),
         [tags, selectedTagIds]
     );
 
     const trimmedSearch = (tagSearch || "").trim();
+
+    /**
+     * Handles tag creation; selects the tag and clears the search bar on success.
+     * @param {object} newTag
+     */
+    const handleCreated = (newTag) => {
+        if (newTag && newTag.tagId) {
+            onTagChange([...selectedTagIds, newTag.tagId]);
+        }
+        setTagSearch("");
+    };
 
     /**
      * Handles Enter for tag creation.
@@ -116,12 +127,15 @@ const ItemTagField = ({
             selectedCategoryId
         ) {
             logger.info("Creating tag from modal field search input", trimmedSearch);
-            handleCreateTag({ categoryId: selectedCategoryId, name: trimmedSearch });
+            handleCreateTag(
+                { categoryId: selectedCategoryId, name: trimmedSearch },
+                handleCreated // onSuccess: auto-select & clear search
+            );
         }
     };
 
     /**
-     * Handles click on Add New Tag (when visible)
+     * Handles click on Add New Tag (when visible).
      */
     const handleAddTagClick = () => {
         if (
@@ -129,7 +143,10 @@ const ItemTagField = ({
             handleCreateTag &&
             selectedCategoryId
         ) {
-            handleCreateTag({ categoryId: selectedCategoryId, name: trimmedSearch });
+            handleCreateTag(
+                { categoryId: selectedCategoryId, name: trimmedSearch },
+                handleCreated
+            );
         }
     };
 
