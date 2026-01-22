@@ -3,8 +3,8 @@
  *
  * Modal layout for dashboard item editing:
  * - General Information, Photo, and two vertical columns.
- * - Left stacks: General, Associations, Comments.
- * - Right stacks: Photo, Tagging.
+ * - Left stacks: General, Associations, Tag/Category.
+ * - Right stacks: Photo, Comments.
  * Follows Bulletproof React, logging, and JSDoc standards.
  */
 
@@ -95,7 +95,7 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                 <div className={styles.contentArea}>
                     {/* Two vertical columns */}
                     <div className={styles.twoPaneGrid}>
-                        {/* Left column: General + Associations + Comments */}
+                        {/* Left column: General + Associations + Tagging */}
                         <div className={styles.leftColumnStack}>
                             <div className={styles.formPanelCardGeneral}>
                                 <div className={styles.fieldModernBlockXXLCompact}>
@@ -166,24 +166,29 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                 </div>
                             </div>
 
-                            <div className={styles.formPanelCard}>
-                                <div className={styles.itemModernTitleXXL}>Comments</div>
+                            {/* formerly comments card, now swapped with tagging */}
+                            <div className={styles.formPanelCardTagTall}>
+                                <div className={styles.itemModernTitleXXL}>Tagging</div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL} htmlFor="edit-item-comments">Comments</label>
-                                    <input
-                                        id="edit-item-comments"
-                                        type="text"
-                                        placeholder="Add comments"
-                                        value={comments}
-                                        onChange={e => setComments(e.target.value)}
+                                    <label className={styles.labelModernXXL}>Tag Category</label>
+                                    <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
+                                        {tagCategoryPlaceholder}
+                                    </div>
+                                </div>
+                                <div className={styles.fieldModernBlockXXLCompact}>
+                                    <label className={styles.labelModernXXL}>Tags</label>
+                                    <button
+                                        type="button"
                                         className={styles.inputModernXXLCompact}
-                                        autoComplete="off"
-                                    />
+                                        style={{ opacity: 0.5 }}
+                                    >
+                                        {tagsPlaceholder}
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Right column: Photo + Tagging fills remaining height */}
+                        {/* Right column: Photo + Comments fills remaining height */}
                         <div className={styles.rightColumnStack}>
                             <div className={styles.photoModernCardStyledTall}>
                                 <div className={styles.photoModernSquareFrameXXLTall}>
@@ -241,23 +246,20 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                 </div>
                             </div>
 
-                            <div className={styles.formPanelCardTagTall}>
-                                <div className={styles.itemModernTitleXXL}>Tagging</div>
+                            {/* formerly tagging, now swapped to comments */}
+                            <div className={styles.formPanelCard}>
+                                <div className={styles.itemModernTitleXXL}>Comments</div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL}>Tag Category</label>
-                                    <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
-                                        {tagCategoryPlaceholder}
-                                    </div>
-                                </div>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL}>Tags</label>
-                                    <button
-                                        type="button"
+                                    <label className={styles.labelModernXXL} htmlFor="edit-item-comments">Comments</label>
+                                    <input
+                                        id="edit-item-comments"
+                                        type="text"
+                                        placeholder="Add comments"
+                                        value={comments}
+                                        onChange={e => setComments(e.target.value)}
                                         className={styles.inputModernXXLCompact}
-                                        style={{ opacity: 0.5 }}
-                                    >
-                                        {tagsPlaceholder}
-                                    </button>
+                                        autoComplete="off"
+                                    />
                                 </div>
                             </div>
                         </div>
