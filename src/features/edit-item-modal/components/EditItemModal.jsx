@@ -15,6 +15,8 @@ import { useEditItemModal } from "../hooks/useEditItemModal";
 import ItemConditionField from "./ItemConditionField";
 import ItemJobField from "./ItemJobField";
 import ItemStorageField from "./ItemStorageField";
+import ItemTagField from "./ItemTagField";
+import useItemTagField from "../hooks/useItemTagField";
 
 /**
  * logger for EditItemModal.
@@ -24,11 +26,6 @@ const logger = {
     info: (...args) => console.log("[EditItemModal]", ...args),
     error: (...args) => console.error("[EditItemModal]", ...args),
 };
-
-/** @constant */
-const tagCategoryPlaceholder = "[Tag category dropdown placeholder]";
-/** @constant */
-const tagsPlaceholder = "[Tags modal placeholder]";
 
 /**
  * EditItemModal
@@ -63,6 +60,33 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
     const [storageId, setStorageId] = React.useState(null);
     const [storageDesc, setStorageDesc] = React.useState("");
     const [comments, setComments] = React.useState("");
+
+    // --- Tag Field State ---
+    const [selectedCategoryId, setSelectedCategoryId] = React.useState(null);
+    const [selectedTagIds, setSelectedTagIds] = React.useState([]);
+    const itemTagFieldState = useItemTagField({ selectedCategoryId });
+
+    /**
+     * Handles category selection.
+     * @param {number} categoryId
+     */
+    const handleCategoryChange = (categoryId) => {
+        logger.info("Category changed in modal", categoryId);
+        setSelectedCategoryId(categoryId);
+        setSelectedTagIds([]); // Reset tags when category changes
+        if (itemTagFieldState.setTagSearch) {
+            itemTagFieldState.setTagSearch("");
+        }
+    };
+
+    /**
+     * Handles tag selection/removal.
+     * @param {number[]} tagIds
+     */
+    const handleTagChange = (tagIds) => {
+        logger.info("Tag selection changed", tagIds);
+        setSelectedTagIds(tagIds);
+    };
 
     if (!open || !allPhotos.length) return null;
 
@@ -135,7 +159,6 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                     </div>
                                 </div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
-                                    {/* Jobs pill grid search field */}
                                     <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
                                         <ItemJobField
                                             value={jobIds}
@@ -144,7 +167,6 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                     </div>
                                 </div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
-                                    {/* Storage selection field replaces placeholder */}
                                     <ItemStorageField
                                         value={storageId}
                                         onChange={setStorageId}
@@ -166,25 +188,16 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                 </div>
                             </div>
 
-                            {/* formerly comments card, now swapped with tagging */}
-                            <div className={styles.formPanelCardTagTall}>
+                            {/* Tagging (Category + Tags) */}
+                            <div className={styles.formPanelCardTagTall} style={{ marginTop: "2rem" }}>
                                 <div className={styles.itemModernTitleXXL}>Tagging</div>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL}>Tag Category</label>
-                                    <div className={styles.inputModernXXLCompact} style={{ opacity: 0.5 }}>
-                                        {tagCategoryPlaceholder}
-                                    </div>
-                                </div>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL}>Tags</label>
-                                    <button
-                                        type="button"
-                                        className={styles.inputModernXXLCompact}
-                                        style={{ opacity: 0.5 }}
-                                    >
-                                        {tagsPlaceholder}
-                                    </button>
-                                </div>
+                                <ItemTagField
+                                    selectedCategoryId={selectedCategoryId}
+                                    selectedTagIds={selectedTagIds}
+                                    onCategoryChange={handleCategoryChange}
+                                    onTagChange={handleTagChange}
+                                    itemTagFieldState={itemTagFieldState}
+                                />
                             </div>
                         </div>
 
@@ -246,7 +259,7 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                 </div>
                             </div>
 
-                            {/* formerly tagging, now swapped to comments */}
+                            {/* Comments */}
                             <div className={styles.formPanelCard}>
                                 <div className={styles.itemModernTitleXXL}>Comments</div>
                                 <div className={styles.fieldModernBlockXXLCompact}>
