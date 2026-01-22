@@ -1,0 +1,138 @@
+.pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 4px 18px;
+    line-height: 1.35;
+    border: 1.5px solid var(--condition-unknown-border, #dadbe2);
+    background: rgba(255,255,255,0.45);
+    color: var(--condition-unknown-text, #777c88);
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 2px 16px 0 #d7d7ee13;
+    outline: none;
+    user-select: none;
+    position: relative;
+    transition:
+            border-color 0.18s cubic-bezier(.8,.2,.2,1.2),
+            color 0.13s cubic-bezier(.4,.23,.37,1.4),
+            background 0.22s cubic-bezier(.4,2,.6,1),
+            box-shadow 0.19s cubic-bezier(.36,.4,.22,1.18),
+            filter 0.13s;
+    opacity: 0.92;
+    will-change: transform, box-shadow, background, border-color;
+    z-index: 1;
+}
+
+.pill:hover,
+.pill:focus-visible {
+    background: rgba(255,255,255,0.70);
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 4px 24px 0 #d6caff47, 0 1.5px 8px #eee7e640;
+    opacity: 1;
+    /* border-color now is inherited from base condition class for proper hover highlight */
+}
+
+.selected {
+    opacity: 1;
+    background: rgba(255,255,255,0.99);
+    border-width: 1.5px;
+    box-shadow:
+            0 0 0 3px currentColor,
+            0 2px 16px #ffd70022;
+    filter: none;
+    z-index: 2;
+    animation: pillPop 0.22s cubic-bezier(.64,1.45,.32,.88) 1;
+}
+
+@keyframes pillPop {
+    0%   { transform: scale(0.91); box-shadow: none; }
+    60%  { transform: scale(1.13) translateY(-2px); }
+    100% { transform: scale(1) translateY(-1px); }
+}
+
+.damaged {
+    border-color: var(--condition-damaged-border, #e04134);
+    color: var(--condition-damaged-border, #e04134);
+    background: rgba(224,65,52,0.075);
+}
+.damaged.selected,
+.damaged:hover,
+.damaged:focus-visible {
+    background: #fffaf9;
+    border-color: var(--condition-damaged-border, #e04134);
+    color: var(--condition-damaged-border, #e04134);
+    box-shadow: 0 0 0 3px #e0413477, 0 4px 16px #e041341a;
+}
+
+.needsRepair {
+    border-color: var(--condition-needsrepair-border, #e04134);
+    color: var(--condition-needsrepair-border, #e04134);
+    background: rgba(224,65,52,0.075);
+}
+.needsRepair.selected,
+.needsRepair:hover,
+.needsRepair:focus-visible {
+    background: #fffaf9;
+    border-color: var(--condition-needsrepair-border, #e04134);
+    color: var(--condition-needsrepair-border, #e04134);
+    box-shadow: 0 0 0 3px #e0413477, 0 4px 16px #e041341a;
+}
+
+.fair {
+    border-color: var(--condition-fair-border, #ffad32);
+    color: var(--condition-fair-border, #eb9906);
+    background: rgba(255,173,50,0.09);
+}
+.fair.selected,
+.fair:hover,
+.fair:focus-visible {
+    background: #fffdf7;
+    border-color: var(--condition-fair-border, #ffad32);
+    color: var(--condition-fair-border, #eb9906);
+    box-shadow: 0 0 0 3px #ffad3266, 0 4px 16px #ffad321a;
+}
+
+.good {
+    border-color: var(--condition-good-border, #99c93d);
+    color: var(--condition-good-border, #729a21);
+    background: rgba(153,201,61,0.09);
+}
+.good.selected,
+.good:hover,
+.good:focus-visible {
+    background: #fafff2;
+    border-color: var(--condition-good-border, #99c93d);
+    color: var(--condition-good-border, #729a21);
+    box-shadow: 0 0 0 3px #99c93d77, 0 4px 16px #99c93d1a;
+}
+
+.new {
+    border-color: var(--condition-new-border, #48d18e);
+    color: var(--condition-new-border, #229c63);
+    background: rgba(72,209,142,0.10);
+}
+.new.selected,
+.new:hover,
+.new:focus-visible {
+    background: #f3fff7;
+    border-color: var(--condition-new-border, #48d18e);
+    color: var(--condition-new-border, #229c63);
+    box-shadow: 0 0 0 3px #48d18e74, 0 4px 16px #48d18e24;
+}
+
+.unknown {
+    border-color: var(--condition-unknown-border, #dadbe2);
+    color: var(--condition-unknown-text, #aaaaaa);
+    background: rgba(240,240,240,0.54);
+}
+.unknown.selected,
+.unknown:hover,
+.unknown:focus-visible {
+    background: #fafbfa;
+    box-shadow: 0 0 0 2px #b0b0b083;
+}

@@ -85,7 +85,7 @@ export async function getStorageById(storageId) {
  * @async
  * @function updateStorage
  * @param {number} storageId - The storage id to update.
- * @param {{name: string, description: string, buildingId: number}} storage - The fields to update.
+ * @param {{name: string, description: string, buildingId: number}} storage - The inputfields to update.
  * @returns {Promise<{storageId: number, name: string, description: string, buildingId: number}>} Updated storage.
  * @throws {Error} If not found, validation fails, or request fails.
  */

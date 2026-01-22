@@ -60,7 +60,7 @@ const EditStorageModal = ({
 
     /**
      * Determines if in add or edit mode.
-     * Add mode: no storageId and all fields are blank
+     * Add mode: no storageId and all inputfields are blank
      */
     const isAddStorage =
         !storage.storageId &&

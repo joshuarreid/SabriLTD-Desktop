@@ -64,7 +64,7 @@ export const useEditUserProfileModal = (user, isSaving) => {
         onSave(user ? user.userId : null, { name: draft.name.trim(), email: draft.email.trim() });
     };
 
-    /** Resets the draft/fields to default values. */
+    /** Resets the draft/inputfields to default values. */
     const resetDraft = () => {
         if (user) setDraft({ name: user.name || "", email: user.email || "" });
         setFormError(null);

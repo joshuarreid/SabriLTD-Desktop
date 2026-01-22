@@ -167,7 +167,7 @@ export const useUserSettingsTab = () => {
      *
      * @function handleSaveEdit
      * @param {number} userId - The user ID to update.
-     * @param {{name: string, email: string}} user - The fields to update.
+     * @param {{name: string, email: string}} user - The inputfields to update.
      * @param {function} [callback] - Optional, callback(error) after mutation completes.
      * @returns {void}
      */

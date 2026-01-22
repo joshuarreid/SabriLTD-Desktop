@@ -80,7 +80,7 @@ export const useEditStorageModal = (storage, isSaving) => {
         );
     };
 
-    /** Resets the draft/fields to default values. */
+    /** Resets the draft/inputfields to default values. */
     const resetDraft = () => {
         if (storage) setDraft({
             name: storage.name || "",
