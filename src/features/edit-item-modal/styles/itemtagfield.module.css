@@ -1,189 +1,120 @@
-/**
- * itemtagfield.module.css
- *
- * Compact styling for ItemTagField (tag/category selector for item modal).
- * Designed to feel consistent with tagsettingstab.module.css and ItemJobField,
- * but visually smaller to fit modal context.
- *
- * Follows Bulletproof React conventions: use in local JSX file only.
- */
-
-/* Root area—visual separation for form field grouping */
-.root {
+.tabRoot {
     width: 100%;
+    margin: 0 auto;
+    background: transparent;
+}
+
+.pillsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-bottom: 18px;
+    padding-left: 6px;
+    justify-content: flex-start;
+}
+
+.placeholder {
     background: var(--color-bg-surface, #fff);
-    border-radius: 14px;
-    box-shadow: 0 2px 8px 0 rgba(44,47,59,0.04);
-    padding: 18px 18px 20px 18px;
-    margin-bottom: 8px;
-    border: 1px solid var(--color-border-subtle, #e8eaf0);
+    border-radius: 16px;
+    box-shadow: 0 3px 14px 0 rgba(44,47,59,0.07);
+    padding: 22px 18px 22px 18px;
+    min-height: 62px;
+    text-align: left;
+    margin-top: 0px;
+    margin-bottom: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    align-items: stretch;
+    border: 1px solid var(--color-border-subtle, #e8eaf0);
 }
 
-/* Field label style */
-.label {
-    font-size: 1.02em;
-    font-weight: 500;
-    color: var(--color-primary, #32324d);
-    padding: 2px 0 3px 2px;
-    margin-bottom: 2px;
-    letter-spacing: 0.01em;
-}
-
-.categoriesRow {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.36em;
-    margin-left: 1px;
-    margin-bottom: 10px;
-}
-
-.selectedTagsRow {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.23em;
-    min-height: 28px;
-    margin-bottom: 7px;
-    margin-left: 1px;
-}
-
-.tagsGrid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.23em;
-    margin-bottom: 2px;
-    min-height: 24px;
-    margin-left: 1px;
-}
-
-/* Compact pill (category/tag) */
-.pill {
-    padding: 0.18em 1em 0.18em 0.9em;
-    background: #f4f6fa;
-    border-radius: 11px;
-    font-size: 0.965em;
-    font-weight: 500;
-    line-height: 1.25em;
-    color: var(--color-text, #333645);
-    border: 1px solid #dedede;
-    transition: background 0.15s, color 0.14s, border 0.15s;
-    cursor: pointer;
-    margin-bottom: 2px;
-    margin-right: 2px;
-    outline: none;
-    user-select: none;
-}
-
-.pill:hover,
-.pill:focus-visible {
-    background: var(--color-primary-ghost, #e5e6ea);
-    color: var(--color-primary, #333645);
-    border: 1px solid var(--color-primary, #333645);
-}
-
-.pillActive {
-    background: var(--color-secondary, #c9eaff);
-    color: var(--color-secondary-text, #15536c);
-    border: 1px solid var(--color-secondary, #6cc5f7);
-}
-
-.pillRemovable {
-    padding-right: 0.7em;
-    position: relative;
-}
-
-.pillRemove {
-    color: #b7b7b7;
-    font-size: 1.12em;
-    font-weight: 600;
-    margin-left: 6px;
-    cursor: pointer;
-    opacity: 0.82;
-    transition: color 0.11s;
-    position: relative;
-    top: 1px;
-}
-.pillRemovable:hover .pillRemove,
-.pillRemovable:focus-visible .pillRemove {
-    color: #e14b5a;
-    opacity: 1;
-}
-
-/* Tag search bar row */
-.tagSearchRow {
+.tagsHeaderRow {
+    width: 100%;
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 9px;
-    margin-top: -2px;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 13px;
 }
 
-.tagSearchInput {
-    width: 205px;
-    max-width: 99vw;
-    border-radius: 8px;
-    border: 1px solid #babec9;
-    font-size: 0.98em;
-    padding: 5.5px 11px;
-    background: #f8fafd;
-    transition: border 0.14s;
+.tagsHeaderActions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 35px;
+}
+
+.wideSearchBar {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 1em;
+    font-weight: 400;
+    padding: 11px 18px;
+    border-radius: 24px;
+    border: 1.7px solid #e1e2ee;
+    background: #f7f7fa;
     outline: none;
+    color: #32324d;
+    transition: border 0.17s, background 0.16s, color 0.16s;
+    margin-right: 4px;
+    box-shadow: none;
 }
 
-.tagSearchInput:focus {
-    border: 1.5px solid var(--color-primary, #333645);
+.wideSearchBar:focus {
+    border: 2px solid var(--color-primary, #333645);
     background: #fff;
 }
 
-.tagCreateStatus {
-    font-size: 1em;
-    min-width: 23px;
-    margin-left: 5px;
-    margin-bottom: -3px;
+.tagsPillsRow {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.41em;
+    min-height: 34px;
+    align-items: flex-start;
+    margin-bottom: 3px;
+    margin-top: 3px;
+}
+
+.noTagsMsg {
+    color: var(--color-text-muted, #b6b3be);
+    font-size: 1.08em;
+    font-weight: 400;
+    padding: 0.14em 1.2em 0.08em 0.12em;
+    letter-spacing: 0.019em;
 }
 
 .status {
     color: #8e8ea2;
+    font-size: 0.99em;
 }
 .statusError {
     color: #e14b5a;
+    font-size: 0.99em;
 }
 .statusSaved {
     color: #56ba6c;
+    font-size: 1.09em;
 }
 
-.status {
-    font-size: 0.95em;
-}
-
-/* Empty or error states for tags/categories */
-.status {
-    font-size: 0.965em;
-    color: #8e8ea2;
-    margin-bottom: 1px;
-}
-.statusError {
-    color: #e14b5a;
-}
-.statusSaved {
-    color: #56ba6c;
-}
-
-/* Responsive: shrink pills and inputs for very narrow modals */
-@media (max-width: 500px) {
-    .root {
-        padding: 12px 7px 14px 7px;
+@media (max-width: 700px) {
+    .tabRoot {
+        padding: 0;
     }
-    .pill {
-        font-size: 0.93em;
-        padding: 2px 0.86em 2px 0.73em;
+    .placeholder {
+        padding: 14px 7px 16px 7px;
+        border-radius: 11px;
     }
-    .tagSearchInput {
-        width: 99vw;
-        min-width: 0;
-        font-size: 0.93em;
-        padding: 3.5px 8px;
+    .tagsHeaderRow {
+        gap: 5px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .wideSearchBar {
+        font-size: 0.96em;
+        padding: 9px 12px;
+    }
+    .noTagsMsg {
+        font-size: 0.98em;
     }
 }
