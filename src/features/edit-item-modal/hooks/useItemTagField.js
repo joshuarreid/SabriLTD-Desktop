@@ -1,16 +1,4 @@
-/**
- * useItemTagField.js
- *
- * Manages fetches, state, and mutation for tag category and tag selection in item create/edit forms.
- * Follows the same API pattern, error handling, and DTO shape as useTagSettingsTab.
- *
- * @module useItemTagField
- * @param {object} params
- * @param {number|null} [params.selectedCategoryId] - The currently selected tag category ID.
- * @returns {object} State, status, errors, and handlers for ItemTagField.
- */
-
-import { useState, useEffect, useMemo } from "react";
+import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllCategories } from "../../../api/category/category";
 import { getAllTags, createTag } from "../../../api/tag/tag";
@@ -27,7 +15,7 @@ const logger = {
 };
 
 /**
- * Extracts data array from API response (Sabri API DTO).
+ * Extracts data array from the Sabri API's ApiListResponse or array fallback.
  * @param {object} resp
  * @returns {Array}
  */
@@ -39,7 +27,7 @@ function getDataArray(resp) {
 }
 
 /**
- * Safely extract a user-facing error message from API/network error.
+ * Safely extracts a human-friendly error message from API/network error.
  * @param {*} err
  * @returns {string}
  */
@@ -59,22 +47,34 @@ function getErrorMessage(err) {
 
 /**
  * useItemTagField
- * - Handles category fetch, tag fetch, tag creation, and local search.
- * - Follows Bulletproof React conventions and Sabri API DTO shapes.
+ * - Handles category fetch, tag fetch, and tag creation for item forms.
+ * - All state is controlled by the parent (selectedCategoryId, tagSearch).
+ * - Follows Bulletproof React architecture, API conventions, and logging requirements.
  *
  * @function
  * @param {object} params
- * @param {number|null} [params.selectedCategoryId]
- * @returns {object} Hook state for ItemTagField
+ * @param {number|null} params.selectedCategoryId - The current active category, controlled by parent.
+ * @param {string} params.tagSearch - The current tag search string, controlled by parent.
+ * @returns {{
+ *   categories: Array,
+ *   isCategoriesPending: boolean,
+ *   isCategoriesError: boolean,
+ *   categoriesError: string,
+ *   tags: Array,
+ *   isTagsPending: boolean,
+ *   isTagsError: boolean,
+ *   tagsError: string,
+ *   createTagStatus: 'idle'|'saving'|'saved'|'error',
+ *   handleCreateTag: function,
+ *   invalidateTags: function
+ * }}
  */
-export function useItemTagField({ selectedCategoryId: initialCategoryId = null } = {}) {
-    logger.info("useItemTagField init", { initialCategoryId });
+export function useItemTagField({ selectedCategoryId, tagSearch }) {
+    logger.info("useItemTagField called", { selectedCategoryId, tagSearch });
 
     const queryClient = useQueryClient();
-    const [tagSearch, setTagSearch] = useState("");
-    const [selectedCategoryId, setSelectedCategoryId] = useState(initialCategoryId);
 
-    // --- Category Query (Sabri DTO, matches useTagSettingsTab) ---
+    // --- Category Query (Sabri DTO and Bulletproof React) ---
     const {
         data: categoriesResp,
         isPending: isCategoriesPending,
@@ -87,24 +87,12 @@ export function useItemTagField({ selectedCategoryId: initialCategoryId = null }
         cacheTime: 60 * 60 * 1000,
     });
 
-    const categories = useMemo(() => {
-        return getDataArray(categoriesResp).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-    }, [categoriesResp]);
-
+    const categories = getDataArray(categoriesResp).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     const categoriesError = isCategoriesError
         ? getErrorMessage(categoriesResp?.errors?.[0] || categoriesFetchError)
         : "";
 
-    // Auto-select first loaded category (once) if not set.
-    useEffect(() => {
-        if (categories.length > 0 && !selectedCategoryId) {
-            const firstId = categories[0].categoryId;
-            logger.info("Auto-selecting first category", firstId);
-            setSelectedCategoryId(firstId);
-        }
-    }, [categories, selectedCategoryId]);
-
-    // --- Tag Query (Sabri DTO, matches useTagSettingsTab) ---
+    // --- Tag Query (Sabri DTO and Bulletproof React) ---
     const {
         data: tagsResp,
         isPending: isTagsPending,
@@ -121,20 +109,20 @@ export function useItemTagField({ selectedCategoryId: initialCategoryId = null }
         cacheTime: 30 * 60 * 1000,
     });
 
-    // Filter tag list by search string (client-side).
-    const tags = useMemo(() => {
+    // Filter tag list by the search string (client-side).
+    const tags = (() => {
         const tagsArr = getDataArray(tagsResp);
-        const lower = tagSearch.trim().toLowerCase();
+        const lower = (tagSearch || "").trim().toLowerCase();
         if (!lower) return tagsArr;
         return tagsArr.filter((tag) => (tag.name || "").toLowerCase().includes(lower));
-    }, [tagsResp, tagSearch]);
+    })();
 
     const tagsError = isTagsError
         ? getErrorMessage(tagsResp?.errors?.[0] || tagsFetchError)
         : "";
 
-    // --- Tag creation mutation (Sabri DTO, matches useTagSettingsTab) ---
-    const [createTagStatus, setCreateTagStatus] = useState("idle");
+    // --- Tag creation mutation ---
+    const [createTagStatus, setCreateTagStatus] = React.useState("idle");
     const createTagMutation = useMutation({
         mutationFn: createTag,
         onMutate: () => setCreateTagStatus("saving"),
@@ -145,7 +133,6 @@ export function useItemTagField({ selectedCategoryId: initialCategoryId = null }
                 queryKey: tagKeys.list({ categoryId: createdTag.categoryId }),
             });
             setCreateTagStatus("saved");
-            setTagSearch(""); // Clear after creation
             setTimeout(() => setCreateTagStatus("idle"), 1100);
         },
         onError: (err) => {
@@ -158,7 +145,6 @@ export function useItemTagField({ selectedCategoryId: initialCategoryId = null }
     /**
      * Creates a new tag for the selected category.
      * @param {{categoryId: number, name: string}} payload
-     * @returns {void}
      */
     const handleCreateTag = ({ categoryId, name }) => {
         const trimmed = String(name || "").trim();
@@ -171,8 +157,7 @@ export function useItemTagField({ selectedCategoryId: initialCategoryId = null }
     };
 
     /**
-     * Invalidates the tags query for the current categoryId.
-     * @returns {Promise<void>}
+     * Invalidates tags query for the current category.
      */
     const invalidateTags = async () => {
         if (!selectedCategoryId) return;
@@ -190,10 +175,6 @@ export function useItemTagField({ selectedCategoryId: initialCategoryId = null }
         isTagsPending,
         isTagsError,
         tagsError,
-        selectedCategoryId,
-        setSelectedCategoryId,
-        tagSearch,
-        setTagSearch,
         createTagStatus,
         handleCreateTag,
         invalidateTags,

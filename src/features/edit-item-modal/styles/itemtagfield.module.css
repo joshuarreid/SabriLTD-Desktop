@@ -34,7 +34,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 13px;
+    margin-bottom: 9px;
 }
 
 .tagsHeaderActions {
@@ -59,10 +59,34 @@
     margin-right: 4px;
     box-shadow: none;
 }
-
 .wideSearchBar:focus {
     border: 2px solid var(--color-primary, #333645);
     background: #fff;
+}
+
+.addTagRow {
+    margin-top: -2px;
+    margin-bottom: 7px;
+    display: flex;
+}
+
+.addTagBtn {
+    font-size: 1em;
+    font-weight: 500;
+    padding: 5px 16px 5px 13px;
+    border: none;
+    border-radius: 16px;
+    background: #effdf5;
+    color: #27804a;
+    box-shadow: none;
+    cursor: pointer;
+    transition: background 0.13s, color 0.14s;
+    margin-left: 2px;
+}
+.addTagBtn:hover,
+.addTagBtn:focus-visible {
+    background: #c6f7e2;
+    color: #166534;
 }
 
 .tagsPillsRow {
@@ -116,5 +140,9 @@
     }
     .noTagsMsg {
         font-size: 0.98em;
+    }
+    .addTagBtn {
+        font-size: 0.96em;
+        padding: 4px 10px 4px 8px;
     }
 }

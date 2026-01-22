@@ -3,7 +3,8 @@
  *
  * Tag/category selector for items in modal—visually matching TagSettings tab.
  * Uses CategoryInfoPill and TagInfoPill to maintain full visual consistency.
- * Compact, fully presentational—no business logic. All handlers and state come from useItemTagField.
+ * Allows searching tags by substring and adding a new tag (via Enter) if none match.
+ * Fully presentational—no business logic. All handlers and state are injected.
  *
  * @component
  * @param {number|null} selectedCategoryId - The currently selected categoryId.
@@ -15,8 +16,7 @@
  * @returns {JSX.Element}
  */
 
-import React, { useRef, useMemo } from "react";
-
+import React, { useMemo } from "react";
 import styles from "../styles/itemtagfield.module.css";
 import CategoryInfoPill from "../../settings/tagsettings/components/CategoryInfoPill";
 import TagInfoPill from "../../settings/tagsettings/components/TagInfoPill";
@@ -50,6 +50,20 @@ const getErrorMessage = (err) => {
     return String(err);
 };
 
+/**
+ * Returns true if search text does not exactly match any tag (case insensitive)
+ * @param {string} search
+ * @param {Array} tags
+ */
+const canAddTag = (search, tags) => {
+    if (!search || !tags) return false;
+    const trimmed = search.trim().toLowerCase();
+    return (
+        !!trimmed &&
+        !tags.some((tag) => (tag.name || "").toLowerCase() === trimmed)
+    );
+};
+
 const ItemTagField = ({
                           selectedCategoryId,
                           selectedTagIds,
@@ -81,18 +95,41 @@ const ItemTagField = ({
         .filter(Boolean);
 
     // Unselected tags
-    const unselectedTags = (tags || []).filter(tag => !selectedTagIds.includes(tag.tagId));
+    const unselectedTags = useMemo(
+        () =>
+            (tags || []).filter(tag => !selectedTagIds.includes(tag.tagId)),
+        [tags, selectedTagIds]
+    );
+
+    const trimmedSearch = (tagSearch || "").trim();
 
     /**
      * Handles Enter for tag creation.
+     * Adds new tag if search text is not empty and no existing tag matches (case-insensitive).
      * @param {React.KeyboardEvent<HTMLInputElement>} e
      */
     const handleTagSearchKeyDown = e => {
-        if (e.key === "Enter") {
-            const val = (tagSearch || "").trim();
-            if (val && handleCreateTag && selectedCategoryId) {
-                handleCreateTag({ categoryId: selectedCategoryId, name: val });
-            }
+        if (
+            e.key === "Enter" &&
+            canAddTag(trimmedSearch, tags) &&
+            handleCreateTag &&
+            selectedCategoryId
+        ) {
+            logger.info("Creating tag from modal field search input", trimmedSearch);
+            handleCreateTag({ categoryId: selectedCategoryId, name: trimmedSearch });
+        }
+    };
+
+    /**
+     * Handles click on Add New Tag (when visible)
+     */
+    const handleAddTagClick = () => {
+        if (
+            canAddTag(trimmedSearch, tags) &&
+            handleCreateTag &&
+            selectedCategoryId
+        ) {
+            handleCreateTag({ categoryId: selectedCategoryId, name: trimmedSearch });
         }
     };
 
@@ -129,7 +166,8 @@ const ItemTagField = ({
                         onKeyDown={handleTagSearchKeyDown}
                         placeholder="Search or add tags"
                         aria-label="Search or add tags"
-                        disabled={isTagsPending || isTagsError || createTagStatus === "saving"}
+                        disabled={isTagsPending || isTagsError || createTagStatus === "saving" || disabled}
+                        autoComplete="off"
                     />
                     <div className={styles.tagsHeaderActions}>
                         {createTagStatus === "saving" && (
@@ -143,6 +181,18 @@ const ItemTagField = ({
                         )}
                     </div>
                 </div>
+                {canAddTag(trimmedSearch, tags) && !!selectedCategoryId && (
+                    <div className={styles.addTagRow}>
+                        <button
+                            type="button"
+                            className={styles.addTagBtn}
+                            onClick={handleAddTagClick}
+                            disabled={createTagStatus === "saving" || disabled}
+                        >
+                            + Add “{trimmedSearch}” as new tag
+                        </button>
+                    </div>
+                )}
                 <div className={styles.tagsPillsRow}>
                     {selectedTags.map(tag =>
                         <TagInfoPill
@@ -156,8 +206,8 @@ const ItemTagField = ({
                         <span>Loading tags…</span>
                     ) : isTagsError ? (
                         <span className={styles.noTagsMsg} style={{ color: "#cd384a" }}>
-              {getErrorMessage(tagsError)}
-            </span>
+                            {getErrorMessage(tagsError)}
+                        </span>
                     ) : unselectedTags.length > 0 ? (
                         unselectedTags.map(tag =>
                             <TagInfoPill
