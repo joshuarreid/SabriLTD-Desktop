@@ -89,7 +89,7 @@ export async function getTagById(tagId) {
  * @async
  * @function updateTag
  * @param {number} tagId - The tag id to update.
- * @param {{categoryId: number, name: string, updatedBy?: number}} tag - The fields to update.
+ * @param {{categoryId: number, name: string, updatedBy?: number}} tag - The inputfields to update.
  * @returns {Promise<{tagId: number, categoryId: number, name: string, updatedBy: number, dateAdded: string, dateUpdated: string|null}>} Updated tag from API.
  * @throws {Error} If not found, validation fails, or request fails.
  */

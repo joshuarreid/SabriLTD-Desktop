@@ -371,6 +371,44 @@ export default class ApiClient {
     }
 
     /**
+     * HTTP POST helper for `multipart/form-data`.
+     * Used for file uploads (FormData).
+     *
+     * @async
+     * @param {string} endpoint
+     * @param {FormData} formData
+     * @param {Object} [options={}]
+     * @returns {Promise<any>}
+     */
+    async postMultipart(endpoint, formData, options = {}) {
+        const url = this._buildUrl(endpoint);
+        logger.info('postMultipart', url);
+
+        // Do not set Content-Type header; browser/axios sets it for FormData automatically
+        const headers = { ...(options.headers || {}) };
+        // Remove any Content-Type as axios will set boundary properly
+        Object.keys(headers).forEach(
+            (key) => /content-type/i.test(key) && delete headers[key]
+        );
+
+        const config = {
+            url,
+            method: 'post',
+            headers,
+            data: formData,
+            ...options,
+        };
+
+        try {
+            const response = await this.axios.request(config);
+            return response.data;
+        } catch (error) {
+            logger.error('postMultipart failed', error);
+            throw this._normalizeError(error);
+        }
+    }
+
+    /**
      * HTTP PUT helper.
      *
      * @async

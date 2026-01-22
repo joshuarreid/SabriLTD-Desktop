@@ -1,7 +1,6 @@
 import React from "react";
-import styles from "../styles/buildinginfocard.module.css";
+import styles from "./buildinginfocard.module.css";
 import { FcOrganization } from "react-icons/fc";
-import { FaHouse } from "react-icons/fa6";
 import { FcInTransit } from "react-icons/fc";
 import { GiHouse } from "react-icons/gi";
 import { MdOutlineModeEditOutline } from "react-icons/md";
@@ -16,15 +15,10 @@ const logger = {
 };
 
 /**
- * Selects an icon for the building card based on building name.
- *
- * - Returns the warehouse icon for names including "warehouse", or if name is blank/absent.
- * - Returns the van icon for names including "van", "truck", "car", or "vehicle".
- * - Returns the house icon for names including "home" or "house".
- * - Defaults to warehouse icon otherwise.
+ * Returns an icon for the building card based on building name.
  *
  * @function getBuildingIcon
- * @param {string} name - Building name
+ * @param {string} name
  * @returns {JSX.Element}
  */
 function getBuildingIcon(name) {
@@ -52,47 +46,68 @@ function getBuildingIcon(name) {
 
 /**
  * BuildingInfoCard
- * Renders a single building card with icon, meta, and edit button.
+ * Renders a building card.
  *
  * @component
  * @param {object} props
  * @param {object} props.building - Building object ({ buildingId, name, address, manager })
  * @param {boolean} props.selected - Is this building selected
- * @param {function} props.onClick - Callback when card is clicked
+ * @param {function} [props.onClick] - Card click handler (optional)
  * @param {function} [props.onEdit] - (Optional) Edit callback for this building
+ * @param {boolean} [props.showActions=true] - Show edit pencil (default: true)
+ * @param {boolean} [props.compact=false] - Render compact/small for use in forms (default: false)
  * @returns {JSX.Element}
  */
-const BuildingInfoCard = ({ building, selected, onClick, onEdit }) => {
-    logger.info("BuildingInfoCard rendered", { buildingId: building?.buildingId, selected });
+const BuildingInfoCard = ({
+                              building,
+                              selected,
+                              onClick,
+                              onEdit,
+                              showActions = true,
+                              compact = false
+                          }) => {
+    logger.info("BuildingInfoCard rendered", {
+        buildingId: building?.buildingId,
+        selected,
+        showActions,
+        compact
+    });
+
+    // Merge classnames for compact mode
+    const rootClass = [
+        styles.buildingCard,
+        selected ? styles.selectedCard : "",
+        compact ? styles.compact : ""
+    ].join(" ");
+
     return (
         <button
             type="button"
-            className={
-                styles.buildingCard +
-                (selected ? " " + styles.selectedCard : "")
-            }
+            className={rootClass}
             onClick={onClick}
             aria-label={
                 selected
                     ? `Building ${building.name}, selected`
                     : `Building ${building.name}`
             }
+            tabIndex={0}
         >
-            <div className={styles.buildingCardActions}>
-                <button
-                    type="button"
-                    className={styles.buildingCardActionBtn}
-                    aria-label="Edit building"
-                    tabIndex={0}
-                    // Prevent bubbling to onClick select logic
-                    onClick={e => {
-                        e.stopPropagation();
-                        if (onEdit) onEdit(building);
-                    }}
-                >
-                    <MdOutlineModeEditOutline size={18} />
-                </button>
-            </div>
+            {showActions && (
+                <div className={styles.buildingCardActions}>
+                    <button
+                        type="button"
+                        className={styles.buildingCardActionBtn}
+                        aria-label="Edit building"
+                        tabIndex={0}
+                        onClick={e => {
+                            e.stopPropagation();
+                            if (onEdit) onEdit(building);
+                        }}
+                    >
+                        <MdOutlineModeEditOutline size={18} />
+                    </button>
+                </div>
+            )}
             <div className={styles.buildingIconWrap}>
                 {getBuildingIcon(building.name)}
             </div>

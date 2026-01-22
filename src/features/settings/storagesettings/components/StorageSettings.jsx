@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import StorageInfoCard from "./StorageInfoCard";
+import StorageInfoCard from "../../../../components/storageinfocards/StorageInfoCard";
 import EditStorageModal from "../../../../components/editstoragemodal/EditStorageModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";

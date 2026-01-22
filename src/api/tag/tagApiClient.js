@@ -60,7 +60,7 @@ export default class TagApiClient extends ApiClient {
     /**
      * Creates a new tag (requires authentication).
      * @async
-     * @param {Object} payload - The tag fields { categoryId, name, updatedBy }
+     * @param {Object} payload - The tag inputfields { categoryId, name, updatedBy }
      * @returns {Promise<Object>} API response with new tag
      * @throws {Error} If request fails or validation error.
      */
@@ -153,7 +153,7 @@ export default class TagApiClient extends ApiClient {
      * Updates an existing tag by id (requires authentication).
      * @async
      * @param {number} tagId - The tag id to update
-     * @param {Object} payload - The fields to update { categoryId, name, updatedBy }
+     * @param {Object} payload - The inputfields to update { categoryId, name, updatedBy }
      * @returns {Promise<Object>} API response with updated tag
      * @throws {Error} If not found, validation fails, or request fails.
      */

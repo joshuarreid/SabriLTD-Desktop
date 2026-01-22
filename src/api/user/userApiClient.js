@@ -199,7 +199,7 @@ export default class UserApiClient extends ApiClient {
      * Updates an existing user by userId (requires authentication).
      * @async
      * @param {number} userId - The user ID to update
-     * @param {Object} payload - Updated user fields { name, email }
+     * @param {Object} payload - Updated user inputfields { name, email }
      * @returns {Promise<Object>} API response with updated user
      * @throws {Error} If not found, validation fails, or request fails.
      */

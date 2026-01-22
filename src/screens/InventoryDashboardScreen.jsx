@@ -1,6 +1,6 @@
 import React from "react";
-import ItemCardGrid from "../features/item-management/components/ItemCardGrid";
-import useItemCardGrid from "../features/item-management/hooks/useItemCardGrid";
+import ItemCardGrid from "../features/item-grid/components/ItemCardGrid";
+import useItemCardGrid from "../features/item-grid/hooks/useItemCardGrid";
 
 
 

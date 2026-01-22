@@ -10,6 +10,7 @@ import UserProfileScreen from './screens/UserProfileScreen.jsx';
 import SettingsScreen from './screens/SettingsScreen.jsx';
 import JobScreen from "./screens/JobScreen";
 import InventoryDashboardScreen from './screens/InventoryDashboardScreen.jsx';
+import AddItemScreen from "./screens/AddItemScreen";
 
 /**
  * ProtectedRoute
@@ -77,6 +78,15 @@ function App() {
                                     element={
                                         <ProtectedLayout>
                                             <JobScreen />
+                                        </ProtectedLayout>
+                                    }
+                                />
+                                {/* Settings route wrapped in ProtectedLayout */}
+                                <Route
+                                    path="/add-item"
+                                    element={
+                                        <ProtectedLayout>
+                                            <AddItemScreen />
                                         </ProtectedLayout>
                                     }
                                 />

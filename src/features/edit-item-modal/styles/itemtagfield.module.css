@@ -1,0 +1,148 @@
+.tabRoot {
+    width: 100%;
+    margin: 0 auto;
+    background: transparent;
+}
+
+.pillsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-bottom: 18px;
+    padding-left: 6px;
+    justify-content: flex-start;
+}
+
+.placeholder {
+    background: var(--color-bg-surface, #fff);
+    border-radius: 16px;
+    box-shadow: 0 3px 14px 0 rgba(44,47,59,0.07);
+    padding: 22px 18px 22px 18px;
+    min-height: 62px;
+    text-align: left;
+    margin-top: 0px;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    border: 1px solid var(--color-border-subtle, #e8eaf0);
+}
+
+.tagsHeaderRow {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+
+.tagsHeaderActions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 35px;
+}
+
+.wideSearchBar {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 1em;
+    font-weight: 400;
+    padding: 11px 18px;
+    border-radius: 24px;
+    border: 1.7px solid #e1e2ee;
+    background: #f7f7fa;
+    outline: none;
+    color: #32324d;
+    transition: border 0.17s, background 0.16s, color 0.16s;
+    margin-right: 4px;
+    box-shadow: none;
+}
+.wideSearchBar:focus {
+    border: 2px solid var(--color-primary, #333645);
+    background: #fff;
+}
+
+.addTagRow {
+    margin-top: -2px;
+    margin-bottom: 7px;
+    display: flex;
+}
+
+.addTagBtn {
+    font-size: 1em;
+    font-weight: 500;
+    padding: 5px 16px 5px 13px;
+    border: none;
+    border-radius: 16px;
+    background: #effdf5;
+    color: #27804a;
+    box-shadow: none;
+    cursor: pointer;
+    transition: background 0.13s, color 0.14s;
+    margin-left: 2px;
+}
+.addTagBtn:hover,
+.addTagBtn:focus-visible {
+    background: #c6f7e2;
+    color: #166534;
+}
+
+.tagsPillsRow {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.41em;
+    min-height: 34px;
+    align-items: flex-start;
+    margin-bottom: 3px;
+    margin-top: 3px;
+}
+
+.noTagsMsg {
+    color: var(--color-text-muted, #b6b3be);
+    font-size: 1.08em;
+    font-weight: 400;
+    padding: 0.14em 1.2em 0.08em 0.12em;
+    letter-spacing: 0.019em;
+}
+
+.status {
+    color: #8e8ea2;
+    font-size: 0.99em;
+}
+.statusError {
+    color: #e14b5a;
+    font-size: 0.99em;
+}
+.statusSaved {
+    color: #56ba6c;
+    font-size: 1.09em;
+}
+
+@media (max-width: 700px) {
+    .tabRoot {
+        padding: 0;
+    }
+    .placeholder {
+        padding: 14px 7px 16px 7px;
+        border-radius: 11px;
+    }
+    .tagsHeaderRow {
+        gap: 5px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .wideSearchBar {
+        font-size: 0.96em;
+        padding: 9px 12px;
+    }
+    .noTagsMsg {
+        font-size: 0.98em;
+    }
+    .addTagBtn {
+        font-size: 0.96em;
+        padding: 4px 10px 4px 8px;
+    }
+}

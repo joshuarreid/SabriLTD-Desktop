@@ -1,0 +1,399 @@
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(36, 14, 41, 0.13);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Prevent scroll chaining to page while modal is open */
+    overscroll-behavior: contain;
+}
+
+.modalCardXXLCompact {
+    background: var(--color-bg-subtle, #f5f5f7);
+    border-radius: 32px;
+    box-shadow: 0 24px 98px 0 rgba(36,14,41,0.13), 0 7px 40px rgba(44,47,59,0.09);
+    width: 98vw;
+    height: 97vh;
+    outline: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* keep internal scroll within contentArea */
+    position: relative;
+    padding: 0;
+}
+
+/* NEW: Scrollable content wrapper to avoid overlap with bottom action row */
+.contentArea {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Reserve space so the absolute action bar never overlaps content */
+    padding-bottom: 140px;
+    /* Create stacking context so inner z-index doesn't leak */
+    isolation: isolate;
+}
+
+/* NEW: Two-column vertical stacks to keep spacing consistent */
+.twoPaneGrid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 2.35fr 1fr;
+    gap: 38px;
+    padding: 52px 65px 0 65px;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+.leftColumnStack,
+.rightColumnStack {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    height: 100%;
+    min-width: 0; /* allow flex children to shrink without overflow */
+}
+.rightColumnStack {
+    /* Right column keeps the photo width feel but allows full-height tagging */
+    /* Using flex on children to control vertical proportions:
+       - Photo card: flex 1 (1 part)
+       - Tagging card: flex 2 (2 parts)
+    */
+    align-items: flex-end; /* keep right column cards aligned to the right column width */
+}
+
+/* Close button */
+.closeButtonTopLeft {
+    position: absolute;
+    top: 20px;
+    left: 34px;
+    z-index: 16;
+    background: none;
+    border: none;
+    color: var(--color-primary-muted, #aeb1c0);
+    font-size: 1.72rem;
+    cursor: pointer;
+    padding: 6px 12px 3px 4px;
+    border-radius: 16px;
+    transition: background 0.14s, color 0.14s;
+}
+.closeButtonTopLeft:hover,
+.closeButtonTopLeft:focus-visible {
+    background: var(--sabri-grey-100, #f5f5f7);
+    color: var(--sabri-grey-800, #333645);
+}
+
+/* --- Cards --- */
+.formPanelCardGeneral {
+    background: var(--color-bg-surface, #fff);
+    border-radius: 17px;
+    box-shadow: 0 2px 13px #e4e6ec20, 0 0.5px 2px #d1d4ea13;
+    padding: 36px 44px 36px 38px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 100%;
+    min-height: 200px;
+    max-height: 550px;
+}
+
+.inputModernXXLDescription {
+    background: var(--color-bg-subtle, #f6f6fa);
+    border-radius: 7px;
+    border: 1px solid var(--color-border-subtle, #e4e6ec);
+    padding: 18px 14px;
+    font-size: 1.04rem;
+    color: var(--color-primary, #333645);
+    width: 100%;
+    outline: none;
+    resize: vertical;
+    min-height: 400px;
+    max-height: 400px;
+    margin-bottom: 0;
+}
+
+/* PHOTO CARD
+   Changed from fixed full-height/min-height to flex-based sizing so it takes 1 part
+   of the right column vertical space (1/3 when photo:flex(1) + tag:flex(2)).
+*/
+.photoModernCardStyledTall {
+    width: 340px;
+    min-width: 400px;
+    max-width: 400px;
+    min-height: 350px;
+    border-radius: 19px;
+    background: var(--color-bg-surface, #fff);
+    box-shadow: 0 2px 21px 0 #e4e6ec29, 0 1.5px 5px #34365a0c;
+    padding: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* flex-based vertical sizing: 1 part */
+}
+
+.photoModernSquareFrameXXLTall {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 15px;
+    background: var(--color-bg-subtle, #f5f5f7);
+    box-shadow: 0 2px 10px #ccd3ff13;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.photoModernSquareImgXXLTall {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+    background: #eaeaea;
+}
+
+.photoModernPlaceholderXXL {
+    color: var(--color-primary-muted, #92929e);
+    font-size: 1.08rem;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    min-height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photoModernSquareNavXXL {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    bottom: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    pointer-events: none;
+}
+.photoModernSquareArrowXXL {
+    pointer-events: all;
+    font-size: 1.08rem;
+    background: #fff;
+    border: none;
+    color: var(--color-primary-muted, #78769e);
+    border-radius: 1.25em;
+    width: 31px;
+    height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px #8883;
+    transition: background 0.16s, color 0.16s, box-shadow 0.16s;
+    margin: 0 2px;
+    border: 1px solid var(--color-border-subtle, #ececf5);
+}
+.photoModernSquareArrowXXL:disabled {
+    opacity: 0.34;
+    background: #f2f2fa;
+}
+.photoModernSquareArrowXXL:hover:not(:disabled),
+.photoModernSquareArrowXXL:focus-visible:not(:disabled) {
+    background: var(--sabri-yellow, #ffeeb2);
+    color: #ffb700;
+    box-shadow: 0 2.5px 10px #ffd02235;
+}
+.photoModernSquareDotsXXL {
+    pointer-events: all;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin: 0 2px;
+}
+.photoModernSquareDotXXL {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #e3e3e8;
+    box-shadow: 0 0.5px 2.5px #8881;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s, box-shadow 0.16s;
+}
+.photoModernSquareDotActiveXXL {
+    background: var(--color-secondary, #ffd600);
+    box-shadow: 0 3px 10px #ffd60044;
+}
+
+/* Tag card should grow to match left column height
+   Adjusted to take twice the vertical space as photo card (flex:2)
+*/
+.formPanelCardTagTall {
+    background: var(--color-bg-surface, #fff);
+    border-radius: 15px;
+    min-width: 400px;
+    min-height: 800px;
+    box-shadow: 0 2px 13px #e4e6ec1b, 0 0.5px 2px #d1d4ea13;
+    padding: 26px 30px 19px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+}
+.tagCardTall {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+}
+
+/* Generic form panel card */
+.formPanelCard {
+    background: var(--color-bg-surface, #fff);
+    border-radius: 15px;
+    box-shadow: 0 2px 13px #e4e6ec1b, 0 0.5px 2px #d1d4ea13;
+    padding: 26px 30px 19px 30px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* --- Shared inputfields/buttons/panel CSS --- */
+.itemModernTitleXXL {
+    font-size: 1.09rem;
+    font-weight: 700;
+    color: var(--color-primary, #232442);
+    margin-bottom: 8px;
+    text-align: left;
+    letter-spacing: 0.02em;
+}
+.fieldModernBlockXXLCompact {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 4px;
+    gap: 2px;
+}
+.labelModernXXL {
+    color: var(--color-primary-muted, #7a7a96);
+    font-size: 0.96rem;
+    font-weight: 700;
+    margin-bottom: 0.5px;
+    margin-left: 2px;
+    letter-spacing: 0.01em;
+}
+.inputModernXXLCompact {
+    background: var(--color-bg-subtle, #f6f6fa);
+    border-radius: 6px;
+    border: 1px solid var(--color-border-subtle, #eaecf4);
+    padding: 9px 11px;
+    font-size: 0.97em;
+    color: var(--color-primary, #36364a);
+    transition: border-color 0.13s, background-color 0.13s;
+    width: 100%;
+    outline: none;
+    box-shadow: none;
+}
+.inputModernXXLCompact:focus {
+    border-color: var(--color-secondary, #ffd600);
+    background: #fffef8;
+}
+.sizeModernBtn {
+    padding: 7px 18px;
+    background: #f5f5fa;
+    border-radius: 7px;
+    font-size: 0.95rem;
+    color: #36364a;
+    border: 1px solid #edeef2;
+    font-weight: 550;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* --- Save/cancel in bottom right --- */
+.modernFormActionRowXXLCompact {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0 68px 34px 0;
+    display: flex;
+    flex-direction: row;
+    gap: 15px;
+    align-items: center;
+    z-index: 5;
+    pointer-events: auto;
+}
+.saveModernButtonXXLCompact {
+    background: var(--sabri-grey-500, #777c88);
+    color: var(--color-primary-contrast, #fff);
+    border-radius: 7px;
+    font-size: 0.97em;
+    padding: 11px 36px;
+    font-weight: 700;
+    border: none;
+    margin-right: 8px;
+    opacity: 1;
+    box-shadow: 0 2px 8px #92929e17;
+    cursor: pointer;
+    transition: background 0.12s, box-shadow 0.12s;
+}
+.saveModernButtonXXLCompact:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+.cancelModernButtonXXLCompact {
+    background: none;
+    color: var(--sabri-grey-400, #a7a7b3);
+    font-size: 0.97em;
+    padding: 11px 23px;
+    border: none;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.12s;
+    letter-spacing: 0.01em;
+}
+.cancelModernButtonXXLCompact:hover,
+.cancelModernButtonXXLCompact:focus-visible {
+    background: var(--color-bg-subtle, #f7f7fb);
+    color: var(--color-primary, #36364a);
+}
+.saveFeedback {
+    margin: 3px 0 0 0;
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+}
+
+/* Responsive: stacks cards vertically rather than grid on mobile */
+@media (max-width: 1200px) {
+    .twoPaneGrid {
+        grid-template-columns: 1fr;
+        padding: 22px 5vw 0 5vw;
+        gap: 16px;
+    }
+    .photoModernCardStyledTall {
+        width: 95vw;
+        min-width: 120px;
+        padding: 10px;
+        height: auto;
+        /* On small screens we want the normal document flow; remove flex forcing */
+        flex: 0 1 auto;
+    }
+    .formPanelCardGeneral {
+        padding: 16px 5vw 16px 3vw;
+    }
+    .formPanelCard, .formPanelCardTagTall {
+        padding: 14px 5vw 12px 3vw;
+        /* revert flex forcing for stacked layout */
+        flex: 0 1 auto;
+    }
+    .modernFormActionRowXXLCompact {
+        padding: 0 8vw 24px 0;
+    }
+    .contentArea {
+        padding-bottom: 100px; /* reduce reserved space on smaller screens */
+    }
+}
