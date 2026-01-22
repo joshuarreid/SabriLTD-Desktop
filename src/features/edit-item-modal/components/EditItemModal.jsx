@@ -51,21 +51,25 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
         handleCancel,
         isFirst,
         isLast,
+        itemName, setItemName,
+        itemDescription, setItemDescription,
+        conditionId, setConditionId,
+        jobIds, setJobIds,
+        storageId, setStorageId,
+        storageDesc, setStorageDesc,
+        comments, setComments,
+        selectedCategoryId, setSelectedCategoryId,
+        selectedTagIds, setSelectedTagIds,
+        tagSearch, setTagSearch,
+        handleSubmit,
+        isSaving,
+        isSaved,
+        isSaveError,
+        saveStatus,
+        apiError,
     } = useEditItemModal({ photos, open, onClose });
 
-    const [itemName, setItemName] = React.useState("");
-    const [itemDescription, setItemDescription] = React.useState("");
-    const [conditionId, setConditionId] = React.useState(null);
-    const [jobIds, setJobIds] = React.useState([]);
-    const [storageId, setStorageId] = React.useState(null);
-    const [storageDesc, setStorageDesc] = React.useState("");
-    const [comments, setComments] = React.useState("");
-
-    // --- Tag Field State ---
-    const [selectedCategoryId, setSelectedCategoryId] = React.useState(null);
-    const [selectedTagIds, setSelectedTagIds] = React.useState([]);
-    const [tagSearch, setTagSearch] = React.useState(""); // LIFTED HERE
-
+    // Tag field state (query logic is in own hook)
     const itemTagFieldState = useItemTagField({ selectedCategoryId, tagSearch });
 
     /**
@@ -75,8 +79,8 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
     const handleCategoryChange = (categoryId) => {
         logger.info("Category changed in modal", categoryId);
         setSelectedCategoryId(categoryId);
-        setSelectedTagIds([]); // Reset tags when category changes
-        setTagSearch(""); // Clear tag search on new category
+        setSelectedTagIds([]);
+        setTagSearch("");
     };
 
     /**
@@ -87,6 +91,13 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
         logger.info("Tag selection changed", tagIds);
         setSelectedTagIds(tagIds);
     };
+
+    // Only enable "Save" when all *required* fields except jobIds/comments are present
+    const isFormReady =
+        !!itemName &&
+        !!conditionId &&
+        !!storageId &&
+        selectedTagIds.length > 0;
 
     if (!open || !allPhotos.length) return null;
 
@@ -114,194 +125,198 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                 >
                     &times;
                 </button>
-
                 {/* Scrollable content wrapper */}
                 <div className={styles.contentArea}>
-                    {/* Two vertical columns */}
-                    <div className={styles.twoPaneGrid}>
-                        {/* Left column: General + Associations + Tagging */}
-                        <div className={styles.leftColumnStack}>
-                            <div className={styles.formPanelCardGeneral}>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL} htmlFor="edit-item-title">Title</label>
-                                    <input
-                                        id="edit-item-title"
-                                        type="text"
-                                        placeholder="Enter item name"
-                                        value={itemName}
-                                        onChange={e => setItemName(e.target.value)}
-                                        className={styles.inputModernXXLCompact}
-                                        autoComplete="off"
-                                    />
-                                </div>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL} htmlFor="edit-item-description">
-                                        Description
-                                    </label>
-                                    <textarea
-                                        id="edit-item-description"
-                                        placeholder="Enter a longer description for this item"
-                                        value={itemDescription}
-                                        onChange={e => setItemDescription(e.target.value)}
-                                        className={styles.inputModernXXLDescription}
-                                        rows={5}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className={styles.formPanelCard}>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
-                                        <ItemConditionField
-                                            value={conditionId}
-                                            onChange={setConditionId}
+                    <form onSubmit={handleSubmit} autoComplete="off" id="edit-item-modal-form">
+                        {/* Two vertical columns */}
+                        <div className={styles.twoPaneGrid}>
+                            {/* Left column: General + Associations + Tag/Category */}
+                            <div className={styles.leftColumnStack}>
+                                <div className={styles.formPanelCardGeneral}>
+                                    <div className={styles.fieldModernBlockXXLCompact}>
+                                        <label className={styles.labelModernXXL} htmlFor="edit-item-title">Title</label>
+                                        <input
+                                            id="edit-item-title"
+                                            type="text"
+                                            placeholder="Enter item name"
+                                            value={itemName}
+                                            onChange={e => setItemName(e.target.value)}
+                                            className={styles.inputModernXXLCompact}
+                                            autoComplete="off"
+                                        />
+                                    </div>
+                                    <div className={styles.fieldModernBlockXXLCompact}>
+                                        <label className={styles.labelModernXXL} htmlFor="edit-item-description">
+                                            Description
+                                        </label>
+                                        <textarea
+                                            id="edit-item-description"
+                                            placeholder="Enter a longer description for this item"
+                                            value={itemDescription}
+                                            onChange={e => setItemDescription(e.target.value)}
+                                            className={styles.inputModernXXLDescription}
+                                            rows={5}
                                         />
                                     </div>
                                 </div>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
-                                        <ItemJobField
-                                            value={jobIds}
-                                            onChange={setJobIds}
-                                        />
-                                    </div>
-                                </div>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <ItemStorageField
-                                        value={storageId}
-                                        onChange={setStorageId}
-                                    />
-                                </div>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL} htmlFor="edit-item-storage-desc">
-                                        Storage Description
-                                    </label>
-                                    <input
-                                        id="edit-item-storage-desc"
-                                        type="text"
-                                        placeholder="Enter storage location/notes"
-                                        value={storageDesc}
-                                        onChange={e => setStorageDesc(e.target.value)}
-                                        className={styles.inputModernXXLCompact}
-                                        autoComplete="off"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Tagging (Category + Tags) */}
-                            <div className={styles.formPanelCardTagTall} style={{ marginTop: "2rem" }}>
-                                <div className={styles.itemModernTitleXXL}>Tagging</div>
-                                <ItemTagField
-                                    selectedCategoryId={selectedCategoryId}
-                                    selectedTagIds={selectedTagIds}
-                                    onCategoryChange={handleCategoryChange}
-                                    onTagChange={handleTagChange}
-                                    itemTagFieldState={{
-                                        ...itemTagFieldState,
-                                        tagSearch,
-                                        setTagSearch,
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Right column: Photo + Comments fills remaining height */}
-                        <div className={styles.rightColumnStack}>
-                            <div className={styles.photoModernCardStyledTall}>
-                                <div className={styles.photoModernSquareFrameXXLTall}>
-                                    {photo?.url ? (
-                                        <img
-                                            src={photo.url}
-                                            alt="Item photo preview"
-                                            className={styles.photoModernSquareImgXXLTall}
-                                        />
-                                    ) : (
-                                        <div className={styles.photoModernPlaceholderXXL}>
-                                            No Photo Available
+                                <div className={styles.formPanelCard}>
+                                    <div className={styles.fieldModernBlockXXLCompact}>
+                                        <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
+                                            <ItemConditionField
+                                                value={conditionId}
+                                                onChange={setConditionId}
+                                            />
                                         </div>
-                                    )}
-                                    <div className={styles.photoModernSquareNavXXL}>
-                                        <button
-                                            className={styles.photoModernSquareArrowXXL}
-                                            onClick={handlePrev}
-                                            disabled={isFirst}
-                                            aria-label="Previous photo"
-                                            tabIndex={0}
-                                        >
-                                            <span>&#9664;</span>
-                                        </button>
-                                        {allPhotos.length > 1 && (
-                                            <div className={styles.photoModernSquareDotsXXL}>
-                                                {allPhotos.map((_, idx) => (
-                                                    <span
-                                                        key={idx}
-                                                        className={
-                                                            styles.photoModernSquareDotXXL +
-                                                            (idx === current ? ` ${styles.photoModernSquareDotActiveXXL}` : "")
-                                                        }
-                                                        onClick={() => handleSelect(idx)}
-                                                        aria-label={
-                                                            idx === current
-                                                                ? `Photo ${idx + 1} (current)`
-                                                                : `Go to photo ${idx + 1}`
-                                                        }
-                                                        tabIndex={0}
-                                                    />
-                                                ))}
+                                    </div>
+                                    <div className={styles.fieldModernBlockXXLCompact}>
+                                        <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
+                                            <ItemJobField
+                                                value={jobIds}
+                                                onChange={setJobIds}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className={styles.fieldModernBlockXXLCompact}>
+                                        <ItemStorageField
+                                            value={storageId}
+                                            onChange={setStorageId}
+                                        />
+                                    </div>
+                                    <div className={styles.fieldModernBlockXXLCompact}>
+                                        <label className={styles.labelModernXXL} htmlFor="edit-item-storage-desc">
+                                            Storage Description
+                                        </label>
+                                        <input
+                                            id="edit-item-storage-desc"
+                                            type="text"
+                                            placeholder="Enter storage location/notes"
+                                            value={storageDesc}
+                                            onChange={e => setStorageDesc(e.target.value)}
+                                            className={styles.inputModernXXLCompact}
+                                            autoComplete="off"
+                                        />
+                                    </div>
+                                </div>
+                                {/* Tagging (Category + Tags) */}
+                                <div className={styles.formPanelCardTagTall} style={{ marginTop: "2rem" }}>
+                                    <div className={styles.itemModernTitleXXL}>Tagging</div>
+                                    <ItemTagField
+                                        selectedCategoryId={selectedCategoryId}
+                                        selectedTagIds={selectedTagIds}
+                                        onCategoryChange={handleCategoryChange}
+                                        onTagChange={handleTagChange}
+                                        itemTagFieldState={{
+                                            ...itemTagFieldState,
+                                            tagSearch,
+                                            setTagSearch,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            {/* Right column: Photo + Comments fills remaining height */}
+                            <div className={styles.rightColumnStack}>
+                                <div className={styles.photoModernCardStyledTall}>
+                                    <div className={styles.photoModernSquareFrameXXLTall}>
+                                        {photo?.url ? (
+                                            <img
+                                                src={photo.url}
+                                                alt="Item photo preview"
+                                                className={styles.photoModernSquareImgXXLTall}
+                                            />
+                                        ) : (
+                                            <div className={styles.photoModernPlaceholderXXL}>
+                                                No Photo Available
                                             </div>
                                         )}
-                                        <button
-                                            className={styles.photoModernSquareArrowXXL}
-                                            onClick={handleNext}
-                                            disabled={isLast}
-                                            aria-label="Next photo"
-                                            tabIndex={0}
-                                        >
-                                            <span>&#9654;</span>
-                                        </button>
+                                        <div className={styles.photoModernSquareNavXXL}>
+                                            <button
+                                                className={styles.photoModernSquareArrowXXL}
+                                                onClick={handlePrev}
+                                                disabled={isFirst}
+                                                aria-label="Previous photo"
+                                                tabIndex={0}
+                                                type="button"
+                                            >
+                                                <span>&#9664;</span>
+                                            </button>
+                                            {allPhotos.length > 1 && (
+                                                <div className={styles.photoModernSquareDotsXXL}>
+                                                    {allPhotos.map((_, idx) => (
+                                                        <span
+                                                            key={idx}
+                                                            className={
+                                                                styles.photoModernSquareDotXXL +
+                                                                (idx === current ? ` ${styles.photoModernSquareDotActiveXXL}` : "")
+                                                            }
+                                                            onClick={() => handleSelect(idx)}
+                                                            aria-label={
+                                                                idx === current
+                                                                    ? `Photo ${idx + 1} (current)`
+                                                                    : `Go to photo ${idx + 1}`
+                                                            }
+                                                            tabIndex={0}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <button
+                                                className={styles.photoModernSquareArrowXXL}
+                                                onClick={handleNext}
+                                                disabled={isLast}
+                                                aria-label="Next photo"
+                                                tabIndex={0}
+                                                type="button"
+                                            >
+                                                <span>&#9654;</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Comments */}
+                                <div className={styles.formPanelCard}>
+                                    <div className={styles.itemModernTitleXXL}>Comments</div>
+                                    <div className={styles.fieldModernBlockXXLCompact}>
+                                        <label className={styles.labelModernXXL} htmlFor="edit-item-comments">Comments</label>
+                                        <input
+                                            id="edit-item-comments"
+                                            type="text"
+                                            placeholder="Add comments"
+                                            value={comments}
+                                            onChange={e => setComments(e.target.value)}
+                                            className={styles.inputModernXXLCompact}
+                                            autoComplete="off"
+                                        />
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Comments */}
-                            <div className={styles.formPanelCard}>
-                                <div className={styles.itemModernTitleXXL}>Comments</div>
-                                <div className={styles.fieldModernBlockXXLCompact}>
-                                    <label className={styles.labelModernXXL} htmlFor="edit-item-comments">Comments</label>
-                                    <input
-                                        id="edit-item-comments"
-                                        type="text"
-                                        placeholder="Add comments"
-                                        value={comments}
-                                        onChange={e => setComments(e.target.value)}
-                                        className={styles.inputModernXXLCompact}
-                                        autoComplete="off"
-                                    />
-                                </div>
-                            </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* Save/cancel bottom right */}
-                <div className={styles.modernFormActionRowXXLCompact}>
-                    <button
-                        type="submit"
-                        className={styles.saveModernButtonXXLCompact}
-                        disabled
-                    >
-                        Save
-                    </button>
-                    <button
-                        type="button"
-                        className={styles.cancelModernButtonXXLCompact}
-                        onClick={handleCancel}
-                    >
-                        Cancel
-                    </button>
-                </div>
-                <div className={styles.saveFeedback}>
-                    <SaveStatus status={"idle"} />
+                        {/* Save/cancel bottom right -- keep button inside .form so Enter works */}
+                        <div className={styles.modernFormActionRowXXLCompact}>
+                            <button
+                                type="submit"
+                                className={styles.saveModernButtonXXLCompact}
+                                disabled={!isFormReady || isSaving}
+                            >
+                                {isSaving ? "Saving…" : "Save"}
+                            </button>
+                            <button
+                                type="button"
+                                className={styles.cancelModernButtonXXLCompact}
+                                onClick={handleCancel}
+                                disabled={isSaving}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                        <div className={styles.saveFeedback}>
+                            <SaveStatus status={saveStatus} />
+                            {apiError && (
+                                <div className={styles.errorMessage}>
+                                    {apiError}
+                                </div>
+                            )}
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
