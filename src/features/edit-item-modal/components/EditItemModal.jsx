@@ -64,7 +64,9 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
     // --- Tag Field State ---
     const [selectedCategoryId, setSelectedCategoryId] = React.useState(null);
     const [selectedTagIds, setSelectedTagIds] = React.useState([]);
-    const itemTagFieldState = useItemTagField({ selectedCategoryId });
+    const [tagSearch, setTagSearch] = React.useState(""); // LIFTED HERE
+
+    const itemTagFieldState = useItemTagField({ selectedCategoryId, tagSearch });
 
     /**
      * Handles category selection.
@@ -74,9 +76,7 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
         logger.info("Category changed in modal", categoryId);
         setSelectedCategoryId(categoryId);
         setSelectedTagIds([]); // Reset tags when category changes
-        if (itemTagFieldState.setTagSearch) {
-            itemTagFieldState.setTagSearch("");
-        }
+        setTagSearch(""); // Clear tag search on new category
     };
 
     /**
@@ -196,7 +196,11 @@ const EditItemModal = ({ photos = [], open, onClose }) => {
                                     selectedTagIds={selectedTagIds}
                                     onCategoryChange={handleCategoryChange}
                                     onTagChange={handleTagChange}
-                                    itemTagFieldState={itemTagFieldState}
+                                    itemTagFieldState={{
+                                        ...itemTagFieldState,
+                                        tagSearch,
+                                        setTagSearch,
+                                    }}
                                 />
                             </div>
                         </div>
