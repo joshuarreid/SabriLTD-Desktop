@@ -1,7 +1,7 @@
 import React from "react";
 import ItemCardGrid from "../features/item-grid/components/ItemCardGrid";
 import useItemCardGrid from "../features/item-grid/hooks/useItemCardGrid";
-
+import WideSearchBar from "../components/searchbar/WideSearchBar";
 
 
 /**
@@ -52,13 +52,26 @@ const InventoryDashboardScreen = () => {
         sortOrder: "asc",
     });
 
+    /**
+     * Dummy search state and handler (no-op, UI only)
+     */
+    const [search, setSearch] = React.useState("");
+    const handleSearchChange = (e) => setSearch(e.target.value);
+
     return (
         <div>
+            <div style={{ marginBottom: 18, marginTop: 10 }}>
+                <WideSearchBar
+                    value={search}
+                    onChange={handleSearchChange}
+                    placeholder="Search inventory…"
+                    fluid
+                />
+            </div>
             <ItemCardGrid
                 items={items}
                 columns={5}
                 rows={5}
-                title="Inventory"
                 onItemClick={(itemId) => logger.info("Item clicked", { itemId })}
                 isPending={isPending}
                 isError={isError}

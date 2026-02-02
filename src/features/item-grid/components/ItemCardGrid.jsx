@@ -79,9 +79,6 @@ const ItemCardGrid = ({
 
     return (
         <section className={styles.itemGridSection} aria-label={title}>
-            <header className={styles.headerRow}>
-                <h2 className={styles.title}>{title}</h2>
-            </header>
 
             {isError ? (
                 <div className={styles.error}>
