@@ -1,3 +1,9 @@
+.conditionRow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .iconWrapper {
     display: inline-flex;
     align-items: center;
@@ -5,34 +11,29 @@
     border-radius: 50%;
     width: 24px;
     height: 24px;
-    margin-right: 6px;
-    vertical-align: middle;
-    background: #fff; /* Always white background for circle */
+    background: #fff;
     box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 }
 
-/* The icon itself uses semantic condition color */
 .iconSymbol {
     width: 18px;
     height: 18px;
     display: block;
 }
 
-.new .iconSymbol {
-    color: #48d18e;
-}
-.good .iconSymbol {
-    color: #99c93d;
-}
-.fair .iconSymbol {
-    color: #ffad32;
-}
-.needsRepair .iconSymbol {
-    color: #e04134;
-}
-.damaged .iconSymbol {
-    color: #e04134;
-}
-.unknown .iconSymbol {
-    color: #dadbe2;
+.newSymbol    { color: #48d18e;  }
+.goodSymbol   { color: #99c93d;  }
+.fairSymbol   { color: #ffad32;  }
+.needsRepairSymbol { color: #e04134; }
+.damagedSymbol{ color: #e04134;  }
+.unknownSymbol{ color: #dadbe2;  }
+
+.conditionLabel {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: #717786;
+    letter-spacing: 0.01em;
+    opacity: 0.76;
+    /* visually subtle, greyed out */
+    margin-left: 2px;
 }
