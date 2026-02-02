@@ -1,18 +1,17 @@
 import React from "react";
 import PropTypes from "prop-types";
 import {
-    CiCirclePlus,
-    CiCircleCheck,
-    CiCircleMinus,
-    CiCircleAlert,
-    CiCircleQuestion
-} from "react-icons/ci";
-import { FaRegTimesCircle } from "react-icons/fa";
+    FaCirclePlus,
+    FaCircleCheck,
+    FaCircleMinus,
+    FaCircleExclamation,
+    FaCircleQuestion,
+    FaCircleXmark
+} from "react-icons/fa6";
 import styles from "./itemconditionicon.module.css";
 
 /**
  * logger for ItemConditionIcon.
- *
  * @constant
  * @type {{info: Function, error: Function}}
  */
@@ -23,8 +22,8 @@ const logger = {
 
 /**
  * getConditionIconConfig
- * - Returns icon and color class for an item's condition.
- *
+ * Returns icon and color class for an item's condition.
+ * Inverted: colored fill, black icon symbol.
  * @function
  * @param {string} conditionName - Canonical condition name.
  * @returns {{icon: JSX.Element, className: string}}
@@ -33,32 +32,32 @@ const getConditionIconConfig = (conditionName) => {
     switch ((conditionName || "").toLowerCase()) {
         case "new":
             return {
-                icon: <CiCirclePlus size={18} title="New" data-testid="condition-new"/>,
+                icon: <FaCirclePlus className={styles.iconSymbol} size={18} title="New" data-testid="condition-new" />,
                 className: styles.new,
             };
         case "good":
             return {
-                icon: <CiCircleCheck size={18} title="Good" data-testid="condition-good"/>,
+                icon: <FaCircleCheck className={styles.iconSymbol} size={18} title="Good" data-testid="condition-good" />,
                 className: styles.good,
             };
         case "fair":
             return {
-                icon: <CiCircleMinus size={18} title="Fair" data-testid="condition-fair"/>,
+                icon: <FaCircleMinus className={styles.iconSymbol} size={18} title="Fair" data-testid="condition-fair" />,
                 className: styles.fair,
             };
         case "needs repair":
             return {
-                icon: <CiCircleAlert size={18} title="Needs Repair" data-testid="condition-needsrepair"/>,
+                icon: <FaCircleExclamation className={styles.iconSymbol} size={18} title="Needs Repair" data-testid="condition-needsrepair" />,
                 className: styles.needsRepair,
             };
         case "damaged":
             return {
-                icon: <FaRegTimesCircle size={17} title="Damaged" data-testid="condition-damaged"/>,
+                icon: <FaCircleXmark className={styles.iconSymbol} size={18} title="Damaged" data-testid="condition-damaged" />,
                 className: styles.damaged,
             };
         default:
             return {
-                icon: <CiCircleQuestion size={18} title="Unknown" data-testid="condition-unknown"/>,
+                icon: <FaCircleQuestion className={styles.iconSymbol} size={18} title="Unknown" data-testid="condition-unknown" />,
                 className: styles.unknown,
             };
     }
@@ -66,9 +65,8 @@ const getConditionIconConfig = (conditionName) => {
 
 /**
  * ItemConditionIcon
- * - Renders an icon representing item condition with semantic color.
- *
  * @component
+ * Renders a colored circle (per condition) with a black symbol.
  * @param {Object} props
  * @param {string} props.conditionName - Item condition name.
  * @returns {JSX.Element}
