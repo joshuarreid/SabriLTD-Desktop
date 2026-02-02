@@ -1,16 +1,8 @@
-/**
- * ItemInfoCard.jsx
- *
- * Minimal, square-photo item card used in ItemCardGrid.
- * - Fixed square thumbnail that crops overflow.
- * - Shows item name and condition, with unified pill styling.
- */
-
 import React from "react";
 import PropTypes from "prop-types";
 import styles from "../styles/iteminfocard.module.css";
 import ItemConditionPill from "../../../components/itemconditionpill/ItemConditionPill";
-
+import ItemConditionDot from "../../../components/itemconditionicon/ItemConditionIcon";
 
 /**
  * logger for ItemInfoCard.
@@ -25,12 +17,14 @@ const logger = {
 
 /**
  * ItemInfoCard
+ * - Renders an item card with a photo, name, price, and condition label.
  *
  * @component
  * @param {Object} props
  * @param {{
  *   itemId: number,
  *   name: string,
+ *   price?: string,
  *   conditionName?: string|null,
  *   photoUrl?: string|null
  * }} props.item - Item data for display.
@@ -38,7 +32,7 @@ const logger = {
  * @returns {JSX.Element}
  */
 const ItemInfoCard = ({ item, onClick }) => {
-    const { itemId, name, conditionName, photoUrl } = item;
+    const { itemId, name, price, conditionName, photoUrl } = item;
 
     /**
      * Handles card click events for logging and optional parent callback.
@@ -77,9 +71,11 @@ const ItemInfoCard = ({ item, onClick }) => {
                 <div className={styles.name} title={name}>
                     {name}
                 </div>
-                <ItemConditionPill
+                {price && (
+                    <div className={styles.price}>${price}</div>
+                )}
+                <ItemConditionDot
                     conditionName={conditionName}
-                    className={styles.condition}
                 />
             </div>
         </button>
@@ -90,6 +86,7 @@ ItemInfoCard.propTypes = {
     item: PropTypes.shape({
         itemId: PropTypes.number.isRequired,
         name: PropTypes.string.isRequired,
+        price: PropTypes.string, // New prop for price
         conditionName: PropTypes.string,
         photoUrl: PropTypes.string,
     }).isRequired,
