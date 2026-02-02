@@ -1,7 +1,7 @@
 :root {
-    --item-card-gap-row: 24px;
-    --item-card-gap-col: 20px;
-    --item-card-min-width: 140px;
+    --item-card-gap-row: 16px; /* Reduced row gap for compact spacing */
+    --item-card-gap-col: 16px; /* Reduced column gap for compact spacing */
+    --item-card-min-width: 100px; /* Reduced the minimum width for smaller cards */
 }
 
 /**

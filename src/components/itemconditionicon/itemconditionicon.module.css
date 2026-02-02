@@ -1,0 +1,27 @@
+.iconWrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* Semantic colors: match .pill classes and API definition */
+.new {
+    color: #48d18e;
+}
+.good {
+    color: #99c93d;
+}
+.fair {
+    color: #ffad32;
+}
+.needsRepair {
+    color: #e04134;
+}
+.damaged {
+    color: #e04134;
+}
+.unknown {
+    color: #dadbe2;
+}
