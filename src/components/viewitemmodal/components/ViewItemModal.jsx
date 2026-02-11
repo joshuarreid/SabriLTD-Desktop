@@ -4,7 +4,6 @@ import ItemConditionIcon from "../../itemconditionicon/ItemConditionIcon";
 import TagInfoPill from "../../taginfopill/TagInfoPill";
 import JobInfoCard from "../../jobinfocard/JobInfoCard";
 
-
 /**
  * Logger for ViewItemModal.
  *
@@ -47,26 +46,6 @@ const formatDisplayDate = (value) => {
  * UI-only: all data fetching and merging is handled by useViewItemModal.
  *
  * @component
- * @param {object} props
- * @param {boolean} props.open - Whether the modal is currently open.
- * @param {function} props.onClose - Callback invoked when modal should close.
- * @param {boolean} props.isDetailsPending
- * @param {boolean} props.isDetailsError
- * @param {any} props.detailsError
- * @param {number|string|null} props.resolvedId
- * @param {string} props.resolvedName
- * @param {string} props.resolvedDescription
- * @param {string|null} props.resolvedCondition
- * @param {string} props.resolvedStorageDesc
- * @param {string|null} props.resolvedUpdatedBy
- * @param {string} props.resolvedDateAdded
- * @param {string} props.resolvedDateUpdated
- * @param {string[]} props.resolvedTags
- * @param {Array} props.resolvedJobs
- * @param {Array} props.resolvedComments
- * @param {Array} props.resolvedPhotos
- * @param {object|null} props.resolvedBuilding
- * @returns {JSX.Element|null}
  */
 const ViewItemModal = ({
                            open,
@@ -124,9 +103,6 @@ const ViewItemModal = ({
     /**
      * Builds a combined storage display string including building information.
      *
-     * Example:
-     *   "Main Warehouse, 2nd Floor — Main Warehouse (100 Main St)"
-     *
      * @constant
      * @type {string}
      */
@@ -169,6 +145,11 @@ const ViewItemModal = ({
         // Future: open job detail view, navigate, etc.
     };
 
+    const mainPhoto =
+        Array.isArray(resolvedPhotos) && resolvedPhotos.length > 0
+            ? resolvedPhotos[0]
+            : null;
+
     return (
         <div
             className={styles.modalOverlay}
@@ -189,100 +170,112 @@ const ViewItemModal = ({
                     {resolvedName || "Item Details"}
                 </h2>
 
-                <div className={styles.itemDetails}>
-                    {/* ID */}
-                    <div className={styles.fieldGroup}>
-                        <span className={styles.fieldLabel}>ID</span>
-                        <div className={styles.fieldValue}>
-                            {resolvedId ?? "-"}
-                        </div>
+                {/* Top section: 2/3 photos, 1/3 fields (commerce-style layout) */}
+                <div className={styles.topRow}>
+                    {/* Left: main photo area (2/3) */}
+                    <div className={styles.leftColumn}>
+                        {mainPhoto ? (
+                            <img
+                                src={mainPhoto.url}
+                                alt={resolvedName || "Item photo"}
+                                className={styles.mainPhoto}
+                            />
+                        ) : (
+                            <div className={styles.mainPhotoPlaceholder}>
+                                No photo
+                            </div>
+                        )}
                     </div>
 
-                    {/* Name */}
-                    <div className={styles.fieldGroup}>
-                        <span className={styles.fieldLabel}>Name</span>
-                        <div className={styles.fieldValue}>
-                            {resolvedName || "-"}
-                        </div>
-                    </div>
+                    {/* Right: key fields (1/3) */}
+                    <div className={styles.rightColumn}>
 
-                    {/* Description (left-aligned via data-multiline CSS) */}
-                    <div className={styles.fieldGroup}>
-                        <span className={styles.fieldLabel}>Description</span>
-                        <div
-                            className={styles.fieldValue}
-                            data-multiline="true"
-                        >
-                            {resolvedDescription || "-"}
-                        </div>
-                    </div>
-
-                    {/* Condition */}
-                    <div className={styles.fieldGroup}>
-                        <span className={styles.fieldLabel}>Condition</span>
-                        <div className={styles.fieldValue}>
-                            {resolvedCondition ? (
-                                <ItemConditionIcon
-                                    conditionName={resolvedCondition}
-                                />
-                            ) : (
-                                "-"
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Storage (includes building) */}
-                    <div className={styles.fieldGroup}>
-                        <span className={styles.fieldLabel}>Storage</span>
-                        <div className={styles.fieldValue}>
-                            {storageWithBuilding}
-                        </div>
-                    </div>
-
-                    {/* Tags */}
-                    {resolvedTags.length > 0 && (
                         <div className={styles.fieldGroup}>
-                            <span className={styles.fieldLabel}>Tags</span>
+                            <span className={styles.fieldLabel}>Name</span>
+                            <div className={styles.fieldValue}>
+                                {resolvedName || "-"}
+                            </div>
+                        </div>
+
+                        <div className={styles.fieldGroup}>
+                            <span className={styles.fieldLabel}>
+                                Description
+                            </span>
                             <div
-                                className={`${styles.fieldValue} ${styles.tagsFieldValue}`}
+                                className={styles.fieldValue}
+                                data-multiline="true"
                             >
-                                <div className={styles.tagsPillRow}>
-                                    {resolvedTags.map((tag) => (
-                                        <TagInfoPill key={tag} label={tag} />
-                                    ))}
+                                {resolvedDescription || "-"}
+                            </div>
+                        </div>
+
+                        <div className={styles.fieldGroup}>
+                            <span className={styles.fieldLabel}>Condition</span>
+                            <div className={styles.fieldValue}>
+                                {resolvedCondition ? (
+                                    <ItemConditionIcon
+                                        conditionName={resolvedCondition}
+                                    />
+                                ) : (
+                                    "-"
+                                )}
+                            </div>
+                        </div>
+
+                        <div className={styles.fieldGroup}>
+                            <span className={styles.fieldLabel}>Storage</span>
+                            <div className={styles.fieldValue}>
+                                {storageWithBuilding}
+                            </div>
+                        </div>
+
+                        {resolvedTags.length > 0 && (
+                            <div className={styles.fieldGroup}>
+                                <span className={styles.fieldLabel}>Tags</span>
+                                <div
+                                    className={`${styles.fieldValue} ${styles.tagsFieldValue}`}
+                                >
+                                    <div className={styles.tagsPillRow}>
+                                        {resolvedTags.map((tag) => (
+                                            <TagInfoPill key={tag} label={tag} />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className={styles.fieldGroup}>
+                            <span className={styles.fieldLabel}>
+                                Updated By
+                            </span>
+                            <div className={styles.fieldValue}>
+                                {resolvedUpdatedBy || "-"}
+                            </div>
+                        </div>
+
+                        <div className={styles.fieldInlineRow}>
+                            <div className={styles.fieldInline}>
+                                <span className={styles.fieldLabel}>
+                                    Date Added
+                                </span>
+                                <div className={styles.fieldValue}>
+                                    {formattedDateAdded || "-"}
+                                </div>
+                            </div>
+                            <div className={styles.fieldInline}>
+                                <span className={styles.fieldLabel}>
+                                    Last Updated
+                                </span>
+                                <div className={styles.fieldValue}>
+                                    {formattedDateUpdated || "-"}
                                 </div>
                             </div>
                         </div>
-                    )}
-
-                    {/* Updated By */}
-                    <div className={styles.fieldGroup}>
-                        <span className={styles.fieldLabel}>Updated By</span>
-                        <div className={styles.fieldValue}>
-                            {resolvedUpdatedBy || "-"}
-                        </div>
                     </div>
+                </div>
 
-                    {/* Dates (formatted) */}
-                    <div className={styles.fieldInlineRow}>
-                        <div className={styles.fieldInline}>
-                            <span className={styles.fieldLabel}>
-                                Date Added
-                            </span>
-                            <div className={styles.fieldValue}>
-                                {formattedDateAdded || "-"}
-                            </div>
-                        </div>
-                        <div className={styles.fieldInline}>
-                            <span className={styles.fieldLabel}>
-                                Last Updated
-                            </span>
-                            <div className={styles.fieldValue}>
-                                {formattedDateUpdated || "-"}
-                            </div>
-                        </div>
-                    </div>
-
+                {/* Bottom section: jobs, comments, photos strip, meta */}
+                <div className={styles.itemDetails}>
                     {/* Jobs using JobInfoCard */}
                     {resolvedJobs.length > 0 && (
                         <div className={styles.fieldGroup}>
@@ -327,22 +320,6 @@ const ViewItemModal = ({
                         </div>
                     )}
 
-                    {/* Photos */}
-                    {resolvedPhotos.length > 0 && (
-                        <div className={styles.fieldGroup}>
-                            <span className={styles.fieldLabel}>Photos</span>
-                            <div className={styles.photosRow}>
-                                {resolvedPhotos.map((p) => (
-                                    <img
-                                        key={p.photoId}
-                                        src={p.url}
-                                        alt={resolvedName || "Item photo"}
-                                        className={styles.photoThumb}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    )}
 
                     {/* Meta row: loading / error */}
                     <div className={styles.metaRow}>
