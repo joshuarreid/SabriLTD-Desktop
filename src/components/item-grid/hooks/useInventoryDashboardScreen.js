@@ -2,6 +2,8 @@
  * useInventoryDashboardScreen
  * Hook for InventoryDashboardScreen that:
  * - Fetches paginated item previews via useItemCardGrid (Meilisearch search).
+ * - Eagerly caches full item details for all items on the current page using
+ *   the canonical itemKeys.details pattern (so ViewItemModal can reuse cache).
  * - Manages local search input state for the dashboard.
  *
  * @function useInventoryDashboardScreen
@@ -29,7 +31,10 @@
  */
 
 import { useState, useCallback } from "react";
+import { useQueries } from "@tanstack/react-query";
 import useItemCardGrid from "./useItemCardGrid";
+import itemKeys from "../../../api/item/ItemQueryKeys";
+import { getItemDetails } from "../../../api/item/item";
 
 /**
  * Logger for useInventoryDashboardScreen.
@@ -93,6 +98,34 @@ export const useInventoryDashboardScreen = () => {
         pageSize: 25,
         sortField: "name",
         sortOrder: "asc",
+    });
+
+    /**
+     * Eagerly load and cache item details for all items on the current page.
+     * We use useQueries so each itemId has its own query, keyed by itemKeys.details(itemId),
+     * matching the rest of the project (and ViewItemModal).
+     */
+    useQueries({
+        /**
+         * Builds a query config for each item in the current page.
+         *
+         * @returns {Array<import("@tanstack/react-query").UseQueryOptions>}
+         */
+        queries: (items || [])
+            .map((item) => item && (item.itemId ?? item.id))
+            .filter((id) => id != null)
+            .map((id) => ({
+                queryKey: itemKeys.details(id),
+                queryFn: async () => {
+                    logger.info(
+                        "Dashboard eager details fetch (useQueries) for item",
+                        { itemId: id },
+                    );
+                    return getItemDetails(id);
+                },
+                staleTime: 10 * 60 * 1000, // 10 minutes
+                enabled: true,
+            })),
     });
 
     return {
