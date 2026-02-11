@@ -2,6 +2,8 @@ import React from "react";
 import ItemCardGrid from "../components/item-grid/components/ItemCardGrid";
 import useItemCardGrid from "../components/item-grid/hooks/useItemCardGrid";
 import WideSearchBar from "../components/searchbar/WideSearchBar";
+import {useViewItemModal} from "../components/viewitemmodal/hooks/useViewItemModal";
+import ViewItemModal from "../components/viewitemmodal/components/ViewItemModal";
 
 
 /**
@@ -25,7 +27,6 @@ const logger = {
 const InventoryDashboardScreen = () => {
     logger.info("InventoryDashboardScreen rendered");
 
-    // Fetch paginated items (no filters), 5 columns × 5 rows = 25 per page
     const {
         items,
         isPending,
@@ -45,18 +46,39 @@ const InventoryDashboardScreen = () => {
         handlePrevious,
         refetch,
     } = useItemCardGrid({
-        fixedFilters: {}, // No default filters
+        fixedFilters: {},
         initialPage: 1,
         pageSize: 25,
         sortField: "name",
         sortOrder: "asc",
     });
 
-    /**
-     * Dummy search state and handler (no-op, UI only)
-     */
     const [search, setSearch] = React.useState("");
     const handleSearchChange = (e) => setSearch(e.target.value);
+
+    const { isOpen, selectedItem, openWithItem, close } = useViewItemModal();
+
+    /**
+     * Handles click on an item card in the grid.
+     * Attempts to find the full item object from the items array,
+     * then opens the ViewItemModal with that item.
+     *
+     * @function handleItemClick
+     * @param {number|string} itemId
+     */
+    const handleItemClick = (itemId) => {
+        logger.info("Item clicked from grid", { itemId });
+        const item = items?.find(
+            (it) => it.itemId === itemId || it.id === itemId
+        );
+
+        if (!item) {
+            logger.error("Item not found in current page for modal", { itemId });
+            return;
+        }
+
+        openWithItem(item);
+    };
 
     return (
         <div>
@@ -72,7 +94,7 @@ const InventoryDashboardScreen = () => {
                 items={items}
                 columns={5}
                 rows={5}
-                onItemClick={(itemId) => logger.info("Item clicked", { itemId })}
+                onItemClick={handleItemClick}
                 isPending={isPending}
                 isError={isError}
                 error={error}
@@ -88,6 +110,8 @@ const InventoryDashboardScreen = () => {
                 handlePrevious={handlePrevious}
                 refetch={refetch}
             />
+
+            <ViewItemModal item={selectedItem} open={isOpen} onClose={close} />
         </div>
     );
 };
