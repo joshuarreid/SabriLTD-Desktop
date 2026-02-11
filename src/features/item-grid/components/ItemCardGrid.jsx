@@ -46,7 +46,7 @@ const logger = {
  */
 const ItemCardGrid = ({
                           items = [],
-                          columns = 5,
+                          columns = 6, // Default to 6 items per row
                           rows = 3,
                           title = "Items",
                           onItemClick,
@@ -66,7 +66,7 @@ const ItemCardGrid = ({
                           pageSize,
                           refetch,
                       }) => {
-    const gridTemplateColumns = `repeat(${Math.max(1, Number(columns))}, minmax(120px, 1fr))`;
+    const gridTemplateColumns = `repeat(6, minmax(var(--item-card-min-width), 1fr))`;
 
     logger.info("ItemCardGrid render", {
         itemsCount: items.length,
@@ -79,9 +79,6 @@ const ItemCardGrid = ({
 
     return (
         <section className={styles.itemGridSection} aria-label={title}>
-            <header className={styles.headerRow}>
-                <h2 className={styles.title}>{title}</h2>
-            </header>
 
             {isError ? (
                 <div className={styles.error}>
@@ -155,8 +152,8 @@ const ItemCardGrid = ({
                                 Previous
                             </button>
                             <span className={styles.paginationIndicator}>
-                Page {page} of {totalPages}
-              </span>
+                                Page {page} of {totalPages}
+                            </span>
                             <button
                                 type="button"
                                 className={styles.paginationButton}
