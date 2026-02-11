@@ -17,16 +17,15 @@ const logger = {
 
 /**
  * ItemCardGrid
- * - Renders a responsive paginated grid of ItemInfoCard components.
- * - Accepts page, pagination controls, error, and loading state as props.
+ * Renders a responsive paginated grid of ItemInfoCard components.
  *
  * @component
  * @param {Object} props
- * @param {Array} props.items - Array of item objects to render.
+ * @param {Array} props.items - Array of item objects to render (each with itemId).
  * @param {number} props.columns - Grid columns.
  * @param {number} props.rows - Grid rows shown per page.
  * @param {string} [props.title="Items"] - Title above the grid.
- * @param {(itemId:number)=>void} [props.onItemClick] - Optional click handler per card.
+ * @param {(item:object)=>void} [props.onItemClick] - Optional click handler per card.
  * @param {boolean} [props.isPending] - Query loading state.
  * @param {boolean} [props.isError] - Query error state.
  * @param {any} [props.error] - Error object if any.
@@ -46,7 +45,7 @@ const logger = {
  */
 const ItemCardGrid = ({
                           items = [],
-                          columns = 6, // Default to 6 items per row
+                          columns = 6,
                           rows = 3,
                           title = "Items",
                           onItemClick,
@@ -70,6 +69,7 @@ const ItemCardGrid = ({
 
     logger.info("ItemCardGrid render", {
         itemsCount: items.length,
+        firstItemDebug: items[0],
         columns,
         rows,
         pageSize,
@@ -77,95 +77,110 @@ const ItemCardGrid = ({
         totalPages,
     });
 
-    return (
-        <section className={styles.itemGridSection} aria-label={title}>
-
-            {isError ? (
+    const renderGridContent = () => {
+        if (isError) {
+            return (
                 <div className={styles.error}>
                     Error: {error?.message || "Failed to load items."}
                 </div>
-            ) : isPending ? (
-                <div className={styles.loading}>Loading items…</div>
-            ) : items.length === 0 ? (
-                <div className={styles.emptyState}>No items found.</div>
-            ) : (
-                <>
-                    <motion.div
-                        className={styles.itemGrid}
-                        style={{ gridTemplateColumns }}
-                        layout
-                        transition={{
-                            layout: { duration: 0.25, ease: [0.16, 1, 0.3, 1] },
-                        }}
-                    >
-                        <AnimatePresence>
-                            {items.map((item) => (
-                                <motion.div
-                                    key={item.itemId}
-                                    layout
-                                    initial={{ opacity: 0, y: 16, scale: 0.96 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -10, scale: 0.96 }}
-                                    transition={{
-                                        duration: 0.22,
-                                        ease: [0.16, 1, 0.3, 1],
-                                    }}
-                                >
-                                    <ItemInfoCard
-                                        item={{
-                                            itemId: item.itemId,
-                                            name: item.name,
-                                            conditionName: item.condition,
-                                            photoUrl: item.photoUrl,
-                                        }}
-                                        onClick={() => {
-                                            logger.info("Item card clicked", {
-                                                itemId: item.itemId,
-                                            });
-                                            if (onItemClick) {
-                                                onItemClick(item.itemId);
-                                            }
-                                        }}
-                                    />
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </motion.div>
+            );
+        }
 
-                    <footer className={styles.paginationFooter} aria-label="Item pagination">
-                        <div className={styles.paginationSummary}>
-                            {totalItems === 0 ? (
-                                "Showing 0 items"
-                            ) : (
-                                <>
-                                    Showing {itemStart}–{itemEnd} of {totalItems} items
-                                </>
-                            )}
-                        </div>
-                        <div className={styles.paginationControls}>
-                            <button
-                                type="button"
-                                className={styles.paginationButton}
-                                onClick={() => handlePrevious?.()}
-                                disabled={!hasPrevious}
+        if (isPending) {
+            return <div className={styles.loading}>Loading items…</div>;
+        }
+
+        if (!items || items.length === 0) {
+            return <div className={styles.emptyState}>No items found.</div>;
+        }
+
+        return (
+            <>
+                <motion.div
+                    className={styles.itemGrid}
+                    style={{ gridTemplateColumns }}
+                    layout
+                    transition={{
+                        layout: { duration: 0.25, ease: [0.16, 1, 0.3, 1] },
+                    }}
+                >
+                    <AnimatePresence>
+                        {items.map((item) => (
+                            <motion.div
+                                key={item.itemId}
+                                layout
+                                initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -10, scale: 0.96 }}
+                                transition={{
+                                    duration: 0.22,
+                                    ease: [0.16, 1, 0.3, 1],
+                                }}
                             >
-                                Previous
-                            </button>
-                            <span className={styles.paginationIndicator}>
-                                Page {page} of {totalPages}
-                            </span>
-                            <button
-                                type="button"
-                                className={styles.paginationButton}
-                                onClick={() => handleNext?.()}
-                                disabled={!hasNext}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </footer>
-                </>
-            )}
+                                <ItemInfoCard
+                                    item={{
+                                        itemId: item.itemId,
+                                        name: item.name,
+                                        conditionName: item.condition,
+                                        photoUrl: item.photoUrl,
+                                    }}
+                                    onClick={() => {
+                                        logger.info("Item card clicked", {
+                                            itemId: item.itemId,
+                                            rawItem: item,
+                                        });
+                                        if (onItemClick) {
+                                            onItemClick(item);
+                                        }
+                                    }}
+                                />
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                </motion.div>
+
+                <footer
+                    className={styles.paginationFooter}
+                    aria-label="Item pagination"
+                >
+                    <div className={styles.paginationSummary}>
+                        {totalItems === 0 ? (
+                            "Showing 0 items"
+                        ) : (
+                            <>
+                                Showing {itemStart}–{itemEnd} of {totalItems} items
+                            </>
+                        )}
+                    </div>
+                    <div className={styles.paginationControls}>
+                        <button
+                            type="button"
+                            className={styles.paginationButton}
+                            onClick={() => handlePrevious?.()}
+                            disabled={!hasPrevious}
+                        >
+                            Previous
+                        </button>
+                        <span className={styles.paginationIndicator}>
+                            Page {page} of {totalPages}
+                        </span>
+                        <button
+                            type="button"
+                            className={styles.paginationButton}
+                            onClick={() => handleNext?.()}
+                            disabled={!hasNext}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </footer>
+            </>
+        );
+    };
+
+    return (
+        <section className={styles.itemGridSection} aria-label={title}>
+            {renderGridContent()}
         </section>
     );
 };
@@ -173,7 +188,8 @@ const ItemCardGrid = ({
 ItemCardGrid.propTypes = {
     items: PropTypes.arrayOf(
         PropTypes.shape({
-            itemId: PropTypes.number.isRequired,
+            itemId: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
+                .isRequired,
             name: PropTypes.string.isRequired,
             conditionName: PropTypes.string,
             photoUrl: PropTypes.string,
@@ -198,6 +214,29 @@ ItemCardGrid.propTypes = {
     handlePrevious: PropTypes.func,
     pageSize: PropTypes.number,
     refetch: PropTypes.func,
+};
+
+ItemCardGrid.defaultProps = {
+    items: [],
+    columns: 6,
+    rows: 3,
+    title: "Items",
+    onItemClick: undefined,
+    isPending: false,
+    isError: false,
+    error: null,
+    page: 1,
+    setPage: undefined,
+    totalPages: 1,
+    totalItems: 0,
+    itemStart: 0,
+    itemEnd: 0,
+    hasPrevious: false,
+    hasNext: false,
+    handleNext: undefined,
+    handlePrevious: undefined,
+    pageSize: 0,
+    refetch: undefined,
 };
 
 export default ItemCardGrid;
