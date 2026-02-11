@@ -10,7 +10,7 @@
 
 import React from "react";
 import styles from "../styles/edititemmodal.module.css";
-import SaveStatus from "../../../components/save/SaveStatus";
+import SaveStatus from "../../save/SaveStatus";
 import { useEditItemModal } from "../hooks/useEditItemModal";
 import ItemConditionField from "./ItemConditionField";
 import ItemJobField from "./ItemJobField";
