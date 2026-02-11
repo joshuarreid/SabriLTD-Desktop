@@ -2,7 +2,15 @@ import React from "react";
 import styles from "../styles/viewitemmodal.module.css";
 import ItemConditionIcon from "../../itemconditionicon/ItemConditionIcon";
 import TagInfoPill from "../../taginfopill/TagInfoPill";
+import JobInfoCard from "../../jobinfocard/JobInfoCard";
 
+
+/**
+ * Logger for ViewItemModal.
+ *
+ * @constant
+ * @type {{info: Function, error: Function}}
+ */
 const logger = {
     info: (...args) => console.log("[ViewItemModal]", ...args),
     error: (...args) => console.error("[ViewItemModal]", ...args),
@@ -33,6 +41,33 @@ const formatDisplayDate = (value) => {
     return `${month} ${day} ${year} ${hours}:${minutes}${ampm}`;
 };
 
+/**
+ * ViewItemModal
+ * Read-only modal for displaying preview + full details of a selected item.
+ * UI-only: all data fetching and merging is handled by useViewItemModal.
+ *
+ * @component
+ * @param {object} props
+ * @param {boolean} props.open - Whether the modal is currently open.
+ * @param {function} props.onClose - Callback invoked when modal should close.
+ * @param {boolean} props.isDetailsPending
+ * @param {boolean} props.isDetailsError
+ * @param {any} props.detailsError
+ * @param {number|string|null} props.resolvedId
+ * @param {string} props.resolvedName
+ * @param {string} props.resolvedDescription
+ * @param {string|null} props.resolvedCondition
+ * @param {string} props.resolvedStorageDesc
+ * @param {string|null} props.resolvedUpdatedBy
+ * @param {string} props.resolvedDateAdded
+ * @param {string} props.resolvedDateUpdated
+ * @param {string[]} props.resolvedTags
+ * @param {Array} props.resolvedJobs
+ * @param {Array} props.resolvedComments
+ * @param {Array} props.resolvedPhotos
+ * @param {object|null} props.resolvedBuilding
+ * @returns {JSX.Element|null}
+ */
 const ViewItemModal = ({
                            open,
                            onClose,
@@ -60,18 +95,41 @@ const ViewItemModal = ({
             ? detailsError.message || "Failed to load item details."
             : null;
 
+    /**
+     * Handles clicking on the overlay to close the modal.
+     *
+     * @function handleOverlayClick
+     * @param {React.MouseEvent<HTMLDivElement>} e
+     * @returns {void}
+     */
     const handleOverlayClick = (e) => {
         e.stopPropagation();
         logger.info("Overlay clicked; closing ViewItemModal");
         onClose();
     };
 
+    /**
+     * Handles clicking the Close button.
+     *
+     * @function handleCloseClick
+     * @param {React.MouseEvent<HTMLButtonElement>} e
+     * @returns {void}
+     */
     const handleCloseClick = (e) => {
         e.stopPropagation();
         logger.info("Close button clicked; closing ViewItemModal");
         onClose();
     };
 
+    /**
+     * Builds a combined storage display string including building information.
+     *
+     * Example:
+     *   "Main Warehouse, 2nd Floor — Main Warehouse (100 Main St)"
+     *
+     * @constant
+     * @type {string}
+     */
     const storageWithBuilding = (() => {
         const base = resolvedStorageDesc || "";
         if (!resolvedBuilding) return base || "-";
@@ -94,6 +152,22 @@ const ViewItemModal = ({
     const formattedDateUpdated = resolvedDateUpdated
         ? formatDisplayDate(resolvedDateUpdated)
         : "";
+
+    /**
+     * handleJobClick
+     * - Placeholder click handler for JobInfoCard (no-op for now).
+     *
+     * @function handleJobClick
+     * @param {object} job
+     * @returns {void}
+     */
+    const handleJobClick = (job) => {
+        logger.info("JobInfoCard clicked from ViewItemModal", {
+            jobId: job?.jobId,
+            name: job?.name,
+        });
+        // Future: open job detail view, navigate, etc.
+    };
 
     return (
         <div
@@ -148,7 +222,9 @@ const ViewItemModal = ({
                         <span className={styles.fieldLabel}>Condition</span>
                         <div className={styles.fieldValue}>
                             {resolvedCondition ? (
-                                <ItemConditionIcon conditionName={resolvedCondition} />
+                                <ItemConditionIcon
+                                    conditionName={resolvedCondition}
+                                />
                             ) : (
                                 "-"
                             )}
@@ -207,28 +283,26 @@ const ViewItemModal = ({
                         </div>
                     </div>
 
-                    {/* Jobs */}
+                    {/* Jobs using JobInfoCard */}
                     {resolvedJobs.length > 0 && (
                         <div className={styles.fieldGroup}>
                             <span className={styles.fieldLabel}>Jobs</span>
-                            <div
-                                className={styles.fieldValue}
-                                data-multiline="true"
-                            >
-                                {resolvedJobs.map((job) => (
-                                    <div
-                                        key={job.jobId}
-                                        className={styles.subRow}
-                                    >
-                                        <strong>{job.name}</strong>
-                                        {job.client
-                                            ? ` — ${job.client}`
-                                            : null}
-                                        {job.status
-                                            ? ` [${job.status}]`
-                                            : null}
-                                    </div>
-                                ))}
+                            <div className={styles.fieldValue}>
+                                <div className={styles.jobsRow}>
+                                    {resolvedJobs.map((job) => (
+                                        <JobInfoCard
+                                            key={job.jobId}
+                                            job={{
+                                                jobId: job.jobId,
+                                                name: job.name,
+                                                companyName: job.client,
+                                                status: job.status,
+                                                description: job.description,
+                                            }}
+                                            onClick={handleJobClick}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
