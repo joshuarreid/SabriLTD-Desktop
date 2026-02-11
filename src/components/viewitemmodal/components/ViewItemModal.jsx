@@ -1,23 +1,33 @@
 /**
  * ViewItemModal
  * Read-only modal for displaying preview + full details of a selected item.
- * Opens instantly with preview data and hydrates remaining fields via
- * GET /api/items/{itemId}/details using the canonical itemKeys.details pattern.
+ * UI-only: all data fetching and merging is handled by useViewItemModal.
  *
  * @component
  * @param {object} props
- * @param {object|null} props.previewItem - Lightweight item from search/grid (may be null).
- * @param {number|string|null} props.itemId - Selected itemId to fetch details for.
  * @param {boolean} props.open - Whether the modal is currently open.
  * @param {function} props.onClose - Callback invoked when modal should close.
+ * @param {boolean} props.isDetailsPending
+ * @param {boolean} props.isDetailsError
+ * @param {any} props.detailsError
+ * @param {number|string|null} props.resolvedId
+ * @param {string} props.resolvedName
+ * @param {string} props.resolvedDescription
+ * @param {string|null} props.resolvedCondition
+ * @param {string} props.resolvedStorageDesc
+ * @param {string|null} props.resolvedUpdatedBy
+ * @param {string} props.resolvedDateAdded
+ * @param {string} props.resolvedDateUpdated
+ * @param {string[]} props.resolvedTags
+ * @param {Array} props.resolvedJobs
+ * @param {Array} props.resolvedComments
+ * @param {Array} props.resolvedPhotos
+ * @param {object|null} props.resolvedBuilding
  * @returns {JSX.Element|null}
  */
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
 import styles from "../styles/viewitemmodal.module.css";
-import itemKeys from "../../../api/item/ItemQueryKeys";
-import { getItemDetails } from "../../../api/item/item";
 
 /**
  * Logger for ViewItemModal.
@@ -30,8 +40,32 @@ const logger = {
     error: (...args) => console.error("[ViewItemModal]", ...args),
 };
 
-const ViewItemModal = ({ previewItem, itemId, open, onClose }) => {
-    if (!open || (!previewItem && !itemId)) return null;
+const ViewItemModal = ({
+                           open,
+                           onClose,
+                           isDetailsPending,
+                           isDetailsError,
+                           detailsError,
+                           resolvedId,
+                           resolvedName,
+                           resolvedDescription,
+                           resolvedCondition,
+                           resolvedStorageDesc,
+                           resolvedUpdatedBy,
+                           resolvedDateAdded,
+                           resolvedDateUpdated,
+                           resolvedTags,
+                           resolvedJobs,
+                           resolvedComments,
+                           resolvedPhotos,
+                           resolvedBuilding,
+                       }) => {
+    if (!open) return null;
+
+    const detailsErrorMessage =
+        isDetailsError && detailsError
+            ? detailsError.message || "Failed to load item details."
+            : null;
 
     /**
      * Handles clicking on the overlay to close the modal.
@@ -58,121 +92,6 @@ const ViewItemModal = ({ previewItem, itemId, open, onClose }) => {
         logger.info("Close button clicked; closing ViewItemModal");
         onClose();
     };
-
-    /**
-     * Item details query.
-     * Uses the same queryKey pattern and fetcher as the rest of the project:
-     *   - queryKey: itemKeys.details(itemId)
-     *   - queryFn:  () => getItemDetails(itemId)
-     */
-    const {
-        data: details,
-        isPending: isDetailsPending,
-        isError: isDetailsError,
-        error: detailsError,
-    } = useQuery({
-        queryKey: itemKeys.details(itemId),
-        enabled: Boolean(itemId),
-        queryFn: async () => {
-            logger.info("ViewItemModal fetching item details", { itemId });
-            return getItemDetails(itemId);
-        },
-        // Align with your desired cache lifetime for details
-        staleTime: 10 * 60 * 1000, // 10 minutes
-    });
-
-    // --- Merge preview + details to display ---
-
-    const resolvedId =
-        (details && details.itemId) ??
-        (previewItem && (previewItem.itemId ?? previewItem.id)) ??
-        null;
-
-    const resolvedName =
-        (details && details.name) || (previewItem && previewItem.name) || "";
-
-    const resolvedDescription =
-        (details && details.description) ||
-        (previewItem && previewItem.description) ||
-        "";
-
-    const resolvedCondition =
-        (details && details.condition && details.condition.name) ||
-        (previewItem &&
-            (previewItem.conditionName ||
-                previewItem.condition ||
-                (previewItem.condition && previewItem.condition.name))) ||
-        null;
-
-    const resolvedStorageDesc =
-        (details && details.storageDesc) ||
-        (previewItem && previewItem.storageDesc) ||
-        "";
-
-    const resolvedUpdatedBy =
-        (details &&
-            details.updatedBy &&
-            (details.updatedBy.name ||
-                details.updatedBy.email ||
-                details.updatedBy.userId)) ||
-        (previewItem && previewItem.updatedBy) ||
-        null;
-
-    const resolvedDateAdded =
-        (details && details.dateAdded) ||
-        (previewItem && previewItem.dateAdded) ||
-        "";
-
-    const resolvedDateUpdated =
-        (details && details.dateUpdated) ||
-        (previewItem && previewItem.dateUpdated) ||
-        "";
-
-    const resolvedTagsFromDetails =
-        details && Array.isArray(details.tags)
-            ? details.tags
-                .map((t) =>
-                    typeof t === "string"
-                        ? t
-                        : t && typeof t === "object"
-                            ? t.name
-                            : null,
-                )
-                .filter(Boolean)
-            : [];
-
-    const resolvedTagsFromPreview =
-        previewItem && Array.isArray(previewItem.tags)
-            ? previewItem.tags.map((t) =>
-                typeof t === "string"
-                    ? t
-                    : t && typeof t === "object"
-                        ? t.name
-                        : null,
-            )
-            : [];
-
-    const resolvedTags =
-        resolvedTagsFromDetails.length > 0
-            ? resolvedTagsFromDetails
-            : resolvedTagsFromPreview.filter(Boolean);
-
-    const resolvedJobs =
-        details && Array.isArray(details.jobs) ? details.jobs : [];
-
-    const resolvedComments =
-        details && Array.isArray(details.comments) ? details.comments : [];
-
-    const resolvedPhotos =
-        details && Array.isArray(details.photos) ? details.photos : [];
-
-    const resolvedBuilding =
-        details && details.buildingWithStorage ? details.buildingWithStorage : null;
-
-    const detailsErrorMessage =
-        isDetailsError && detailsError
-            ? detailsError.message || "Failed to load item details."
-            : null;
 
     return (
         <div
@@ -235,9 +154,7 @@ const ViewItemModal = ({ previewItem, itemId, open, onClose }) => {
 
                     {resolvedBuilding && (
                         <div className={styles.fieldGroup}>
-                            <span className={styles.fieldLabel}>
-                                Building
-                            </span>
+                            <span className={styles.fieldLabel}>Building</span>
                             <div className={styles.fieldValue}>
                                 {resolvedBuilding.name || "-"}
                                 {resolvedBuilding.address
