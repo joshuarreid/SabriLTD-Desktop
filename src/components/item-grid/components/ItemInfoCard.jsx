@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styles from "../styles/iteminfocard.module.css";
-import ItemConditionPill from "../../../components/itemconditionpill/ItemConditionPill";
-import ItemConditionDot from "../../../components/itemconditionicon/ItemConditionIcon";
+import ItemConditionPill from "../../itemconditionpill/ItemConditionPill";
+import ItemConditionDot from "../../itemconditionicon/ItemConditionIcon";
 
 /**
  * logger for ItemInfoCard.

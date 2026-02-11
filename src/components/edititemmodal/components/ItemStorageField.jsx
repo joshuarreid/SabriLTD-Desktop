@@ -10,11 +10,11 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useItemStorageField } from "../hooks/useItemStorageField";
-import { useNaturalSort } from "../../../components/alphabeticalsortfilter/useNaturalSort";
+import { useNaturalSort } from "../../alphabeticalsortfilter/useNaturalSort";
 import styles from "../styles/itemstoragefield.module.css";
-import StorageInfoCard from "../../../components/storageinfocards/StorageInfoCard";
-import BuildingInfoCard from "../../../components/storageinfocards/BuildingInfoCard";
-import EditStorageModal from "../../../components/editstoragemodal/EditStorageModal";
+import StorageInfoCard from "../../storageinfocards/StorageInfoCard";
+import BuildingInfoCard from "../../storageinfocards/BuildingInfoCard";
+import EditStorageModal from "../../editstoragemodal/EditStorageModal";
 
 /**
  * logger for ItemStorageField.

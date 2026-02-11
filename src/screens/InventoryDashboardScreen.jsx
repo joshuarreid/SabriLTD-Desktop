@@ -1,6 +1,6 @@
 import React from "react";
-import ItemCardGrid from "../features/item-grid/components/ItemCardGrid";
-import useItemCardGrid from "../features/item-grid/hooks/useItemCardGrid";
+import ItemCardGrid from "../components/item-grid/components/ItemCardGrid";
+import useItemCardGrid from "../components/item-grid/hooks/useItemCardGrid";
 import WideSearchBar from "../components/searchbar/WideSearchBar";
 
 
