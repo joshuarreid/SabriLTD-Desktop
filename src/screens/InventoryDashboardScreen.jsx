@@ -1,9 +1,10 @@
 import React from "react";
 import ItemCardGrid from "../components/item-grid/components/ItemCardGrid";
-import useItemCardGrid from "../components/item-grid/hooks/useItemCardGrid";
 import WideSearchBar from "../components/searchbar/WideSearchBar";
 import { useViewItemModal } from "../components/viewitemmodal/hooks/useViewItemModal";
 import ViewItemModal from "../components/viewitemmodal/components/ViewItemModal";
+import useInventoryDashboardScreen from "../components/item-grid/hooks/useInventoryDashboardScreen";
+
 
 /**
  * logger for InventoryDashboardScreen.
@@ -35,7 +36,7 @@ const InventoryDashboardScreen = () => {
         page,
         setPage,
         pageSize,
-        setPageSize,
+        setPageSize, // currently unused but exposed for future controls
         totalPages,
         totalItems,
         itemStart,
@@ -45,28 +46,17 @@ const InventoryDashboardScreen = () => {
         handleNext,
         handlePrevious,
         refetch,
-    } = useItemCardGrid({
-        fixedFilters: {},
-        initialPage: 1,
-        pageSize: 25,
-        sortField: "name",
-        sortOrder: "asc",
-    });
+        search,
+        handleSearchChange,
+    } = useInventoryDashboardScreen();
 
-    const [search, setSearch] = React.useState("");
-
-    /**
-     * Handles changes to the search input.
-     *
-     * @function handleSearchChange
-     * @param {React.ChangeEvent<HTMLInputElement>} e
-     * @returns {void}
-     */
-    const handleSearchChange = (e) => {
-        setSearch(e.target.value);
-    };
-
-    const { isOpen, selectedItem, openWithItem, close } = useViewItemModal();
+    const {
+        isOpen,
+        previewItem,
+        selectedItemId,
+        openWithItem,
+        close,
+    } = useViewItemModal();
 
     /**
      * handleItemClick
@@ -125,7 +115,12 @@ const InventoryDashboardScreen = () => {
                 refetch={refetch}
             />
 
-            <ViewItemModal item={selectedItem} open={isOpen} onClose={close} />
+            <ViewItemModal
+                previewItem={previewItem}
+                itemId={selectedItemId}
+                open={isOpen}
+                onClose={close}
+            />
         </div>
     );
 };

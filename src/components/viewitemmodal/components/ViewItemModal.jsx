@@ -1,5 +1,23 @@
+/**
+ * ViewItemModal
+ * Read-only modal for displaying preview + full details of a selected item.
+ * Opens instantly with preview data and hydrates remaining fields via
+ * GET /api/items/{itemId}/details using the canonical itemKeys.details pattern.
+ *
+ * @component
+ * @param {object} props
+ * @param {object|null} props.previewItem - Lightweight item from search/grid (may be null).
+ * @param {number|string|null} props.itemId - Selected itemId to fetch details for.
+ * @param {boolean} props.open - Whether the modal is currently open.
+ * @param {function} props.onClose - Callback invoked when modal should close.
+ * @returns {JSX.Element|null}
+ */
+
 import React from "react";
+import { useQuery } from "@tanstack/react-query";
 import styles from "../styles/viewitemmodal.module.css";
+import itemKeys from "../../../api/item/ItemQueryKeys";
+import { getItemDetails } from "../../../api/item/item";
 
 /**
  * Logger for ViewItemModal.
@@ -12,19 +30,8 @@ const logger = {
     error: (...args) => console.error("[ViewItemModal]", ...args),
 };
 
-/**
- * ViewItemModal
- * Read-only modal for displaying details of a selected inventory item.
- *
- * @component
- * @param {object} props
- * @param {object|null} props.item - The item to display.
- * @param {boolean} props.open - Whether the modal is currently open.
- * @param {function} props.onClose - Callback invoked when modal should close.
- * @returns {JSX.Element|null}
- */
-const ViewItemModal = ({ item, open, onClose }) => {
-    if (!open || !item) return null;
+const ViewItemModal = ({ previewItem, itemId, open, onClose }) => {
+    if (!open || (!previewItem && !itemId)) return null;
 
     /**
      * Handles clicking on the overlay to close the modal.
@@ -52,36 +59,120 @@ const ViewItemModal = ({ item, open, onClose }) => {
         onClose();
     };
 
+    /**
+     * Item details query.
+     * Uses the same queryKey pattern and fetcher as the rest of the project:
+     *   - queryKey: itemKeys.details(itemId)
+     *   - queryFn:  () => getItemDetails(itemId)
+     */
     const {
-        itemId,
-        id,
-        name,
-        description,
-        condition,
-        conditionName,
-        storageDesc,
-        updatedBy,
-        dateAdded,
-        dateUpdated,
-        tags,
-    } = item;
+        data: details,
+        isPending: isDetailsPending,
+        isError: isDetailsError,
+        error: detailsError,
+    } = useQuery({
+        queryKey: itemKeys.details(itemId),
+        enabled: Boolean(itemId),
+        queryFn: async () => {
+            logger.info("ViewItemModal fetching item details", { itemId });
+            return getItemDetails(itemId);
+        },
+        // Align with your desired cache lifetime for details
+        staleTime: 10 * 60 * 1000, // 10 minutes
+    });
 
-    const resolvedId = itemId ?? id ?? null;
+    // --- Merge preview + details to display ---
 
-    const resolvedCondition =
-        conditionName ||
-        (condition && (condition.name || condition)) ||
+    const resolvedId =
+        (details && details.itemId) ??
+        (previewItem && (previewItem.itemId ?? previewItem.id)) ??
         null;
 
-    const resolvedTags =
-        tags && Array.isArray(tags)
-            ? tags.map((t) => (typeof t === "string" ? t : t.name)).filter(Boolean)
-            : [];
+    const resolvedName =
+        (details && details.name) || (previewItem && previewItem.name) || "";
+
+    const resolvedDescription =
+        (details && details.description) ||
+        (previewItem && previewItem.description) ||
+        "";
+
+    const resolvedCondition =
+        (details && details.condition && details.condition.name) ||
+        (previewItem &&
+            (previewItem.conditionName ||
+                previewItem.condition ||
+                (previewItem.condition && previewItem.condition.name))) ||
+        null;
+
+    const resolvedStorageDesc =
+        (details && details.storageDesc) ||
+        (previewItem && previewItem.storageDesc) ||
+        "";
 
     const resolvedUpdatedBy =
-        updatedBy && typeof updatedBy === "object"
-            ? updatedBy.name || updatedBy.email || updatedBy.userId
-            : updatedBy || null;
+        (details &&
+            details.updatedBy &&
+            (details.updatedBy.name ||
+                details.updatedBy.email ||
+                details.updatedBy.userId)) ||
+        (previewItem && previewItem.updatedBy) ||
+        null;
+
+    const resolvedDateAdded =
+        (details && details.dateAdded) ||
+        (previewItem && previewItem.dateAdded) ||
+        "";
+
+    const resolvedDateUpdated =
+        (details && details.dateUpdated) ||
+        (previewItem && previewItem.dateUpdated) ||
+        "";
+
+    const resolvedTagsFromDetails =
+        details && Array.isArray(details.tags)
+            ? details.tags
+                .map((t) =>
+                    typeof t === "string"
+                        ? t
+                        : t && typeof t === "object"
+                            ? t.name
+                            : null,
+                )
+                .filter(Boolean)
+            : [];
+
+    const resolvedTagsFromPreview =
+        previewItem && Array.isArray(previewItem.tags)
+            ? previewItem.tags.map((t) =>
+                typeof t === "string"
+                    ? t
+                    : t && typeof t === "object"
+                        ? t.name
+                        : null,
+            )
+            : [];
+
+    const resolvedTags =
+        resolvedTagsFromDetails.length > 0
+            ? resolvedTagsFromDetails
+            : resolvedTagsFromPreview.filter(Boolean);
+
+    const resolvedJobs =
+        details && Array.isArray(details.jobs) ? details.jobs : [];
+
+    const resolvedComments =
+        details && Array.isArray(details.comments) ? details.comments : [];
+
+    const resolvedPhotos =
+        details && Array.isArray(details.photos) ? details.photos : [];
+
+    const resolvedBuilding =
+        details && details.buildingWithStorage ? details.buildingWithStorage : null;
+
+    const detailsErrorMessage =
+        isDetailsError && detailsError
+            ? detailsError.message || "Failed to load item details."
+            : null;
 
     return (
         <div
@@ -100,7 +191,7 @@ const ViewItemModal = ({ item, open, onClose }) => {
                 aria-labelledby="view-item-modal-title"
             >
                 <h2 className={styles.modalTitle} id="view-item-modal-title">
-                    {name || "Item Details"}
+                    {resolvedName || "Item Details"}
                 </h2>
 
                 <div className={styles.itemDetails}>
@@ -114,7 +205,7 @@ const ViewItemModal = ({ item, open, onClose }) => {
                     <div className={styles.fieldGroup}>
                         <span className={styles.fieldLabel}>Name</span>
                         <div className={styles.fieldValue}>
-                            {name || "-"}
+                            {resolvedName || "-"}
                         </div>
                     </div>
 
@@ -124,7 +215,7 @@ const ViewItemModal = ({ item, open, onClose }) => {
                             className={styles.fieldValue}
                             data-multiline="true"
                         >
-                            {description || "-"}
+                            {resolvedDescription || "-"}
                         </div>
                     </div>
 
@@ -138,9 +229,23 @@ const ViewItemModal = ({ item, open, onClose }) => {
                     <div className={styles.fieldGroup}>
                         <span className={styles.fieldLabel}>Storage</span>
                         <div className={styles.fieldValue}>
-                            {storageDesc || "-"}
+                            {resolvedStorageDesc || "-"}
                         </div>
                     </div>
+
+                    {resolvedBuilding && (
+                        <div className={styles.fieldGroup}>
+                            <span className={styles.fieldLabel}>
+                                Building
+                            </span>
+                            <div className={styles.fieldValue}>
+                                {resolvedBuilding.name || "-"}
+                                {resolvedBuilding.address
+                                    ? ` — ${resolvedBuilding.address}`
+                                    : ""}
+                            </div>
+                        </div>
+                    )}
 
                     {resolvedTags.length > 0 && (
                         <div className={styles.fieldGroup}>
@@ -160,17 +265,94 @@ const ViewItemModal = ({ item, open, onClose }) => {
 
                     <div className={styles.fieldInlineRow}>
                         <div className={styles.fieldInline}>
-                            <span className={styles.fieldLabel}>Date Added</span>
+                            <span className={styles.fieldLabel}>
+                                Date Added
+                            </span>
                             <div className={styles.fieldValue}>
-                                {dateAdded || "-"}
+                                {resolvedDateAdded || "-"}
                             </div>
                         </div>
                         <div className={styles.fieldInline}>
-                            <span className={styles.fieldLabel}>Last Updated</span>
+                            <span className={styles.fieldLabel}>
+                                Last Updated
+                            </span>
                             <div className={styles.fieldValue}>
-                                {dateUpdated || "-"}
+                                {resolvedDateUpdated || "-"}
                             </div>
                         </div>
+                    </div>
+
+                    {resolvedJobs.length > 0 && (
+                        <div className={styles.fieldGroup}>
+                            <span className={styles.fieldLabel}>Jobs</span>
+                            <div
+                                className={styles.fieldValue}
+                                data-multiline="true"
+                            >
+                                {resolvedJobs.map((job) => (
+                                    <div
+                                        key={job.jobId}
+                                        className={styles.subRow}
+                                    >
+                                        <strong>{job.name}</strong>
+                                        {job.client
+                                            ? ` — ${job.client}`
+                                            : null}
+                                        {job.status
+                                            ? ` [${job.status}]`
+                                            : null}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {resolvedComments.length > 0 && (
+                        <div className={styles.fieldGroup}>
+                            <span className={styles.fieldLabel}>Comments</span>
+                            <div
+                                className={styles.fieldValue}
+                                data-multiline="true"
+                            >
+                                {resolvedComments.map((c) => (
+                                    <div
+                                        key={c.id}
+                                        className={styles.subRow}
+                                    >
+                                        {c.commentText}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {resolvedPhotos.length > 0 && (
+                        <div className={styles.fieldGroup}>
+                            <span className={styles.fieldLabel}>Photos</span>
+                            <div className={styles.photosRow}>
+                                {resolvedPhotos.map((p) => (
+                                    <img
+                                        key={p.photoId}
+                                        src={p.url}
+                                        alt={resolvedName || "Item photo"}
+                                        className={styles.photoThumb}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className={styles.metaRow}>
+                        {isDetailsPending && (
+                            <span className={styles.detailsLoading}>
+                                Loading full details…
+                            </span>
+                        )}
+                        {detailsErrorMessage && (
+                            <span className={styles.detailsError}>
+                                {detailsErrorMessage}
+                            </span>
+                        )}
                     </div>
                 </div>
 
