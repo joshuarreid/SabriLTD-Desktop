@@ -1,15 +1,3 @@
-/**
- * ViewItemModal
- * Read-only modal for displaying details of a selected inventory item.
- *
- * @component
- * @param {object} props
- * @param {object|null} props.item - The item to display.
- * @param {boolean} props.open - Whether the modal is currently open.
- * @param {function} props.onClose - Callback invoked when modal should close.
- * @returns {JSX.Element|null}
- */
-
 import React from "react";
 import styles from "../styles/viewitemmodal.module.css";
 
@@ -24,6 +12,17 @@ const logger = {
     error: (...args) => console.error("[ViewItemModal]", ...args),
 };
 
+/**
+ * ViewItemModal
+ * Read-only modal for displaying details of a selected inventory item.
+ *
+ * @component
+ * @param {object} props
+ * @param {object|null} props.item - The item to display.
+ * @param {boolean} props.open - Whether the modal is currently open.
+ * @param {function} props.onClose - Callback invoked when modal should close.
+ * @returns {JSX.Element|null}
+ */
 const ViewItemModal = ({ item, open, onClose }) => {
     if (!open || !item) return null;
 
@@ -76,9 +75,7 @@ const ViewItemModal = ({ item, open, onClose }) => {
 
     const resolvedTags =
         tags && Array.isArray(tags)
-            ? tags
-                .map((t) => (typeof t === "string" ? t : t.name))
-                .filter(Boolean)
+            ? tags.map((t) => (typeof t === "string" ? t : t.name)).filter(Boolean)
             : [];
 
     const resolvedUpdatedBy =
@@ -107,7 +104,6 @@ const ViewItemModal = ({ item, open, onClose }) => {
                 </h2>
 
                 <div className={styles.itemDetails}>
-                    {/* ID field */}
                     <div className={styles.fieldGroup}>
                         <span className={styles.fieldLabel}>ID</span>
                         <div className={styles.fieldValue}>
@@ -164,17 +160,13 @@ const ViewItemModal = ({ item, open, onClose }) => {
 
                     <div className={styles.fieldInlineRow}>
                         <div className={styles.fieldInline}>
-                            <span className={styles.fieldLabel}>
-                                Date Added
-                            </span>
+                            <span className={styles.fieldLabel}>Date Added</span>
                             <div className={styles.fieldValue}>
                                 {dateAdded || "-"}
                             </div>
                         </div>
                         <div className={styles.fieldInline}>
-                            <span className={styles.fieldLabel}>
-                                Last Updated
-                            </span>
+                            <span className={styles.fieldLabel}>Last Updated</span>
                             <div className={styles.fieldValue}>
                                 {dateUpdated || "-"}
                             </div>

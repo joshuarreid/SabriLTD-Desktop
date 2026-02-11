@@ -2,9 +2,8 @@ import React from "react";
 import ItemCardGrid from "../components/item-grid/components/ItemCardGrid";
 import useItemCardGrid from "../components/item-grid/hooks/useItemCardGrid";
 import WideSearchBar from "../components/searchbar/WideSearchBar";
-import {useViewItemModal} from "../components/viewitemmodal/hooks/useViewItemModal";
+import { useViewItemModal } from "../components/viewitemmodal/hooks/useViewItemModal";
 import ViewItemModal from "../components/viewitemmodal/components/ViewItemModal";
-
 
 /**
  * logger for InventoryDashboardScreen.
@@ -19,7 +18,8 @@ const logger = {
 
 /**
  * InventoryDashboardScreen
- * - Home page showing a 5x5 grid of inventory items (no default filters).
+ * Home page showing a 5x5 grid of inventory items (no default filters) and
+ * a read-only modal for viewing item details on card click.
  *
  * @component
  * @returns {JSX.Element}
@@ -54,28 +54,41 @@ const InventoryDashboardScreen = () => {
     });
 
     const [search, setSearch] = React.useState("");
-    const handleSearchChange = (e) => setSearch(e.target.value);
+
+    /**
+     * Handles changes to the search input.
+     *
+     * @function handleSearchChange
+     * @param {React.ChangeEvent<HTMLInputElement>} e
+     * @returns {void}
+     */
+    const handleSearchChange = (e) => {
+        setSearch(e.target.value);
+    };
 
     const { isOpen, selectedItem, openWithItem, close } = useViewItemModal();
 
     /**
-     * Handles click on an item card in the grid.
-     * Attempts to find the full item object from the items array,
-     * then opens the ViewItemModal with that item.
+     * handleItemClick
+     * Called when an ItemInfoCard is clicked.
+     * Receives the full normalized item object from ItemCardGrid.
      *
      * @function handleItemClick
-     * @param {number|string} itemId
+     * @param {object} item
+     * @returns {void}
      */
-    const handleItemClick = (itemId) => {
-        logger.info("Item clicked from grid", { itemId });
-        const item = items?.find(
-            (it) => it.itemId === itemId || it.id === itemId
-        );
-
+    const handleItemClick = (item) => {
         if (!item) {
-            logger.error("Item not found in current page for modal", { itemId });
+            logger.error(
+                "handleItemClick called without an item in InventoryDashboardScreen",
+            );
             return;
         }
+
+        logger.info("Item clicked from grid (object payload)", {
+            itemId: item.itemId,
+            name: item.name,
+        });
 
         openWithItem(item);
     };
@@ -101,6 +114,7 @@ const InventoryDashboardScreen = () => {
                 page={page}
                 setPage={setPage}
                 totalPages={totalPages}
+                totalItems={totalItems}
                 hasPrevious={hasPrevious}
                 hasNext={hasNext}
                 itemStart={itemStart}
