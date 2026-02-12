@@ -2,12 +2,11 @@ import React from "react";
 import styles from "../styles/viewitemmodal.module.css";
 import ItemConditionIcon from "../../itemconditionicon/ItemConditionIcon";
 import TagInfoPill from "../../taginfopill/TagInfoPill";
-import JobInfoCard from "../../jobinfocard/JobInfoCard";
 import PhotoPreview from "./PhotoPreview";
+import HorizontalJobBox from "./HorizontalJobBox";
 
 /**
  * Logger for ViewItemModal.
- *
  * @constant
  * @type {{info: Function, error: Function}}
  */
@@ -19,7 +18,6 @@ const logger = {
 /**
  * formatDisplayDate
  * Formats an ISO date/string into "Nov 16 2025 2:30pm" (local time).
- *
  * @param {string} value
  * @returns {string}
  */
@@ -77,7 +75,6 @@ const ViewItemModal = ({
 
     /**
      * Handles clicking on the overlay to close the modal.
-     *
      * @function handleOverlayClick
      * @param {React.MouseEvent<HTMLDivElement>} e
      * @returns {void}
@@ -90,7 +87,6 @@ const ViewItemModal = ({
 
     /**
      * Handles clicking the Close button.
-     *
      * @function handleCloseClick
      * @param {React.MouseEvent<HTMLButtonElement>} e
      * @returns {void}
@@ -103,23 +99,18 @@ const ViewItemModal = ({
 
     /**
      * Builds a combined storage display string including building information.
-     *
      * @constant
      * @type {string}
      */
     const storageWithBuilding = (() => {
         const base = resolvedStorageDesc || "";
         if (!resolvedBuilding) return base || "-";
-
         const buildingName = resolvedBuilding.name || "";
         const buildingAddress = resolvedBuilding.address || "";
-
         const buildingPart = buildingAddress
             ? `${buildingName} (${buildingAddress})`
             : buildingName;
-
         if (!base) return buildingPart || "-";
-
         return `${base} — ${buildingPart}`;
     })();
 
@@ -129,22 +120,6 @@ const ViewItemModal = ({
     const formattedDateUpdated = resolvedDateUpdated
         ? formatDisplayDate(resolvedDateUpdated)
         : "";
-
-    /**
-     * handleJobClick
-     * - Placeholder click handler for JobInfoCard (no-op for now).
-     *
-     * @function handleJobClick
-     * @param {object} job
-     * @returns {void}
-     */
-    const handleJobClick = (job) => {
-        logger.info("JobInfoCard clicked from ViewItemModal", {
-            jobId: job?.jobId,
-            name: job?.name,
-        });
-        // Future: open job detail view, navigate, etc.
-    };
 
     return (
         <div
@@ -257,30 +232,15 @@ const ViewItemModal = ({
                     </div>
                 </div>
 
-                {/* Bottom section: jobs, comments, meta */}
+                {/* Jobs field (horizontal box, paginated) */}
+                {resolvedJobs.length > 0 && (
+                    <div className={styles.fieldGroup}>
+                        <HorizontalJobBox jobs={resolvedJobs} />
+                    </div>
+                )}
+
+                {/* Comments and meta */}
                 <div className={styles.itemDetails}>
-                    {resolvedJobs.length > 0 && (
-                        <div className={styles.fieldGroup}>
-                            <span className={styles.fieldLabel}>Jobs</span>
-                            <div className={styles.fieldValue}>
-                                <div className={styles.jobsRow}>
-                                    {resolvedJobs.map((job) => (
-                                        <JobInfoCard
-                                            key={job.jobId}
-                                            job={{
-                                                jobId: job.jobId,
-                                                name: job.name,
-                                                companyName: job.client,
-                                                status: job.status,
-                                                description: job.description,
-                                            }}
-                                            onClick={handleJobClick}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {resolvedComments.length > 0 && (
                         <div className={styles.fieldGroup}>
