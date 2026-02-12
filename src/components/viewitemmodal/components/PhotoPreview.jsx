@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import styles from "../styles/photopreview.module.css";
 import usePhotoPreview from "../hooks/usePhotoPreview";
 
 /**
  * FullPhotoModal
- * Modal for full-photo preview (no visible controls). Arrow keys go next/prev,
+ * Modal for full-photo preview (no visible controls or animations). Arrow keys go next/prev,
  * mouse wheel/touch to zoom, drag to pan. Close by clicking outside.
  *
  * @component
@@ -141,7 +142,7 @@ const FullPhotoModal = ({
 /**
  * PhotoPreview
  * Main preview card with thumbnail strip.
- * Arrow keys to navigate. Clicking preview opens full modal with zoom/pan/navigation (no visible controls).
+ * Arrow keys to navigate. Clicking preview opens full modal with zoom/pan/navigation (no visible controls or modal animations).
  *
  * @component
  * @param {Array<{photoId:number,url:string}>} photos
@@ -183,9 +184,15 @@ const PhotoPreview = ({ photos, itemName }) => {
 
     if (!hasPhotos) {
         return (
-            <div className={styles.previewCard}>
+            <motion.div
+                className={styles.previewCard}
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 200, damping: 22 }}
+            >
                 <div className={styles.mainPhotoPlaceholder}>No photo</div>
-            </div>
+            </motion.div>
         );
     }
 
@@ -195,8 +202,14 @@ const PhotoPreview = ({ photos, itemName }) => {
 
     return (
         <div className={styles.galleryRoot}>
-            <div className={styles.previewCard}>
-                <img
+            <motion.div
+                className={styles.previewCard}
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 220, damping: 18 }}
+            >
+                <motion.img
                     src={currPhoto.url}
                     alt={altText}
                     className={styles.previewImg}
@@ -204,6 +217,10 @@ const PhotoPreview = ({ photos, itemName }) => {
                     style={{ cursor: "pointer" }}
                     tabIndex={0}
                     aria-label="View full photo"
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 30, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 230, damping: 23 }}
                 />
                 <FullPhotoModal
                     open={modalOpen}
@@ -212,25 +229,36 @@ const PhotoPreview = ({ photos, itemName }) => {
                     onClose={() => setModalOpen(false)}
                     onNavigate={handleModalNavigate}
                 />
-            </div>
+            </motion.div>
             {photos.length > 1 && (
-                <div className={styles.thumbStrip}>
+                <motion.div
+                    className={styles.thumbStrip}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 16 }}
+                    transition={{ type: "spring", stiffness: 190, damping: 24 }}
+                >
                     {photos.map((p, idx) => (
-                        <button
+                        <motion.button
                             key={p.photoId || idx}
                             className={`${styles.thumbBtn} ${idx === current ? styles.thumbActive : ""}`}
                             onClick={() => setCurrent(idx)}
                             aria-label={`Select photo ${idx + 1}`}
                             tabIndex={0}
+                            whileHover={{ scale: 1.08 }}
+                            whileTap={{ scale: 0.93 }}
                         >
-                            <img
+                            <motion.img
                                 src={p.url}
                                 alt=""
                                 className={styles.thumbImg}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.23 }}
                             />
-                        </button>
+                        </motion.button>
                     ))}
-                </div>
+                </motion.div>
             )}
         </div>
     );
