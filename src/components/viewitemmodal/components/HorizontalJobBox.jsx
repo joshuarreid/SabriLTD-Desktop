@@ -17,7 +17,7 @@ const logger = {
  * HorizontalJobBox
  * Horizontally scrollable row of JobInfoCard icons with round left/right arrows
  * on the far sides (vertically centered with icons), no page counter, no section label.
- * Spacing/layout matches Figma and screenshot, with section border/background.
+ * Spacing/layout matches visual guidance with reduced button size and padding.
  *
  * @component
  * @param {object} props
