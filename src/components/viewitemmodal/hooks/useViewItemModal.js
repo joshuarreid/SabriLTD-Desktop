@@ -1,8 +1,8 @@
 /**
  * useViewItemModal
- * Manages open/close state, selected preview item, and full item details
- * for the ViewItemModal. Owns all business logic, data fetching, and field
- * resolution so that ViewItemModal.jsx can remain UI-only.
+ * Manages open/close state and the business logic for the item details modal.
+ * Handles preview item, fetches and resolves full details (including photos),
+ * and returns display fields for the ViewItemModal UI.
  *
  * @function useViewItemModal
  * @param {object|null} [initialItem=null] - Optional initial preview item.
@@ -49,35 +49,28 @@ const logger = {
 };
 
 /**
- * Custom hook for controlling the item view modal and loading details.
- *
- * - Stores a lightweight "preview" item from search results.
- * - Tracks the selected itemId for fetching full details.
- * - Fetches item details via React Query using itemKeys.details(itemId)
- *   and getItemDetails(itemId), so the cache is shared across the app.
+ * Custom hook for controlling the item view modal and data resolution.
+ * Handles all business/data logic, delegates UI rendering to the modal component.
  *
  * @param {object|null} initialItem - Optional initial preview item.
- * @returns {object} Modal state, details, resolved fields, and handlers.
+ * @returns {object}
  */
 export const useViewItemModal = (initialItem = null) => {
     /**
-     * Whether the view item modal is currently open.
-     *
      * @type {[boolean, Function]}
+     * Whether the view item modal is currently open.
      */
     const [isOpen, setIsOpen] = useState(Boolean(initialItem));
 
     /**
-     * Lightweight preview item from the grid (Meilisearch hit).
-     *
      * @type {[object|null, Function]}
+     * The preview item provided as the initial selection (e.g., from grid/search).
      */
     const [previewItem, setPreviewItem] = useState(initialItem);
 
     /**
-     * Selected itemId used to query the details API.
-     *
      * @type {[number|string|null, Function]}
+     * The selected itemId for which to fetch detail data.
      */
     const [selectedItemId, setSelectedItemId] = useState(
         initialItem ? initialItem.itemId ?? initialItem.id ?? null : null,
@@ -85,9 +78,8 @@ export const useViewItemModal = (initialItem = null) => {
 
     /**
      * Opens the modal with a preview item and sets the itemId to fetch details.
-     *
      * @function openWithItem
-     * @param {object} item - Lightweight item object from ItemCardGrid.
+     * @param {object} item - Normalized preview item from the UI grid.
      * @returns {void}
      */
     const openWithItem = useCallback((item) => {
@@ -112,8 +104,7 @@ export const useViewItemModal = (initialItem = null) => {
     }, []);
 
     /**
-     * Closes the modal and clears preview/detailed selection.
-     *
+     * Closes the modal and clears selection.
      * @function close
      * @returns {void}
      */
@@ -126,12 +117,7 @@ export const useViewItemModal = (initialItem = null) => {
 
     /**
      * Item details query.
-     * Uses the same queryKey pattern and fetcher as the rest of the project:
-     *   - queryKey: itemKeys.details(selectedItemId)
-     *   - queryFn:  () => getItemDetails(selectedItemId)
-     *
-     * Because other parts of the app can also use itemKeys.details(id),
-     * this ensures the cache is shared correctly.
+     * Uses canonical query key for React Query cache alignment.
      */
     const {
         data: details,
@@ -150,41 +136,28 @@ export const useViewItemModal = (initialItem = null) => {
         staleTime: 10 * 60 * 1000, // 10 minutes
     });
 
-    // --- Merge preview + details to display (transferred from ViewItemModal.jsx) ---
-
     /**
-     * Resolved ID, prefers details.itemId then preview itemId/id.
-     *
-     * @type {number|string|null}
+     * Business logic: resolve fields for the UI.
+     * Prefer details (if loaded), otherwise fall back to preview item data.
      */
+
+    /** @type {number|string|null} */
     const resolvedId =
         (details && details.itemId) ??
         (previewItem && (previewItem.itemId ?? previewItem.id)) ??
         null;
 
-    /**
-     * Resolved name, prefers details.name then preview name.
-     *
-     * @type {string}
-     */
+    /** @type {string} */
     const resolvedName =
         (details && details.name) || (previewItem && previewItem.name) || "";
 
-    /**
-     * Resolved description, prefers details.description then preview description.
-     *
-     * @type {string}
-     */
+    /** @type {string} */
     const resolvedDescription =
         (details && details.description) ||
         (previewItem && previewItem.description) ||
         "";
 
-    /**
-     * Resolved condition display name.
-     *
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     const resolvedCondition =
         (details && details.condition && details.condition.name) ||
         (previewItem &&
@@ -193,21 +166,13 @@ export const useViewItemModal = (initialItem = null) => {
                 (previewItem.condition && previewItem.condition.name))) ||
         null;
 
-    /**
-     * Resolved storage description.
-     *
-     * @type {string}
-     */
+    /** @type {string} */
     const resolvedStorageDesc =
         (details && details.storageDesc) ||
         (previewItem && previewItem.storageDesc) ||
         "";
 
-    /**
-     * Resolved "updatedBy" display (name/email/userId or raw preview value).
-     *
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     const resolvedUpdatedBy =
         (details &&
             details.updatedBy &&
@@ -217,25 +182,19 @@ export const useViewItemModal = (initialItem = null) => {
         (previewItem && previewItem.updatedBy) ||
         null;
 
-    /**
-     * Resolved dateAdded and dateUpdated.
-     *
-     * @type {string}
-     */
+    /** @type {string} */
     const resolvedDateAdded =
         (details && details.dateAdded) ||
         (previewItem && previewItem.dateAdded) ||
         "";
+
+    /** @type {string} */
     const resolvedDateUpdated =
         (details && details.dateUpdated) ||
         (previewItem && previewItem.dateUpdated) ||
         "";
 
-    /**
-     * Resolved tags from details (preferred) or preview.
-     *
-     * @type {string[]}
-     */
+    /** @type {string[]} */
     const resolvedTagsFromDetails =
         details && Array.isArray(details.tags)
             ? details.tags
@@ -265,19 +224,29 @@ export const useViewItemModal = (initialItem = null) => {
             ? resolvedTagsFromDetails
             : resolvedTagsFromPreview.filter(Boolean);
 
-    /**
-     * Resolved jobs, comments, photos, and building.
-     *
-     * @type {Array}
-     */
+    /** @type {Array} */
     const resolvedJobs =
         details && Array.isArray(details.jobs) ? details.jobs : [];
+
+    /** @type {Array} */
     const resolvedComments =
         details && Array.isArray(details.comments) ? details.comments : [];
+
+    /** @type {Array} */
     const resolvedPhotos =
         details && Array.isArray(details.photos) ? details.photos : [];
+
+    /** @type {object|null} */
     const resolvedBuilding =
         details && details.buildingWithStorage ? details.buildingWithStorage : null;
+
+    logger.info("Modal state resolved", {
+        isOpen,
+        previewItem,
+        selectedItemId,
+        resolvedId,
+        resolvedName,
+    });
 
     return {
         isOpen,

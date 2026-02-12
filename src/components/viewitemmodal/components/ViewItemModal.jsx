@@ -3,6 +3,7 @@ import styles from "../styles/viewitemmodal.module.css";
 import ItemConditionIcon from "../../itemconditionicon/ItemConditionIcon";
 import TagInfoPill from "../../taginfopill/TagInfoPill";
 import JobInfoCard from "../../jobinfocard/JobInfoCard";
+import PhotoPreview from "./PhotoPreview";
 
 /**
  * Logger for ViewItemModal.
@@ -145,11 +146,6 @@ const ViewItemModal = ({
         // Future: open job detail view, navigate, etc.
     };
 
-    const mainPhoto =
-        Array.isArray(resolvedPhotos) && resolvedPhotos.length > 0
-            ? resolvedPhotos[0]
-            : null;
-
     return (
         <div
             className={styles.modalOverlay}
@@ -173,23 +169,10 @@ const ViewItemModal = ({
                 {/* Top section: 2/3 photos, 1/3 fields (commerce-style layout) */}
                 <div className={styles.topRow}>
                     {/* Left: main photo area (2/3) */}
-                    <div className={styles.leftColumn}>
-                        {mainPhoto ? (
-                            <img
-                                src={mainPhoto.url}
-                                alt={resolvedName || "Item photo"}
-                                className={styles.mainPhoto}
-                            />
-                        ) : (
-                            <div className={styles.mainPhotoPlaceholder}>
-                                No photo
-                            </div>
-                        )}
-                    </div>
+                    <PhotoPreview photos={resolvedPhotos} itemName={resolvedName} />
 
                     {/* Right: key fields (1/3) */}
                     <div className={styles.rightColumn}>
-
                         <div className={styles.fieldGroup}>
                             <span className={styles.fieldLabel}>Name</span>
                             <div className={styles.fieldValue}>
@@ -274,9 +257,8 @@ const ViewItemModal = ({
                     </div>
                 </div>
 
-                {/* Bottom section: jobs, comments, photos strip, meta */}
+                {/* Bottom section: jobs, comments, meta */}
                 <div className={styles.itemDetails}>
-                    {/* Jobs using JobInfoCard */}
                     {resolvedJobs.length > 0 && (
                         <div className={styles.fieldGroup}>
                             <span className={styles.fieldLabel}>Jobs</span>
@@ -300,7 +282,6 @@ const ViewItemModal = ({
                         </div>
                     )}
 
-                    {/* Comments */}
                     {resolvedComments.length > 0 && (
                         <div className={styles.fieldGroup}>
                             <span className={styles.fieldLabel}>Comments</span>
@@ -320,8 +301,6 @@ const ViewItemModal = ({
                         </div>
                     )}
 
-
-                    {/* Meta row: loading / error */}
                     <div className={styles.metaRow}>
                         {isDetailsPending && (
                             <span className={styles.detailsLoading}>
