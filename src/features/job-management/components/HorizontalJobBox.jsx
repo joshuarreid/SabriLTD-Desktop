@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../styles/horizontaljobbox.module.css";
-import JobInfoCard from "../../jobinfocard/JobInfoCard";
+import JobInfoCard from "../../../components/jobinfocard/JobInfoCard";
 
 /**
  * Logger for HorizontalJobBox.

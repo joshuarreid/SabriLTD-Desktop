@@ -7,6 +7,7 @@
  */
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../features/job-management/styles/jobscreen.module.css";
 import JobInfoCard from "../components/jobinfocard/JobInfoCard";
@@ -35,6 +36,8 @@ const logger = {
  */
 const JobScreen = () => {
     logger.info("JobScreen rendered");
+
+    const navigate = useNavigate();
 
     const {
         // data
@@ -84,6 +87,9 @@ const JobScreen = () => {
     /**
      * handleSearchChange
      * - Updates local search input only; does NOT trigger filtering until Enter.
+     *
+     * @function handleSearchChange
+     * @param {React.ChangeEvent<HTMLInputElement>} event
      */
     const handleSearchChange = (event) => {
         const next = event.target.value;
@@ -97,6 +103,9 @@ const JobScreen = () => {
      *   - Clears all filters.
      *   - Sets global search query (server-side searchJobs).
      *   - Resets pagination to page 1.
+     *
+     * @function handleSearchKeyDown
+     * @param {React.KeyboardEvent<HTMLInputElement>} event
      */
     const handleSearchKeyDown = (event) => {
         if (event.key === "Enter") {
@@ -107,6 +116,21 @@ const JobScreen = () => {
             });
             applyGlobalSearch(value);
         }
+    };
+
+    /**
+     * handleJobCardClick
+     * Routes to /jobs/:jobId when a job card is clicked.
+     * @function handleJobCardClick
+     * @param {object} job - Job object.
+     */
+    const handleJobCardClick = (job) => {
+        if (!job || !job.jobId) {
+            logger.error("[JobScreen] Tried to navigate to job with invalid job object", job);
+            return;
+        }
+        logger.info("[JobScreen] navigating to JobDetailScreen for jobId", job.jobId);
+        navigate(`/jobs/${job.jobId}`);
     };
 
     /**
@@ -184,7 +208,7 @@ const JobScreen = () => {
                         logger.info("[JobScreen] company filter changed", {
                             value: normalized,
                         });
-                        setCompanyFilter(normalized);  // calls handleCompanyFilterChange
+                        setCompanyFilter(normalized);
                         handlePageChange(1);
                     }}
                 />
@@ -198,7 +222,7 @@ const JobScreen = () => {
                         logger.info("[JobScreen] client filter changed", {
                             value: normalized,
                         });
-                        setClientFilter(normalized);   // calls handleClientFilterChange
+                        setClientFilter(normalized);
                         handlePageChange(1);
                     }}
                 />
@@ -212,7 +236,7 @@ const JobScreen = () => {
                         logger.info("[JobScreen] status filter changed", {
                             value: normalized,
                         });
-                        setStatusFilter(normalized);   // calls handleStatusFilterChange
+                        setStatusFilter(normalized);
                         handlePageChange(1);
                     }}
                     displaySelection
@@ -271,13 +295,9 @@ const JobScreen = () => {
                                             name: job.name,
                                             companyName: job.client,
                                             status: job.status,
-                                            description: job.description, // NEW: pass description to show under name
+                                            description: job.description,
                                         }}
-                                        onClick={() =>
-                                            logger.info("[JobScreen] job clicked", {
-                                                jobId: job.jobId,
-                                            })
-                                        }
+                                        onClick={() => handleJobCardClick(job)}
                                     />
                                 </motion.div>
                             ))}

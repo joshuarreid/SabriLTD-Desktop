@@ -3,7 +3,7 @@ import styles from "../styles/viewitemmodal.module.css";
 import ItemConditionIcon from "../../itemconditionicon/ItemConditionIcon";
 import TagInfoPill from "../../taginfopill/TagInfoPill";
 import PhotoPreview from "./PhotoPreview";
-import HorizontalJobBox from "./HorizontalJobBox";
+import HorizontalJobBox from "../../../features/job-management/components/HorizontalJobBox";
 
 /**
  * Logger for ViewItemModal.
