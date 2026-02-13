@@ -27,9 +27,37 @@ const FADE_VARIANTS = {
 const PAGE_SIZE = 7;
 
 /**
+ * sortJobs
+ * Sort jobs by active status first (case-insensitive compare), then by most recent last updated date.
+ * @param {Array} jobs - Array of jobs to sort
+ * @returns {Array} Sorted jobs
+ */
+const sortJobs = (jobs) => {
+    if (!Array.isArray(jobs)) return [];
+    // Sort: active first, then most recent dateUpdated (descending), fallback to dateAdded (descending)
+    return [...jobs].sort((a, b) => {
+        // 1. Active first
+        const statusA = String(a.status || "").toLowerCase();
+        const statusB = String(b.status || "").toLowerCase();
+        if (statusA === "active" && statusB !== "active") return -1;
+        if (statusB === "active" && statusA !== "active") return 1;
+
+        // 2. Most recent update
+        const aDate = a.dateUpdated || a.dateAdded || "";
+        const bDate = b.dateUpdated || b.dateAdded || "";
+
+        // parse as Date and sort descending
+        const aTime = aDate ? new Date(aDate).getTime() : 0;
+        const bTime = bDate ? new Date(bDate).getTime() : 0;
+
+        return bTime - aTime;
+    });
+};
+
+/**
  * HorizontalJobBox
  * Consistent horizontal job box with fixed overflow, ellipsized descriptions,
- * never wraps, never cuts off active job icon.
+ * never wraps, never cuts off active job icon. Always sorts by active status, then most recent update.
  *
  * @component
  * @param {object} props
@@ -39,8 +67,11 @@ const PAGE_SIZE = 7;
 const HorizontalJobBox = ({ jobs = [] }) => {
     const [page, setPage] = useState(0);
 
-    const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE));
-    const pagedJobs = jobs.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+    // Apply the sort: active first, then most recently updated
+    const sortedJobs = sortJobs(jobs);
+
+    const totalPages = Math.max(1, Math.ceil(sortedJobs.length / PAGE_SIZE));
+    const pagedJobs = sortedJobs.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
     const showPrev = page > 0;
     const showNext = page < totalPages - 1;
 
@@ -66,10 +97,10 @@ const HorizontalJobBox = ({ jobs = [] }) => {
         page,
         totalPages,
         jobsShowing: pagedJobs.length,
-        totalJobs: jobs.length,
+        totalJobs: sortedJobs.length,
     });
 
-    if (jobs.length === 0) {
+    if (sortedJobs.length === 0) {
         return (
             <div className={styles.horizontalJobBox}>
                 <div className={styles.emptyState}>No jobs</div>
@@ -114,6 +145,8 @@ const HorizontalJobBox = ({ jobs = [] }) => {
                                             companyName: job.client,
                                             status: job.status,
                                             description: job.description,
+                                            dateUpdated: job.dateUpdated,
+                                            dateAdded: job.dateAdded,
                                         }}
                                         descriptionClassName={styles.truncateDescription}
                                     />
