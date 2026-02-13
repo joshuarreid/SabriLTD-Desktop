@@ -11,6 +11,7 @@ import SettingsScreen from './screens/SettingsScreen.jsx';
 import JobScreen from "./screens/JobScreen";
 import InventoryDashboardScreen from './screens/InventoryDashboardScreen.jsx';
 import AddItemScreen from "./screens/AddItemScreen";
+import JobDetailScreen from "./screens/JobDetailScreen.jsx";
 
 /**
  * ProtectedRoute
@@ -72,7 +73,7 @@ function App() {
                                         </ProtectedLayout>
                                     }
                                 />
-                                {/* Add more protected routes as needed */}
+                                {/* Jobs list route wrapped in ProtectedLayout */}
                                 <Route
                                     path="/jobs"
                                     element={
@@ -81,7 +82,16 @@ function App() {
                                         </ProtectedLayout>
                                     }
                                 />
-                                {/* Settings route wrapped in ProtectedLayout */}
+                                {/* Job details route (NEW) wrapped in ProtectedLayout */}
+                                <Route
+                                    path="/jobs/:jobId"
+                                    element={
+                                        <ProtectedLayout>
+                                            <JobDetailScreen />
+                                        </ProtectedLayout>
+                                    }
+                                />
+                                {/* Add item route wrapped in ProtectedLayout */}
                                 <Route
                                     path="/add-item"
                                     element={
