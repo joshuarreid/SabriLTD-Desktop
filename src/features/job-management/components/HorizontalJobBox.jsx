@@ -58,13 +58,15 @@ const sortJobs = (jobs) => {
  * HorizontalJobBox
  * Consistent horizontal job box with fixed overflow, ellipsized descriptions,
  * never wraps, never cuts off active job icon. Always sorts by active status, then most recent update.
+ * Adds onJobClick handler for card navigation.
  *
  * @component
  * @param {object} props
  * @param {Array} props.jobs - Array of job objects to display.
+ * @param {function} [props.onJobClick] - Callback when a job card is clicked.
  * @returns {JSX.Element}
  */
-const HorizontalJobBox = ({ jobs = [] }) => {
+const HorizontalJobBox = ({ jobs = [], onJobClick }) => {
     const [page, setPage] = useState(0);
 
     // Apply the sort: active first, then most recently updated
@@ -149,6 +151,7 @@ const HorizontalJobBox = ({ jobs = [] }) => {
                                             dateAdded: job.dateAdded,
                                         }}
                                         descriptionClassName={styles.truncateDescription}
+                                        onClick={() => onJobClick && onJobClick(job)}
                                     />
                                 </div>
                             ))}
@@ -180,6 +183,7 @@ const HorizontalJobBox = ({ jobs = [] }) => {
 
 HorizontalJobBox.propTypes = {
     jobs: PropTypes.arrayOf(PropTypes.object),
+    onJobClick: PropTypes.func,
 };
 
 export default HorizontalJobBox;

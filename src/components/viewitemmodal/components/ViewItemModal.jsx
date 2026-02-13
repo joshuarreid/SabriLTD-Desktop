@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "../styles/viewitemmodal.module.css";
 import ItemConditionIcon from "../../itemconditionicon/ItemConditionIcon";
 import TagInfoPill from "../../taginfopill/TagInfoPill";
@@ -66,12 +67,7 @@ const ViewItemModal = ({
                            resolvedPhotos,
                            resolvedBuilding,
                        }) => {
-    if (!open) return null;
-
-    const detailsErrorMessage =
-        isDetailsError && detailsError
-            ? detailsError.message || "Failed to load item details."
-            : null;
+    const navigate = useNavigate();
 
     /**
      * Handles clicking on the overlay to close the modal.
@@ -98,6 +94,22 @@ const ViewItemModal = ({
     };
 
     /**
+     * Handles clicking a job info card, navigates to job details.
+     * @function handleJobClick
+     * @param {object} job
+     */
+    const handleJobClick = (job) => {
+        if (!job || !job.jobId) {
+            logger.error("handleJobClick called with invalid job object", job);
+            return;
+        }
+        logger.info("Navigating to Job Detail screen for jobId:", job.jobId);
+        navigate(`/jobs/${job.jobId}`);
+        // Optionally close modal for UX:
+        onClose();
+    };
+
+    /**
      * Builds a combined storage display string including building information.
      * @constant
      * @type {string}
@@ -120,6 +132,13 @@ const ViewItemModal = ({
     const formattedDateUpdated = resolvedDateUpdated
         ? formatDisplayDate(resolvedDateUpdated)
         : "";
+
+    if (!open) return null;
+
+    const detailsErrorMessage =
+        isDetailsError && detailsError
+            ? detailsError.message || "Failed to load item details."
+            : null;
 
     return (
         <div
@@ -235,13 +254,15 @@ const ViewItemModal = ({
                 {/* Jobs field (horizontal box, paginated) */}
                 {resolvedJobs.length > 0 && (
                     <div className={styles.fieldGroup}>
-                        <HorizontalJobBox jobs={resolvedJobs} />
+                        <HorizontalJobBox
+                            jobs={resolvedJobs}
+                            onJobClick={handleJobClick}
+                        />
                     </div>
                 )}
 
                 {/* Comments and meta */}
                 <div className={styles.itemDetails}>
-
                     {resolvedComments.length > 0 && (
                         <div className={styles.fieldGroup}>
                             <span className={styles.fieldLabel}>Comments</span>
