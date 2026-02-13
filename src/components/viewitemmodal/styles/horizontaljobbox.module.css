@@ -5,10 +5,11 @@
     border: 1.5px solid #ebeaf0;
     background: #fcfcfd;
     border-radius: 18px;
-    padding: 8px 10px 8px 10px;  /* Reduced padding */
+    padding: 0 7px;
     margin-bottom: 16px;
-    min-height: 120px;
+    min-height: 140px;
     justify-content: center;
+    overflow: hidden;
 }
 
 .innerRow {
@@ -18,24 +19,74 @@
     justify-content: center;
 }
 
+.jobsBoxRowOuter {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    height: 140px;
+}
+
 .jobsBoxRow {
     display: flex;
     flex-direction: row;
-    gap: 36px;
+    gap: 30px;
     justify-content: center;
-    align-items: stretch;
+    align-items: flex-end;
     width: 100%;
-    min-height: 78px; /* Less vertical space to icons */
+    height: 110px;
+    min-height: 79px;
     padding: 0;
+    position: relative;
 }
 
 .jobCardWrap {
-    flex: 0 0 110px;
+    flex: 0 0 134px;
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    min-width: 110px;
-    min-height: 90px;
+    min-width: 134px;
+    min-height: 79px;
+    overflow: visible;
+}
+
+/* FORCE ALL JOB DESCRIPTION TEXT TO A SINGLE LINE WITH ELLIPSIS (never wrap!) */
+.jobInfoRoot .description {
+    max-width: 134px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: block !important;
+    font-size: 0.99rem !important;
+    line-height: 1.25;
+    margin-top: 2px;
+    color: var(--color-text-muted, #868099);
+    word-break: normal !important;
+}
+
+/* Name: force single line for extra-long job names, never wrap */
+.jobInfoRoot .name {
+    max-width: 134px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: block !important;
+    font-size: 0.94rem;
+    font-weight: 600;
+    color: var(--color-primary, #333645);
+    line-height: 1.1;
+}
+
+/* Ensure icon/status never cut off */
+.jobInfoRoot .iconWrap {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 8px;
+    position: relative;
+    overflow: visible;
 }
 
 .arrowButton {
@@ -43,17 +94,18 @@
     background: #f5f6f9;
     color: #bdbdc6;
     border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    font-size: 1.16rem;
+    width: 26px;
+    height: 26px;
+    font-size: 1.09rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 6px;
+    margin: 0 2px;
     box-shadow: 0 1.5px 7px rgba(80,90,120,0.05);
     cursor: pointer;
-    transition: background 0.11s, color 0.11s;
+    transition: background 0.11s, color 0.11s, transform 0.13s;
     outline: none;
+    z-index: 2;
 }
 .arrowButton:focus-visible, .arrowButton:hover {
     background: #e6ecfe;
@@ -61,19 +113,19 @@
 }
 
 .arrow {
-    font-size: 1.1em;
+    font-size: 1.15em;
     font-weight: bold;
     margin-top: -1px;
 }
 
 .arrowSpacer {
-    width: 34px;
-    height: 34px;
+    width: 26px;
+    height: 26px;
     flex-shrink: 0;
 }
 
 .emptyState {
-    padding: 12px 0 12px 0;
+    padding: 12px 0;
     text-align: center;
     color: #a9acb2;
     background: none;
@@ -83,22 +135,34 @@
 
 @media (max-width: 1200px) {
     .horizontalJobBox {
-        padding: 8px 2px 8px 2px;
+        padding: 0 2px;
     }
     .jobsBoxRow {
-        gap: 18px;
+        gap: 14px;
+    }
+    .jobCardWrap {
+        min-width: 72px;
+        flex: 0 0 72px;
+    }
+    .jobInfoRoot .description,
+    .jobInfoRoot .name {
+        max-width: 72px !important;
     }
 }
 @media (max-width: 900px) {
     .jobCardWrap {
-        min-width: 70px;
-        flex: 0 0 70px;
+        min-width: 50px;
+        flex: 0 0 50px;
     }
     .jobsBoxRow {
-        gap: 6px;
+        gap: 3px;
     }
     .arrowButton, .arrowSpacer {
-        width: 28px;
-        height: 28px;
+        width: 20px;
+        height: 20px;
+    }
+    .jobInfoRoot .description,
+    .jobInfoRoot .name {
+        max-width: 50px !important;
     }
 }
