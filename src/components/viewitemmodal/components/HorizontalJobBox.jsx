@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
+import { motion, AnimatePresence } from "framer-motion";
 import styles from "../styles/horizontaljobbox.module.css";
 import JobInfoCard from "../../jobinfocard/JobInfoCard";
 
@@ -14,18 +15,27 @@ const logger = {
 };
 
 /**
+ * Simple fade animation variants for page.
+ * @type {object}
+ */
+const FADE_VARIANTS = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1, transition: { duration: 0.25 } },
+    exit: { opacity: 0, transition: { duration: 0.22 } },
+};
+
+const PAGE_SIZE = 7;
+
+/**
  * HorizontalJobBox
- * Horizontally scrollable row of JobInfoCard icons with round left/right arrows
- * on the far sides (vertically centered with icons), no page counter, no section label.
- * Spacing/layout matches visual guidance with reduced button size and padding.
+ * Consistent horizontal job box with fixed overflow, ellipsized descriptions,
+ * never wraps, never cuts off active job icon.
  *
  * @component
  * @param {object} props
  * @param {Array} props.jobs - Array of job objects to display.
  * @returns {JSX.Element}
  */
-const PAGE_SIZE = 8;
-
 const HorizontalJobBox = ({ jobs = [] }) => {
     const [page, setPage] = useState(0);
 
@@ -35,16 +45,22 @@ const HorizontalJobBox = ({ jobs = [] }) => {
     const showNext = page < totalPages - 1;
 
     /**
-     * Go to the previous jobs page.
-     * @function handlePrev
+     * handlePrev - Navigates left.
+     * @returns {void}
      */
-    const handlePrev = () => setPage((p) => Math.max(p - 1, 0));
+    const handlePrev = () => {
+        setPage((p) => Math.max(p - 1, 0));
+        logger.info("Navigated to previous job page", { page: page - 1 });
+    };
 
     /**
-     * Go to the next jobs page.
-     * @function handleNext
+     * handleNext - Navigates right.
+     * @returns {void}
      */
-    const handleNext = () => setPage((p) => Math.min(p + 1, totalPages - 1));
+    const handleNext = () => {
+        setPage((p) => Math.min(p + 1, totalPages - 1));
+        logger.info("Navigated to next job page", { page: page + 1 });
+    };
 
     logger.info("HorizontalJobBox rendered", {
         page,
@@ -64,51 +80,63 @@ const HorizontalJobBox = ({ jobs = [] }) => {
     return (
         <div className={styles.horizontalJobBox}>
             <div className={styles.innerRow}>
-                {/* Left arrow (far left, vertically centered) */}
                 {showPrev ? (
-                    <button
+                    <motion.button
                         type="button"
                         className={styles.arrowButton}
                         onClick={handlePrev}
                         aria-label="Previous jobs"
+                        whileTap={{ scale: 0.93 }}
+                        whileHover={{ scale: 1.09 }}
                     >
                         <span className={styles.arrow}>&#60;</span>
-                    </button>
+                    </motion.button>
                 ) : (
                     <div className={styles.arrowSpacer} />
                 )}
 
-                {/* Main icon row (always PAGE_SIZE slots for stable spacing) */}
-                <div className={styles.jobsBoxRow}>
-                    {pagedJobs.map((job) => (
-                        <div key={job.jobId} className={styles.jobCardWrap}>
-                            <JobInfoCard
-                                job={{
-                                    jobId: job.jobId,
-                                    name: job.name,
-                                    companyName: job.client,
-                                    status: job.status,
-                                    description: job.description,
-                                }}
-                            />
-                        </div>
-                    ))}
-                    {/* Fill out empty slots for spacing consistency */}
-                    {Array.from({ length: PAGE_SIZE - pagedJobs.length }).map((_, idx) => (
-                        <div key={"spacer-" + idx} className={styles.jobCardWrap} />
-                    ))}
+                <div className={styles.jobsBoxRowOuter}>
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={page}
+                            className={styles.jobsBoxRow}
+                            variants={FADE_VARIANTS}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                        >
+                            {pagedJobs.map((job) => (
+                                <div key={job.jobId} className={styles.jobCardWrap}>
+                                    <JobInfoCard
+                                        job={{
+                                            jobId: job.jobId,
+                                            name: job.name,
+                                            companyName: job.client,
+                                            status: job.status,
+                                            description: job.description,
+                                        }}
+                                        descriptionClassName={styles.truncateDescription}
+                                    />
+                                </div>
+                            ))}
+                            {/* Fill out empty slots for spacing (never cuts off icon) */}
+                            {Array.from({ length: PAGE_SIZE - pagedJobs.length }).map((_, idx) => (
+                                <div key={"spacer-" + idx} className={styles.jobCardWrap} />
+                            ))}
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
-
-                {/* Right arrow (far right, vertically centered) */}
                 {showNext ? (
-                    <button
+                    <motion.button
                         type="button"
                         className={styles.arrowButton}
                         onClick={handleNext}
                         aria-label="Next jobs"
+                        whileTap={{ scale: 0.93 }}
+                        whileHover={{ scale: 1.09 }}
                     >
                         <span className={styles.arrow}>&#62;</span>
-                    </button>
+                    </motion.button>
                 ) : (
                     <div className={styles.arrowSpacer} />
                 )}
