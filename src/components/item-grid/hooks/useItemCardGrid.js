@@ -23,15 +23,16 @@ const logger = {
  */
 function buildFiltersString(filters = {}) {
     const filterParts = Object.entries(filters)
-        .filter(([key, value]) => value !== undefined && value !== null && value !== '')
+        .filter(([key, value]) => value !== undefined && value !== null && value !== "")
         .map(([key, value]) => {
             if (typeof value === "string") {
                 return `${key} = '${value}'`;
             }
             if (Array.isArray(value)) {
-                // jobIds: [401, 402] -> (jobIds = 401 OR jobIds = 402)
                 return value.length > 0
-                    ? `(${value.map(v => `${key} = ${typeof v === "string" ? `'${v}'` : v}`).join(" OR ")})`
+                    ? `(${value
+                        .map((v) => `${key} = ${typeof v === "string" ? `'${v}'` : v}`)
+                        .join(" OR ")})`
                     : "";
             }
             return `${key} = ${value}`;
@@ -42,8 +43,8 @@ function buildFiltersString(filters = {}) {
 
 /**
  * useItemCardGrid
- * - Provides paginated, always-filtered items for ItemCardGrid.
- * - Uses the Meilisearch-backed POST /api/items/search endpoint, not GET.
+ * Provides paginated, always-filtered items for ItemCardGrid using the
+ * Meilisearch-backed POST /api/items/search endpoint.
  *
  * @function useItemCardGrid
  * @param {Object} [options]
@@ -96,10 +97,10 @@ export const useItemCardGrid = ({
     // --- Build Meilisearch-compatible filters string
     const filtersString = useMemo(
         () => buildFiltersString(fixedFilters),
-        [fixedFilters]
+        [fixedFilters],
     );
 
-    // --- Compose POST /api/items/search payload (respects doc signature)
+    // --- Compose POST /api/items/search payload
     const searchPayload = useMemo(() => {
         const payload = {
             query,
@@ -108,23 +109,20 @@ export const useItemCardGrid = ({
             size: pageSize,
             sort: sortKey,
         };
-        // Only include if explicitly set
         if (typeof includeArchived === "boolean") {
             payload.includeArchived = includeArchived;
         }
         return payload;
     }, [query, filtersString, page, pageSize, sortKey, includeArchived]);
 
-    // --- Query key is canonical (search endpoint, inputs as POST body)
+    // --- Query key
     const queryKey = useMemo(
-        () =>
-            itemKeys.search(searchPayload),
-        [searchPayload]
+        () => itemKeys.search(searchPayload),
+        [searchPayload],
     );
 
     /**
      * Fetches items via POST /api/items/search (Meilisearch).
-     * Full payload per Search API docs.
      */
     const {
         data: searchResponse,
@@ -148,18 +146,49 @@ export const useItemCardGrid = ({
                 });
                 return res;
             } catch (apiError) {
-                logger.error("useItemCardGrid searchItems failed (API)", apiError);
+                logger.error(
+                    "useItemCardGrid searchItems failed (API)",
+                    apiError,
+                );
                 throw apiError;
             }
         },
         keepPreviousData: true,
     });
 
-    // --- Response parsing (full doc pattern, see API docs)
+    // --- Response parsing
     const data = searchResponse?.data || {};
-    // Most canonical search returns: { hits, totalHits, ... }
-    const items = Array.isArray(data.hits) ? data.hits : [];
-    const totalItems = typeof data.totalHits === "number" ? data.totalHits : 0;
+
+    /**
+     * rawItems
+     * Raw Meilisearch hits array, typically:
+     * { id, name, condition, photoUrl, tags, ... }.
+     *
+     * @type {Array}
+     */
+    const rawItems = Array.isArray(data.hits) ? data.hits : [];
+
+    /**
+     * items
+     * Normalized array where every item has both `id` and `itemId`.
+     * This keeps downstream components agnostic of Meilisearch's "id" naming.
+     *
+     * @type {Array}
+     */
+    const items = rawItems.map((hit) => {
+        const normalizedId =
+            typeof hit.itemId === "number" || typeof hit.itemId === "string"
+                ? hit.itemId
+                : hit.id;
+        return {
+            ...hit,
+            id: normalizedId,
+            itemId: normalizedId,
+        };
+    });
+
+    const totalItems =
+        typeof data.totalHits === "number" ? data.totalHits : 0;
     const totalPages =
         typeof data.size === "number" && data.size > 0
             ? Math.max(1, Math.ceil(totalItems / data.size))
@@ -169,11 +198,13 @@ export const useItemCardGrid = ({
 
     const hasPrevious = currentPage > 1;
     const hasNext = currentPage < totalPages;
-    const itemStart = totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-    const itemEnd = totalItems > 0 ? Math.min(currentPage * pageSize, totalItems) : 0;
+    const itemStart =
+        totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+    const itemEnd =
+        totalItems > 0 ? Math.min(currentPage * pageSize, totalItems) : 0;
 
     /**
-     * Pagination event handlers
+     * Pagination handlers.
      */
     const handleNext = useCallback(() => {
         if (hasNext) setPage(currentPage + 1);

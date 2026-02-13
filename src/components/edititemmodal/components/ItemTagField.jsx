@@ -19,8 +19,8 @@
 
 import React, { useMemo } from "react";
 import styles from "../styles/itemtagfield.module.css";
-import CategoryInfoPill from "../../settings/tagsettings/components/CategoryInfoPill";
-import TagInfoPill from "../../settings/tagsettings/components/TagInfoPill";
+import CategoryInfoPill from "../../../features/settings/tagsettings/components/CategoryInfoPill";
+import TagInfoPill from "../../taginfopill/TagInfoPill";
 
 /**
  * logger for ItemTagField.

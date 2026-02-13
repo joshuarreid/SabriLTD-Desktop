@@ -15,7 +15,7 @@ import { usePendingPhotos } from "../features/add-item-screen/hooks/useAddItemSc
 import { useUploadPhoto } from "../features/add-item-screen/hooks/useUploadPhoto";
 import UploadPhotoModal from "../features/add-item-screen/components/UploadPhotoModal";
 import SaveStatus from "../components/save/SaveStatus";
-import EditItemModal from "../features/edit-item-modal/components/EditItemModal";
+import EditItemModal from "../components/edititemmodal/components/EditItemModal";
 
 /**
  * logger for AddItemScreen.

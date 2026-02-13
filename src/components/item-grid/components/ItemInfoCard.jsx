@@ -1,11 +1,11 @@
 import React from "react";
 import PropTypes from "prop-types";
 import styles from "../styles/iteminfocard.module.css";
-import ItemConditionPill from "../../../components/itemconditionpill/ItemConditionPill";
-import ItemConditionDot from "../../../components/itemconditionicon/ItemConditionIcon";
+import ItemConditionPill from "../../itemconditionpill/ItemConditionPill";
+import ItemConditionDot from "../../itemconditionicon/ItemConditionIcon";
 
 /**
- * logger for ItemInfoCard.
+ * Logger for ItemInfoCard.
  *
  * @constant
  * @type {{info: Function, error: Function}}
@@ -17,7 +17,8 @@ const logger = {
 
 /**
  * ItemInfoCard
- * - Renders an item card with a photo, name, price, and condition label.
+ * Renders a single inventory item preview card with photo, name, price (optional),
+ * and condition indicator. Intended for use inside paginated grids or search results.
  *
  * @component
  * @param {Object} props
@@ -27,8 +28,8 @@ const logger = {
  *   price?: string,
  *   conditionName?: string|null,
  *   photoUrl?: string|null
- * }} props.item - Item data for display.
- * @param {()=>void} [props.onClick] - Optional click handler.
+ * }} props.item - Normalized item preview data for display.
+ * @param {Function} [props.onClick] - Optional click handler invoked when the card is clicked.
  * @returns {JSX.Element}
  */
 const ItemInfoCard = ({ item, onClick }) => {
@@ -37,10 +38,11 @@ const ItemInfoCard = ({ item, onClick }) => {
     /**
      * Handles card click events for logging and optional parent callback.
      *
-     * @function
+     * @function handleClick
+     * @returns {void}
      */
     const handleClick = () => {
-        logger.info("ItemInfoCard clicked", { itemId });
+        logger.info("ItemInfoCard clicked", { itemId, name });
         if (onClick) onClick();
     };
 
@@ -74,9 +76,7 @@ const ItemInfoCard = ({ item, onClick }) => {
                 {price && (
                     <div className={styles.price}>${price}</div>
                 )}
-                <ItemConditionDot
-                    conditionName={conditionName}
-                />
+                <ItemConditionDot conditionName={conditionName} />
             </div>
         </button>
     );
@@ -86,7 +86,6 @@ ItemInfoCard.propTypes = {
     item: PropTypes.shape({
         itemId: PropTypes.number.isRequired,
         name: PropTypes.string.isRequired,
-        price: PropTypes.string, // New prop for price
         conditionName: PropTypes.string,
         photoUrl: PropTypes.string,
     }).isRequired,
