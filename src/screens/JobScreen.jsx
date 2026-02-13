@@ -9,7 +9,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../features/job-management/styles/jobscreen.module.css";
-import JobInfoCard from "../features/job-management/components/JobInfoCard";
+import JobInfoCard from "../components/jobinfocard/JobInfoCard";
 import WideSearchBar from "../components/searchbar/WideSearchBar";
 import FilterDropdown from "../components/filterdropdown/FilterDropdown";
 import FilterDropdownSearch from "../components/filterdropdown/FilterDropdownSearch";

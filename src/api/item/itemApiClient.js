@@ -148,19 +148,41 @@ export default class ItemApiClient extends ApiClient {
     /**
      * fetchItemDetails
      * - GET /api/items/{itemId}/details
+     * - Uses an extended timeout (60 seconds) because the details
+     *   aggregation endpoint is more expensive than other item calls.
+     *
+     * @async
+     * @param {number|string} itemId
+     * @returns {Promise<Object>} Raw API response { status, data, ... }.
+     * @throws {Error} If the request fails or times out.
      */
     async fetchItemDetails(itemId) {
         logger.info("fetchItemDetails called", { itemId });
         try {
             const token = await getTokenFromElectron();
             if (!token) throw new Error("No authentication token found");
-            const raw = await this.get(`${itemId}/details`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
+
+            // Override default 10s timeout with 60s specifically for /details
+            const raw = await this.get(
+                `${itemId}/details`,
+                {},
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                    timeout: 60_000, // 60 seconds
+                },
+            );
+
+            logger.info("fetchItemDetails success", {
+                itemId: raw?.data?.itemId ?? itemId,
             });
-            logger.info("fetchItemDetails success", { itemId: raw?.data?.itemId ?? itemId });
             return raw;
         } catch (error) {
-            logger.error("fetchItemDetails failed", error);
+            logger.error("fetchItemDetails failed", {
+                message: error?.message,
+                status: error?.status ?? null,
+                data: error?.data ?? null,
+                originalError: error,
+            });
             throw error;
         }
     }

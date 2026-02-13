@@ -16,7 +16,7 @@ import React from "react";
 import { useItemConditionField } from "../hooks/useItemConditionField";
 
 import styles from "../styles/itemconditionfield.module.css";
-import ItemConditionPill from "../../../components/itemconditionpill/ItemConditionPill";
+import ItemConditionPill from "../../itemconditionpill/ItemConditionPill";
 
 /**
  * Ordered canonical conditions for UX.
