@@ -1,0 +1,95 @@
+.jobDetailScreenRoot {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 32px;
+}
+.jobInfoBar {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    padding: 23px 22px 17px 22px;
+    background: #fcfcfd;
+    border: 1.5px solid #ebeaf0;
+    border-radius: 13px;
+    margin-bottom: 17px;
+    box-shadow: 0 2px 8px 0 rgba(80,90,120,0.05);
+    font-size: 1em;
+}
+.jobSummaryRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.jobActiveIcon {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+.jobTitle {
+    font-weight: 700;
+    font-size: 1.21em;
+    color: var(--color-primary, #333645);
+}
+.jobFieldsBoxesRow,
+.jobDatesBoxesRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 36px;
+}
+.jobFieldTextboxGroup {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+    flex: 1 1 180px;
+    max-width: 290px;
+}
+.jobFieldLabel {
+    font-size: 0.94em;
+    font-weight: 600;
+    color: #5b5475;
+    margin-bottom: 5px;
+    letter-spacing: 0.018em;
+    padding-left: 2px;
+}
+.jobFieldTextbox {
+    font-size: 1.08em;
+    font-weight: 500;
+    color: #222;
+    background: #f6f7fa;
+    border: 1.5px solid #ebeaf0;
+    border-radius: 9px;
+    padding: 8px 12px;
+    min-height: 34px;
+    outline: none;
+    transition: border-color 0.17s, background 0.18s;
+    box-shadow: none;
+    cursor: pointer;
+}
+.jobFieldTextbox[readonly] {
+    user-select: text;
+}
+.jobFieldTextbox:focus,
+.jobFieldTextbox:hover {
+    background: #f2f4ff;
+    border-color: #bcbcff;
+}
+@media (max-width: 900px) {
+    .jobSummaryRow,
+    .jobFieldsBoxesRow,
+    .jobDatesBoxesRow {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .jobInfoBar {
+        font-size: 0.96em;
+        padding: 9px 7px 5px 7px;
+        border-radius: 9px;
+    }
+    .jobFieldTextboxGroup {
+        min-width: 100px;
+        max-width: 100%;
+        width: 100%;
+    }
+}

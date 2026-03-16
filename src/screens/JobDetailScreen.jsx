@@ -1,9 +1,11 @@
 import React from "react";
 import { useParams } from "react-router-dom";
+import { TbProgressCheck } from "react-icons/tb";
 import ItemCardGrid from "../components/item-grid/components/ItemCardGrid";
 import { useViewItemModal } from "../components/viewitemmodal/hooks/useViewItemModal";
 import ViewItemModal from "../components/viewitemmodal/components/ViewItemModal";
 import useJobDetailScreen from "../features/job-management/hooks/useJobDetailScreen";
+import styles from "../features/job-management/styles/jobdetailscreen.module.css";
 
 /**
  * Logger for JobDetailScreen.
@@ -15,9 +17,30 @@ const logger = {
 };
 
 /**
+ * formatDisplayDate
+ * Converts ISO date to "Dec 20 2025 5:33pm" style
+ * @param {string} value
+ * @returns {string}
+ */
+const formatDisplayDate = (value) => {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    const month = d.toLocaleString("en-US", { month: "short" });
+    const day = d.getDate();
+    const year = d.getFullYear();
+    let hours = d.getHours();
+    const minutes = d.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "pm" : "am";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    return `${month} ${day} ${year} ${hours}:${minutes}${ampm}`;
+};
+
+/**
  * JobDetailScreen
- * Renders a 5x5 grid populated by items found using a search for job.name,
- * with item modal integration.
+ * Presents job info fields as read-only styled inputs,
+ * main focus remains on item grid.
  *
  * @component
  * @returns {JSX.Element}
@@ -25,11 +48,9 @@ const logger = {
 const JobDetailScreen = () => {
     logger.info("JobDetailScreen rendered");
 
-    // Extract jobId from route params
     const { jobId } = useParams();
     const jobIdNum = jobId ? Number(jobId) : null;
 
-    // Business/data logic (fetch job, then items with job.name as search query)
     const {
         items,
         isPending,
@@ -55,7 +76,6 @@ const JobDetailScreen = () => {
         refetchJob,
     } = useJobDetailScreen({ jobId: jobIdNum });
 
-    // Modal state/handlers
     const {
         isOpen,
         previewItem,
@@ -98,7 +118,6 @@ const JobDetailScreen = () => {
         openWithItem(item);
     };
 
-    // Loading, error, and content rendering
     if (isJobPending || !job) {
         return <div style={{ padding: 30 }}>Loading job details…</div>;
     }
@@ -111,11 +130,113 @@ const JobDetailScreen = () => {
         );
     }
 
+    const isActive =
+        typeof job.status === "string" &&
+        job.status.toLowerCase() === "active";
+
     return (
-        <div>
-            <h2 style={{ marginTop: 14, marginBottom: 10 }}>
-                Job #{jobIdNum}: {job.name}
-            </h2>
+        <div className={styles.jobDetailScreenRoot}>
+            <div className={styles.jobInfoBar}>
+                <div className={styles.jobSummaryRow}>
+                    {isActive && (
+                        <TbProgressCheck
+                            size={22}
+                            color="#338c41"
+                            className={styles.jobActiveIcon}
+                            aria-label="Active job"
+                        />
+                    )}
+                    <span className={styles.jobTitle}>{job.name}</span>
+                </div>
+                <div className={styles.jobFieldsBoxesRow}>
+                    <div className={styles.jobFieldTextboxGroup}>
+                        <label className={styles.jobFieldLabel} htmlFor="job-name">Name</label>
+                        <input
+                            id="job-name"
+                            className={styles.jobFieldTextbox}
+                            value={job.name || "-"}
+                            readOnly
+                            tabIndex={0}
+                            title="Double-click to edit"
+                            onDoubleClick={() => {/* placeholder for future edit */}}
+                        />
+                    </div>
+                    <div className={styles.jobFieldTextboxGroup}>
+                        <label className={styles.jobFieldLabel} htmlFor="job-company">Company</label>
+                        <input
+                            id="job-company"
+                            className={styles.jobFieldTextbox}
+                            value={job.companyName || "-"}
+                            readOnly
+                            tabIndex={0}
+                            title="Double-click to edit"
+                            onDoubleClick={() => {/* placeholder for future edit */}}
+                        />
+                    </div>
+                    <div className={styles.jobFieldTextboxGroup}>
+                        <label className={styles.jobFieldLabel} htmlFor="job-client">Client</label>
+                        <input
+                            id="job-client"
+                            className={styles.jobFieldTextbox}
+                            value={job.client || "-"}
+                            readOnly
+                            tabIndex={0}
+                            title="Double-click to edit"
+                            onDoubleClick={() => {/* placeholder for future edit */}}
+                        />
+                    </div>
+                    <div className={styles.jobFieldTextboxGroup}>
+                        <label className={styles.jobFieldLabel} htmlFor="job-description">Description</label>
+                        <input
+                            id="job-description"
+                            className={styles.jobFieldTextbox}
+                            value={job.description || "-"}
+                            readOnly
+                            tabIndex={0}
+                            title="Double-click to edit"
+                            onDoubleClick={() => {/* placeholder for future edit */}}
+                        />
+                    </div>
+                    <div className={styles.jobFieldTextboxGroup}>
+                        <label className={styles.jobFieldLabel} htmlFor="job-updatedby">Updated By</label>
+                        <input
+                            id="job-updatedby"
+                            className={styles.jobFieldTextbox}
+                            value={job.updatedBy || "-"}
+                            readOnly
+                            tabIndex={0}
+                            title="Double-click to edit"
+                            onDoubleClick={() => {/* placeholder for future edit */}}
+                        />
+                    </div>
+                </div>
+                <div className={styles.jobDatesBoxesRow}>
+                    <div className={styles.jobFieldTextboxGroup}>
+                        <label className={styles.jobFieldLabel} htmlFor="job-dateadded">Date Added</label>
+                        <input
+                            id="job-dateadded"
+                            className={styles.jobFieldTextbox}
+                            value={formatDisplayDate(job.dateAdded)}
+                            readOnly
+                            tabIndex={0}
+                            title="Double-click to edit"
+                            onDoubleClick={() => {/* placeholder for future edit */}}
+                        />
+                    </div>
+                    <div className={styles.jobFieldTextboxGroup}>
+                        <label className={styles.jobFieldLabel} htmlFor="job-dateupdated">Last Updated</label>
+                        <input
+                            id="job-dateupdated"
+                            className={styles.jobFieldTextbox}
+                            value={formatDisplayDate(job.dateUpdated)}
+                            readOnly
+                            tabIndex={0}
+                            title="Double-click to edit"
+                            onDoubleClick={() => {/* placeholder for future edit */}}
+                        />
+                    </div>
+                </div>
+            </div>
             <ItemCardGrid
                 items={items}
                 columns={5}
