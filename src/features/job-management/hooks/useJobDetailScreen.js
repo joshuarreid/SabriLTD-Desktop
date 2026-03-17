@@ -2,8 +2,12 @@ import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getJobById } from "../../../api/job/job";
 import { searchItems } from "../../../api/item/item";
+import { getCompanyById } from "../../../api/company/company";
+import { getUserById } from "../../../api/user/user";
 import { jobKeys } from "../../../api/job/jobQueryKeys";
 import { itemKeys } from "../../../api/item/ItemQueryKeys";
+import { companyKeys } from "../../../api/company/companyQueryKeys";
+import { userKeys } from "../../../api/user/userQueryKeys";
 
 /**
  * Logger for useJobDetailScreen.
@@ -30,10 +34,8 @@ const fetchItemsForJob = async (jobId, page, pageSize, condition) => {
 
     if (!jobId) throw new Error("jobId is required to search items for this job");
 
-    // Build robust, Meilisearch-compatible filter string
     let filters = `jobs.jobId = ${jobId}`;
     if (condition) {
-        // Escape single quotes in case a condition name is complex
         const cond = condition.replace(/'/g, "\\'");
         filters += ` AND condition = '${cond}'`;
     }
@@ -46,7 +48,6 @@ const fetchItemsForJob = async (jobId, page, pageSize, condition) => {
 
     const response = await searchItems(params);
 
-    // Accept both "OK" and "success" as valid status
     if (
         response?.status !== "OK" &&
         response?.status !== "success" &&
@@ -70,24 +71,19 @@ const fetchItemsForJob = async (jobId, page, pageSize, condition) => {
 
 /**
  * useJobDetailScreen
- * - Fetches job details by id and lists items related to that job using Meilisearch filterable attributes.
+ * Fetches job details by id, company name for companyId (with canonical queryKey),
+ * user name for updatedBy (with canonical queryKey), and items for job.
  *
  * @param {object} params
  * @param {string|number|null} params.jobId - The job to show details for.
  * @param {string} [params.condition] - Optional condition filter.
- * @returns {object} Result state for JobDetailScreen UI.
+ * @returns {object} Result state for JobDetailScreen UI (companyName/userName loading and error states).
  */
 const useJobDetailScreen = ({ jobId, condition }) => {
-    /**
-     * @type {[number, Function]}
-     */
     const [page, setPage] = useState(1);
-    /**
-     * @type {[number, Function]}
-     */
     const [pageSize, setPageSize] = useState(20);
 
-    // Fetch job details
+    // Fetch job details using a canonical query key
     const {
         data: job,
         isPending: isJobPending,
@@ -100,6 +96,72 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         enabled: !!jobId,
         retry: false,
     });
+
+    // Fetch company using canonical query key
+    const {
+        data: companyData,
+        isPending: isCompanyPending,
+        isError: isCompanyError,
+        error: companyErrorObj,
+    } = useQuery({
+        queryKey: job && job.companyId ? companyKeys.detail(job.companyId) : ["company", "none"],
+        queryFn: () => job && job.companyId ? getCompanyById(job.companyId) : Promise.resolve(undefined),
+        enabled: !!(job && job.companyId),
+        retry: false,
+    });
+
+    /**
+     * Canonical company name logic for field display.
+     */
+    let companyName = "-";
+    let companyError = null;
+    let companyLoading = false;
+    if (job && job.companyId) {
+        if (isCompanyPending) {
+            companyLoading = true;
+            companyName = "Loading...";
+        } else if (isCompanyError) {
+            companyError = "Could not load company";
+            companyName = "-";
+        } else if (companyData && companyData.name) {
+            companyName = companyData.name;
+        }
+    } else if (job && !job.companyId) {
+        companyName = "-";
+    }
+
+    // Fetch user for updatedBy using canonical query key
+    const {
+        data: userData,
+        isPending: isUserPending,
+        isError: isUserError,
+        error: userErrorObj,
+    } = useQuery({
+        queryKey: job && job.updatedBy ? userKeys.detail(job.updatedBy) : ["user", "none"],
+        queryFn: () => job && job.updatedBy ? getUserById(job.updatedBy) : Promise.resolve(undefined),
+        enabled: !!(job && job.updatedBy),
+        retry: false,
+    });
+
+    /**
+     * Canonical user name logic for field display.
+     */
+    let userName = "-";
+    let userError = null;
+    let userLoading = false;
+    if (job && job.updatedBy) {
+        if (isUserPending) {
+            userLoading = true;
+            userName = "Loading...";
+        } else if (isUserError) {
+            userError = "Could not load user";
+            userName = "-";
+        } else if (userData && userData.name) {
+            userName = userData.name;
+        }
+    } else if (job && !job.updatedBy) {
+        userName = "-";
+    }
 
     // Fetch items filtered by jobId (and optionally condition)
     const {
@@ -144,6 +206,12 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         jobId,
         condition,
         job,
+        companyName,
+        companyLoading,
+        companyError,
+        userName,
+        userLoading,
+        userError,
         itemsCount: items.length,
         totalItems,
         page,
@@ -158,6 +226,12 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         isJobPending,
         isJobError,
         jobError,
+        companyName,
+        companyLoading,
+        companyError,
+        userName,
+        userLoading,
+        userError,
         refetchJob,
         items,
         isPending,
