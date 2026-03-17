@@ -40,7 +40,7 @@ const formatDisplayDate = (value) => {
 /**
  * JobDetailScreen
  * Presents job info fields as read-only styled inputs,
- * main focus remains on item grid.
+ * with company and user name lookups using canonical query keys.
  *
  * @component
  * @returns {JSX.Element}
@@ -74,6 +74,12 @@ const JobDetailScreen = () => {
         isJobError,
         jobError,
         refetchJob,
+        companyName,
+        companyLoading,
+        companyError,
+        userName,
+        userLoading,
+        userError,
     } = useJobDetailScreen({ jobId: jobIdNum });
 
     const {
@@ -146,7 +152,7 @@ const JobDetailScreen = () => {
                             aria-label="Active job"
                         />
                     )}
-                    <span className={styles.jobTitle}>{job.name}</span>
+                    <span className={styles.jobTitle}>{job.name} - {job.description}</span>
                 </div>
                 <div className={styles.jobFieldsBoxesRow}>
                     <div className={styles.jobFieldTextboxGroup}>
@@ -166,12 +172,15 @@ const JobDetailScreen = () => {
                         <input
                             id="job-company"
                             className={styles.jobFieldTextbox}
-                            value={job.companyName || "-"}
+                            value={companyLoading ? "Loading..." : (companyName || "-")}
                             readOnly
                             tabIndex={0}
                             title="Double-click to edit"
                             onDoubleClick={() => {/* placeholder for future edit */}}
                         />
+                        {companyError && (
+                            <div className={styles.jobFieldError}>{companyError}</div>
+                        )}
                     </div>
                     <div className={styles.jobFieldTextboxGroup}>
                         <label className={styles.jobFieldLabel} htmlFor="job-client">Client</label>
@@ -202,12 +211,15 @@ const JobDetailScreen = () => {
                         <input
                             id="job-updatedby"
                             className={styles.jobFieldTextbox}
-                            value={job.updatedBy || "-"}
+                            value={userLoading ? "Loading..." : (userName || "-")}
                             readOnly
                             tabIndex={0}
                             title="Double-click to edit"
                             onDoubleClick={() => {/* placeholder for future edit */}}
                         />
+                        {userError && (
+                            <div className={styles.jobFieldError}>{userError}</div>
+                        )}
                     </div>
                 </div>
                 <div className={styles.jobDatesBoxesRow}>

@@ -74,6 +74,14 @@
     background: #f2f4ff;
     border-color: #bcbcff;
 }
+
+.jobFieldError {
+    color: #b3261e;
+    font-size: 0.95em;
+    margin-top: 3px;
+}
+
+
 @media (max-width: 900px) {
     .jobSummaryRow,
     .jobFieldsBoxesRow,
