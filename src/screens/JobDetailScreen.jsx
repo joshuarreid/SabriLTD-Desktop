@@ -39,8 +39,7 @@ const formatDisplayDate = (value) => {
 
 /**
  * JobDetailScreen
- * Presents job info fields as read-only styled inputs,
- * with company and user name lookups using canonical query keys.
+ * Presents immutable job info fields—no hover, no pointer, no focus styling.
  *
  * @component
  * @returns {JSX.Element}
@@ -163,8 +162,7 @@ const JobDetailScreen = () => {
                             value={job.name || "-"}
                             readOnly
                             tabIndex={0}
-                            title="Double-click to edit"
-                            onDoubleClick={() => {/* placeholder for future edit */}}
+                            aria-readonly="true"
                         />
                     </div>
                     <div className={styles.jobFieldTextboxGroup}>
@@ -175,8 +173,7 @@ const JobDetailScreen = () => {
                             value={companyLoading ? "Loading..." : (companyName || "-")}
                             readOnly
                             tabIndex={0}
-                            title="Double-click to edit"
-                            onDoubleClick={() => {/* placeholder for future edit */}}
+                            aria-readonly="true"
                         />
                         {companyError && (
                             <div className={styles.jobFieldError}>{companyError}</div>
@@ -190,8 +187,7 @@ const JobDetailScreen = () => {
                             value={job.client || "-"}
                             readOnly
                             tabIndex={0}
-                            title="Double-click to edit"
-                            onDoubleClick={() => {/* placeholder for future edit */}}
+                            aria-readonly="true"
                         />
                     </div>
                     <div className={styles.jobFieldTextboxGroup}>
@@ -202,8 +198,7 @@ const JobDetailScreen = () => {
                             value={job.description || "-"}
                             readOnly
                             tabIndex={0}
-                            title="Double-click to edit"
-                            onDoubleClick={() => {/* placeholder for future edit */}}
+                            aria-readonly="true"
                         />
                     </div>
                     <div className={styles.jobFieldTextboxGroup}>
@@ -214,8 +209,7 @@ const JobDetailScreen = () => {
                             value={userLoading ? "Loading..." : (userName || "-")}
                             readOnly
                             tabIndex={0}
-                            title="Double-click to edit"
-                            onDoubleClick={() => {/* placeholder for future edit */}}
+                            aria-readonly="true"
                         />
                         {userError && (
                             <div className={styles.jobFieldError}>{userError}</div>
@@ -231,8 +225,7 @@ const JobDetailScreen = () => {
                             value={formatDisplayDate(job.dateAdded)}
                             readOnly
                             tabIndex={0}
-                            title="Double-click to edit"
-                            onDoubleClick={() => {/* placeholder for future edit */}}
+                            aria-readonly="true"
                         />
                     </div>
                     <div className={styles.jobFieldTextboxGroup}>
@@ -243,8 +236,7 @@ const JobDetailScreen = () => {
                             value={formatDisplayDate(job.dateUpdated)}
                             readOnly
                             tabIndex={0}
-                            title="Double-click to edit"
-                            onDoubleClick={() => {/* placeholder for future edit */}}
+                            aria-readonly="true"
                         />
                     </div>
                 </div>
