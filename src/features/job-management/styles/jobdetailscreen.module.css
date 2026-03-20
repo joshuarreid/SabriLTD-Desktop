@@ -52,6 +52,7 @@
     letter-spacing: 0.018em;
     padding-left: 2px;
 }
+/* IMMUTABLE - NO HOVER, NO FOCUS, ALWAYS STATIC STYLE */
 .jobFieldTextbox {
     font-size: 1.08em;
     font-weight: 500;
@@ -62,17 +63,20 @@
     padding: 8px 12px;
     min-height: 34px;
     outline: none;
-    transition: border-color 0.17s, background 0.18s;
     box-shadow: none;
-    cursor: pointer;
+    cursor: default;
+    user-select: text;
+    transition: none;
 }
 .jobFieldTextbox[readonly] {
     user-select: text;
 }
 .jobFieldTextbox:focus,
 .jobFieldTextbox:hover {
-    background: #f2f4ff;
-    border-color: #bcbcff;
+    background: #f6f7fa;
+    border-color: #ebeaf0;
+    box-shadow: none;
+    color: #222;
 }
 
 .jobFieldError {
