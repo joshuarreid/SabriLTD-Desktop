@@ -8,10 +8,12 @@ import { jobKeys } from "../../../api/job/jobQueryKeys";
 import { itemKeys } from "../../../api/item/ItemQueryKeys";
 import { companyKeys } from "../../../api/company/companyQueryKeys";
 import { userKeys } from "../../../api/user/userQueryKeys";
+import useEditJobDetails from "./useEditJobDetails";
 
 /**
  * Logger for useJobDetailScreen.
  * @constant
+ * @type {{info: Function, error: Function}}
  */
 const logger = {
     info: (...args) => console.log("[useJobDetailScreen]", ...args),
@@ -56,8 +58,8 @@ const fetchItemsForJob = async (jobId, page, pageSize, condition) => {
         logger.error("[useJobDetailScreen] fetchItemsForJob error response", response);
         throw new Error(
             response?.errors && response.errors.length
-                ? response.errors.map(e => e.message).join(", ")
-                : "Failed to fetch items for job"
+                ? response.errors.map((e) => e.message).join(", ")
+                : "Failed to fetch items for job",
         );
     }
 
@@ -72,14 +74,17 @@ const fetchItemsForJob = async (jobId, page, pageSize, condition) => {
 /**
  * useJobDetailScreen
  * Fetches job details by id, company name for companyId (with canonical queryKey),
- * user name for updatedBy (with canonical queryKey), and items for job.
+ * user name for updatedBy (with canonical queryKey), items for job,
+ * and composes edit-mode logic via useEditJobDetails.
  *
  * @param {object} params
  * @param {string|number|null} params.jobId - The job to show details for.
  * @param {string} [params.condition] - Optional condition filter.
- * @returns {object} Result state for JobDetailScreen UI (companyName/userName loading and error states).
+ * @returns {object} Result state for JobDetailScreen UI.
  */
 const useJobDetailScreen = ({ jobId, condition }) => {
+    logger.info("useJobDetailScreen initialized", { jobId, condition });
+
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(20);
 
@@ -97,25 +102,43 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         retry: false,
     });
 
+    // Edit model (edit mode, dropdowns, create company/client)
+    const edit = useEditJobDetails({ job });
+
     // Fetch company using canonical query key
     const {
         data: companyData,
         isPending: isCompanyPending,
         isError: isCompanyError,
-        error: companyErrorObj,
     } = useQuery({
-        queryKey: job && job.companyId ? companyKeys.detail(job.companyId) : ["company", "none"],
-        queryFn: () => job && job.companyId ? getCompanyById(job.companyId) : Promise.resolve(undefined),
+        queryKey:
+            job && job.companyId ? companyKeys.detail(job.companyId) : ["company", "none"],
+        queryFn: () =>
+            job && job.companyId ? getCompanyById(job.companyId) : Promise.resolve(undefined),
         enabled: !!(job && job.companyId),
         retry: false,
     });
 
     /**
      * Canonical company name logic for field display.
+     * @type {string}
      */
     let companyName = "-";
+
+    /**
+     * companyError
+     * - UI-friendly error string for company lookup.
+     * @type {string|null}
+     */
     let companyError = null;
+
+    /**
+     * companyLoading
+     * - True while company lookup is in-flight.
+     * @type {boolean}
+     */
     let companyLoading = false;
+
     if (job && job.companyId) {
         if (isCompanyPending) {
             companyLoading = true;
@@ -126,8 +149,6 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         } else if (companyData && companyData.name) {
             companyName = companyData.name;
         }
-    } else if (job && !job.companyId) {
-        companyName = "-";
     }
 
     // Fetch user for updatedBy using canonical query key
@@ -135,20 +156,34 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         data: userData,
         isPending: isUserPending,
         isError: isUserError,
-        error: userErrorObj,
     } = useQuery({
         queryKey: job && job.updatedBy ? userKeys.detail(job.updatedBy) : ["user", "none"],
-        queryFn: () => job && job.updatedBy ? getUserById(job.updatedBy) : Promise.resolve(undefined),
+        queryFn: () =>
+            job && job.updatedBy ? getUserById(job.updatedBy) : Promise.resolve(undefined),
         enabled: !!(job && job.updatedBy),
         retry: false,
     });
 
     /**
      * Canonical user name logic for field display.
+     * @type {string}
      */
     let userName = "-";
+
+    /**
+     * userError
+     * - UI-friendly error string for user lookup.
+     * @type {string|null}
+     */
     let userError = null;
+
+    /**
+     * userLoading
+     * - True while user lookup is in-flight.
+     * @type {boolean}
+     */
     let userLoading = false;
+
     if (job && job.updatedBy) {
         if (isUserPending) {
             userLoading = true;
@@ -159,8 +194,6 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         } else if (userData && userData.name) {
             userName = userData.name;
         }
-    } else if (job && !job.updatedBy) {
-        userName = "-";
     }
 
     // Fetch items filtered by jobId (and optionally condition)
@@ -189,6 +222,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
     /**
      * Go to next page of items.
      * @function
+     * @returns {void}
      */
     const handleNext = useCallback(() => {
         if (page < totalPages) setPage((p) => p + 1);
@@ -197,6 +231,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
     /**
      * Go to previous page of items.
      * @function
+     * @returns {void}
      */
     const handlePrevious = useCallback(() => {
         if (page > 1) setPage((p) => p - 1);
@@ -205,7 +240,6 @@ const useJobDetailScreen = ({ jobId, condition }) => {
     logger.info("useJobDetailScreen state", {
         jobId,
         condition,
-        job,
         companyName,
         companyLoading,
         companyError,
@@ -219,6 +253,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         totalPages,
         hasPrevious,
         hasNext,
+        isEditMode: edit.isEditMode,
     });
 
     return {
@@ -233,6 +268,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         userLoading,
         userError,
         refetchJob,
+
         items,
         isPending,
         isError,
@@ -250,6 +286,8 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         handleNext,
         handlePrevious,
         refetch,
+
+        edit,
     };
 };
 
