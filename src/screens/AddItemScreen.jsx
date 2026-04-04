@@ -72,15 +72,15 @@ const AddItemScreen = () => {
     }, [resetUploadPhoto]);
 
     /**
-     * Handles single photo file upload after selection.
+     * Handles multiple photo file uploads after selection.
      * @function
-     * @param {File} file - Single photo file to upload
+     * @param {File[]} files - Array of photo files to upload
      */
-    const handleUploadPhotoFile = useCallback(
-        (file) => {
-            logger.info("handleUploadPhotoFile called", file?.name);
-            if (file) {
-                uploadPhoto(file, {
+    const handleUploadPhotoFiles = useCallback(
+        (files) => {
+            logger.info("handleUploadPhotoFiles called", Array.isArray(files) ? files.map(f => f?.name) : files);
+            if (files && files.length > 0) {
+                uploadPhoto(files, {
                     onSuccess: () => {
                         logger.info("Photo upload succeeded");
                         setUploadModalOpen(false);
@@ -220,9 +220,9 @@ const AddItemScreen = () => {
             <UploadPhotoModal
                 open={uploadModalOpen}
                 onClose={handleCloseUploadModal}
-                onUpload={handleUploadPhotoFile}
+                onUpload={handleUploadPhotoFiles}
                 isUploading={isUploading}
-                error={uploadError ? uploadError.message : null}
+                error={uploadError?.message}
             />
             {editItemModalOpen && selectedPhotoIds.length > 0 && (
                 <EditItemModal

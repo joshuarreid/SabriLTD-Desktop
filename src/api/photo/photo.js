@@ -14,15 +14,15 @@ const logger = {
 };
 
 /**
- * Uploads a photo via multipart/form-data.
- * @param {Object} fields { photoFile: File, itemId?: number, updatedBy: number }
+ * Uploads photos via multipart/form-data.
+ * @param {Object} fields { photoFiles: File[], itemId?: number, updatedBy: number }
  * @returns {Object|null} PhotoResponse or null
  */
 export async function uploadPhoto(fields) {
-    logger.info("uploadPhoto called", { itemId: fields?.itemId, updatedBy: fields?.updatedBy });
+    logger.info("uploadPhoto called", { itemId: fields?.itemId, updatedBy: fields?.updatedBy, fileCount: Array.isArray(fields?.photoFiles) ? fields.photoFiles.length : 0 });
     try {
         const response = await apiClient.uploadPhoto(fields);
-        logger.info("uploadPhoto received response", { photoId: response?.data?.photoId });
+        logger.info("uploadPhoto received response", { response });
         return response?.data || null;
     } catch (error) {
         logger.error("uploadPhoto failed", error);
