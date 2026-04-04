@@ -40,15 +40,15 @@ export default class PhotoApiClient extends ApiClient {
     }
 
     /**
-     * Uploads a photo (multipart/form-data).
-     * @param {Object} fields { photoFile: File, itemId?: number, updatedBy: number }
+     * Uploads photos (multipart/form-data).
+     * @param {Object} fields { photoFiles: File[], itemId?: number, updatedBy: number }
      * @returns {Object}
      */
     async uploadPhoto(fields) {
         logger.info("uploadPhoto called", {
             itemId: fields?.itemId,
             updatedBy: fields?.updatedBy,
-            hasFile: !!fields?.photoFile,
+            fileCount: Array.isArray(fields?.photoFiles) ? fields.photoFiles.length : 0,
         });
         try {
             const token = await getTokenFromElectron();
@@ -56,13 +56,15 @@ export default class PhotoApiClient extends ApiClient {
                 logger.error("uploadPhoto failed: No token available");
                 throw new Error("No authentication token found");
             }
-            if (!fields?.photoFile || !fields?.updatedBy) {
-                logger.error("uploadPhoto validation failed: missing photoFile or updatedBy");
-                throw new Error("Missing required inputfields for photo upload");
+            if (!fields?.photoFiles || !fields?.updatedBy || !Array.isArray(fields.photoFiles) || fields.photoFiles.length === 0) {
+                logger.error("uploadPhoto validation failed: missing photoFiles or updatedBy");
+                throw new Error("Missing required input fields for photo upload");
             }
 
             const formData = new FormData();
-            formData.append("photoFile", fields.photoFile);
+            fields.photoFiles.forEach((file, idx) => {
+                formData.append("photoFiles", file); // backend should expect 'photoFiles' as array
+            });
             formData.append("updatedBy", fields.updatedBy);
             if (fields.itemId) formData.append("itemId", fields.itemId);
 
@@ -72,7 +74,7 @@ export default class PhotoApiClient extends ApiClient {
                 },
             });
 
-            logger.info("uploadPhoto success", { photoId: response?.data?.photoId });
+            logger.info("uploadPhoto success", { response });
             return response;
         } catch (error) {
             logger.error("uploadPhoto failed", error);

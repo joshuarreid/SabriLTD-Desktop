@@ -10,8 +10,8 @@ const logger = {
     error: (...args) => console.error("[UploadPhotoModal]", ...args),
 };
 
-const MAX_FILE_SIZE_MB = 25;
-const SUPPORTED_FORMATS = ["image/png", "image/jpeg"];
+const MAX_FILE_SIZE_MB = 250;
+const SUPPORTED_FORMATS = ["image/png", "image/jpeg", "image/jpg"];
 
 /**
  * UploadPhotoModal component for selecting/uploading a single file.
@@ -31,7 +31,7 @@ export const UploadPhotoModal = ({
                                      isUploading = false,
                                      error = null,
                                  }) => {
-    const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState([]);
     const [dragActive, setDragActive] = useState(false);
     const [fileError, setFileError] = useState(null);
     const fileInputRef = useRef(null);
@@ -41,36 +41,37 @@ export const UploadPhotoModal = ({
      */
     useEffect(() => {
         if (!open) {
-            setSelectedFile(null);
+            setSelectedFiles([]);
             setFileError(null);
             setDragActive(false);
         }
     }, [open]);
 
     /**
-     * Updates selected file and validates type/size.
+     * Updates selected files and validates type/size.
      * @param {FileList} fileList
      */
     const handleFiles = useCallback((fileList) => {
-        const file = fileList?.[0];
-        logger.info("File selected/dropped", file?.name);
-        if (!file) {
+        if (!fileList || fileList.length === 0) {
             setFileError(null);
-            setSelectedFile(null);
+            setSelectedFiles([]);
             return;
         }
-        if (!SUPPORTED_FORMATS.includes(file.type)) {
-            setFileError("Only PNG and JPG files are supported.");
-            setSelectedFile(null);
-            return;
-        }
-        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-            setFileError(`Maximum file size is ${MAX_FILE_SIZE_MB}MB.`);
-            setSelectedFile(null);
+        const files = Array.from(fileList);
+        const invalid = files.find(
+            (file) =>
+                !SUPPORTED_FORMATS.includes(file.type) ||
+                file.size > MAX_FILE_SIZE_MB * 1024 * 1024
+        );
+        if (invalid) {
+            setFileError(
+                `Invalid file: ${invalid.name}. Only PNG/JPEG under ${MAX_FILE_SIZE_MB}MB allowed.`
+            );
+            setSelectedFiles([]);
             return;
         }
         setFileError(null);
-        setSelectedFile(file);
+        setSelectedFiles(files);
     }, []);
 
     /** Handles drag events for visual feedback. */
@@ -105,15 +106,15 @@ export const UploadPhotoModal = ({
 
     /** Clear all state and close modal */
     const handleCancel = () => {
-        setSelectedFile(null);
+        setSelectedFiles([]);
         setFileError(null);
         setDragActive(false);
         onClose();
     };
 
     const handleUpload = () => {
-        if (selectedFile && !fileError) {
-            onUpload(selectedFile);
+        if (selectedFiles.length > 0 && !fileError) {
+            onUpload(selectedFiles);
         }
     };
 
@@ -164,10 +165,10 @@ export const UploadPhotoModal = ({
                             className={styles.fileInput}
                             onChange={handleInputChange}
                             tabIndex={-1}
-                            multiple={false}
+                            multiple={true}
                         />
                         <div className={styles.dropZoneInner}>
-                            {!selectedFile ? (
+                            {selectedFiles.length === 0 ? (
                                 <>
                                     <svg
                                         width="38"
@@ -207,14 +208,15 @@ export const UploadPhotoModal = ({
                                 </>
                             ) : (
                                 <div className={styles.fileName}>
-                                    Selected: {selectedFile.name}
+                                    Selected:{" "}
+                                    {selectedFiles.map((file) => file.name).join(", ")}
                                 </div>
                             )}
                         </div>
                     </div>
                     <div className={styles.metaRow}>
                         <span className={styles.metaLeft}>
-                            Supported: <b>PNG, JPG</b>
+                            Supported: <b>PNG, JPG, JPEG</b>
                         </span>
                         <span className={styles.metaRight}>
                             Max size: <b>{MAX_FILE_SIZE_MB}MB</b>
@@ -229,8 +231,12 @@ export const UploadPhotoModal = ({
                         <button
                             type="submit"
                             className={styles.uploadButton}
-                            disabled={!selectedFile || !!fileError || isUploading}
-                            aria-disabled={!selectedFile || !!fileError || isUploading}
+                            disabled={
+                                selectedFiles.length === 0 || !!fileError || isUploading
+                            }
+                            aria-disabled={
+                                selectedFiles.length === 0 || !!fileError || isUploading
+                            }
                         >
                             {isUploading ? "Uploading…" : "Upload"}
                         </button>
