@@ -1,14 +1,12 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { TbProgressCheck } from "react-icons/tb";
-import { MdOutlineModeEditOutline, MdClose } from "react-icons/md";
+import { MdOutlineModeEditOutline, MdClose, MdCheck } from "react-icons/md";
 import ItemCardGrid from "../components/item-grid/components/ItemCardGrid";
 import { useViewItemModal } from "../components/viewitemmodal/hooks/useViewItemModal";
 import ViewItemModal from "../components/viewitemmodal/components/ViewItemModal";
-import FilterDropdownSearch from "../components/filterdropdown/FilterDropdownSearch";
 import FilterDropdownSearchAndAdd from "../components/filterdropdown/FilterDropdownSearchAndAdd";
 import useJobDetailScreen from "../features/job-management/hooks/useJobDetailScreen";
-import useEditJobDetails from "../features/job-management/hooks/useEditJobDetails";
 import styles from "../features/job-management/styles/jobdetailscreen.module.css";
 
 /**
@@ -93,13 +91,9 @@ const JobDetailScreen = () => {
         userName,
         userLoading,
         userError,
+        edit,
     } = useJobDetailScreen({ jobId: jobIdNum });
 
-    /**
-     * edit
-     * - Edit mode view model, driven by the loaded job.
-     */
-    const edit = useEditJobDetails({ job });
 
     const {
         isOpen,
@@ -162,18 +156,45 @@ const JobDetailScreen = () => {
     return (
         <div className={styles.jobDetailScreenRoot}>
             <div className={styles.jobInfoBar}>
-                <button
-                    type="button"
-                    className={`${styles.jobEditIconBtn} ${
-                        edit.isEditMode ? styles.jobEditIconBtnActive : ""
-                    }`}
-                    aria-label={edit.isEditMode ? "Cancel editing" : "Edit job details"}
-                    title={edit.isEditMode ? "Cancel editing" : "Edit job details"}
-                    tabIndex={0}
-                    onClick={edit.toggleEditMode}
-                >
-                    {edit.isEditMode ? <MdClose size={26} /> : <MdOutlineModeEditOutline size={26} />}
-                </button>
+                {/* Edit mode action buttons */}
+                <div className={styles.jobEditActions}>
+                    {edit.isEditMode && (
+                        <button
+                            type="button"
+                            className={`${styles.jobSaveBtn} ${
+                                !edit.hasChanges || edit.saveJobState.isPending
+                                    ? styles.jobSaveBtnDisabled
+                                    : ""
+                            }`}
+                            aria-label="Save changes"
+                            title={edit.saveJobState.isPending ? "Saving..." : "Save changes"}
+                            tabIndex={0}
+                            onClick={edit.saveJob}
+                            disabled={!edit.hasChanges || edit.saveJobState.isPending}
+                        >
+                            <MdCheck size={26} />
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        className={`${styles.jobEditIconBtn} ${
+                            edit.isEditMode ? styles.jobEditIconBtnActive : ""
+                        }`}
+                        aria-label={edit.isEditMode ? "Cancel editing" : "Edit job details"}
+                        title={edit.isEditMode ? "Cancel editing" : "Edit job details"}
+                        tabIndex={0}
+                        onClick={edit.toggleEditMode}
+                    >
+                        {edit.isEditMode ? <MdClose size={26} /> : <MdOutlineModeEditOutline size={26} />}
+                    </button>
+                </div>
+
+                {/* Save error message */}
+                {edit.saveJobState.isError && (
+                    <div className={styles.jobSaveError}>
+                        Failed to save: {edit.saveJobState.error?.message || "Unknown error"}
+                    </div>
+                )}
 
                 <div className={styles.jobSummaryRow}>
                     {isActive && (

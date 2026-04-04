@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllCompanies, createCompany } from "../../../api/company/company";
-import { getJobClients } from "../../../api/job/job";
+import { getJobClients, updateJob } from "../../../api/job/job";
 import { companyKeys } from "../../../api/company/companyQueryKeys";
 import { jobKeys } from "../../../api/job/jobQueryKeys";
 
@@ -255,12 +255,32 @@ const useEditJobDetails = ({ job }) => {
 
     /**
      * clientOptions
+     * - Includes the current editValues.client if not already in API results,
+     *   so newly typed client names appear selected in the dropdown.
      * @type {Array<{value:string,label:string}>}
      */
     const clientOptions = useMemo(() => {
         if (!selectedCompanyId) return [];
-        return buildClientOptions(clients);
-    }, [clients, selectedCompanyId]);
+
+        const apiOptions = buildClientOptions(clients);
+
+        // If there's a current client value that's not in the API options, add it
+        const currentClient = editValues.client?.trim();
+        if (currentClient) {
+            const alreadyExists = apiOptions.some(
+                (opt) => opt.value.toLowerCase() === currentClient.toLowerCase()
+            );
+            if (!alreadyExists) {
+                // Prepend the current client so it appears at the top
+                return [
+                    { value: currentClient, label: currentClient },
+                    ...apiOptions,
+                ];
+            }
+        }
+
+        return apiOptions;
+    }, [clients, selectedCompanyId, editValues.client]);
 
     /**
      * handleCompanyChange
@@ -381,6 +401,79 @@ const useEditJobDetails = ({ job }) => {
         return match?.name || "";
     }, [isEditMode, editValues.companyId, companies]);
 
+    /**
+     * saveJobMutation
+     * - Saves the edited job details to the server.
+     */
+    const saveJobMutation = useMutation({
+        mutationFn: (updatedJobData) => {
+            if (!job?.jobId) {
+                throw new Error("Cannot save job without a valid jobId");
+            }
+            return updateJob(job.jobId, updatedJobData);
+        },
+        onSuccess: (savedJob) => {
+            logger.info("Job saved successfully", { jobId: job?.jobId, savedJob });
+
+            // Invalidate job queries to refetch updated data
+            queryClient.invalidateQueries({ queryKey: jobKeys.all });
+
+            // Also invalidate clients query since client may have changed
+            if (selectedCompanyId) {
+                queryClient.invalidateQueries({
+                    queryKey: [...jobKeys.all, "clients", selectedCompanyId],
+                });
+            }
+
+            // Exit edit mode after successful save
+            setIsEditMode(false);
+        },
+        onError: (err) => {
+            logger.error("Failed to save job", err);
+        },
+    });
+
+    /**
+     * saveJob
+     * - Saves the current editValues to the server.
+     *
+     * @function saveJob
+     * @returns {void}
+     */
+    const saveJob = useCallback(() => {
+        if (!job?.jobId) {
+            logger.error("Cannot save job without a valid jobId");
+            return;
+        }
+
+        const payload = {
+            name: editValues.name?.trim() || "",
+            client: editValues.client?.trim() || "",
+            description: editValues.description?.trim() || "",
+            companyId: editValues.companyId ? Number(editValues.companyId) : null,
+        };
+
+        logger.info("Saving job", { jobId: job.jobId, payload });
+        saveJobMutation.mutate(payload);
+    }, [job?.jobId, editValues, saveJobMutation]);
+
+    /**
+     * hasChanges
+     * - Returns true if editValues differ from the original job values.
+     *
+     * @type {boolean}
+     */
+    const hasChanges = useMemo(() => {
+        if (!job) return false;
+        const original = getInitialEditValuesFromJob(job);
+        return (
+            editValues.name !== original.name ||
+            editValues.client !== original.client ||
+            editValues.description !== original.description ||
+            editValues.companyId !== original.companyId
+        );
+    }, [job, editValues]);
+
     return {
         isEditMode,
         editValues,
@@ -390,6 +483,8 @@ const useEditJobDetails = ({ job }) => {
         handleClientChange,
         createNewCompany,
         createNewClient,
+        saveJob,
+        hasChanges,
         companyOptions,
         clientOptions,
         selectedCompanyName,
@@ -407,7 +502,14 @@ const useEditJobDetails = ({ job }) => {
             isError: createCompanyMutation.isError,
             error: createCompanyMutation.error,
         },
+        saveJobState: {
+            isPending: saveJobMutation.isPending,
+            isError: saveJobMutation.isError,
+            error: saveJobMutation.error,
+            isSuccess: saveJobMutation.isSuccess,
+        },
     };
 };
 
 export default useEditJobDetails;
+
