@@ -103,6 +103,105 @@
     box-shadow: none;
     color: #222;
 }
+
+/* Editable textbox styles (edit mode) */
+.jobFieldTextboxEditable {
+    cursor: text;
+    background: #fff;
+    border-color: #c5c3d0;
+}
+.jobFieldTextboxEditable:focus,
+.jobFieldTextboxEditable:hover {
+    background: #fff;
+    border-color: #7c6faa;
+    box-shadow: 0 0 0 2px rgba(124, 111, 170, 0.13);
+    outline: none;
+}
+
+/* Disabled textbox styles (e.g., client when no company selected) */
+.jobFieldTextboxDisabled {
+    cursor: not-allowed;
+    background: #f0f0f3;
+    color: #999;
+    font-style: italic;
+}
+
+/* Dropdown styles for edit mode */
+.jobFieldDropdown {
+    cursor: pointer;
+    background: #fff;
+    border-color: #c5c3d0;
+    appearance: auto;
+    /* Match textbox styles for size and appearance */
+    font-size: 1.08em;
+    font-weight: 500;
+    border-radius: 9px;
+    padding: 8px 12px;
+    min-height: 34px;
+    color: #222;
+    border-width: 1.5px;
+    border-style: solid;
+    outline: none;
+    box-shadow: none;
+    transition: none;
+}
+.jobFieldDropdown:focus,
+.jobFieldDropdown:hover {
+    background: #fff;
+    border-color: #7c6faa;
+    box-shadow: 0 0 0 2px rgba(124, 111, 170, 0.13);
+    outline: none;
+}
+.jobFieldDropdown:disabled {
+    cursor: not-allowed;
+    background: #f0f0f3;
+    color: #999;
+}
+
+/* Inline FilterDropdownSearch styling for edit mode */
+.jobFieldDropdownInline {
+    width: 100%;
+}
+
+.jobFieldDropdownInline > button {
+    width: 100%;
+    min-width: unset;
+    min-height: 34px;
+    padding: 8px 12px;
+    font-size: 1.08em;
+    font-weight: 500;
+    border-radius: 9px;
+    border: 1.5px solid #c5c3d0;
+    background: #fff;
+    justify-content: space-between;
+}
+
+.jobFieldDropdownInline > button:hover,
+.jobFieldDropdownInline > button:focus-visible {
+    border-color: #7c6faa;
+    box-shadow: 0 0 0 2px rgba(124, 111, 170, 0.13);
+    background: #fff;
+    transform: none;
+}
+
+/* Info message style */
+.jobFieldInfo {
+    color: #2563eb;
+    font-size: 0.9em;
+    margin-top: 3px;
+    font-style: italic;
+}
+
+/* Edit button active state */
+.jobEditIconBtnActive {
+    background: #fbeaea;
+    color: #c04040;
+}
+.jobEditIconBtnActive:hover,
+.jobEditIconBtnActive:focus-visible {
+    background: #f5d5d5;
+    color: #a03030;
+}
 .jobFieldError {
     color: #b3261e;
     font-size: 0.95em;
