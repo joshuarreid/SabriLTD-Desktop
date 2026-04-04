@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { TbProgressCheck } from "react-icons/tb";
+import { MdOutlineModeEditOutline } from "react-icons/md";
 import ItemCardGrid from "../components/item-grid/components/ItemCardGrid";
 import { useViewItemModal } from "../components/viewitemmodal/hooks/useViewItemModal";
 import ViewItemModal from "../components/viewitemmodal/components/ViewItemModal";
@@ -40,6 +41,7 @@ const formatDisplayDate = (value) => {
 /**
  * JobDetailScreen
  * Presents immutable job info fields—no hover, no pointer, no focus styling.
+ * Pencil icon edit button is in the top right corner for future editing.
  *
  * @component
  * @returns {JSX.Element}
@@ -142,6 +144,15 @@ const JobDetailScreen = () => {
     return (
         <div className={styles.jobDetailScreenRoot}>
             <div className={styles.jobInfoBar}>
+                <button
+                    type="button"
+                    className={styles.jobEditIconBtn}
+                    aria-label="Edit job details"
+                    title="Edit job details"
+                    tabIndex={0}
+                >
+                    <MdOutlineModeEditOutline size={26} />
+                </button>
                 <div className={styles.jobSummaryRow}>
                     {isActive && (
                         <TbProgressCheck
