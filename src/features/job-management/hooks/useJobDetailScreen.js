@@ -8,10 +8,10 @@ import { jobKeys } from "../../../api/job/jobQueryKeys";
 import { itemKeys } from "../../../api/item/ItemQueryKeys";
 import { companyKeys } from "../../../api/company/companyQueryKeys";
 import { userKeys } from "../../../api/user/userQueryKeys";
-import useEditJobDetails from "./useEditJobDetails";
 
 /**
  * Logger for useJobDetailScreen.
+ *
  * @constant
  * @type {{info: Function, error: Function}}
  */
@@ -22,6 +22,7 @@ const logger = {
 
 /**
  * Fetches items filtered by jobId using Meilisearch filterable attributes.
+ *
  * @async
  * @function fetchItemsForJob
  * @param {number|string} jobId - The jobId to filter items by.
@@ -73,9 +74,8 @@ const fetchItemsForJob = async (jobId, page, pageSize, condition) => {
 
 /**
  * useJobDetailScreen
- * Fetches job details by id, company name for companyId (with canonical queryKey),
- * user name for updatedBy (with canonical queryKey), items for job,
- * and composes edit-mode logic via useEditJobDetails.
+ * Fetches job details by id, company name for companyId, user name for updatedBy,
+ * and items for the job.
  *
  * @param {object} params
  * @param {string|number|null} params.jobId - The job to show details for.
@@ -88,7 +88,9 @@ const useJobDetailScreen = ({ jobId, condition }) => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(20);
 
-    // Fetch job details using a canonical query key
+    /**
+     * Fetch job details using a canonical query key.
+     */
     const {
         data: job,
         isPending: isJobPending,
@@ -102,17 +104,15 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         retry: false,
     });
 
-    // Edit model (edit mode, dropdowns, create company/client)
-    const edit = useEditJobDetails({ job });
-
-    // Fetch company using canonical query key
+    /**
+     * Fetch company using canonical query key.
+     */
     const {
         data: companyData,
         isPending: isCompanyPending,
         isError: isCompanyError,
     } = useQuery({
-        queryKey:
-            job && job.companyId ? companyKeys.detail(job.companyId) : ["company", "none"],
+        queryKey: job && job.companyId ? companyKeys.detail(job.companyId) : ["company", "none"],
         queryFn: () =>
             job && job.companyId ? getCompanyById(job.companyId) : Promise.resolve(undefined),
         enabled: !!(job && job.companyId),
@@ -121,6 +121,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
 
     /**
      * Canonical company name logic for field display.
+     *
      * @type {string}
      */
     let companyName = "-";
@@ -128,6 +129,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
     /**
      * companyError
      * - UI-friendly error string for company lookup.
+     *
      * @type {string|null}
      */
     let companyError = null;
@@ -135,6 +137,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
     /**
      * companyLoading
      * - True while company lookup is in-flight.
+     *
      * @type {boolean}
      */
     let companyLoading = false;
@@ -151,7 +154,9 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         }
     }
 
-    // Fetch user for updatedBy using canonical query key
+    /**
+     * Fetch user for updatedBy using canonical query key.
+     */
     const {
         data: userData,
         isPending: isUserPending,
@@ -166,6 +171,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
 
     /**
      * Canonical user name logic for field display.
+     *
      * @type {string}
      */
     let userName = "-";
@@ -173,6 +179,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
     /**
      * userError
      * - UI-friendly error string for user lookup.
+     *
      * @type {string|null}
      */
     let userError = null;
@@ -180,6 +187,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
     /**
      * userLoading
      * - True while user lookup is in-flight.
+     *
      * @type {boolean}
      */
     let userLoading = false;
@@ -196,7 +204,9 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         }
     }
 
-    // Fetch items filtered by jobId (and optionally condition)
+    /**
+     * Fetch items filtered by jobId (and optionally condition).
+     */
     const {
         data: itemSearchResult,
         isPending: isPending,
@@ -221,6 +231,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
 
     /**
      * Go to next page of items.
+     *
      * @function
      * @returns {void}
      */
@@ -230,6 +241,7 @@ const useJobDetailScreen = ({ jobId, condition }) => {
 
     /**
      * Go to previous page of items.
+     *
      * @function
      * @returns {void}
      */
@@ -253,7 +265,6 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         totalPages,
         hasPrevious,
         hasNext,
-        isEditMode: edit.isEditMode,
     });
 
     return {
@@ -268,7 +279,6 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         userLoading,
         userError,
         refetchJob,
-
         items,
         isPending,
         isError,
@@ -286,8 +296,6 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         handleNext,
         handlePrevious,
         refetch,
-
-        edit,
     };
 };
 

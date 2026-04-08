@@ -7,10 +7,12 @@ import { useViewItemModal } from "../components/viewitemmodal/hooks/useViewItemM
 import ViewItemModal from "../components/viewitemmodal/components/ViewItemModal";
 import FilterDropdownSearchAndAdd from "../components/filterdropdown/FilterDropdownSearchAndAdd";
 import useJobDetailScreen from "../features/job-management/hooks/useJobDetailScreen";
+import useEditJobDetails from "../features/job-management/hooks/useEditJobDetails";
 import styles from "../features/job-management/styles/jobdetailscreen.module.css";
 
 /**
  * Logger for JobDetailScreen.
+ *
  * @constant
  * @type {{info: Function, error: Function}}
  */
@@ -21,7 +23,7 @@ const logger = {
 
 /**
  * formatDisplayDate
- * Converts ISO date to "Dec 20 2025 5:33pm" style
+ * Converts ISO date to "Dec 20 2025 5:33pm" style.
  *
  * @function formatDisplayDate
  * @param {string} value
@@ -44,8 +46,7 @@ const formatDisplayDate = (value) => {
 
 /**
  * JobDetailScreen
- * Presents immutable job info fields—no hover, no pointer, no focus styling.
- * Pencil icon edit button is in the top right corner for future editing.
+ * Presents job details, item list, and edit mode controls.
  *
  * @component
  * @returns {JSX.Element}
@@ -63,6 +64,10 @@ const JobDetailScreen = () => {
      */
     const jobIdNum = jobId ? Number(jobId) : null;
 
+    /**
+     * jobDetail
+     * - Read-only job detail and items state.
+     */
     const {
         items,
         isPending,
@@ -91,10 +96,18 @@ const JobDetailScreen = () => {
         userName,
         userLoading,
         userError,
-        edit,
     } = useJobDetailScreen({ jobId: jobIdNum });
 
+    /**
+     * edit
+     * - Edit-mode state and mutations for job updates.
+     */
+    const edit = useEditJobDetails({ job });
 
+    /**
+     * viewItemModal
+     * - Modal state for viewing item details.
+     */
     const {
         isOpen,
         isDetailsPending,
@@ -130,6 +143,7 @@ const JobDetailScreen = () => {
             logger.error("handleItemClick called without an item in JobDetailScreen");
             return;
         }
+
         logger.info("Item clicked from grid", {
             itemId: item.id || item.itemId,
             name: item.name,
@@ -150,6 +164,12 @@ const JobDetailScreen = () => {
         );
     }
 
+    /**
+     * isActive
+     * - True when job status is "active" (case-insensitive).
+     *
+     * @type {boolean}
+     */
     const isActive =
         typeof job.status === "string" && job.status.toLowerCase() === "active";
 
@@ -185,7 +205,11 @@ const JobDetailScreen = () => {
                         tabIndex={0}
                         onClick={edit.toggleEditMode}
                     >
-                        {edit.isEditMode ? <MdClose size={26} /> : <MdOutlineModeEditOutline size={26} />}
+                        {edit.isEditMode ? (
+                            <MdClose size={26} />
+                        ) : (
+                            <MdOutlineModeEditOutline size={26} />
+                        )}
                     </button>
                 </div>
 
