@@ -16,6 +16,10 @@ import { useUploadPhoto } from "../features/add-item-screen/hooks/useUploadPhoto
 import UploadPhotoModal from "../features/add-item-screen/components/UploadPhotoModal";
 import SaveStatus from "../components/save/SaveStatus";
 import EditItemModal from "../components/edititemmodal/components/EditItemModal";
+import { useDeletePhotos } from "../features/add-item-screen/hooks/useDeletePhotos";
+import { useQueryClient } from "@tanstack/react-query";
+import { photoKeys } from "../api/photo/photoQueryKeys";
+import ConfirmationModal from "../components/confirmationmodal/ConfirmationModal";
 
 /**
  * logger for AddItemScreen.
@@ -37,6 +41,10 @@ const AddItemScreen = () => {
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
     const [editItemModalOpen, setEditItemModalOpen] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+
+    const queryClient = useQueryClient();
 
     const {
         pendingPhotos,
@@ -51,6 +59,11 @@ const AddItemScreen = () => {
         reset: resetUploadPhoto,
         error: uploadError,
     } = useUploadPhoto();
+
+    const {
+        mutate: deletePhotos,
+        isPending: isDeleting,
+    } = useDeletePhotos();
 
     /**
      * Opens the upload modal.
@@ -72,15 +85,15 @@ const AddItemScreen = () => {
     }, [resetUploadPhoto]);
 
     /**
-     * Handles single photo file upload after selection.
+     * Handles multiple photo file uploads after selection.
      * @function
-     * @param {File} file - Single photo file to upload
+     * @param {File[]} files - Array of photo files to upload
      */
-    const handleUploadPhotoFile = useCallback(
-        (file) => {
-            logger.info("handleUploadPhotoFile called", file?.name);
-            if (file) {
-                uploadPhoto(file, {
+    const handleUploadPhotoFiles = useCallback(
+        (files) => {
+            logger.info("handleUploadPhotoFiles called", Array.isArray(files) ? files.map(f => f?.name) : files);
+            if (files && files.length > 0) {
+                uploadPhoto(files, {
                     onSuccess: () => {
                         logger.info("Photo upload succeeded");
                         setUploadModalOpen(false);
@@ -154,6 +167,34 @@ const AddItemScreen = () => {
         setSelectedPhotoIds([]);
     }, []);
 
+    /**
+     * Deletes all selected photos.
+     * @function
+     */
+    const handleDeleteSelected = useCallback(() => {
+        if (!selectedPhotoIds.length) return;
+        setShowDeleteModal(true);
+    }, [selectedPhotoIds]);
+
+    const handleConfirmDelete = useCallback(() => {
+        if (!selectedPhotoIds.length) return;
+        deletePhotos(selectedPhotoIds, {
+            onSuccess: () => {
+                logger.info("Deleted selected photos", selectedPhotoIds);
+                setSelectedPhotoIds([]);
+                setShowDeleteModal(false);
+            },
+            onError: (err) => {
+                logger.error("Failed to delete selected photos:", err);
+                setShowDeleteModal(false);
+            },
+        });
+    }, [selectedPhotoIds, deletePhotos]);
+
+    const handleCancelDelete = useCallback(() => {
+        setShowDeleteModal(false);
+    }, []);
+
     // --- RENDER ---
     return (
         <div className={styles.addItemPanel}>
@@ -197,6 +238,15 @@ const AddItemScreen = () => {
                     >
                         Clear Selection
                     </button>
+                    <button
+                        type="button"
+                        className={styles.deleteBtn}
+                        onClick={handleDeleteSelected}
+                        disabled={selectedPhotoIds.length === 0 || isDeleting}
+                        aria-disabled={selectedPhotoIds.length === 0 || isDeleting}
+                    >
+                        {isDeleting ? "Deleting..." : "Delete"}
+                    </button>
                 </div>
             </div>
             <div className={styles.gridContainer}>
@@ -220,9 +270,9 @@ const AddItemScreen = () => {
             <UploadPhotoModal
                 open={uploadModalOpen}
                 onClose={handleCloseUploadModal}
-                onUpload={handleUploadPhotoFile}
+                onUpload={handleUploadPhotoFiles}
                 isUploading={isUploading}
-                error={uploadError ? uploadError.message : null}
+                error={uploadError?.message}
             />
             {editItemModalOpen && selectedPhotoIds.length > 0 && (
                 <EditItemModal
@@ -235,8 +285,21 @@ const AddItemScreen = () => {
                     onClose={handleCloseEditItemModal}
                 />
             )}
+            <ConfirmationModal
+                open={showDeleteModal}
+                onCancel={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                title="Delete selected photos?"
+                description={`Are you sure you want to delete ${selectedPhotoIds.length} photo${selectedPhotoIds.length > 1 ? 's' : ''}? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                isConfirmLoading={isDeleting}
+                confirmDisabled={isDeleting}
+                deleteStatus={isDeleting ? 'deleting' : 'idle'}
+            />
         </div>
     );
 };
 
 export default AddItemScreen;
+

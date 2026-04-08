@@ -104,7 +104,6 @@
     border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
-    margin-right: 13px;
     transition: border-color 0.12s, color 0.12s, background 0.12s;
 }
 .clearSelectionsBtn:disabled,
@@ -117,6 +116,30 @@
     background: var(--sabri-grey-100, #f5f5f7);
     color: var(--color-primary, #333645);
     border-color: var(--color-secondary, #ffd600);
+}
+.deleteBtn {
+  background: var(--condition-damaged-bg, #ffe8e7);
+  color: var(--condition-damaged-text, #c62819);
+  border: 1.5px solid var(--condition-damaged-border, #e04134);
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 1.02rem;
+  margin: 0;
+  transition: background 0.15s, color 0.15s, border 0.15s;
+  cursor: pointer;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.deleteBtn:disabled,
+.deleteBtn[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-primary-contrast, #fff);
+  color: var(--color-primary-muted, #777c88);
+  border-color: var(--color-border-subtle, #e4e6ec);
 }
 
 /* Grid of photo cards */
