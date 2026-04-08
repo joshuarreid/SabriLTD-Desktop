@@ -4,6 +4,8 @@ import { getAllCompanies, createCompany } from "../../../api/company/company";
 import { getJobClients, updateJob } from "../../../api/job/job";
 import { companyKeys } from "../../../api/company/companyQueryKeys";
 import { jobKeys } from "../../../api/job/jobQueryKeys";
+import { userKeys } from "../../../api/user/userQueryKeys";
+import { useCurrentUser } from "../../../hooks/useCurrentUser";
 
 /**
  * Logger for useEditJobDetails.
@@ -87,22 +89,64 @@ const getInitialEditValuesFromJob = (job) => {
 };
 
 /**
+ * safeStringTrim
+ * - Utility to normalize possibly-null values into trimmed strings.
+ *
+ * @function safeStringTrim
+ * @param {any} value
+ * @returns {string}
+ */
+const safeStringTrim = (value) => {
+    return String(value || "").trim();
+};
+
+/**
+ * resolveCurrentUserId
+ * - Resolves a numeric user id from the `useCurrentUser` payload.
+ *
+ * NOTE:
+ * - `useCurrentUser` returns the result of `getMe()`. This app historically uses `userId`.
+ *
+ * @function resolveCurrentUserId
+ * @param {any} user
+ * @returns {number|null}
+ */
+const resolveCurrentUserId = (user) => {
+    const candidate = user?.userId ?? user?.id ?? null;
+    const asNum = candidate === null || candidate === undefined ? NaN : Number(candidate);
+    if (Number.isNaN(asNum)) return null;
+    return asNum;
+};
+
+/**
  * useEditJobDetails
  * - Manages edit mode state for job details and related dropdown data (companies + clients).
  * - Owns editValues, edit-mode toggling, and "create new company/client" behaviors.
+ * - Handles saving job updates and ensures `updatedBy` is populated from `useCurrentUser`.
  *
- * NOTE:
- * - Saving the edited job itself is intentionally not handled here (UI feature can be added later).
+ * IMPORTANT:
+ * - There is no dedicated "create client" API. Clients are derived from jobs for a company.
+ * - Therefore "create new client" is implemented as:
+ *   1) update local draft field `editValues.client`
+ *   2) ensure the dropdown options include the draft value immediately
+ *   3) on Save, persist client name on the job, and invalidate the "clients" list query
  *
  * @function useEditJobDetails
  * @param {object} params
- * @param {any} params.job - The loaded job object (source of truth for initial values).
+ * @param {any} params.job - Loaded job object (source of truth).
  * @returns {object} Edit model used by JobDetailScreen.
  */
 const useEditJobDetails = ({ job }) => {
     logger.info("useEditJobDetails initialized", { jobId: job?.jobId });
 
     const queryClient = useQueryClient();
+
+    /**
+     * currentUserState
+     * - Current authenticated user info used to populate `updatedBy`.
+     */
+    const { user: currentUser, loading: currentUserLoading, error: currentUserError } =
+        useCurrentUser();
 
     /**
      * isEditMode
@@ -140,7 +184,7 @@ const useEditJobDetails = ({ job }) => {
     /**
      * toggleEditMode
      * - Enters/leaves edit mode.
-     * - When leaving (cancel), resets draft to job values.
+     * - Always resets draft to the latest job values (acts as cancel + reset).
      *
      * @function toggleEditMode
      * @returns {void}
@@ -155,14 +199,7 @@ const useEditJobDetails = ({ job }) => {
                 to: next,
             });
 
-            if (prev === true && next === false) {
-                setEditValues(getInitialEditValuesFromJob(job));
-            }
-
-            if (prev === false && next === true) {
-                setEditValues(getInitialEditValuesFromJob(job));
-            }
-
+            setEditValues(getInitialEditValuesFromJob(job));
             return next;
         });
     }, [job]);
@@ -249,14 +286,17 @@ const useEditJobDetails = ({ job }) => {
 
     /**
      * companyOptions
+     *
      * @type {Array<{value:string,label:string}>}
      */
     const companyOptions = useMemo(() => buildCompanyOptions(companies), [companies]);
 
     /**
      * clientOptions
-     * - Includes the current editValues.client if not already in API results,
-     *   so newly typed client names appear selected in the dropdown.
+     * - Includes the current editValues.client if not already in API results.
+     * - This guarantees that a newly "created" client name stays selectable/visible
+     *   even before Save persists it (clients are derived from jobs).
+     *
      * @type {Array<{value:string,label:string}>}
      */
     const clientOptions = useMemo(() => {
@@ -264,22 +304,16 @@ const useEditJobDetails = ({ job }) => {
 
         const apiOptions = buildClientOptions(clients);
 
-        // If there's a current client value that's not in the API options, add it
-        const currentClient = editValues.client?.trim();
-        if (currentClient) {
-            const alreadyExists = apiOptions.some(
-                (opt) => opt.value.toLowerCase() === currentClient.toLowerCase()
-            );
-            if (!alreadyExists) {
-                // Prepend the current client so it appears at the top
-                return [
-                    { value: currentClient, label: currentClient },
-                    ...apiOptions,
-                ];
-            }
-        }
+        const currentClient = safeStringTrim(editValues.client);
+        if (!currentClient) return apiOptions;
 
-        return apiOptions;
+        const alreadyExists = apiOptions.some(
+            (opt) => String(opt.value).toLowerCase() === currentClient.toLowerCase(),
+        );
+
+        if (alreadyExists) return apiOptions;
+
+        return [{ value: currentClient, label: currentClient }, ...apiOptions];
     }, [clients, selectedCompanyId, editValues.client]);
 
     /**
@@ -338,7 +372,7 @@ const useEditJobDetails = ({ job }) => {
      */
     const createNewCompany = useCallback(
         (companyNameToCreate) => {
-            const trimmed = String(companyNameToCreate || "").trim();
+            const trimmed = safeStringTrim(companyNameToCreate);
             if (!trimmed) {
                 logger.error("Cannot create company with empty name");
                 return;
@@ -352,6 +386,7 @@ const useEditJobDetails = ({ job }) => {
     /**
      * createNewClient
      * - Uses a new client name (stored locally in editValues.client).
+     * - Does NOT call an API because clients are derived from jobs.
      *
      * @function createNewClient
      * @param {string} clientName
@@ -359,7 +394,7 @@ const useEditJobDetails = ({ job }) => {
      */
     const createNewClient = useCallback(
         (clientName) => {
-            const trimmed = String(clientName || "").trim();
+            const trimmed = safeStringTrim(clientName);
             if (!trimmed) {
                 logger.error("Cannot use empty client name");
                 return;
@@ -369,8 +404,7 @@ const useEditJobDetails = ({ job }) => {
                 return;
             }
 
-            logger.info("Using new client name for company", {
-                clientName: trimmed,
+            logger.info("Using new client name for company (draft only)", {
                 companyId: selectedCompanyId,
             });
 
@@ -413,19 +447,25 @@ const useEditJobDetails = ({ job }) => {
             return updateJob(job.jobId, updatedJobData);
         },
         onSuccess: (savedJob) => {
-            logger.info("Job saved successfully", { jobId: job?.jobId, savedJob });
+            logger.info("Job saved successfully", { jobId: job?.jobId });
 
-            // Invalidate job queries to refetch updated data
+            // Refetch job details so view-mode fields (including updatedBy) refresh
             queryClient.invalidateQueries({ queryKey: jobKeys.all });
 
-            // Also invalidate clients query since client may have changed
+            // If server returns updatedBy, refresh that user too
+            if (savedJob?.updatedBy) {
+                queryClient.invalidateQueries({
+                    queryKey: userKeys.detail(savedJob.updatedBy),
+                });
+            }
+
+            // Clients list may change if we updated the client string
             if (selectedCompanyId) {
                 queryClient.invalidateQueries({
                     queryKey: [...jobKeys.all, "clients", selectedCompanyId],
                 });
             }
 
-            // Exit edit mode after successful save
             setIsEditMode(false);
         },
         onError: (err) => {
@@ -436,6 +476,7 @@ const useEditJobDetails = ({ job }) => {
     /**
      * saveJob
      * - Saves the current editValues to the server.
+     * - Sets `updatedBy` from `useCurrentUser`.
      *
      * @function saveJob
      * @returns {void}
@@ -446,16 +487,34 @@ const useEditJobDetails = ({ job }) => {
             return;
         }
 
+        const updatedById = resolveCurrentUserId(currentUser);
+        if (!updatedById) {
+            logger.error("Cannot save job: could not resolve current user id for updatedBy", {
+                currentUserLoading,
+                hasCurrentUser: Boolean(currentUser),
+                currentUserError,
+            });
+            return;
+        }
+
         const payload = {
-            name: editValues.name?.trim() || "",
-            client: editValues.client?.trim() || "",
-            description: editValues.description?.trim() || "",
+            name: safeStringTrim(editValues.name),
+            client: safeStringTrim(editValues.client),
+            description: safeStringTrim(editValues.description),
             companyId: editValues.companyId ? Number(editValues.companyId) : null,
+            updatedBy: updatedById,
         };
 
-        logger.info("Saving job", { jobId: job.jobId, payload });
+        logger.info("Saving job (payload redacted)");
         saveJobMutation.mutate(payload);
-    }, [job?.jobId, editValues, saveJobMutation]);
+    }, [
+        job,
+        editValues,
+        saveJobMutation,
+        currentUser,
+        currentUserLoading,
+        currentUserError,
+    ]);
 
     /**
      * hasChanges
@@ -508,8 +567,11 @@ const useEditJobDetails = ({ job }) => {
             error: saveJobMutation.error,
             isSuccess: saveJobMutation.isSuccess,
         },
+        currentUserState: {
+            loading: currentUserLoading,
+            error: currentUserError,
+        },
     };
 };
 
 export default useEditJobDetails;
-
