@@ -1,0 +1,284 @@
+.jobDetailScreenRoot {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 32px;
+}
+.jobInfoBar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    padding: 23px 22px 17px 22px;
+    background: #fcfcfd;
+    border: 1.5px solid #ebeaf0;
+    border-radius: 13px;
+    margin-bottom: 17px;
+    box-shadow: 0 2px 8px 0 rgba(80,90,120,0.05);
+    font-size: 1em;
+}
+.jobEditIconBtn {
+    background: none;
+    border: none;
+    padding: 1px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #aaa6b7;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.13s, color 0.13s, box-shadow 0.14s, transform 0.12s;
+}
+.jobEditIconBtn:focus-visible,
+.jobEditIconBtn:hover {
+    background: #f7f5fc;
+    color: #665c77;
+    box-shadow: 0 1px 4px rgba(44,47,59,0.09);
+    outline: none;
+}
+.jobSummaryRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.jobActiveIcon {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+.jobTitle {
+    font-weight: 700;
+    font-size: 1.21em;
+    color: var(--color-primary, #333645);
+}
+.jobFieldsBoxesRow,
+.jobDatesBoxesRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 36px;
+}
+.jobFieldTextboxGroup {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+    flex: 1 1 180px;
+    max-width: 290px;
+}
+.jobFieldLabel {
+    font-size: 0.94em;
+    font-weight: 600;
+    color: #5b5475;
+    margin-bottom: 5px;
+    letter-spacing: 0.018em;
+    padding-left: 2px;
+}
+/* IMMUTABLE - NO HOVER, NO FOCUS, ALWAYS STATIC STYLE */
+.jobFieldTextbox {
+    font-size: 1.08em;
+    font-weight: 500;
+    color: #222;
+    background: #f6f7fa;
+    border: 1.5px solid #ebeaf0;
+    border-radius: 9px;
+    padding: 8px 12px;
+    min-height: 34px;
+    outline: none;
+    box-shadow: none;
+    cursor: default;
+    user-select: text;
+    transition: none;
+}
+.jobFieldTextbox[readonly] {
+    user-select: text;
+}
+.jobFieldTextbox:focus,
+.jobFieldTextbox:hover {
+    background: #f6f7fa;
+    border-color: #ebeaf0;
+    box-shadow: none;
+    color: #222;
+}
+
+/* Editable textbox styles (edit mode) */
+.jobFieldTextboxEditable {
+    cursor: text;
+    background: #fff;
+    border-color: #c5c3d0;
+}
+.jobFieldTextboxEditable:focus,
+.jobFieldTextboxEditable:hover {
+    background: #fff;
+    border-color: #7c6faa;
+    box-shadow: 0 0 0 2px rgba(124, 111, 170, 0.13);
+    outline: none;
+}
+
+/* Disabled textbox styles (e.g., client when no company selected) */
+.jobFieldTextboxDisabled {
+    cursor: not-allowed;
+    background: #f0f0f3;
+    color: #999;
+    font-style: italic;
+}
+
+/* Dropdown styles for edit mode */
+.jobFieldDropdown {
+    cursor: pointer;
+    background: #fff;
+    border-color: #c5c3d0;
+    appearance: auto;
+    /* Match textbox styles for size and appearance */
+    font-size: 1.08em;
+    font-weight: 500;
+    border-radius: 9px;
+    padding: 8px 12px;
+    min-height: 34px;
+    color: #222;
+    border-width: 1.5px;
+    border-style: solid;
+    outline: none;
+    box-shadow: none;
+    transition: none;
+}
+.jobFieldDropdown:focus,
+.jobFieldDropdown:hover {
+    background: #fff;
+    border-color: #7c6faa;
+    box-shadow: 0 0 0 2px rgba(124, 111, 170, 0.13);
+    outline: none;
+}
+.jobFieldDropdown:disabled {
+    cursor: not-allowed;
+    background: #f0f0f3;
+    color: #999;
+}
+
+/* Inline FilterDropdownSearch styling for edit mode */
+.jobFieldDropdownInline {
+    width: 100%;
+}
+
+.jobFieldDropdownInline > button {
+    width: 100%;
+    min-width: unset;
+    min-height: 34px;
+    padding: 8px 12px;
+    font-size: 1.08em;
+    font-weight: 500;
+    border-radius: 9px;
+    border: 1.5px solid #c5c3d0;
+    background: #fff;
+    justify-content: space-between;
+}
+
+.jobFieldDropdownInline > button:hover,
+.jobFieldDropdownInline > button:focus-visible {
+    border-color: #7c6faa;
+    box-shadow: 0 0 0 2px rgba(124, 111, 170, 0.13);
+    background: #fff;
+    transform: none;
+}
+
+/* Info message style */
+.jobFieldInfo {
+    color: #2563eb;
+    font-size: 0.9em;
+    margin-top: 3px;
+    font-style: italic;
+}
+
+/* Edit button active state */
+.jobEditIconBtnActive {
+    background: #fbeaea;
+    color: #c04040;
+}
+.jobEditIconBtnActive:hover,
+.jobEditIconBtnActive:focus-visible {
+    background: #f5d5d5;
+    color: #a03030;
+}
+.jobFieldError {
+    color: #b3261e;
+    font-size: 0.95em;
+    margin-top: 3px;
+}
+
+/* Edit mode action buttons container */
+.jobEditActions {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 3;
+}
+
+/* Save button styles */
+.jobSaveBtn {
+    background: none;
+    border: none;
+    padding: 1px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #338c41;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.13s, color 0.13s, box-shadow 0.14s, transform 0.12s;
+}
+.jobSaveBtn:focus-visible,
+.jobSaveBtn:hover {
+    background: #e8f5ea;
+    color: #2a7535;
+    box-shadow: 0 1px 4px rgba(44,47,59,0.09);
+    outline: none;
+}
+.jobSaveBtnDisabled {
+    color: #c5c3d0;
+    cursor: not-allowed;
+}
+.jobSaveBtnDisabled:hover,
+.jobSaveBtnDisabled:focus-visible {
+    background: none;
+    color: #c5c3d0;
+    box-shadow: none;
+}
+
+/* Save error message */
+.jobSaveError {
+    color: #d02;
+    font-size: 0.9em;
+    padding: 6px 10px;
+    background: #fff0f0;
+    border: 1px solid #ffcccc;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 900px) {
+    .jobSummaryRow,
+    .jobFieldsBoxesRow,
+    .jobDatesBoxesRow {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    .jobInfoBar {
+        font-size: 0.96em;
+        padding: 9px 7px 5px 7px;
+        border-radius: 9px;
+    }
+    .jobFieldTextboxGroup {
+        min-width: 100px;
+        max-width: 100%;
+        width: 100%;
+    }
+    .jobEditIconBtn {
+        top: 7px;
+        right: 7px;
+    }
+}

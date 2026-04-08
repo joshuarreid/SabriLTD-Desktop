@@ -23,26 +23,26 @@ const logger = {
 };
 
 /**
- * Upload photo mutation (single file).
+ * Upload photo mutation (multiple files).
  * @async
  * @function uploadFn
- * @param {File} photoFile - Photo file to upload
+ * @param {File[]} photoFiles - Array of photo files to upload
  * @param {number} updatedBy - userId of the person uploading (required)
  * @returns {Promise<Object>} Upload result or throws on error
  */
-const uploadFn = async ({ photoFile, updatedBy }) => {
-    logger.info("uploadFn called", photoFile?.name, { updatedBy });
-    if (!photoFile) throw new Error("No photo file selected.");
+const uploadFn = async ({ photoFiles, updatedBy }) => {
+    logger.info("uploadFn called", Array.isArray(photoFiles) ? photoFiles.map(f => f?.name) : photoFiles, { updatedBy });
+    if (!photoFiles || !Array.isArray(photoFiles) || photoFiles.length === 0) throw new Error("No photo files selected.");
     if (!updatedBy) throw new Error("Cannot determine user for upload.");
-    // Upload file
-    return await uploadPhoto({ photoFile, updatedBy });
+    // Upload files
+    return await uploadPhoto({ photoFiles, updatedBy });
 };
 
 /**
  * useUploadPhoto
  * - Handles async photo upload, invalidates cache on success.
  *
- * @returns {object} Mutation hook for single upload (destructure .mutate to use)
+ * @returns {object} Mutation hook for multi-upload (destructure .mutate to use)
  */
 export const useUploadPhoto = () => {
     const queryClient = useQueryClient();
@@ -51,15 +51,14 @@ export const useUploadPhoto = () => {
     /**
      * Internal wrapper that injects the authenticated updatedBy.
      * @async
-     * @param {File} photoFile
+     * @param {File[]} photoFiles
      * @returns {Promise<Object>}
      */
-    const handleUpload = async (photoFile) => {
+    const handleUpload = async (photoFiles) => {
         if (loading) throw new Error("Current user not loaded yet");
         if (userError) throw userError || new Error("Unable to determine current user");
         const updatedBy = user?.userId;
-        if (!updatedBy) throw new Error("No valid user id");
-        return await uploadFn({ photoFile, updatedBy });
+        return await uploadFn({ photoFiles, updatedBy });
     };
 
     return useMutation({

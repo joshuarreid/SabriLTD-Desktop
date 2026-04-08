@@ -1,0 +1,236 @@
+:root {
+    --filter-bg: var(--color-bg-surface, #ffffff);
+    --filter-bg-hover: var(--color-bg-subtle, #f5f5f7);
+    --filter-bg-active: rgba(255, 214, 0, 0.06);
+
+    --filter-border: var(--color-border-subtle, #e4e6ec);
+    --filter-border-strong: var(--color-border-strong, #777c88);
+    --filter-border-active: rgba(255, 214, 0, 0.7);
+
+    --filter-caret-color: var(--color-primary-muted, #777c88);
+
+    --filter-menu-bg: var(--color-bg-surface, #ffffff);
+    --filter-menu-border: var(--color-border-subtle, #e4e6ec);
+    --filter-menu-hover-bg: rgba(148, 163, 184, 0.1);
+    --filter-menu-active-bg: rgba(255, 214, 0, 0.14);
+}
+
+/**
+ * Root wrapper for dropdown + menu
+ */
+.filterDropdownRoot {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    min-width: 0;
+}
+
+/**
+ * Trigger button
+ * The shrink-on-select behavior (image5) is usually caused by the selected text span
+ * not stretching to the full height of the button. We hard-normalize the control to
+ * always be 100% height of the parent (JobDetailScreen sets it), and ensure children
+ * stretch + align center.
+ */
+.filterControl {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch; /* key: children stretch to full height */
+    justify-content: space-between;
+    gap: 8px;
+
+    width: 100%;
+    height: 100%; /* key: match parent-set height in jobdetailscreen.module.css */
+    min-width: 0;
+
+    box-sizing: border-box;
+    line-height: 1;
+    border: 0;
+    margin: 0;
+
+    background: var(--filter-bg);
+    cursor: pointer;
+
+    overflow: hidden;
+}
+
+.filterControl:hover,
+.filterControl:focus-visible {
+    background: var(--filter-bg-hover);
+    transform: none;
+}
+
+.filterControlActive {
+    background: var(--filter-bg);
+}
+
+/**
+ * Selected value
+ * Force the label area to be a full-height flex container so the control never
+ * changes height when switching between "label" and "selectedLabel".
+ */
+.filterSelectedValue {
+    font-size: inherit;
+    font-weight: inherit;
+    color: #222;
+
+    min-width: 0;
+    flex: 1 1 auto;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    /* key: full-height so baseline doesn't affect computed height */
+    height: 100%;
+    display: flex;
+    align-items: center;
+
+    padding: 0;
+    margin: 0;
+}
+
+/**
+ * Caret
+ * Also make caret full-height to avoid any line-box differences.
+ */
+.filterCaret {
+    font-size: 0.8rem;
+    color: var(--filter-caret-color);
+    flex: 0 0 auto;
+
+    height: 100%;
+    display: flex;
+    align-items: center;
+
+    line-height: 1;
+}
+
+/* Dropdown menu */
+.filterMenu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    min-width: 260px;
+
+    background: var(--filter-menu-bg);
+    border-radius: 12px;
+    border: 1px solid var(--filter-menu-border);
+    box-shadow:
+            0 16px 35px rgba(15, 23, 42, 0.18),
+            0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+    padding: 6px 0 8px 0;
+    z-index: 25;
+}
+
+/* Search row */
+.searchRow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px 8px 10px;
+    border-bottom: 1px solid var(--filter-menu-border);
+    background: #f9f9fb;
+}
+
+.searchIcon {
+    color: var(--sabri-grey-400, #b0b1b9);
+    flex-shrink: 0;
+}
+
+.searchInput {
+    flex: 1 1 auto;
+    border-radius: 999px;
+    border: 1px solid rgba(224, 227, 240, 1);
+    background: #ffffff;
+    font-size: 0.86rem;
+    padding: 6px 10px 6px 10px;
+    outline: none;
+    color: var(--sabri-grey-700, #4b4b55);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
+}
+
+.searchInput::placeholder {
+    color: var(--sabri-grey-400, #b0b1b9);
+}
+
+.searchInput:focus {
+    border-color: var(--sabri-grey-300, #d4d4dd);
+    background: var(--color-bg-surface, #f1f1f3);
+}
+
+/* Pinned row */
+.pinnedRow {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    padding: 4px 6px;
+    border-bottom: 1px solid var(--filter-menu-border);
+    background: #fdfdfd;
+    gap: 4px;
+}
+
+.pinnedClearButton {
+    border: none;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--color-primary-muted, #5d6170);
+    white-space: nowrap;
+}
+
+/* Items */
+.filterMenuItem {
+    width: 100%;
+    text-align: left;
+    border: none;
+    background: transparent;
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    color: var(--color-text-main, #191919);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filterMenuItem:hover,
+.filterMenuItem:focus-visible {
+    background: var(--filter-menu-hover-bg);
+}
+
+.filterMenuItemActive {
+    font-weight: 600;
+    background: var(--filter-menu-active-bg);
+    color: var(--color-primary, #333645);
+}
+
+/* Empty row */
+.emptyRow {
+    padding: 8px 12px;
+    font-size: 0.86rem;
+    color: var(--color-text-muted, #868099);
+}
+
+/* Create new option */
+.createNewItem {
+    color: #2563eb;
+    font-weight: 500;
+    border-top: 1px solid var(--filter-menu-border);
+    margin-top: 4px;
+    padding-top: 10px;
+}
+
+.createNewItem:hover,
+.createNewItem:focus-visible {
+    background: rgba(37, 99, 235, 0.08);
+    color: #1d4ed8;
+}
+
+.createNewIcon {
+    flex-shrink: 0;
+    margin-right: 2px;
+}
