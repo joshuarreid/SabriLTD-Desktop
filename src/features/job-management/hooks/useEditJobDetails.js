@@ -116,12 +116,6 @@ const getInitialEditValuesFromJob = (job) => {
 /**
  * useEditJobDetails
  * - Edit-mode view model for JobDetailScreen.
- * - Handles:
- *   - local draft state
- *   - company + client dropdown data
- *   - create company (server)
- *   - create client (draft-only; clients derived from jobs)
- *   - save job with updatedBy set from current user
  *
  * @function useEditJobDetails
  * @param {object} params
@@ -139,21 +133,10 @@ const useEditJobDetails = ({ job }) => {
     const { user: currentUser, loading: currentUserLoading, error: currentUserError } =
         useCurrentUser();
 
-    /**
-     * isEditMode
-     * @type {boolean}
-     */
     const [isEditMode, setIsEditMode] = useState(false);
 
-    /**
-     * editValues
-     * @type {{name: string, client: string, description: string, companyId: string}}
-     */
     const [editValues, setEditValues] = useState(() => getInitialEditValuesFromJob(job));
 
-    /**
-     * Keep editValues synced from job while in edit mode.
-     */
     useEffect(() => {
         if (!job) return;
         if (!isEditMode) return;
@@ -166,10 +149,6 @@ const useEditJobDetails = ({ job }) => {
         setEditValues(getInitialEditValuesFromJob(job));
     }, [job, isEditMode]);
 
-    /**
-     * toggleEditMode
-     * @returns {void}
-     */
     const toggleEditMode = useCallback(() => {
         setIsEditMode((prev) => {
             const next = !prev;
@@ -185,13 +164,6 @@ const useEditJobDetails = ({ job }) => {
         });
     }, [job]);
 
-    /**
-     * updateEditField
-     *
-     * @param {"name"|"client"|"description"|"companyId"} field
-     * @param {any} nextValue
-     * @returns {void}
-     */
     const updateEditField = useCallback((field, nextValue) => {
         setEditValues((prev) => ({
             ...prev,
@@ -199,9 +171,6 @@ const useEditJobDetails = ({ job }) => {
         }));
     }, []);
 
-    /**
-     * Companies query (only while editing)
-     */
     const {
         data: companies = [],
         isPending: isCompaniesPending,
@@ -213,9 +182,6 @@ const useEditJobDetails = ({ job }) => {
         staleTime: 5 * 60 * 1000,
     });
 
-    /**
-     * createCompanyMutation
-     */
     const createCompanyMutation = useMutation({
         mutationFn: (companyDataToCreate) => createCompany(companyDataToCreate),
         onSuccess: (newCompany) => {
@@ -237,16 +203,8 @@ const useEditJobDetails = ({ job }) => {
         },
     });
 
-    /**
-     * selectedCompanyId
-     * @type {string}
-     */
     const selectedCompanyId = editValues.companyId;
 
-    /**
-     * Clients query (only while editing and company selected)
-     * Uses canonical key: jobKeys.clientsList({ companyId })
-     */
     const {
         data: clients = [],
         isPending: isClientsPending,
@@ -259,18 +217,8 @@ const useEditJobDetails = ({ job }) => {
         staleTime: 5 * 60 * 1000,
     });
 
-    /**
-     * companyOptions
-     * @type {Array<{value:string,label:string}>}
-     */
     const companyOptions = useMemo(() => buildCompanyOptions(companies), [companies]);
 
-    /**
-     * clientOptions
-     * - Ensure current draft client always appears in options so it remains selected after "Add new client".
-     *
-     * @type {Array<{value:string,label:string}>}
-     */
     const clientOptions = useMemo(() => {
         if (!selectedCompanyId) return [];
 
@@ -288,12 +236,6 @@ const useEditJobDetails = ({ job }) => {
         return [{ value: currentClient, label: currentClient }, ...apiOptions];
     }, [clients, selectedCompanyId, editValues.client]);
 
-    /**
-     * handleCompanyChange
-     *
-     * @param {string} nextCompanyId
-     * @returns {void}
-     */
     const handleCompanyChange = useCallback((nextCompanyId) => {
         logger.info("Company selection changed", { nextCompanyId });
 
@@ -316,12 +258,6 @@ const useEditJobDetails = ({ job }) => {
         });
     }, []);
 
-    /**
-     * handleClientChange
-     *
-     * @param {string} nextClient
-     * @returns {void}
-     */
     const handleClientChange = useCallback((nextClient) => {
         logger.info("Client selection changed", { nextClient });
         setEditValues((prev) => ({
@@ -330,12 +266,6 @@ const useEditJobDetails = ({ job }) => {
         }));
     }, []);
 
-    /**
-     * createNewCompany
-     *
-     * @param {string} companyNameToCreate
-     * @returns {void}
-     */
     const createNewCompany = useCallback(
         (companyNameToCreate) => {
             const trimmed = safeStringTrim(companyNameToCreate);
@@ -349,13 +279,6 @@ const useEditJobDetails = ({ job }) => {
         [createCompanyMutation],
     );
 
-    /**
-     * createNewClient
-     * - Draft-only (persisted when saving job).
-     *
-     * @param {string} clientName
-     * @returns {void}
-     */
     const createNewClient = useCallback(
         (clientName) => {
             const trimmed = safeStringTrim(clientName);
@@ -380,10 +303,6 @@ const useEditJobDetails = ({ job }) => {
         [selectedCompanyId],
     );
 
-    /**
-     * selectedCompanyName
-     * @type {string}
-     */
     const selectedCompanyName = useMemo(() => {
         if (!isEditMode) return "";
 
@@ -408,25 +327,46 @@ const useEditJobDetails = ({ job }) => {
             }
             return updateJob(job.jobId, updatedJobData);
         },
-        onSuccess: (savedJob) => {
+        onSuccess: async (savedJob) => {
             logger.info("Job saved successfully", { jobId: job?.jobId });
 
-            if (job?.jobId) {
-                queryClient.invalidateQueries({
-                    queryKey: jobKeys.detail(job.jobId),
-                });
-            }
+            try {
+                /**
+                 * ✅ Fix #1:
+                 * Invalidate JobScreen caches so name/description changes are reflected
+                 * in lists/search immediately.
+                 */
+                await Promise.all([
+                    // detail screen cache
+                    job?.jobId
+                        ? queryClient.invalidateQueries({
+                            queryKey: jobKeys.detail(job.jobId),
+                        })
+                        : Promise.resolve(),
 
-            if (selectedCompanyId) {
-                queryClient.invalidateQueries({
-                    queryKey: jobKeys.clientsList({ companyId: selectedCompanyId }),
-                });
-            }
+                    // job screen caches
+                    queryClient.invalidateQueries({ queryKey: jobKeys.lists() }),
+                    queryClient.invalidateQueries({ queryKey: jobKeys.search() }),
 
-            if (savedJob?.updatedBy) {
-                queryClient.invalidateQueries({
-                    queryKey: userKeys.detail(savedJob.updatedBy),
-                });
+                    // client lists (safe; client can be updated)
+                    queryClient.invalidateQueries({ queryKey: jobKeys.clients() }),
+
+                    // company-scoped client list currently in use (if applicable)
+                    selectedCompanyId
+                        ? queryClient.invalidateQueries({
+                            queryKey: jobKeys.clientsList({ companyId: selectedCompanyId }),
+                        })
+                        : Promise.resolve(),
+
+                    // user detail cache for updatedBy display
+                    savedJob?.updatedBy
+                        ? queryClient.invalidateQueries({
+                            queryKey: userKeys.detail(savedJob.updatedBy),
+                        })
+                        : Promise.resolve(),
+                ]);
+            } catch (err) {
+                logger.error("Failed to invalidate queries after saving job", err);
             }
 
             setIsEditMode(false);
@@ -436,12 +376,6 @@ const useEditJobDetails = ({ job }) => {
         },
     });
 
-    /**
-     * saveJob
-     * - Saves the current editValues and sets updatedBy from current user.
-     *
-     * @returns {void}
-     */
     const saveJob = useCallback(() => {
         if (!job?.jobId) {
             logger.error("Cannot save job without a valid jobId");
@@ -470,10 +404,6 @@ const useEditJobDetails = ({ job }) => {
         saveJobMutation.mutate(payload);
     }, [job, editValues, saveJobMutation, currentUser, currentUserLoading, currentUserError]);
 
-    /**
-     * hasChanges
-     * @type {boolean}
-     */
     const hasChanges = useMemo(() => {
         if (!job) return false;
         const original = getInitialEditValuesFromJob(job);
