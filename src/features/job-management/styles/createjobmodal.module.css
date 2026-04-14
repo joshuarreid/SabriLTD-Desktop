@@ -1,0 +1,185 @@
+/**
+ * createjobmodal.module.css
+ *
+ * Create Job modal styling aligned with existing modal patterns (see editbuildingmodal.module.css).
+ * Uses the same overlay/card layout, inputs, and action button styling.
+ */
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(36, 14, 41, 0.12);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalCard {
+    position: relative;
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 20px;
+    box-shadow:
+            0 8px 40px 0 rgba(0, 0, 0, 0.16),
+            0 4px 10px 0 rgba(0, 0, 0, 0.08);
+    padding: 2.1rem 2.2rem 1.6rem 2.2rem;
+    min-width: 360px;
+    min-height: 130px;
+    max-width: min(720px, 99vw);
+    max-height: 98vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    outline: none;
+    animation: modalIn 0.24s cubic-bezier(.21, .95, .19, 1.04);
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.modalTitle {
+    margin: 0 0 18px 0;
+    font-size: 1.27rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    text-align: left;
+    letter-spacing: 0.015em;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 19px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-primary, #333645);
+}
+
+.input,
+.select,
+.textarea {
+    background: var(--color-bg-subtle, #f5f5f7);
+    border-radius: 8px;
+    border: 1.5px solid var(--color-border-subtle, #ecdefa);
+    padding: 9px 14px;
+    font-size: 1.07rem;
+    color: var(--color-primary, #333645);
+    margin-top: 2px;
+    transition: border-color 0.13s, background-color 0.13s;
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+    border-color: var(--sabri-grey-500, #777c88);
+    outline: none;
+    background: var(--color-bg-surface, #ffffff);
+}
+
+.errorMsg {
+    color: #c5473f;
+    background: #fff5f3;
+    padding: 7px 12px;
+    border-radius: 7px;
+    font-size: 1.02rem;
+    margin: 8px 0 0 0;
+}
+
+.saveFeedback {
+    margin: 10px 0 0 0;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.savedMsg {
+    color: #2f855a;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.formActions {
+    display: flex;
+    gap: 18px;
+    margin-top: 0.5em;
+    margin-bottom: 7px;
+    align-items: center;
+}
+
+.saveButton {
+    background: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #ffffff);
+    padding: 8px 21px;
+    font-size: 1.01rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border-strong, #777c88);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.14s, border-color 0.14s, transform 0.12s, box-shadow 0.14s;
+}
+
+.saveButton:hover:enabled {
+    background: var(--sabri-grey-900, #191919);
+    border-color: var(--color-secondary, #ffd600);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+    transform: translateY(-1px);
+}
+
+.saveButton[disabled],
+.saveButton[aria-disabled="true"] {
+    opacity: 0.62;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.cancelButton {
+    background: none;
+    color: var(--color-primary-muted, #5d6170);
+    font-size: 1.01rem;
+    padding: 8px 18px;
+    border: none;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.13s;
+}
+
+.cancelButton:hover:enabled,
+.cancelButton[aria-disabled="false"]:hover {
+    background: rgba(255, 214, 0, 0.12);
+    color: var(--color-primary, #333645);
+}
+
+@media (max-width: 520px) {
+    .modalCard {
+        min-width: 92vw;
+        padding: 1.6rem 1.35rem 1.2rem 1.35rem;
+        border-radius: 16px;
+    }
+}
