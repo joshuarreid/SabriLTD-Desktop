@@ -15,6 +15,8 @@ import WideSearchBar from "../components/searchbar/WideSearchBar";
 import FilterDropdown from "../components/filterdropdown/FilterDropdown";
 import FilterDropdownSearch from "../components/filterdropdown/FilterDropdownSearch";
 import { useJobScreen } from "../features/job-management/hooks/useJobScreen";
+import CreateJobModal from "../features/job-management/components/CreateJobModal";
+
 
 /**
  * Standardized logger for JobScreen.
@@ -82,8 +84,15 @@ const JobScreen = () => {
         // actions
         handleResetFilters,
         applyGlobalSearch,
-        handleNewJob,
-    } = useJobScreen({ navigate });
+
+        // modal actions/state
+        isCreateJobModalOpen,
+        openCreateJobModal,
+        closeCreateJobModal,
+        createJobStatus,
+        createJobError,
+        handleCreateJob,
+    } = useJobScreen();
 
     /**
      * handleSearchChange
@@ -171,6 +180,8 @@ const JobScreen = () => {
         hasPrevious,
         hasNext,
         paginatedJobsLength: paginatedJobs.length,
+        isCreateJobModalOpen,
+        createJobStatus,
     });
 
     return (
@@ -206,7 +217,7 @@ const JobScreen = () => {
                         logger.info("[JobScreen] sort changed", {
                             value: normalized,
                         });
-                        setSortKey(normalized); // calls handleSetSortKey in useJobScreen
+                        setSortKey(normalized);
                         handlePageChange(1);
                     }}
                     displaySelection
@@ -259,6 +270,17 @@ const JobScreen = () => {
 
                 <div className={styles.filterActions}>
                     <button
+                        className={styles.addUserBtn}
+                        type="button"
+                        onClick={() => {
+                            logger.info("[JobScreen] + New clicked");
+                            openCreateJobModal();
+                        }}
+                    >
+                        + New
+                    </button>
+
+                    <button
                         type="button"
                         className={styles.clearButton}
                         onClick={() => {
@@ -267,13 +289,6 @@ const JobScreen = () => {
                         }}
                     >
                         Clear Filters
-                    </button>
-                    <button
-                        className={styles.addUserBtn}
-                        type="button"
-                        onClick={handleNewJob}
-                    >
-                        + New
                     </button>
                 </div>
             </div>
@@ -326,18 +341,31 @@ const JobScreen = () => {
                 )}
             </section>
 
+            {/* Create Job Modal */}
+            <CreateJobModal
+                open={isCreateJobModalOpen}
+                isSaving={createJobStatus === "saving"}
+                saveState={createJobStatus}
+                onClose={() => {
+                    logger.info("[JobScreen] create job modal closed");
+                    closeCreateJobModal();
+                }}
+                onSave={(payload) => {
+                    logger.info("[JobScreen] create job modal save submitted");
+                    handleCreateJob(payload);
+                }}
+                error={createJobError}
+                companyOptions={companyOptions}
+                statusOptions={statusOptions}
+            />
+
             {/* Pagination footer pinned at bottom of page content */}
-            <footer
-                className={styles.paginationFooter}
-                aria-label="Job pagination"
-            >
+            <footer className={styles.paginationFooter} aria-label="Job pagination">
                 <div className={styles.paginationSummary}>
                     {totalJobs === 0 ? (
                         "Showing 0 jobs"
                     ) : (
-                        <>
-                            Showing {itemStart}–{itemEnd} of {totalJobs} jobs
-                        </>
+                        <>Showing {itemStart}–{itemEnd} of {totalJobs} jobs</>
                     )}
                 </div>
                 <div className={styles.paginationControls}>
