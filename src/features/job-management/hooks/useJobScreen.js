@@ -31,8 +31,36 @@ const logger = {
     error: (...args) => console.error("[useJobScreen]", ...args),
 };
 
-export const useJobScreen = () => {
+/**
+ * useJobScreen
+ * Orchestration hook for JobScreen state management and side effects.
+ *
+ * @function useJobScreen
+ * @param {object} params
+ * @param {Function} params.navigate - React Router navigate function for route transitions.
+ * @returns {object} View model for JobScreen rendering and interactions.
+ */
+export const useJobScreen = ({ navigate } = {}) => {
     logger.info("useJobScreen render start");
+
+    /**
+     * handleNewJob
+     * Navigates to the Job creation route.
+     *
+     * @function handleNewJob
+     * @returns {void}
+     */
+    const handleNewJob = () => {
+        logger.info("handleNewJob clicked");
+        if (typeof navigate !== "function") {
+            logger.error(
+                "handleNewJob requires a navigate function, but none was provided",
+            );
+            return;
+        }
+
+        navigate("/jobs/new");
+    };
 
     // ---- Central filter state (company, status, client) ----
     const [filtersState, setFiltersState] = useState({
@@ -295,9 +323,7 @@ export const useJobScreen = () => {
         }
 
         const sorted = [...scopedClients].sort((a, b) =>
-            String(a.clientName || "").localeCompare(
-                String(b.clientName || ""),
-            ),
+            String(a.clientName || "").localeCompare(String(b.clientName || "")),
         );
 
         return [
@@ -477,7 +503,10 @@ export const useJobScreen = () => {
     );
 
     const clientOptions = useMemo(() => {
-        if (Array.isArray(scopedClientOptions) && scopedClientOptions.length > 0) {
+        if (
+            Array.isArray(scopedClientOptions) &&
+            scopedClientOptions.length > 0
+        ) {
             return scopedClientOptions;
         }
         return filters.clientOptions;
@@ -598,6 +627,7 @@ export const useJobScreen = () => {
         // actions
         handleResetFilters,
         handleSetPageSize,
+        handleNewJob,
     };
 };
 

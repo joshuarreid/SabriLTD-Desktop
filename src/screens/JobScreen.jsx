@@ -82,7 +82,8 @@ const JobScreen = () => {
         // actions
         handleResetFilters,
         applyGlobalSearch,
-    } = useJobScreen();
+        handleNewJob,
+    } = useJobScreen({ navigate });
 
     /**
      * handleSearchChange
@@ -126,10 +127,16 @@ const JobScreen = () => {
      */
     const handleJobCardClick = (job) => {
         if (!job || !job.jobId) {
-            logger.error("[JobScreen] Tried to navigate to job with invalid job object", job);
+            logger.error(
+                "[JobScreen] Tried to navigate to job with invalid job object",
+                job,
+            );
             return;
         }
-        logger.info("[JobScreen] navigating to JobDetailScreen for jobId", job.jobId);
+        logger.info(
+            "[JobScreen] navigating to JobDetailScreen for jobId",
+            job.jobId,
+        );
         navigate(`/jobs/${job.jobId}`);
     };
 
@@ -185,15 +192,21 @@ const JobScreen = () => {
             </div>
 
             {/* Filters row: Sort by, Company, Client, Status */}
-            <div className={styles.filtersRow} role="region" aria-label="Job filters">
+            <div
+                className={styles.filtersRow}
+                role="region"
+                aria-label="Job filters"
+            >
                 <FilterDropdown
                     label="Sort by"
                     value={sortKey}
                     options={sortOptionsForDropdown}
                     onChange={(value) => {
                         const normalized = value || sortKey;
-                        logger.info("[JobScreen] sort changed", { value: normalized });
-                        setSortKey(normalized);        // calls handleSetSortKey in useJobScreen
+                        logger.info("[JobScreen] sort changed", {
+                            value: normalized,
+                        });
+                        setSortKey(normalized); // calls handleSetSortKey in useJobScreen
                         handlePageChange(1);
                     }}
                     displaySelection
@@ -253,7 +266,14 @@ const JobScreen = () => {
                             logger.info("[JobScreen] filters cleared");
                         }}
                     >
-                        Clear
+                        Clear Filters
+                    </button>
+                    <button
+                        className={styles.addUserBtn}
+                        type="button"
+                        onClick={handleNewJob}
+                    >
+                        + New
                     </button>
                 </div>
             </div>
@@ -307,12 +327,17 @@ const JobScreen = () => {
             </section>
 
             {/* Pagination footer pinned at bottom of page content */}
-            <footer className={styles.paginationFooter} aria-label="Job pagination">
+            <footer
+                className={styles.paginationFooter}
+                aria-label="Job pagination"
+            >
                 <div className={styles.paginationSummary}>
                     {totalJobs === 0 ? (
                         "Showing 0 jobs"
                     ) : (
-                        <>Showing {itemStart}–{itemEnd} of {totalJobs} jobs</>
+                        <>
+                            Showing {itemStart}–{itemEnd} of {totalJobs} jobs
+                        </>
                     )}
                 </div>
                 <div className={styles.paginationControls}>
