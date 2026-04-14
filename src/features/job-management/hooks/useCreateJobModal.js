@@ -5,17 +5,15 @@
  * - Owns open/close state
  * - Owns create mutation lifecycle state
  * - Calls Job API createJob
+ * - Adds updatedBy from the current user
  * - Invalidates job-related caches after success
- *
- * NOTE:
- * - UI components should remain UI-only; this hook is intended to be consumed by other hooks
- *   (e.g., useJobScreen) and/or route-level orchestration.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createJob } from "../../../api/job/job";
-import {jobKeys} from "../../../api/job/jobQueryKeys";
+import { jobKeys } from "../../../api/job/jobQueryKeys";
+import {useCurrentUser} from "../../../hooks/useCurrentUser";
 
 
 /**
@@ -44,13 +42,6 @@ const logger = {
  *
  * @function useCreateJobModal
  * @returns {object}
- * @property {boolean} open - Whether the modal is open.
- * @property {() => void} openModal - Opens the modal and resets mutation UI state.
- * @property {() => void} closeModal - Closes the modal and clears errors/status.
- * @property {"idle"|"saving"|"saved"|"error"} status - UI-friendly status for the modal.
- * @property {boolean} isSaving - True while create mutation is pending.
- * @property {string|null} error - Error message to render in the modal, if any.
- * @property {(payload: CreateJobPayload) => Promise<void>} handleCreateJob - Submits create job mutation.
  */
 export const useCreateJobModal = () => {
     /**
@@ -61,6 +52,24 @@ export const useCreateJobModal = () => {
     const queryClient = useQueryClient();
 
     /**
+     * Current user context for updatedBy stamping.
+     *
+     * @type {{user: object|null}}
+     */
+    const { user: currentUser } = useCurrentUser();
+
+    /**
+     * currentUserId
+     * Derived id used for create payload stamping.
+     *
+     * @type {number|string|null}
+     */
+    const currentUserId = useMemo(() => {
+        const id = currentUser?.userId ?? currentUser?.id ?? null;
+        return id;
+    }, [currentUser]);
+
+    /**
      * Tracks whether the modal is open.
      *
      * @type {[boolean, Function]}
@@ -68,7 +77,7 @@ export const useCreateJobModal = () => {
     const [open, setOpen] = useState(false);
 
     /**
-     * UI-friendly create mutation status (mirrors other modal patterns).
+     * UI-friendly create mutation status.
      *
      * @type {["idle"|"saving"|"saved"|"error", Function]}
      */
@@ -101,10 +110,13 @@ export const useCreateJobModal = () => {
      */
     const createJobMutation = useMutation({
         mutationKey: jobKeys.create(),
+
         /**
          * mutationFn
-         * Calls API to create a job.
+         * Calls API to create a job. Adds updatedBy from current user.
          *
+         * @async
+         * @function mutationFn
          * @param {CreateJobPayload} payload
          * @returns {Promise<any>}
          * @throws {Error} If API call fails.
@@ -116,6 +128,7 @@ export const useCreateJobModal = () => {
                 hasClient: !!payload?.client,
                 hasDescription: !!payload?.description,
                 status: payload?.status,
+                hasUpdatedBy: !!currentUserId,
             });
 
             const normalized = {
@@ -125,15 +138,22 @@ export const useCreateJobModal = () => {
                 client: String(payload.client || "").trim(),
                 description: String(payload.description || "").trim(),
                 status: payload.status || "Active",
+
+                // IMPORTANT: stamp updatedBy for API
+                updatedBy: currentUserId,
             };
 
             return createJob(normalized);
         },
+
         /**
          * onSuccess
-         * Invalidates any job list/search/client/company caches so the UI updates consistently.
+         * Invalidates job list/search/client/company caches so the UI updates consistently.
          *
+         * @async
+         * @function onSuccess
          * @param {any} data
+         * @returns {Promise<void>}
          */
         onSuccess: async (data) => {
             logger.info("createJobMutation onSuccess", { jobId: data?.jobId });
@@ -151,11 +171,13 @@ export const useCreateJobModal = () => {
                 logger.error("Failed invalidating job queries after create", e);
             }
         },
+
         /**
          * onError
-         * Captures mutation errors.
          *
+         * @function onError
          * @param {any} err
+         * @returns {void}
          */
         onError: (err) => {
             logger.error("createJobMutation onError", err);
@@ -164,7 +186,6 @@ export const useCreateJobModal = () => {
 
     /**
      * openModal
-     * Opens the modal and resets UI state.
      *
      * @function openModal
      * @returns {void}
@@ -179,7 +200,6 @@ export const useCreateJobModal = () => {
 
     /**
      * closeModal
-     * Closes the modal and clears mutation state.
      *
      * @function closeModal
      * @returns {void}
@@ -190,6 +210,7 @@ export const useCreateJobModal = () => {
         setError(null);
         setStatus("idle");
         setPendingClose(false);
+
         try {
             createJobMutation.reset();
         } catch (e) {
@@ -199,7 +220,6 @@ export const useCreateJobModal = () => {
 
     /**
      * handleCreateJob
-     * Calls the create job mutation and sets modal UI status.
      *
      * @async
      * @function handleCreateJob
