@@ -18,6 +18,7 @@ const logger = {
 /**
  * ItemCardGrid
  * Renders a responsive paginated grid of ItemInfoCard components.
+ * Supports browse mode (default) and add mode (with selection indicators).
  *
  * @component
  * @param {Object} props
@@ -41,6 +42,8 @@ const logger = {
  * @param {Function} [props.handleNext] - Next page handler.
  * @param {Function} [props.handlePrevious] - Previous page handler.
  * @param {Function} [props.refetch] - Query refetch handler.
+ * @param {"browse"|"add"} [props.mode="browse"] - Interaction mode.
+ * @param {(itemId: number|string) => boolean} [props.isItemSelected] - Returns true if the item is selected (add mode).
  * @returns {JSX.Element}
  */
 const ItemCardGrid = ({
@@ -64,6 +67,8 @@ const ItemCardGrid = ({
                           handlePrevious,
                           pageSize,
                           refetch,
+                          mode = "browse",
+                          isItemSelected,
                       }) => {
     const gridTemplateColumns = `repeat(6, minmax(var(--item-card-min-width), 1fr))`;
 
@@ -75,7 +80,22 @@ const ItemCardGrid = ({
         pageSize,
         page,
         totalPages,
+        mode,
     });
+
+    /**
+     * resolveSelected
+     * Checks whether an item is currently selected in add mode.
+     *
+     * @function resolveSelected
+     * @param {object} item
+     * @returns {boolean}
+     */
+    const resolveSelected = (item) => {
+        if (mode !== "add" || typeof isItemSelected !== "function") return false;
+        const itemId = item.itemId ?? item.id;
+        return itemId != null && isItemSelected(itemId);
+    };
 
     const renderGridContent = () => {
         if (isError) {
@@ -105,37 +125,48 @@ const ItemCardGrid = ({
                     }}
                 >
                     <AnimatePresence>
-                        {items.map((item) => (
-                            <motion.div
-                                key={item.itemId}
-                                layout
-                                initial={{ opacity: 0, y: 16, scale: 0.96 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -10, scale: 0.96 }}
-                                transition={{
-                                    duration: 0.22,
-                                    ease: [0.16, 1, 0.3, 1],
-                                }}
-                            >
-                                <ItemInfoCard
-                                    item={{
-                                        itemId: item.itemId,
-                                        name: item.name,
-                                        conditionName: item.condition,
-                                        photoUrl: item.photoUrl,
+                        {items.map((item) => {
+                            const selected = resolveSelected(item);
+
+                            return (
+                                <motion.div
+                                    key={item.itemId}
+                                    layout
+                                    initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -10, scale: 0.96 }}
+                                    transition={{
+                                        duration: 0.22,
+                                        ease: [0.16, 1, 0.3, 1],
                                     }}
-                                    onClick={() => {
-                                        logger.info("Item card clicked", {
+                                    className={`${styles.cardWrapper} ${
+                                        selected ? styles.cardWrapperSelected : ""
+                                    }`}
+                                >
+                                    <ItemInfoCard
+                                        item={{
                                             itemId: item.itemId,
-                                            rawItem: item,
-                                        });
-                                        if (onItemClick) {
-                                            onItemClick(item);
-                                        }
-                                    }}
-                                />
-                            </motion.div>
-                        ))}
+                                            name: item.name,
+                                            conditionName: item.condition,
+                                            photoUrl: item.photoUrl,
+                                        }}
+                                        onClick={() => {
+                                            logger.info("Item card clicked", {
+                                                itemId: item.itemId,
+                                                rawItem: item,
+                                                mode,
+                                            });
+                                            if (onItemClick) {
+                                                onItemClick(item);
+                                            }
+                                        }}
+                                    />
+                                    {selected && (
+                                        <div className={styles.selectedBadge}>✓</div>
+                                    )}
+                                </motion.div>
+                            );
+                        })}
                     </AnimatePresence>
                 </motion.div>
 
@@ -214,6 +245,8 @@ ItemCardGrid.propTypes = {
     handlePrevious: PropTypes.func,
     pageSize: PropTypes.number,
     refetch: PropTypes.func,
+    mode: PropTypes.oneOf(["browse", "add"]),
+    isItemSelected: PropTypes.func,
 };
 
 ItemCardGrid.defaultProps = {
@@ -237,6 +270,8 @@ ItemCardGrid.defaultProps = {
     handlePrevious: undefined,
     pageSize: 0,
     refetch: undefined,
+    mode: "browse",
+    isItemSelected: undefined,
 };
 
 export default ItemCardGrid;

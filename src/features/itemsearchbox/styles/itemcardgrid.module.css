@@ -50,6 +50,43 @@
     color: var(--color-text-muted, #868099);
 }
 
+/* ---- CARD WRAPPER (selection support for add mode) ---- */
+
+.cardWrapper {
+    position: relative;
+    transition:
+            box-shadow 0.15s ease,
+            transform 0.1s ease;
+    border-radius: 12px;
+}
+
+.cardWrapperSelected {
+    box-shadow:
+            0 0 0 2.5px var(--color-secondary, #ffd600),
+            0 2px 8px rgba(255, 214, 0, 0.18);
+    transform: translateY(-2px);
+    border-radius: 12px;
+}
+
+.selectedBadge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-secondary, #ffd600);
+    color: var(--color-primary, #333645);
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+    pointer-events: none;
+    z-index: 5;
+}
+
 /* Pagination footer – mirrors JobScreen pagination styles */
 .paginationFooter {
     display: flex;

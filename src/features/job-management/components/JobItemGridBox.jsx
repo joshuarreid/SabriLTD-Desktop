@@ -1,15 +1,14 @@
 /**
  * JobItemGridBox.jsx
  *
- * UI-only component extracted from JobDetailScreen for scale.
- * Renders the ItemCardGrid for items associated with a job.
- *
- * IMPORTANT:
- * - No business logic or fetching here.
- * - Receives already-prepared state from useJobDetailScreen.
+ * UI component for the items section of JobDetailScreen.
+ * Renders an "Add Items" button at the top that opens a modal
+ * with ItemSearchBox in add mode for selecting items to add to the job.
+ * Also renders the existing ItemCardGrid for items already on the job.
  *
  * @component
  * @param {object} props
+ * @param {number|string} props.jobId - The current job's ID.
  * @param {Array<object>} props.items
  * @param {boolean} props.isPending
  * @param {boolean} props.isError
@@ -34,6 +33,9 @@
 import React from "react";
 import ItemCardGrid from "../../itemsearchbox/components/ItemCardGrid";
 
+import { useAddItemsToJobModal } from "../hooks/useAddItemsToJobModal";
+import styles from "../styles/jobitemgridbox.module.css";
+import AddItemsToJobModal from "./AddItemToJobModal";
 
 /**
  * Logger for JobItemGridBox.
@@ -47,6 +49,7 @@ const logger = {
 };
 
 const JobItemGridBox = ({
+                            jobId,
                             items,
                             isPending,
                             isError,
@@ -67,35 +70,66 @@ const JobItemGridBox = ({
                             onItemClick,
                         }) => {
     logger.info("JobItemGridBox rendered", {
+        jobId,
         itemsCount: Array.isArray(items) ? items.length : 0,
         page,
         pageSize,
         totalItems,
     });
 
+    const addItemsModal = useAddItemsToJobModal({ jobId });
+
     return (
-        <ItemCardGrid
-            items={items}
-            columns={5}
-            rows={5}
-            onItemClick={onItemClick}
-            isPending={isPending}
-            isError={isError}
-            error={error}
-            page={page}
-            setPage={setPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            hasPrevious={hasPrevious}
-            hasNext={hasNext}
-            itemStart={itemStart}
-            itemEnd={itemEnd}
-            pageSize={pageSize}
-            setPageSize={setPageSize}
-            handleNext={handleNext}
-            handlePrevious={handlePrevious}
-            refetch={refetch}
-        />
+        <div className={styles.container}>
+            <div className={styles.headerRow}>
+                <h3 className={styles.sectionTitle}>Items</h3>
+                <button
+                    className={styles.addItemsBtn}
+                    type="button"
+                    onClick={() => {
+                        logger.info("Add Items button clicked");
+                        addItemsModal.openModal();
+                    }}
+                >
+                    + Add Items
+                </button>
+            </div>
+
+            <ItemCardGrid
+                items={items}
+                columns={5}
+                rows={5}
+                onItemClick={onItemClick}
+                isPending={isPending}
+                isError={isError}
+                error={error}
+                page={page}
+                setPage={setPage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                hasPrevious={hasPrevious}
+                hasNext={hasNext}
+                itemStart={itemStart}
+                itemEnd={itemEnd}
+                pageSize={pageSize}
+                setPageSize={setPageSize}
+                handleNext={handleNext}
+                handlePrevious={handlePrevious}
+                refetch={refetch}
+            />
+
+            <AddItemsToJobModal
+                open={addItemsModal.open}
+                onClose={addItemsModal.closeModal}
+                onToggleItem={addItemsModal.toggleItem}
+                isItemSelected={addItemsModal.isItemSelected}
+                selectedCount={addItemsModal.selectedCount}
+                onAddItems={addItemsModal.handleAddItems}
+                isSaving={addItemsModal.isSaving}
+                status={addItemsModal.status}
+                error={addItemsModal.error}
+            />
+        </div>
     );
 };
 
