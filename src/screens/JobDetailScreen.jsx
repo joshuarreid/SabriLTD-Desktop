@@ -1,14 +1,13 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { TbProgressCheck } from "react-icons/tb";
-import { MdOutlineModeEditOutline, MdClose, MdCheck } from "react-icons/md";
-import ItemCardGrid from "../features/itemsearchbox/components/ItemCardGrid";
 import { useViewItemModal } from "../components/viewitemmodal/hooks/useViewItemModal";
 import ViewItemModal from "../components/viewitemmodal/components/ViewItemModal";
-import FilterDropdownSearchAndAdd from "../components/filterdropdown/FilterDropdownSearchAndAdd";
 import useJobDetailScreen from "../hooks/useJobDetailScreen";
 import useEditJobDetails from "../features/job-management/hooks/useEditJobDetails";
 import styles from "../features/job-management/styles/jobdetailscreen.module.css";
+import JobDetailsBox from "../features/job-management/components/JobDetailsBox";
+import JobItemGridBox from "../features/job-management/components/JobItemGridBox";
+
 
 /**
  * Logger for JobDetailScreen.
@@ -56,18 +55,10 @@ const JobDetailScreen = () => {
 
     const { jobId } = useParams();
 
-    /**
-     * jobIdNum
-     * - Parsed numeric job id from route params.
-     *
-     * @type {number|null}
-     */
     const jobIdNum = jobId ? Number(jobId) : null;
 
-    /**
-     * jobDetail
-     * - Read-only job detail and items state.
-     */
+    const jobDetail = useJobDetailScreen({ jobId: jobIdNum });
+
     const {
         items,
         isPending,
@@ -96,18 +87,12 @@ const JobDetailScreen = () => {
         userName,
         userLoading,
         userError,
-    } = useJobDetailScreen({ jobId: jobIdNum });
+    } = jobDetail;
 
-    /**
-     * edit
-     * - Edit-mode state and mutations for job updates.
-     */
     const edit = useEditJobDetails({ job });
 
-    /**
-     * viewItemModal
-     * - Modal state for viewing item details.
-     */
+    const viewItemModal = useViewItemModal();
+
     const {
         isOpen,
         isDetailsPending,
@@ -128,7 +113,7 @@ const JobDetailScreen = () => {
         resolvedBuilding,
         openWithItem,
         close,
-    } = useViewItemModal();
+    } = viewItemModal;
 
     /**
      * handleItemClick
@@ -148,6 +133,7 @@ const JobDetailScreen = () => {
             itemId: item.id || item.itemId,
             name: item.name,
         });
+
         openWithItem(item);
     };
 
@@ -164,290 +150,43 @@ const JobDetailScreen = () => {
         );
     }
 
-    /**
-     * isActive
-     * - True when job status is "active" (case-insensitive).
-     *
-     * @type {boolean}
-     */
     const isActive =
         typeof job.status === "string" && job.status.toLowerCase() === "active";
 
     return (
         <div className={styles.jobDetailScreenRoot}>
-            <div className={styles.jobInfoBar}>
-                {/* Edit mode action buttons */}
-                <div className={styles.jobEditActions}>
-                    {edit.isEditMode && (
-                        <button
-                            type="button"
-                            className={`${styles.jobSaveBtn} ${
-                                !edit.hasChanges || edit.saveJobState.isPending
-                                    ? styles.jobSaveBtnDisabled
-                                    : ""
-                            }`}
-                            aria-label="Save changes"
-                            title={edit.saveJobState.isPending ? "Saving..." : "Save changes"}
-                            tabIndex={0}
-                            onClick={edit.saveJob}
-                            disabled={!edit.hasChanges || edit.saveJobState.isPending}
-                        >
-                            <MdCheck size={26} />
-                        </button>
-                    )}
-                    <button
-                        type="button"
-                        className={`${styles.jobEditIconBtn} ${
-                            edit.isEditMode ? styles.jobEditIconBtnActive : ""
-                        }`}
-                        aria-label={edit.isEditMode ? "Cancel editing" : "Edit job details"}
-                        title={edit.isEditMode ? "Cancel editing" : "Edit job details"}
-                        tabIndex={0}
-                        onClick={edit.toggleEditMode}
-                    >
-                        {edit.isEditMode ? (
-                            <MdClose size={26} />
-                        ) : (
-                            <MdOutlineModeEditOutline size={26} />
-                        )}
-                    </button>
-                </div>
+            <JobDetailsBox
+                job={job}
+                edit={edit}
+                isActive={isActive}
+                companyName={companyName}
+                companyLoading={companyLoading}
+                companyError={companyError}
+                userName={userName}
+                userLoading={userLoading}
+                userError={userError}
+                formatDisplayDate={formatDisplayDate}
+            />
 
-                {/* Save error message */}
-                {edit.saveJobState.isError && (
-                    <div className={styles.jobSaveError}>
-                        Failed to save: {edit.saveJobState.error?.message || "Unknown error"}
-                    </div>
-                )}
-
-                <div className={styles.jobSummaryRow}>
-                    {isActive && (
-                        <TbProgressCheck
-                            size={22}
-                            color="#338c41"
-                            className={styles.jobActiveIcon}
-                            aria-label="Active job"
-                        />
-                    )}
-                    <span className={styles.jobTitle}>
-                        {edit.isEditMode ? edit.editValues.name : job.name} -{" "}
-                        {edit.isEditMode ? edit.editValues.description : job.description}
-                    </span>
-                </div>
-
-                <div className={styles.jobFieldsBoxesRow}>
-                    <div className={styles.jobFieldTextboxGroup}>
-                        <label className={styles.jobFieldLabel} htmlFor="job-name">
-                            Name
-                        </label>
-                        <input
-                            id="job-name"
-                            className={`${styles.jobFieldTextbox} ${
-                                edit.isEditMode ? styles.jobFieldTextboxEditable : ""
-                            }`}
-                            value={edit.isEditMode ? edit.editValues.name : job.name || "-"}
-                            readOnly={!edit.isEditMode}
-                            onChange={
-                                edit.isEditMode
-                                    ? (e) => edit.updateEditField("name", e.target.value)
-                                    : undefined
-                            }
-                            tabIndex={0}
-                            aria-readonly={!edit.isEditMode}
-                        />
-                    </div>
-
-                    <div className={styles.jobFieldTextboxGroup}>
-                        <label className={styles.jobFieldLabel} htmlFor="job-company">
-                            Company
-                        </label>
-
-                        {edit.isEditMode ? (
-                            <FilterDropdownSearchAndAdd
-                                label="Company"
-                                options={edit.companyOptions}
-                                value={edit.editValues.companyId || ""}
-                                onChange={edit.handleCompanyChange}
-                                className={styles.jobFieldDropdownInline}
-                                emptyLabel={
-                                    edit.companiesState.isCompaniesPending
-                                        ? "Loading..."
-                                        : "No companies found"
-                                }
-                                onCreateNew={edit.createNewCompany}
-                                createNewLabel="Create new company"
-                            />
-                        ) : (
-                            <input
-                                id="job-company"
-                                className={styles.jobFieldTextbox}
-                                value={companyLoading ? "Loading..." : companyName || "-"}
-                                readOnly
-                                tabIndex={0}
-                                aria-readonly="true"
-                            />
-                        )}
-
-                        {companyError && !edit.isEditMode && (
-                            <div className={styles.jobFieldError}>{companyError}</div>
-                        )}
-
-                        {edit.companiesState.isCompaniesError && edit.isEditMode && (
-                            <div className={styles.jobFieldError}>Could not load companies</div>
-                        )}
-
-                        {edit.createCompanyState.isPending && (
-                            <div className={styles.jobFieldInfo}>Creating company...</div>
-                        )}
-
-                        {edit.createCompanyState.isError && (
-                            <div className={styles.jobFieldError}>
-                                Failed to create company:{" "}
-                                {edit.createCompanyState.error?.message || "Unknown error"}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className={styles.jobFieldTextboxGroup}>
-                        <label className={styles.jobFieldLabel} htmlFor="job-client">
-                            Client
-                        </label>
-
-                        {edit.isEditMode ? (
-                            edit.editValues.companyId ? (
-                                <FilterDropdownSearchAndAdd
-                                    label="Client"
-                                    options={edit.clientOptions}
-                                    value={edit.editValues.client || ""}
-                                    onChange={edit.handleClientChange}
-                                    className={styles.jobFieldDropdownInline}
-                                    emptyLabel={
-                                        edit.clientsState.isClientsPending
-                                            ? "Loading..."
-                                            : "No clients found"
-                                    }
-                                    onCreateNew={edit.createNewClient}
-                                    createNewLabel="Add new client"
-                                />
-                            ) : (
-                                <input
-                                    id="job-client"
-                                    className={`${styles.jobFieldTextbox} ${styles.jobFieldTextboxDisabled}`}
-                                    value="Select a company first"
-                                    readOnly
-                                    tabIndex={0}
-                                    aria-readonly="true"
-                                />
-                            )
-                        ) : (
-                            <input
-                                id="job-client"
-                                className={styles.jobFieldTextbox}
-                                value={job.client || "-"}
-                                readOnly
-                                tabIndex={0}
-                                aria-readonly="true"
-                            />
-                        )}
-
-                        {edit.clientsState.isClientsError &&
-                            edit.isEditMode &&
-                            edit.editValues.companyId && (
-                                <div className={styles.jobFieldError}>Could not load clients</div>
-                            )}
-                    </div>
-
-                    <div className={styles.jobFieldTextboxGroup}>
-                        <label className={styles.jobFieldLabel} htmlFor="job-description">
-                            Description
-                        </label>
-                        <input
-                            id="job-description"
-                            className={`${styles.jobFieldTextbox} ${
-                                edit.isEditMode ? styles.jobFieldTextboxEditable : ""
-                            }`}
-                            value={
-                                edit.isEditMode ? edit.editValues.description : job.description || "-"
-                            }
-                            readOnly={!edit.isEditMode}
-                            onChange={
-                                edit.isEditMode
-                                    ? (e) => edit.updateEditField("description", e.target.value)
-                                    : undefined
-                            }
-                            tabIndex={0}
-                            aria-readonly={!edit.isEditMode}
-                        />
-                    </div>
-
-                    <div className={styles.jobFieldTextboxGroup}>
-                        <label className={styles.jobFieldLabel} htmlFor="job-updatedby">
-                            Updated By
-                        </label>
-                        <input
-                            id="job-updatedby"
-                            className={styles.jobFieldTextbox}
-                            value={userLoading ? "Loading..." : userName || "-"}
-                            readOnly
-                            tabIndex={0}
-                            aria-readonly="true"
-                        />
-                        {userError && <div className={styles.jobFieldError}>{userError}</div>}
-                    </div>
-                </div>
-
-                <div className={styles.jobDatesBoxesRow}>
-                    <div className={styles.jobFieldTextboxGroup}>
-                        <label className={styles.jobFieldLabel} htmlFor="job-dateadded">
-                            Date Added
-                        </label>
-                        <input
-                            id="job-dateadded"
-                            className={styles.jobFieldTextbox}
-                            value={formatDisplayDate(job.dateAdded)}
-                            readOnly
-                            tabIndex={0}
-                            aria-readonly="true"
-                        />
-                    </div>
-
-                    <div className={styles.jobFieldTextboxGroup}>
-                        <label className={styles.jobFieldLabel} htmlFor="job-dateupdated">
-                            Last Updated
-                        </label>
-                        <input
-                            id="job-dateupdated"
-                            className={styles.jobFieldTextbox}
-                            value={formatDisplayDate(job.dateUpdated)}
-                            readOnly
-                            tabIndex={0}
-                            aria-readonly="true"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <ItemCardGrid
+            <JobItemGridBox
                 items={items}
-                columns={5}
-                rows={5}
-                onItemClick={handleItemClick}
                 isPending={isPending}
                 isError={isError}
                 error={error}
                 page={page}
                 setPage={setPage}
-                totalPages={totalPages}
-                totalItems={totalItems}
-                hasPrevious={hasPrevious}
-                hasNext={hasNext}
-                itemStart={itemStart}
-                itemEnd={itemEnd}
                 pageSize={pageSize}
                 setPageSize={setPageSize}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemStart={itemStart}
+                itemEnd={itemEnd}
+                hasPrevious={hasPrevious}
+                hasNext={hasNext}
                 handleNext={handleNext}
                 handlePrevious={handlePrevious}
                 refetch={refetch}
+                onItemClick={handleItemClick}
             />
 
             <ViewItemModal
