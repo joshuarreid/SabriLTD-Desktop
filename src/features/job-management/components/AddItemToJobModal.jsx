@@ -8,18 +8,20 @@
  * @component
  * @param {object} props
  * @param {boolean} props.open
+ * @param {number|string|null} props.jobId - Required to add items; used for error display/logging.
  * @param {() => void} props.onClose
  * @param {(item: object) => void} props.onToggleItem - Called on single-click to toggle selection.
  * @param {(itemId: number|string) => boolean} props.isItemSelected - Returns true if the item is selected.
  * @param {number} props.selectedCount
  * @param {() => void} props.onAddItems - Called when user clicks "Add Items".
+ * @param {(item: object) => void} props.onOpenItemDetails - Called on double click to open details.
  * @param {boolean} props.isSaving
  * @param {"idle"|"saving"|"saved"|"error"} props.status
  * @param {string|null} props.error
  * @returns {JSX.Element|null}
  */
 
-import React from "react";
+import React, { useMemo } from "react";
 import ItemSearchBox from "../../itemsearchbox/components/ItemSearchBox";
 import styles from "../styles/additemstojobmodal.module.css";
 
@@ -36,16 +38,29 @@ const logger = {
 
 const AddItemsToJobModal = ({
                                 open,
+                                jobId,
                                 onClose,
                                 onToggleItem,
                                 isItemSelected,
                                 selectedCount,
                                 onAddItems,
+                                onOpenItemDetails,
                                 isSaving,
                                 status,
                                 error,
                             }) => {
-    logger.info("AddItemsToJobModal rendered", { open, selectedCount, status });
+    logger.info("AddItemsToJobModal rendered", { open, selectedCount, status, jobId });
+
+    /**
+     * resolvedJobId
+     * Normalized numeric-ish job id for display only.
+     *
+     * @type {string}
+     */
+    const resolvedJobId = useMemo(() => {
+        if (jobId === null || jobId === undefined) return "";
+        return String(jobId);
+    }, [jobId]);
 
     /**
      * handleOverlayClick
@@ -93,10 +108,17 @@ const AddItemsToJobModal = ({
             <div className={styles.modalCard}>
                 <h2 className={styles.modalTitle}>Add Items to Job</h2>
 
+                {!jobId ? (
+                    <div className={styles.errorMsg}>
+                        No job specified. Please close this modal and reopen from a valid job.
+                    </div>
+                ) : null}
+
                 <div className={styles.searchBoxContainer}>
                     <ItemSearchBox
                         mode="add"
                         onItemClick={onToggleItem}
+                        onItemOpenDetails={onOpenItemDetails}
                         isItemSelected={isItemSelected}
                         columns={4}
                         rows={4}
@@ -107,12 +129,12 @@ const AddItemsToJobModal = ({
                     />
                 </div>
 
-                {error ? (
-                    <div className={styles.errorMsg}>{error}</div>
-                ) : null}
+                {error ? <div className={styles.errorMsg}>{error}</div> : null}
 
                 {status === "saved" ? (
-                    <div className={styles.savedMsg}>Items added successfully</div>
+                    <div className={styles.savedMsg}>
+                        Items added successfully{resolvedJobId ? ` to job ${resolvedJobId}` : ""}
+                    </div>
                 ) : null}
 
                 <div className={styles.footerBar}>
@@ -137,8 +159,8 @@ const AddItemsToJobModal = ({
                             type="button"
                             className={styles.addButton}
                             onClick={onAddItems}
-                            disabled={selectedCount === 0 || isSaving}
-                            aria-disabled={selectedCount === 0 || isSaving}
+                            disabled={selectedCount === 0 || isSaving || !jobId}
+                            aria-disabled={selectedCount === 0 || isSaving || !jobId}
                         >
                             {isSaving
                                 ? "Adding…"
