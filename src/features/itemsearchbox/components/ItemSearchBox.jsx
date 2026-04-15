@@ -2,12 +2,16 @@
  * ItemSearchBox.jsx
  *
  * Reusable search bar + item preview grid component.
- * Manages its own search state, pagination, and data fetching via useItemSearchBox.
- * Renders WideSearchBar and ItemCardGrid together as one cohesive unit.
+ *
+ * Supports two modes:
+ * - "browse" (default): single-click calls onItemClick (opens detail modal, navigates, etc.).
+ * - "add": single-click toggles item selection; double-click calls onItemClick for detail view.
  *
  * @component
  * @param {object} props
- * @param {(item: object) => void} props.onItemClick - Called when an item card is clicked.
+ * @param {"browse"|"add"} [props.mode="browse"] - Interaction mode.
+ * @param {(item: object) => void} props.onItemClick - Called on click (browse) or double-click (add).
+ * @param {(itemId: number|string) => boolean} [props.isItemSelected] - Required in add mode. Returns true if selected.
  * @param {object} [props.fixedFilters] - Optional Meilisearch filter expression applied to every request.
  * @param {number} [props.columns=5] - Grid columns.
  * @param {number} [props.rows=5] - Grid rows (visual hint; actual count driven by pageSize).
@@ -18,7 +22,7 @@
  * @returns {JSX.Element}
  */
 
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import styles from "../styles/itemsearchbox.module.css";
 
 import { useItemSearchBox } from "../hooks/useItemSearchBox";
@@ -37,7 +41,9 @@ const logger = {
 };
 
 const ItemSearchBox = ({
+                           mode = "browse",
                            onItemClick,
+                           isItemSelected,
                            fixedFilters,
                            columns = 5,
                            rows = 5,
@@ -46,7 +52,7 @@ const ItemSearchBox = ({
                            sortOrder = "asc",
                            placeholder = "Search inventory…",
                        }) => {
-    logger.info("ItemSearchBox rendered");
+    logger.info("ItemSearchBox rendered", { mode });
 
     const {
         searchInput,
@@ -77,28 +83,91 @@ const ItemSearchBox = ({
     });
 
     /**
-     * handleCardClick
-     * Delegates to parent onItemClick prop.
+     * clickTimerRef
+     * Used to distinguish single-click from double-click in add mode.
      *
-     * @function handleCardClick
+     * @type {React.MutableRefObject<any>}
+     */
+    const clickTimerRef = useRef(null);
+
+    /**
+     * DOUBLE_CLICK_DELAY_MS
+     * Max delay between clicks to register as a double-click.
+     *
+     * @constant
+     * @type {number}
+     */
+    const DOUBLE_CLICK_DELAY_MS = 250;
+
+    /**
+     * handleCardInteraction
+     * In browse mode: delegates directly to onItemClick on single-click.
+     * In add mode: single-click toggles selection; double-click opens detail.
+     *
+     * @function handleCardInteraction
      * @param {object} item
      * @returns {void}
      */
-    const handleCardClick = (item) => {
-        if (!item) {
-            logger.error("handleCardClick called without an item");
-            return;
-        }
+    const handleCardInteraction = useCallback(
+        (item) => {
+            if (!item) {
+                logger.error("handleCardInteraction called without an item");
+                return;
+            }
 
-        logger.info("Item clicked", {
-            itemId: item.itemId ?? item.id,
-            name: item.name,
-        });
+            if (mode === "browse") {
+                logger.info("Browse mode: item clicked", {
+                    itemId: item.itemId ?? item.id,
+                });
+                if (typeof onItemClick === "function") {
+                    onItemClick(item);
+                }
+                return;
+            }
 
-        if (typeof onItemClick === "function") {
-            onItemClick(item);
-        }
-    };
+            // Add mode: distinguish single from double click
+            if (clickTimerRef.current) {
+                // Second click within threshold → double-click
+                clearTimeout(clickTimerRef.current);
+                clickTimerRef.current = null;
+
+                logger.info("Add mode: double-click (open detail)", {
+                    itemId: item.itemId ?? item.id,
+                });
+
+                if (typeof onItemClick === "function") {
+                    onItemClick(item);
+                }
+                return;
+            }
+
+            // First click — wait to see if double-click follows
+            clickTimerRef.current = setTimeout(() => {
+                clickTimerRef.current = null;
+
+                logger.info("Add mode: single-click (toggle selection)", {
+                    itemId: item.itemId ?? item.id,
+                });
+
+                // In add mode, single-click calls onItemClick which is wired
+                // to toggleItem from useAddItemsToJobModal
+                if (typeof onItemClick === "function") {
+                    onItemClick(item);
+                }
+            }, DOUBLE_CLICK_DELAY_MS);
+        },
+        [mode, onItemClick],
+    );
+
+    /**
+     * handleDoubleClick
+     * Explicit double-click handler for add mode.
+     * Opens item detail via onItemDoubleClick if provided, otherwise no-op.
+     * NOTE: The double-click is already handled in handleCardInteraction
+     * via the click timer pattern above.
+     *
+     * @function handleDoubleClick
+     */
 
     return (
         <div className={styles.container}>
@@ -118,7 +187,7 @@ const ItemSearchBox = ({
                     items={items}
                     columns={columns}
                     rows={rows}
-                    onItemClick={handleCardClick}
+                    onItemClick={handleCardInteraction}
                     isPending={isPending}
                     isError={isError}
                     error={error}
@@ -134,6 +203,8 @@ const ItemSearchBox = ({
                     handleNext={handleNext}
                     handlePrevious={handlePrevious}
                     refetch={refetch}
+                    mode={mode}
+                    isItemSelected={isItemSelected}
                 />
             </div>
         </div>

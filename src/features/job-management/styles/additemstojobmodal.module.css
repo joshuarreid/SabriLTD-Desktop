@@ -1,0 +1,164 @@
+/**
+ * additemstojobmodal.module.css
+ *
+ * Styles for AddItemsToJobModal.
+ * Follows editbuildingmodal / createjobmodal patterns.
+ */
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(36, 14, 41, 0.12);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modalCard {
+    position: relative;
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 20px;
+    box-shadow:
+            0 8px 40px 0 rgba(0, 0, 0, 0.16),
+            0 4px 10px 0 rgba(0, 0, 0, 0.08);
+    padding: 2.1rem 2.2rem 1.4rem 2.2rem;
+    min-width: 680px;
+    max-width: min(960px, 96vw);
+    max-height: 92vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    outline: none;
+    animation: modalIn 0.24s cubic-bezier(0.21, 0.95, 0.19, 1.04);
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.modalTitle {
+    margin: 0 0 16px 0;
+    font-size: 1.27rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    text-align: left;
+    letter-spacing: 0.015em;
+}
+
+.searchBoxContainer {
+    flex: 1 1 auto;
+    min-height: 300px;
+    max-height: 60vh;
+    overflow: auto;
+}
+
+.errorMsg {
+    color: #c5473f;
+    background: #fff5f3;
+    padding: 7px 12px;
+    border-radius: 7px;
+    font-size: 1.02rem;
+    margin: 8px 0 0 0;
+}
+
+.savedMsg {
+    color: #2f855a;
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 8px 0 0 0;
+}
+
+.footerBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border-subtle, #e4e6ec);
+}
+
+.selectionCount {
+    font-size: 0.92rem;
+    color: var(--color-primary-muted, #6b6f7a);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.footerActions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.cancelButton {
+    background: none;
+    color: var(--color-primary-muted, #5d6170);
+    font-size: 1.01rem;
+    padding: 8px 18px;
+    border: none;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.13s;
+}
+
+.cancelButton:hover:enabled {
+    background: rgba(255, 214, 0, 0.12);
+    color: var(--color-primary, #333645);
+}
+
+.addButton {
+    background-color: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #ffffff);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5em 1.35em;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.05);
+}
+
+.addButton:hover:not(:disabled) {
+    background-color: var(--sabri-grey-900, #191919);
+    transform: translateY(-1px);
+}
+
+.addButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+@media (max-width: 720px) {
+    .modalCard {
+        min-width: 94vw;
+        padding: 1.4rem 1.2rem 1rem 1.2rem;
+        border-radius: 16px;
+    }
+
+    .footerBar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .footerActions {
+        justify-content: flex-end;
+    }
+}

@@ -1,0 +1,44 @@
+/**
+ * jobitemgridbox.module.css
+ *
+ * Styles for JobItemGridBox header row and add button.
+ */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.sectionTitle {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0;
+    letter-spacing: 0.01em;
+}
+
+.addItemsBtn {
+    background-color: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #ffffff);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5em 1.35em;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.05);
+}
+
+.addItemsBtn:hover {
+    background-color: var(--sabri-grey-900, #191919);
+    transform: translateY(-1px);
+}
