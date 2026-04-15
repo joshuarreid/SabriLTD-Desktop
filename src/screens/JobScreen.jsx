@@ -12,7 +12,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../features/job-management/styles/jobscreen.module.css";
-import JobSearchBox from "../features/jobsearchbox/components/JobSearchBox";
+import JobSearchBox from "../features/job-management/components/JobSearchBox";
 
 
 /**

@@ -22,10 +22,10 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import useCreateJobModal from "../../job-management/hooks/useCreateJobModal";
-import {DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY, useJobFilters} from "../../job-management/hooks/useJobFilters";
-import useJobSearch from "../../job-management/hooks/useJobSearch";
-import useJobScreenPagination from "../../job-management/hooks/useJobScreenPagination";
+import useCreateJobModal from "./useCreateJobModal";
+import {DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY, useJobFilters} from "./useJobFilters";
+import useJobSearch from "./useJobSearch";
+import useJobScreenPagination from "./useJobScreenPagination";
 import {getJobClients, searchJobs} from "../../../api/job/job";
 
 
