@@ -14,7 +14,7 @@ import JobInfoCard from "../components/jobinfocard/JobInfoCard";
 import WideSearchBar from "../components/searchbar/WideSearchBar";
 import FilterDropdown from "../components/filterdropdown/FilterDropdown";
 import FilterDropdownSearch from "../components/filterdropdown/FilterDropdownSearch";
-import { useJobScreen } from "../features/job-management/hooks/useJobScreen";
+import { useJobScreen } from "../hooks/useJobScreen";
 import CreateJobModal from "../features/job-management/components/CreateJobModal";
 
 

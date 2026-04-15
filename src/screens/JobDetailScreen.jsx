@@ -2,11 +2,11 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { TbProgressCheck } from "react-icons/tb";
 import { MdOutlineModeEditOutline, MdClose, MdCheck } from "react-icons/md";
-import ItemCardGrid from "../components/item-grid/components/ItemCardGrid";
+import ItemCardGrid from "../features/itemsearchbox/components/ItemCardGrid";
 import { useViewItemModal } from "../components/viewitemmodal/hooks/useViewItemModal";
 import ViewItemModal from "../components/viewitemmodal/components/ViewItemModal";
 import FilterDropdownSearchAndAdd from "../components/filterdropdown/FilterDropdownSearchAndAdd";
-import useJobDetailScreen from "../features/job-management/hooks/useJobDetailScreen";
+import useJobDetailScreen from "../hooks/useJobDetailScreen";
 import useEditJobDetails from "../features/job-management/hooks/useEditJobDetails";
 import styles from "../features/job-management/styles/jobdetailscreen.module.css";
 

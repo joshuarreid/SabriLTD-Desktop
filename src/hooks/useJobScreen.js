@@ -11,11 +11,11 @@ import {
     useJobFilters,
     DEFAULT_PAGE_SIZE,
     DEFAULT_SORT_KEY,
-} from "./useJobFilters";
-import { useJobSearch } from "./useJobSearch";
-import { useJobScreenPagination } from "./useJobScreenPagination";
-import { getAllJobs, getJobClients, searchJobs } from "../../../api/job/job";
-import { useCreateJobModal } from "./useCreateJobModal";
+} from "../features/job-management/hooks/useJobFilters";
+import { useJobSearch } from "../features/job-management/hooks/useJobSearch";
+import { useJobScreenPagination } from "../features/job-management/hooks/useJobScreenPagination";
+import { getAllJobs, getJobClients, searchJobs } from "../api/job/job";
+import { useCreateJobModal } from "../features/job-management/hooks/useCreateJobModal";
 
 const logger = {
     info: (...args) => console.log("[useJobScreen]", ...args),
