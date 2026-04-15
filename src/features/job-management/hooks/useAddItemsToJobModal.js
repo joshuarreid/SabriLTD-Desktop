@@ -2,10 +2,10 @@
  * useAddItemsToJobModal.js
  *
  * Orchestration hook for the "Add Items to Job" modal flow.
- * - Owns open/close state for the modal
- * - Tracks selected items (multi-select via single-click in add mode)
- * - Calls updateItem API for each selected item to append the jobId to its jobIds
- * - Invalidates relevant caches after success
+ *
+ * FIXES (Step 5/6):
+ * 1) Ensure we never open the modal with an undefined jobId without surfacing a clear error.
+ * 2) Ensure normalization is used consistently (normalizedJobId) for mutation + cache invalidations.
  *
  * @function useAddItemsToJobModal
  * @param {object} params
@@ -13,7 +13,7 @@
  * @returns {object} View model for add-items-to-job modal.
  */
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getItemById, updateItem } from "../../../api/item/item";
 import { itemKeys } from "../../../api/item/ItemQueryKeys";
@@ -41,7 +41,23 @@ const logger = {
  */
 const resolveCurrentUserId = (user) => {
     const candidate = user?.userId ?? user?.id ?? null;
-    const asNum = candidate === null || candidate === undefined ? NaN : Number(candidate);
+    const asNum =
+        candidate === null || candidate === undefined ? NaN : Number(candidate);
+    if (Number.isNaN(asNum)) return null;
+    return asNum;
+};
+
+/**
+ * normalizeJobId
+ * Safely normalizes a job id into a number.
+ *
+ * @function normalizeJobId
+ * @param {number|string|null|undefined} value
+ * @returns {number|null}
+ */
+const normalizeJobId = (value) => {
+    if (value === null || value === undefined) return null;
+    const asNum = Number(value);
     if (Number.isNaN(asNum)) return null;
     return asNum;
 };
@@ -53,6 +69,14 @@ export const useAddItemsToJobModal = ({ jobId }) => {
     const { user: currentUser } = useCurrentUser();
 
     /**
+     * normalizedJobId
+     * Used to avoid jobId string/number mismatch.
+     *
+     * @type {number|null}
+     */
+    const normalizedJobId = useMemo(() => normalizeJobId(jobId), [jobId]);
+
+    /**
      * Whether the modal is open.
      *
      * @type {[boolean, Function]}
@@ -61,11 +85,10 @@ export const useAddItemsToJobModal = ({ jobId }) => {
 
     /**
      * Map of selected items keyed by itemId.
-     * Value is the item preview object for display purposes.
      *
      * @type {[Map<number|string, object>, Function]}
      */
-    const [selectedItems, setSelectedItems] = useState(new Map());
+    const [selectedItems, setSelectedItems] = useState(() => new Map());
 
     /**
      * UI-friendly status for the add operation.
@@ -92,16 +115,25 @@ export const useAddItemsToJobModal = ({ jobId }) => {
      * openModal
      * Opens the modal and resets selection + status.
      *
+     * NOTE: If jobId is not available, we still open the modal (so user doesn't feel "nothing happened"),
+     * but we set an error message immediately so it's obvious what's wrong.
+     *
      * @function openModal
      * @returns {void}
      */
     const openModal = useCallback(() => {
-        logger.info("openModal called");
+        logger.info("openModal called", { jobId, normalizedJobId });
         setSelectedItems(new Map());
         setStatus("idle");
-        setError(null);
+
+        if (!normalizedJobId) {
+            setError("No job specified. Please refresh and try again.");
+        } else {
+            setError(null);
+        }
+
         setOpen(true);
-    }, []);
+    }, [jobId, normalizedJobId]);
 
     /**
      * closeModal
@@ -163,7 +195,6 @@ export const useAddItemsToJobModal = ({ jobId }) => {
 
     /**
      * selectedCount
-     * Number of currently selected items.
      *
      * @type {number}
      */
@@ -171,31 +202,40 @@ export const useAddItemsToJobModal = ({ jobId }) => {
 
     /**
      * selectedItemIds
-     * Array of selected item IDs.
      *
      * @type {Array<number|string>}
      */
-    const selectedItemIds = Array.from(selectedItems.keys());
+    const selectedItemIds = useMemo(
+        () => Array.from(selectedItems.keys()),
+        [selectedItems],
+    );
 
     /**
      * addItemsMutation
-     * Mutation that fetches each selected item's full data,
-     * appends the jobId to its jobIds array, and calls updateItem.
+     * Fetches each selected item and appends the jobId to jobIds.
      */
     const addItemsMutation = useMutation({
-        mutationKey: [...jobKeys.detail(jobId), "add-items"],
+        mutationKey: normalizedJobId
+            ? [...jobKeys.detail(normalizedJobId), "add-items"]
+            : [...jobKeys.all, "add-items", "no-job"],
         /**
          * mutationFn
-         * Processes all selected items and updates each to include this jobId.
          *
+         * @async
          * @param {Array<number|string>} itemIds
          * @returns {Promise<Array<any>>}
+         * @throws {Error} If jobId is missing or any update fails.
          */
         mutationFn: async (itemIds) => {
             logger.info("addItemsMutation mutationFn called", {
                 jobId,
+                normalizedJobId,
                 itemCount: itemIds.length,
             });
+
+            if (!normalizedJobId) {
+                throw new Error("No job specified.");
+            }
 
             const updatedById = resolveCurrentUserId(currentUser);
 
@@ -213,12 +253,10 @@ export const useAddItemsToJobModal = ({ jobId }) => {
                     ? fullItem.jobIds
                     : [];
 
-                const numericJobId = Number(jobId);
-
-                if (existingJobIds.includes(numericJobId)) {
+                if (existingJobIds.includes(normalizedJobId)) {
                     logger.info("Item already has this jobId, skipping", {
                         itemId,
-                        jobId: numericJobId,
+                        jobId: normalizedJobId,
                     });
                     results.push(fullItem);
                     continue;
@@ -228,7 +266,7 @@ export const useAddItemsToJobModal = ({ jobId }) => {
                     name: fullItem.name,
                     description: fullItem.description,
                     conditionId: fullItem.conditionId,
-                    jobIds: [...existingJobIds, numericJobId],
+                    jobIds: [...existingJobIds, normalizedJobId],
                     storageId: fullItem.storageId,
                     storageDesc: fullItem.storageDesc,
                     photoIds: fullItem.photoIds || [],
@@ -240,7 +278,7 @@ export const useAddItemsToJobModal = ({ jobId }) => {
 
                 logger.info("Updating item to add jobId", {
                     itemId,
-                    jobId: numericJobId,
+                    jobId: normalizedJobId,
                     jobIdsCount: payload.jobIds.length,
                 });
 
@@ -252,14 +290,15 @@ export const useAddItemsToJobModal = ({ jobId }) => {
         },
         /**
          * onSuccess
-         * Invalidates item and job caches so the UI reflects changes.
          *
+         * @async
          * @param {Array<any>} data
          * @param {Array<number|string>} itemIds
+         * @returns {Promise<void>}
          */
         onSuccess: async (data, itemIds) => {
             logger.info("addItemsMutation onSuccess", {
-                updatedCount: data.length,
+                updatedCount: Array.isArray(data) ? data.length : 0,
             });
 
             try {
@@ -281,10 +320,10 @@ export const useAddItemsToJobModal = ({ jobId }) => {
                     );
                 }
 
-                if (jobId) {
+                if (normalizedJobId) {
                     invalidations.push(
                         queryClient.invalidateQueries({
-                            queryKey: jobKeys.detail(jobId),
+                            queryKey: jobKeys.detail(normalizedJobId),
                         }),
                     );
                 }
@@ -299,6 +338,7 @@ export const useAddItemsToJobModal = ({ jobId }) => {
          * onError
          *
          * @param {any} err
+         * @returns {void}
          */
         onError: (err) => {
             logger.error("addItemsMutation onError", err);
@@ -319,14 +359,15 @@ export const useAddItemsToJobModal = ({ jobId }) => {
             return;
         }
 
-        if (!jobId) {
-            logger.error("handleAddItems called without a jobId");
-            setError("No job specified.");
+        if (!normalizedJobId) {
+            logger.error("handleAddItems called without a jobId", { jobId });
+            setError("No job specified. Please refresh and try again.");
             return;
         }
 
         logger.info("handleAddItems called", {
             jobId,
+            normalizedJobId,
             selectedCount,
             selectedItemIds,
         });
@@ -346,7 +387,13 @@ export const useAddItemsToJobModal = ({ jobId }) => {
                 "Failed to add items to job.";
             setError(message);
         }
-    }, [jobId, selectedCount, selectedItemIds, addItemsMutation]);
+    }, [
+        jobId,
+        normalizedJobId,
+        selectedCount,
+        selectedItemIds,
+        addItemsMutation,
+    ]);
 
     /**
      * Delayed close effect: shows 'Saved' for ~1s before closing.

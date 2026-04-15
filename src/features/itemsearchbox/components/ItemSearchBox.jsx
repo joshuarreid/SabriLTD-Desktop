@@ -3,15 +3,20 @@
  *
  * Reusable search bar + item preview grid component.
  *
- * Supports two modes:
- * - "browse" (default): single-click calls onItemClick (opens detail modal, navigates, etc.).
- * - "add": single-click toggles item selection; double-click calls onItemClick for detail view.
+ * Modes:
+ * - "browse" (default): single click opens details (delegated via onItemOpenDetails)
+ * - "add": single click toggles selection; double click opens details (delegated)
+ *
+ * Backwards compatible:
+ * - If mode is omitted, it behaves like browse mode.
+ * - Existing onItemClick usage continues to work in browse mode.
  *
  * @component
  * @param {object} props
- * @param {"browse"|"add"} [props.mode="browse"] - Interaction mode.
- * @param {(item: object) => void} props.onItemClick - Called on click (browse) or double-click (add).
- * @param {(itemId: number|string) => boolean} [props.isItemSelected] - Required in add mode. Returns true if selected.
+ * @param {"browse"|"add"} [props.mode="browse"]
+ * @param {(item: object) => void} [props.onItemClick] - In browse mode: single click action (e.g. open item). In add mode: toggles selection.
+ * @param {(item: object) => void} [props.onItemOpenDetails] - Optional detail-open handler (used for double click and browse click).
+ * @param {(itemId: number|string) => boolean} [props.isItemSelected] - Selection predicate for add mode.
  * @param {object} [props.fixedFilters] - Optional Meilisearch filter expression applied to every request.
  * @param {number} [props.columns=5] - Grid columns.
  * @param {number} [props.rows=5] - Grid rows (visual hint; actual count driven by pageSize).
@@ -22,7 +27,7 @@
  * @returns {JSX.Element}
  */
 
-import React, { useCallback, useRef } from "react";
+import React, { useCallback } from "react";
 import styles from "../styles/itemsearchbox.module.css";
 
 import { useItemSearchBox } from "../hooks/useItemSearchBox";
@@ -43,6 +48,7 @@ const logger = {
 const ItemSearchBox = ({
                            mode = "browse",
                            onItemClick,
+                           onItemOpenDetails,
                            isItemSelected,
                            fixedFilters,
                            columns = 5,
@@ -83,91 +89,78 @@ const ItemSearchBox = ({
     });
 
     /**
-     * clickTimerRef
-     * Used to distinguish single-click from double-click in add mode.
+     * handleSingleClick
+     * - browse: delegates to onItemOpenDetails if provided, else onItemClick
+     * - add: delegates to onItemClick (toggle selection)
      *
-     * @type {React.MutableRefObject<any>}
-     */
-    const clickTimerRef = useRef(null);
-
-    /**
-     * DOUBLE_CLICK_DELAY_MS
-     * Max delay between clicks to register as a double-click.
-     *
-     * @constant
-     * @type {number}
-     */
-    const DOUBLE_CLICK_DELAY_MS = 250;
-
-    /**
-     * handleCardInteraction
-     * In browse mode: delegates directly to onItemClick on single-click.
-     * In add mode: single-click toggles selection; double-click opens detail.
-     *
-     * @function handleCardInteraction
+     * @function handleSingleClick
      * @param {object} item
      * @returns {void}
      */
-    const handleCardInteraction = useCallback(
+    const handleSingleClick = useCallback(
         (item) => {
             if (!item) {
-                logger.error("handleCardInteraction called without an item");
+                logger.error("handleSingleClick called without an item");
                 return;
             }
 
-            if (mode === "browse") {
-                logger.info("Browse mode: item clicked", {
-                    itemId: item.itemId ?? item.id,
-                });
+            const itemId = item?.itemId ?? item?.id;
+
+            logger.info("Item single click", {
+                mode,
+                itemId,
+                name: item?.name,
+            });
+
+            if (mode === "add") {
                 if (typeof onItemClick === "function") {
                     onItemClick(item);
                 }
                 return;
             }
 
-            // Add mode: distinguish single from double click
-            if (clickTimerRef.current) {
-                // Second click within threshold → double-click
-                clearTimeout(clickTimerRef.current);
-                clickTimerRef.current = null;
-
-                logger.info("Add mode: double-click (open detail)", {
-                    itemId: item.itemId ?? item.id,
-                });
-
-                if (typeof onItemClick === "function") {
-                    onItemClick(item);
-                }
+            if (typeof onItemOpenDetails === "function") {
+                onItemOpenDetails(item);
                 return;
             }
 
-            // First click — wait to see if double-click follows
-            clickTimerRef.current = setTimeout(() => {
-                clickTimerRef.current = null;
-
-                logger.info("Add mode: single-click (toggle selection)", {
-                    itemId: item.itemId ?? item.id,
-                });
-
-                // In add mode, single-click calls onItemClick which is wired
-                // to toggleItem from useAddItemsToJobModal
-                if (typeof onItemClick === "function") {
-                    onItemClick(item);
-                }
-            }, DOUBLE_CLICK_DELAY_MS);
+            if (typeof onItemClick === "function") {
+                onItemClick(item);
+            }
         },
-        [mode, onItemClick],
+        [mode, onItemClick, onItemOpenDetails],
     );
 
     /**
      * handleDoubleClick
-     * Explicit double-click handler for add mode.
-     * Opens item detail via onItemDoubleClick if provided, otherwise no-op.
-     * NOTE: The double-click is already handled in handleCardInteraction
-     * via the click timer pattern above.
+     * Always opens details if onItemOpenDetails is provided, else falls back to onItemClick.
      *
      * @function handleDoubleClick
+     * @param {object} item
+     * @returns {void}
      */
+    const handleDoubleClick = useCallback(
+        (item) => {
+            if (!item) {
+                logger.error("handleDoubleClick called without an item");
+                return;
+            }
+
+            const itemId = item?.itemId ?? item?.id;
+
+            logger.info("Item double click", { itemId, mode });
+
+            if (typeof onItemOpenDetails === "function") {
+                onItemOpenDetails(item);
+                return;
+            }
+
+            if (typeof onItemClick === "function") {
+                onItemClick(item);
+            }
+        },
+        [mode, onItemClick, onItemOpenDetails],
+    );
 
     return (
         <div className={styles.container}>
@@ -187,7 +180,9 @@ const ItemSearchBox = ({
                     items={items}
                     columns={columns}
                     rows={rows}
-                    onItemClick={handleCardInteraction}
+                    onItemClick={handleSingleClick}
+                    onItemDoubleClick={handleDoubleClick}
+                    isItemSelected={mode === "add" ? isItemSelected : undefined}
                     isPending={isPending}
                     isError={isError}
                     error={error}
@@ -203,8 +198,6 @@ const ItemSearchBox = ({
                     handleNext={handleNext}
                     handlePrevious={handlePrevious}
                     refetch={refetch}
-                    mode={mode}
-                    isItemSelected={isItemSelected}
                 />
             </div>
         </div>

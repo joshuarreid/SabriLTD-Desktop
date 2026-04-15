@@ -19,9 +19,8 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useQuery, useQueries } from "@tanstack/react-query";
-import itemKeys from "../../../api/item/ItemQueryKeys";
-import {getItemDetails, searchItems} from "../../../api/item/item";
-
+import { itemKeys } from "../../../api/item/ItemQueryKeys";
+import { getItemDetails, searchItems } from "../../../api/item/item";
 
 /**
  * Logger for useItemSearchBox.
@@ -262,10 +261,7 @@ export const useItemSearchBox = ({
      *
      * @type {Array<object>}
      */
-    const items = useMemo(
-        () => searchResult?.hits ?? [],
-        [searchResult],
-    );
+    const items = useMemo(() => searchResult?.hits ?? [], [searchResult]);
 
     /**
      * totalItems
