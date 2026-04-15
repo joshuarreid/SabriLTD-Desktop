@@ -87,7 +87,7 @@ const JobItemGridBox = ({
                     className={styles.addItemsBtn}
                     type="button"
                     onClick={() => {
-                        logger.info("Add Items button clicked");
+                        logger.info("Add Items button clicked", { jobId });
                         addItemsModal.openModal();
                     }}
                 >
@@ -120,11 +120,13 @@ const JobItemGridBox = ({
 
             <AddItemsToJobModal
                 open={addItemsModal.open}
+                jobId={jobId}
                 onClose={addItemsModal.closeModal}
                 onToggleItem={addItemsModal.toggleItem}
                 isItemSelected={addItemsModal.isItemSelected}
                 selectedCount={addItemsModal.selectedCount}
                 onAddItems={addItemsModal.handleAddItems}
+                onOpenItemDetails={onItemClick}
                 isSaving={addItemsModal.isSaving}
                 status={addItemsModal.status}
                 error={addItemsModal.error}
