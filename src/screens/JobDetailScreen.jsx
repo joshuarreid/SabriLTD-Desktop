@@ -8,7 +8,6 @@ import styles from "../features/job-management/styles/jobdetailscreen.module.css
 import JobDetailsBox from "../features/job-management/components/JobDetailsBox";
 import JobItemGridBox from "../features/job-management/components/JobItemGridBox";
 
-
 /**
  * Logger for JobDetailScreen.
  *
@@ -55,6 +54,12 @@ const JobDetailScreen = () => {
 
     const { jobId } = useParams();
 
+    /**
+     * jobIdNum
+     * Normalized numeric job id from route params.
+     *
+     * @type {number|null}
+     */
     const jobIdNum = jobId ? Number(jobId) : null;
 
     const jobDetail = useJobDetailScreen({ jobId: jobIdNum });
@@ -169,6 +174,7 @@ const JobDetailScreen = () => {
             />
 
             <JobItemGridBox
+                jobId={job.jobId ?? jobIdNum}
                 items={items}
                 isPending={isPending}
                 isError={isError}
