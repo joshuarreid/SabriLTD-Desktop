@@ -32,9 +32,9 @@
 
 import { useState, useCallback } from "react";
 import { useQueries } from "@tanstack/react-query";
-import useItemCardGrid from "./useItemCardGrid";
-import itemKeys from "../../../api/item/ItemQueryKeys";
-import { getItemDetails } from "../../../api/item/item";
+import useItemCardGrid from "../features/itemsearchbox/hooks/useItemCardGrid";
+import itemKeys from "../api/item/ItemQueryKeys";
+import { getItemDetails } from "../api/item/item";
 
 /**
  * Logger for useInventoryDashboardScreen.
