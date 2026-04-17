@@ -16,6 +16,38 @@ const logger = {
 };
 
 /**
+ * getCanonicalItemId
+ * Returns a stable item identifier across API shapes.
+ *
+ * Why:
+ * - Meilisearch ItemPreview uses `id`
+ * - Other endpoints may use `itemId`
+ * - React list keys MUST be stable/unique to avoid stale rendering across pagination
+ *
+ * @function getCanonicalItemId
+ * @param {object} item
+ * @returns {number|string|null} Canonical id for the item or null if unavailable.
+ */
+const getCanonicalItemId = (item) => {
+    const id = item?.id ?? item?.itemId;
+    return id != null ? id : null;
+};
+
+/**
+ * getCanonicalItemKey
+ * Builds a stable React key for an item.
+ *
+ * @function getCanonicalItemKey
+ * @param {object} item
+ * @param {number} index
+ * @returns {string}
+ */
+const getCanonicalItemKey = (item, index) => {
+    const id = getCanonicalItemId(item);
+    return id != null ? `item-${String(id)}` : `item-index-${index}`;
+};
+
+/**
  * ItemCardGrid
  * Renders a responsive paginated grid of ItemInfoCard components.
  *
@@ -25,7 +57,7 @@ const logger = {
  *
  * @component
  * @param {Object} props
- * @param {Array} props.items - Array of item objects to render (each with itemId).
+ * @param {Array} props.items - Array of item objects to render (each with itemId or id).
  * @param {number} props.columns - Grid columns.
  * @param {number} props.rows - Grid rows shown per page.
  * @param {string} [props.title="Items"] - Title above the grid.
@@ -125,7 +157,7 @@ const ItemCardGrid = ({
 
             clickTimeoutRef.current = setTimeout(() => {
                 logger.info("Item card clicked (single)", {
-                    itemId: item?.itemId ?? item?.id,
+                    itemId: getCanonicalItemId(item),
                 });
                 onItemClick(item);
                 clickTimeoutRef.current = null;
@@ -149,7 +181,7 @@ const ItemCardGrid = ({
             clearPendingClick();
 
             logger.info("Item card double-clicked", {
-                itemId: item?.itemId ?? item?.id,
+                itemId: getCanonicalItemId(item),
             });
 
             onItemDoubleClick(item);
@@ -191,8 +223,10 @@ const ItemCardGrid = ({
                     }}
                 >
                     <AnimatePresence>
-                        {items.map((item) => {
-                            const id = item?.itemId ?? item?.id;
+                        {items.map((item, index) => {
+                            const id = getCanonicalItemId(item);
+                            const key = getCanonicalItemKey(item, index);
+
                             const selected =
                                 typeof isItemSelected === "function" && id != null
                                     ? Boolean(isItemSelected(id))
@@ -200,7 +234,7 @@ const ItemCardGrid = ({
 
                             return (
                                 <motion.div
-                                    key={item.itemId}
+                                    key={key}
                                     layout
                                     initial={{ opacity: 0, y: 16, scale: 0.96 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -216,10 +250,10 @@ const ItemCardGrid = ({
                                 >
                                     <ItemInfoCard
                                         item={{
-                                            itemId: item.itemId,
-                                            name: item.name,
-                                            conditionName: item.condition,
-                                            photoUrl: item.photoUrl,
+                                            itemId: id,
+                                            name: item?.name,
+                                            conditionName: item?.condition,
+                                            photoUrl: item?.photoUrl,
                                         }}
                                         onClick={() => handleCardClick(item)}
                                     />
@@ -282,9 +316,10 @@ const ItemCardGrid = ({
 ItemCardGrid.propTypes = {
     items: PropTypes.arrayOf(
         PropTypes.shape({
-            itemId: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
-                .isRequired,
+            itemId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
             name: PropTypes.string.isRequired,
+            condition: PropTypes.string,
             conditionName: PropTypes.string,
             photoUrl: PropTypes.string,
         }),
