@@ -19,6 +19,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createItem } from "../../../api/item/item";
 import { itemKeys } from "../../../api/item/ItemQueryKeys";
 import { useCurrentUser } from "../../../hooks/useCurrentUser";
+import { photoKeys } from "../../../api/photo/photoQueryKeys";
 
 /**
  * logger for useEditItemModal
@@ -32,8 +33,13 @@ const logger = {
 /**
  * useEditItemModal business logic hook for EditItemModal.
  * Handles navigation, form state, and item creation.
- * @param {object} params - See above.
- * @returns {object}
+ *
+ * @function
+ * @param {object} params - Hook params.
+ * @param {Array<{photoId:number, url:string}>} [params.photos=[]] - Photo objects for the item.
+ * @param {boolean} params.open - Modal open state.
+ * @param {function} params.onClose - Close handler for modal.
+ * @returns {object} Business/state for EditItemModal, including submit logic and mutation status.
  */
 export const useEditItemModal = ({ photos = [], open, onClose }) => {
     // --- Photo navigation state ---
@@ -60,7 +66,12 @@ export const useEditItemModal = ({ photos = [], open, onClose }) => {
     const { user, loading: userLoading, error: userError } = useCurrentUser();
 
     // --- React Query/Create-Item mutation logic ---
+    /**
+     * React Query client for cache invalidation.
+     * @constant
+     */
     const queryClient = useQueryClient();
+
     const {
         mutate: mutateCreateItem,
         isPending: isSaving,
@@ -72,12 +83,29 @@ export const useEditItemModal = ({ photos = [], open, onClose }) => {
         mutationKey: itemKeys.create(),
         mutationFn: createItem,
         onSuccess: (data, variables) => {
-            logger.info("Item created successfully", data);
+            const createdItemId =
+                data?.data?.itemId ??
+                data?.itemId ??
+                null;
+
+            logger.info("Item created successfully", {
+                createdItemId,
+                photoCount: Array.isArray(variables?.photoIds) ? variables.photoIds.length : 0,
+            });
+
             // Invalidate all relevant caches for item lists/detail/search
             queryClient.invalidateQueries({ queryKey: itemKeys.all });
             queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
             queryClient.invalidateQueries({ queryKey: itemKeys.list() });
             queryClient.invalidateQueries({ queryKey: itemKeys.search() });
+
+            // Photos changed: staged/pending photos are now linked to the created item.
+            // This is the critical fix for AddItemScreen which queries photoKeys.pendingList().
+            queryClient.invalidateQueries({ queryKey: photoKeys.pendingList() });
+
+            // Optional but generally safe: other photo list views may also be impacted.
+            queryClient.invalidateQueries({ queryKey: photoKeys.lists() });
+
             setSaveStatus("saved");
             handleCancel();
         },
@@ -93,7 +121,13 @@ export const useEditItemModal = ({ photos = [], open, onClose }) => {
         if (open && photos.length > 0) setCurrent(0);
     }, [open, photos.length]);
 
-    /** Handles modal cancel/close and resets state fields */
+    /**
+     * handleCancel
+     * Handles modal cancel/close and resets state fields.
+     *
+     * @function
+     * @returns {void}
+     */
     const handleCancel = useCallback(() => {
         logger.info("EditItemModal cancelled");
         setItemName("");
@@ -113,15 +147,41 @@ export const useEditItemModal = ({ photos = [], open, onClose }) => {
     }, [onClose, resetMutation]);
 
     /** Photo navigation helpers */
+    /**
+     * handlePrev
+     * Navigates to the previous photo.
+     *
+     * @function
+     * @returns {void}
+     */
     const handlePrev = () => setCurrent((prev) => Math.max(prev - 1, 0));
+
+    /**
+     * handleNext
+     * Navigates to the next photo.
+     *
+     * @function
+     * @returns {void}
+     */
     const handleNext = () => setCurrent((prev) => Math.min(prev + 1, photos.length - 1));
+
+    /**
+     * handleSelect
+     * Selects a specific photo by index.
+     *
+     * @function
+     * @param {number} idx - Index of the selected photo.
+     * @returns {void}
+     */
     const handleSelect = (idx) => setCurrent(idx);
 
     /**
+     * handleSubmit
      * Handles form submit, including updatedBy from useCurrentUser.
      *
      * @function
      * @param {Event} e - The form event.
+     * @returns {void}
      */
     const handleSubmit = (e) => {
         if (e && typeof e.preventDefault === "function") e.preventDefault();
@@ -141,18 +201,24 @@ export const useEditItemModal = ({ photos = [], open, onClose }) => {
         if (!user || !user.userId) {
             setApiError("Current user information is missing or invalid.");
             setSaveStatus("error");
-            logger.error("createItem: Missing or invalid user for updatedBy", user);
+            logger.error("createItem: Missing or invalid user for updatedBy", {
+                hasUser: !!user,
+                hasUserId: !!user?.userId,
+            });
             return;
         }
+        if (userError) {
+            logger.error("createItem: Current user errored", userError);
+        }
+
         setApiError("");
         setSaveStatus("saving");
+
         // Photos: pass as array of photoIds (per API)
         const photoIds = (photos || []).map((p) => p.photoId).filter(Boolean);
 
         // Comments as array, omit if empty string
-        const commentsArr = comments
-            ? [comments]
-            : undefined;
+        const commentsArr = comments ? [comments] : undefined;
 
         mutateCreateItem({
             name: itemName.trim(),
@@ -180,16 +246,26 @@ export const useEditItemModal = ({ photos = [], open, onClose }) => {
         isFirst: current === 0,
         isLast: current === photos.length - 1,
         // All form state to be controlled by EditItemModal.jsx UI (full bulletproof control)
-        itemName, setItemName,
-        itemDescription, setItemDescription,
-        conditionId, setConditionId,
-        jobIds, setJobIds,
-        storageId, setStorageId,
-        storageDesc, setStorageDesc,
-        comments, setComments,
-        selectedCategoryId, setSelectedCategoryId,
-        selectedTagIds, setSelectedTagIds,
-        tagSearch, setTagSearch,
+        itemName,
+        setItemName,
+        itemDescription,
+        setItemDescription,
+        conditionId,
+        setConditionId,
+        jobIds,
+        setJobIds,
+        storageId,
+        setStorageId,
+        storageDesc,
+        setStorageDesc,
+        comments,
+        setComments,
+        selectedCategoryId,
+        setSelectedCategoryId,
+        selectedTagIds,
+        setSelectedTagIds,
+        tagSearch,
+        setTagSearch,
         // Submission logic
         handleSubmit,
         isSaving,

@@ -88,15 +88,6 @@ const ItemSearchBox = ({
         placeholder,
     });
 
-    /**
-     * handleSingleClick
-     * - browse: delegates to onItemOpenDetails if provided, else onItemClick
-     * - add: delegates to onItemClick (toggle selection)
-     *
-     * @function handleSingleClick
-     * @param {object} item
-     * @returns {void}
-     */
     const handleSingleClick = useCallback(
         (item) => {
             if (!item) {
@@ -131,14 +122,6 @@ const ItemSearchBox = ({
         [mode, onItemClick, onItemOpenDetails],
     );
 
-    /**
-     * handleDoubleClick
-     * Always opens details if onItemOpenDetails is provided, else falls back to onItemClick.
-     *
-     * @function handleDoubleClick
-     * @param {object} item
-     * @returns {void}
-     */
     const handleDoubleClick = useCallback(
         (item) => {
             if (!item) {

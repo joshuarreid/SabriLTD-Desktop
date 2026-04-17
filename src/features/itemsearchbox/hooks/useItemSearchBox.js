@@ -4,23 +4,28 @@
  * Reusable orchestration hook for ItemSearchBox.
  * - Owns local search input + committed query state
  * - Fetches paginated item previews via Meilisearch (searchItems)
- * - Eagerly caches full item details for the current page
- * - Exposes pagination, loading, error, and search handlers
+ * - Uses useItemSearchPagination for canonical pagination meta and clamping
+ *
+ * API Contract:
+ * - ItemSearchRequest: { query, filters, page(1-based), size, sort, includeArchived }
+ * - ItemSearchResponse: { hits, hitsCount, totalHits, page, size, sort, includeArchived }
  *
  * @function useItemSearchBox
  * @param {object} [options]
- * @param {object} [options.fixedFilters] - Meilisearch filter expression applied on every request.
+ * @param {string|null} [options.fixedFilters] - Meilisearch filter expression applied on every request.
  * @param {number} [options.pageSize=25] - Results per page.
  * @param {string} [options.sortField="name"] - Default sort field.
  * @param {string} [options.sortOrder="asc"] - Default sort order.
  * @param {string} [options.placeholder="Search inventory…"] - Passed through for UI.
+ * @param {boolean} [options.includeArchived=false] - Include archived items in search.
  * @returns {object} View model for ItemSearchBox rendering and interactions.
  */
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useQuery, useQueries } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { itemKeys } from "../../../api/item/ItemQueryKeys";
-import { getItemDetails, searchItems } from "../../../api/item/item";
+import { searchItems } from "../../../api/item/item";
+import { useItemSearchPagination } from "./useItemSearchPagination";
 
 /**
  * Logger for useItemSearchBox.
@@ -35,7 +40,6 @@ const logger = {
 
 /**
  * DEBOUNCE_MS
- * Delay before committing a search query after the user stops typing.
  *
  * @constant
  * @type {number}
@@ -44,7 +48,6 @@ const DEBOUNCE_MS = 300;
 
 /**
  * buildSortExpression
- * Converts field + order into a Meilisearch sort string.
  *
  * @function buildSortExpression
  * @param {string} field
@@ -56,78 +59,141 @@ const buildSortExpression = (field, order) => {
     return `${field}:${order || "asc"}`;
 };
 
+/**
+ * normalizeItemSearchResponse
+ * Ensures the client always receives a safe, API-shaped object.
+ *
+ * @function normalizeItemSearchResponse
+ * @param {any} raw
+ * @returns {{
+ *   hits: Array<object>,
+ *   hitsCount: number,
+ *   totalHits: number,
+ *   page: number,
+ *   size: number,
+ *   sort: string|null,
+ *   includeArchived: boolean|null,
+ * }}
+ */
+const normalizeItemSearchResponse = (raw) => {
+    const hits = Array.isArray(raw?.hits) ? raw.hits : [];
+
+    const hitsCount =
+        typeof raw?.hitsCount === "number"
+            ? raw.hitsCount
+            : hits.length;
+
+    const totalHits =
+        typeof raw?.totalHits === "number"
+            ? raw.totalHits
+            : hitsCount;
+
+    const page =
+        typeof raw?.page === "number" && raw.page > 0
+            ? raw.page
+            : 1;
+
+    const size =
+        typeof raw?.size === "number" && raw.size > 0
+            ? raw.size
+            : hits.length || 0;
+
+    const sort = typeof raw?.sort === "string" ? raw.sort : null;
+
+    const includeArchived =
+        typeof raw?.includeArchived === "boolean"
+            ? raw.includeArchived
+            : null;
+
+    return {
+        hits,
+        hitsCount,
+        totalHits,
+        page,
+        size,
+        sort,
+        includeArchived,
+    };
+};
+
 export const useItemSearchBox = ({
                                      fixedFilters = null,
                                      pageSize: initialPageSize = 25,
                                      sortField = "name",
                                      sortOrder = "asc",
                                      placeholder = "Search inventory…",
+                                     includeArchived = false,
                                  } = {}) => {
     logger.info("useItemSearchBox initialized", {
         fixedFilters,
         initialPageSize,
         sortField,
         sortOrder,
+        includeArchived,
     });
 
-    /**
-     * searchInput
-     * Live value bound to the text input (updates on every keystroke).
-     *
-     * @type {[string, Function]}
-     */
     const [searchInput, setSearchInput] = useState("");
-
-    /**
-     * committedQuery
-     * The query string actually sent to the API.
-     * Updated on Enter or after debounce.
-     *
-     * @type {[string, Function]}
-     */
     const [committedQuery, setCommittedQuery] = useState("");
 
     /**
-     * page
-     * Current 1-based page number.
+     * serverMeta
+     * Must be state so pagination can recompute when the API response changes.
      *
-     * @type {[number, Function]}
+     * @type {[{totalHits:number|null,page:number|null,size:number|null}, Function]}
      */
-    const [page, setPage] = useState(1);
+    const [serverMeta, setServerMeta] = useState(() => ({
+        totalHits: null,
+        page: null,
+        size: null,
+    }));
 
     /**
-     * pageSize
-     * Results per page.
-     *
-     * @type {[number, Function]}
-     */
-    const [pageSize, setPageSize] = useState(initialPageSize);
-
-    /**
-     * Debounce timer ref.
+     * debounceRef
      *
      * @type {React.MutableRefObject<any>}
      */
     const debounceRef = useRef(null);
 
     /**
+     * pagination
+     * Receives server totals from serverMeta (state).
+     */
+    const pagination = useItemSearchPagination({
+        initialPage: 1,
+        initialPageSize,
+        totalHits: serverMeta.totalHits,
+        serverPage: serverMeta.page,
+        serverSize: serverMeta.size,
+        preferPageSource: "server",
+    });
+
+    /**
      * commitQuery
-     * Sets the committed query and resets to page 1.
      *
      * @function commitQuery
      * @param {string} query
      * @returns {void}
      */
-    const commitQuery = useCallback((query) => {
-        const trimmed = (query || "").trim();
-        logger.info("commitQuery", { query: trimmed });
-        setCommittedQuery(trimmed);
-        setPage(1);
-    }, []);
+    const commitQuery = useCallback(
+        (query) => {
+            const trimmed = (query || "").trim();
+            logger.info("commitQuery", { query: trimmed });
+
+            setCommittedQuery(trimmed);
+
+            setServerMeta({
+                totalHits: null,
+                page: null,
+                size: null,
+            });
+
+            pagination.resetPagination();
+        },
+        [pagination],
+    );
 
     /**
      * handleSearchChange
-     * Updates live input and starts debounce timer.
      *
      * @function handleSearchChange
      * @param {React.ChangeEvent<HTMLInputElement>} e
@@ -151,7 +217,6 @@ export const useItemSearchBox = ({
 
     /**
      * handleSearchKeyDown
-     * Commits immediately on Enter (cancels pending debounce).
      *
      * @function handleSearchKeyDown
      * @param {React.KeyboardEvent<HTMLInputElement>} e
@@ -186,12 +251,6 @@ export const useItemSearchBox = ({
         };
     }, []);
 
-    /**
-     * sort
-     * Meilisearch sort expression derived from props.
-     *
-     * @type {string|null}
-     */
     const sort = useMemo(
         () => buildSortExpression(sortField, sortOrder),
         [sortField, sortOrder],
@@ -199,42 +258,57 @@ export const useItemSearchBox = ({
 
     /**
      * searchParams
-     * The canonical params object sent to the API, also used as part of the query key.
+     * Must match ItemSearchRequest.
      *
      * @type {object}
      */
     const searchParams = useMemo(() => {
         const params = {
             query: committedQuery || undefined,
-            page,
-            size: pageSize,
+            filters: fixedFilters || undefined,
+            page: pagination.requestedPage,
+            size: pagination.pageSize,
+            sort: sort || undefined,
+            includeArchived: includeArchived || undefined,
         };
 
-        if (sort) {
-            params.sort = sort;
-        }
-
-        if (fixedFilters) {
-            params.filters = fixedFilters;
-        }
+        logger.info("searchParams built", {
+            query: params.query,
+            hasFilters: Boolean(params.filters),
+            page: params.page,
+            size: params.size,
+            sort: params.sort,
+            includeArchived: params.includeArchived ?? false,
+        });
 
         return params;
-    }, [committedQuery, page, pageSize, sort, fixedFilters]);
+    }, [
+        committedQuery,
+        fixedFilters,
+        pagination.requestedPage,
+        pagination.pageSize,
+        sort,
+        includeArchived,
+    ]);
 
-    /**
-     * Main search query via TanStack Query.
-     * Uses itemKeys.search for canonical cache key.
-     */
     const {
         data: searchResult,
         isPending,
+        isFetching,
         isError,
         error,
         refetch,
     } = useQuery({
         queryKey: itemKeys.search(searchParams),
         queryFn: async () => {
-            logger.info("searchItems queryFn called", searchParams);
+            logger.info("searchItems queryFn called", {
+                query: searchParams.query,
+                hasFilters: Boolean(searchParams.filters),
+                page: searchParams.page,
+                size: searchParams.size,
+                sort: searchParams.sort,
+                includeArchived: searchParams.includeArchived ?? false,
+            });
 
             const response = await searchItems(searchParams);
 
@@ -251,84 +325,40 @@ export const useItemSearchBox = ({
                 );
             }
 
-            return response?.data ?? {};
+            const normalized = normalizeItemSearchResponse(response?.data);
+
+            logger.info("searchItems response normalized", {
+                requestedPage: pagination.requestedPage,
+                requestedSize: pagination.pageSize,
+                responsePage: normalized.page,
+                responseSize: normalized.size,
+                hitsCount: normalized.hitsCount,
+                totalHits: normalized.totalHits,
+                includeArchived: normalized.includeArchived,
+            });
+
+            return normalized;
         },
         keepPreviousData: true,
     });
 
     /**
-     * Derived item list from search result.
-     *
-     * @type {Array<object>}
+     * Sync server meta from the latest response.
      */
-    const items = useMemo(() => searchResult?.hits ?? [], [searchResult]);
+    useEffect(() => {
+        if (!searchResult) return;
 
-    /**
-     * totalItems
-     *
-     * @type {number}
-     */
-    const totalItems = searchResult?.totalHits ?? 0;
+        const nextMeta = {
+            totalHits: typeof searchResult.totalHits === "number" ? searchResult.totalHits : null,
+            page: typeof searchResult.page === "number" ? searchResult.page : null,
+            size: typeof searchResult.size === "number" ? searchResult.size : null,
+        };
 
-    /**
-     * totalPages
-     *
-     * @type {number}
-     */
-    const totalPages = Math.ceil(totalItems / pageSize) || 1;
+        logger.info("serverMeta updated from ItemSearchResponse", nextMeta);
+        setServerMeta(nextMeta);
+    }, [searchResult]);
 
-    /**
-     * Pagination helpers.
-     */
-    const hasPrevious = page > 1;
-    const hasNext = page < totalPages;
-    const itemStart = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
-    const itemEnd = Math.min(page * pageSize, totalItems);
-
-    /**
-     * handleNext
-     *
-     * @function handleNext
-     * @returns {void}
-     */
-    const handleNext = useCallback(() => {
-        if (page < totalPages) {
-            logger.info("handleNext", { from: page, to: page + 1 });
-            setPage((p) => p + 1);
-        }
-    }, [page, totalPages]);
-
-    /**
-     * handlePrevious
-     *
-     * @function handlePrevious
-     * @returns {void}
-     */
-    const handlePrevious = useCallback(() => {
-        if (page > 1) {
-            logger.info("handlePrevious", { from: page, to: page - 1 });
-            setPage((p) => p - 1);
-        }
-    }, [page]);
-
-    /**
-     * Eagerly cache full item details for every item on the current page.
-     * Uses useQueries so each itemId gets its own cache entry under itemKeys.details(id).
-     */
-    useQueries({
-        queries: (items || [])
-            .map((item) => item && (item.itemId ?? item.id))
-            .filter((id) => id != null)
-            .map((id) => ({
-                queryKey: itemKeys.details(id),
-                queryFn: async () => {
-                    logger.info("Eager detail prefetch for item", { itemId: id });
-                    return getItemDetails(id);
-                },
-                staleTime: 10 * 60 * 1000,
-                enabled: true,
-            })),
-    });
+    const items = useMemo(() => searchResult?.hits ?? [], [searchResult?.hits]);
 
     return {
         // search input
@@ -340,22 +370,23 @@ export const useItemSearchBox = ({
         // data
         items,
         isPending,
+        isFetching,
         isError,
         error,
 
-        // pagination
-        page,
-        setPage,
-        pageSize,
-        setPageSize,
-        totalPages,
-        totalItems,
-        itemStart,
-        itemEnd,
-        hasPrevious,
-        hasNext,
-        handleNext,
-        handlePrevious,
+        // pagination (canonical)
+        page: pagination.page,
+        setPage: pagination.setPage,
+        pageSize: pagination.pageSize,
+        setPageSize: pagination.setPageSize,
+        totalPages: pagination.totalPages,
+        totalItems: pagination.totalItems,
+        itemStart: pagination.itemStart,
+        itemEnd: pagination.itemEnd,
+        hasPrevious: pagination.hasPrevious,
+        hasNext: pagination.hasNext,
+        handleNext: pagination.handleNext,
+        handlePrevious: pagination.handlePrevious,
 
         // actions
         refetch,

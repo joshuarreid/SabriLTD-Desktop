@@ -26,7 +26,7 @@ import useCreateJobModal from "./useCreateJobModal";
 import {DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY, useJobFilters} from "./useJobFilters";
 import useJobSearch from "./useJobSearch";
 import useJobScreenPagination from "./useJobScreenPagination";
-import {getJobClients, searchJobs} from "../../../api/job/job";
+import {getAllJobs, getJobClients, searchJobs} from "../../../api/job/job";
 
 
 /**
