@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../styles/itemcardgrid.module.css";
@@ -16,16 +16,54 @@ const logger = {
 };
 
 /**
+ * getCanonicalItemId
+ * Returns a stable item identifier across API shapes.
+ *
+ * Why:
+ * - Meilisearch ItemPreview uses `id`
+ * - Other endpoints may use `itemId`
+ * - React list keys MUST be stable/unique to avoid stale rendering across pagination
+ *
+ * @function getCanonicalItemId
+ * @param {object} item
+ * @returns {number|string|null} Canonical id for the item or null if unavailable.
+ */
+const getCanonicalItemId = (item) => {
+    const id = item?.id ?? item?.itemId;
+    return id != null ? id : null;
+};
+
+/**
+ * getCanonicalItemKey
+ * Builds a stable React key for an item.
+ *
+ * @function getCanonicalItemKey
+ * @param {object} item
+ * @param {number} index
+ * @returns {string}
+ */
+const getCanonicalItemKey = (item, index) => {
+    const id = getCanonicalItemId(item);
+    return id != null ? `item-${String(id)}` : `item-index-${index}`;
+};
+
+/**
  * ItemCardGrid
  * Renders a responsive paginated grid of ItemInfoCard components.
  *
+ * NOTE:
+ * - Supports an optional "selectable" mode to visually mark selected cards.
+ * - Supports single click and double click events without breaking existing usage.
+ *
  * @component
  * @param {Object} props
- * @param {Array} props.items - Array of item objects to render (each with itemId).
+ * @param {Array} props.items - Array of item objects to render (each with itemId or id).
  * @param {number} props.columns - Grid columns.
  * @param {number} props.rows - Grid rows shown per page.
  * @param {string} [props.title="Items"] - Title above the grid.
  * @param {(item:object)=>void} [props.onItemClick] - Optional click handler per card.
+ * @param {(item:object)=>void} [props.onItemDoubleClick] - Optional double click handler per card.
+ * @param {(itemId:number|string)=>boolean} [props.isItemSelected] - Returns true if an item is selected.
  * @param {boolean} [props.isPending] - Query loading state.
  * @param {boolean} [props.isError] - Query error state.
  * @param {any} [props.error] - Error object if any.
@@ -49,6 +87,8 @@ const ItemCardGrid = ({
                           rows = 3,
                           title = "Items",
                           onItemClick,
+                          onItemDoubleClick,
+                          isItemSelected,
                           isPending,
                           isError,
                           error,
@@ -75,8 +115,86 @@ const ItemCardGrid = ({
         pageSize,
         page,
         totalPages,
+        hasDoubleClick: Boolean(onItemDoubleClick),
+        hasSelection: typeof isItemSelected === "function",
     });
 
+    /**
+     * clickTimeoutRef
+     * Used to avoid triggering single-click when a double-click happens.
+     *
+     * @type {React.MutableRefObject<any>}
+     */
+    const clickTimeoutRef = useRef(null);
+
+    /**
+     * clearPendingClick
+     * Clears any scheduled single-click handler.
+     *
+     * @function clearPendingClick
+     * @returns {void}
+     */
+    const clearPendingClick = useCallback(() => {
+        if (clickTimeoutRef.current) {
+            clearTimeout(clickTimeoutRef.current);
+            clickTimeoutRef.current = null;
+        }
+    }, []);
+
+    /**
+     * handleCardClick
+     * Schedules a single-click callback and cancels if double-click occurs.
+     *
+     * @function handleCardClick
+     * @param {object} item
+     * @returns {void}
+     */
+    const handleCardClick = useCallback(
+        (item) => {
+            if (!onItemClick) return;
+
+            clearPendingClick();
+
+            clickTimeoutRef.current = setTimeout(() => {
+                logger.info("Item card clicked (single)", {
+                    itemId: getCanonicalItemId(item),
+                });
+                onItemClick(item);
+                clickTimeoutRef.current = null;
+            }, 180);
+        },
+        [onItemClick, clearPendingClick],
+    );
+
+    /**
+     * handleCardDoubleClick
+     * Immediately triggers the double-click callback (and cancels any pending single-click).
+     *
+     * @function handleCardDoubleClick
+     * @param {object} item
+     * @returns {void}
+     */
+    const handleCardDoubleClick = useCallback(
+        (item) => {
+            if (!onItemDoubleClick) return;
+
+            clearPendingClick();
+
+            logger.info("Item card double-clicked", {
+                itemId: getCanonicalItemId(item),
+            });
+
+            onItemDoubleClick(item);
+        },
+        [onItemDoubleClick, clearPendingClick],
+    );
+
+    /**
+     * renderGridContent
+     *
+     * @function
+     * @returns {JSX.Element}
+     */
     const renderGridContent = () => {
         if (isError) {
             return (
@@ -105,37 +223,47 @@ const ItemCardGrid = ({
                     }}
                 >
                     <AnimatePresence>
-                        {items.map((item) => (
-                            <motion.div
-                                key={item.itemId}
-                                layout
-                                initial={{ opacity: 0, y: 16, scale: 0.96 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -10, scale: 0.96 }}
-                                transition={{
-                                    duration: 0.22,
-                                    ease: [0.16, 1, 0.3, 1],
-                                }}
-                            >
-                                <ItemInfoCard
-                                    item={{
-                                        itemId: item.itemId,
-                                        name: item.name,
-                                        conditionName: item.condition,
-                                        photoUrl: item.photoUrl,
+                        {items.map((item, index) => {
+                            const id = getCanonicalItemId(item);
+                            const key = getCanonicalItemKey(item, index);
+
+                            const selected =
+                                typeof isItemSelected === "function" && id != null
+                                    ? Boolean(isItemSelected(id))
+                                    : false;
+
+                            return (
+                                <motion.div
+                                    key={key}
+                                    layout
+                                    initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -10, scale: 0.96 }}
+                                    transition={{
+                                        duration: 0.22,
+                                        ease: [0.16, 1, 0.3, 1],
                                     }}
-                                    onClick={() => {
-                                        logger.info("Item card clicked", {
-                                            itemId: item.itemId,
-                                            rawItem: item,
-                                        });
-                                        if (onItemClick) {
-                                            onItemClick(item);
-                                        }
-                                    }}
-                                />
-                            </motion.div>
-                        ))}
+                                    className={`${styles.cardWrapper} ${
+                                        selected ? styles.cardWrapperSelected : ""
+                                    }`}
+                                    onDoubleClick={() => handleCardDoubleClick(item)}
+                                >
+                                    <ItemInfoCard
+                                        item={{
+                                            itemId: id,
+                                            name: item?.name,
+                                            conditionName: item?.condition,
+                                            photoUrl: item?.photoUrl,
+                                        }}
+                                        onClick={() => handleCardClick(item)}
+                                    />
+
+                                    {selected ? (
+                                        <div className={styles.selectedBadge}>✓</div>
+                                    ) : null}
+                                </motion.div>
+                            );
+                        })}
                     </AnimatePresence>
                 </motion.div>
 
@@ -188,9 +316,10 @@ const ItemCardGrid = ({
 ItemCardGrid.propTypes = {
     items: PropTypes.arrayOf(
         PropTypes.shape({
-            itemId: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
-                .isRequired,
+            itemId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+            id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
             name: PropTypes.string.isRequired,
+            condition: PropTypes.string,
             conditionName: PropTypes.string,
             photoUrl: PropTypes.string,
         }),
@@ -199,6 +328,8 @@ ItemCardGrid.propTypes = {
     rows: PropTypes.number,
     title: PropTypes.string,
     onItemClick: PropTypes.func,
+    onItemDoubleClick: PropTypes.func,
+    isItemSelected: PropTypes.func,
     isPending: PropTypes.bool,
     isError: PropTypes.bool,
     error: PropTypes.any,
@@ -222,6 +353,8 @@ ItemCardGrid.defaultProps = {
     rows: 3,
     title: "Items",
     onItemClick: undefined,
+    onItemDoubleClick: undefined,
+    isItemSelected: undefined,
     isPending: false,
     isError: false,
     error: null,
