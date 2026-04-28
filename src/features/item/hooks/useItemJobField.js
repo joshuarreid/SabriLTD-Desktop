@@ -94,7 +94,7 @@ export function useItemJobField({ search = "" } = {}) {
      * Query function: uses correct endpoint and, importantly,
      * extracts jobs from response.data (not the whole response).
      * Accepts both OK and success statuses.
-     * Only throws for invalid status or non-array data, following useJobSearch.js conventions.
+     * Only throws for invalid status or non-array data, following useJobSearch.ts conventions.
      */
     const queryFn = async () => {
         logger.info("useItemJobField queryFn", {
