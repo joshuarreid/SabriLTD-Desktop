@@ -9,7 +9,7 @@ import ProtectedLayout from './layouts/ProtectedLayout';
 import UserProfileScreen from './pages/UserProfileScreen.jsx';
 import SettingsScreen from './pages/SettingsScreen.jsx';
 import JobScreen from "./pages/JobScreen";
-import InventoryDashboardScreen from './pages/InventoryDashboardScreen.jsx';
+import HomeScreen from './pages/HomeScreen.jsx';
 import AddItemScreen from "./pages/AddItemScreen";
 import JobDetailScreen from "./pages/JobDetailScreen.jsx";
 
@@ -50,7 +50,7 @@ function App() {
                                     path="/"
                                     element={
                                         <ProtectedLayout>
-                                            <InventoryDashboardScreen />
+                                            <HomeScreen />
                                             {/* more protected routes/components */}
                                         </ProtectedLayout>
                                     }
