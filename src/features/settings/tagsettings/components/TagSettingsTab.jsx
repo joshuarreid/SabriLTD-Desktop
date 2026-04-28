@@ -72,7 +72,7 @@ const TagSettingsTab = () => {
     );
 
     /**
-     * Filters and sorts tags by search substring (case-insensitive) and sort order.
+     * Filters and sorts tag by search substring (case-insensitive) and sort order.
      *
      * @type {Array}
      */

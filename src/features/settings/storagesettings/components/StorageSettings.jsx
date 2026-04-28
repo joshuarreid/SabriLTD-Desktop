@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import StorageInfoCard from "../../../../components/storageinfocards/StorageInfoCard";
-import EditStorageModal from "../../../../components/editstoragemodal/EditStorageModal";
+import StorageInfoCard from "../../../storage/components/StorageInfoCard";
+import EditStorageModal from "../../../storage/components/EditStorageModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
 import {useNaturalSort} from "../../../../components/alphabeticalsortfilter/useNaturalSort";

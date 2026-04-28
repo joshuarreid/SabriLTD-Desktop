@@ -262,7 +262,7 @@
     }
 }
 
-/* Responsive: scale down title accent on small screens */
+/* Responsive: scale down title accent on small pages */
 @media (max-width: 640px) {
     .sectionTitle::after {
         width: 40%;

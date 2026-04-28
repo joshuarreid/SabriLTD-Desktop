@@ -21,7 +21,7 @@ const logger = {
 
 /**
  * createItem
- * - Creates a new inventory item (POST /api/items).
+ * - Creates a new inventory item (POST /api/item).
  *
  * @async
  * @function createItem
@@ -42,7 +42,7 @@ export async function createItem(item) {
 
 /**
  * getAllItems
- * - Fetches items with optional filters, pagination, and sorting.
+ * - Fetches item with optional filters, pagination, and sorting.
  *
  * @async
  * @function getAllItems
@@ -126,7 +126,7 @@ export async function deleteItem(itemId) {
 
 /**
  * deleteItemsBatch
- * - Deletes multiple items with batch endpoint.
+ * - Deletes multiple item with batch endpoint.
  */
 export async function deleteItemsBatch(itemIds) {
     logger.info("deleteItemsBatch called", {
@@ -142,7 +142,7 @@ export async function deleteItemsBatch(itemIds) {
 
 /**
  * searchItems
- * - Full text and advanced filter/search for items (POST /api/items/search).
+ * - Full text and advanced filter/search for item (POST /api/item/search).
  * - Payload: { query, filters, page, size, sort, includeArchived }
  * - Returns: { hits, hitsCount, totalHits, page, size, sort }
  */

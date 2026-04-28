@@ -55,7 +55,7 @@ export const itemKeys = {
     all: ITEM,
 
     /**
-     * items lists root key.
+     * item lists root key.
      *
      * @function
      * @returns {Array}
@@ -63,7 +63,7 @@ export const itemKeys = {
     lists: () => [...itemKeys.all, "lists"],
 
     /**
-     * Key for a filtered/paginated items list.
+     * Key for a filtered/paginated item list.
      *
      * @function
      * @param {object} [filters={}]

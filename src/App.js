@@ -3,15 +3,15 @@ import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-rou
 import { QueryClientProvider } from '@tanstack/react-query';
 import './App.css';
 import { queryClient } from "./config/queryClient";
-import LoginScreen from './screens/loginScreen.jsx';
-import { AuthProvider, useAuth } from './features/login/hooks/useAuth';
+import LoginScreen from './pages/loginScreen.jsx';
+import { AuthProvider, useAuth } from './features/auth/hooks/useAuth';
 import ProtectedLayout from './layouts/ProtectedLayout';
-import UserProfileScreen from './screens/UserProfileScreen.jsx';
-import SettingsScreen from './screens/SettingsScreen.jsx';
-import JobScreen from "./screens/JobScreen";
-import InventoryDashboardScreen from './screens/InventoryDashboardScreen.jsx';
-import AddItemScreen from "./screens/AddItemScreen";
-import JobDetailScreen from "./screens/JobDetailScreen.jsx";
+import UserProfileScreen from './pages/UserProfileScreen.jsx';
+import SettingsScreen from './pages/SettingsScreen.jsx';
+import JobScreen from "./pages/JobScreen";
+import InventoryDashboardScreen from './pages/InventoryDashboardScreen.jsx';
+import AddItemScreen from "./pages/AddItemScreen";
+import JobDetailScreen from "./pages/JobDetailScreen.jsx";
 
 /**
  * ProtectedRoute
