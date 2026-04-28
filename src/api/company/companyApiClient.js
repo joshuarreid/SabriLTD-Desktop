@@ -10,7 +10,7 @@
  * @module CompanyApiClient
  */
 
- import ApiClient from "../ApiClient.js";
+ import ApiClient from "../ApiClient.ts";
 
 /**
  * Standardized logger for CompanyApiClient.

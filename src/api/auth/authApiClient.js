@@ -1,4 +1,4 @@
-import ApiClient from "../ApiClient.js";
+import ApiClient from "../ApiClient.ts";
 
 /**
  * AuthApiClient

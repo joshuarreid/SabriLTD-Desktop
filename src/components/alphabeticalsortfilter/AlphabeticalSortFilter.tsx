@@ -2,6 +2,11 @@ import React from "react";
 import styles from "./alphabeticalsortfilter.module.css";
 import { FaSortAmountUp, FaSortAmountDown } from "react-icons/fa";
 
+interface AlphabeticalSortFilterProps {
+    value: "a-z" | "z-a";
+    onChange?: (value: "a-z" | "z-a") => void;
+}
+
 /**
  * AlphabeticalSortFilter
  * Minimalistic icon-only toggle for sorting A-Z/Z-A, styled to match "outline icon button" project style.
@@ -12,10 +17,10 @@ import { FaSortAmountUp, FaSortAmountDown } from "react-icons/fa";
  * @param {function} props.onChange - Callback with the new sort key.
  * @returns {JSX.Element}
  */
-const AlphabeticalSortFilter = ({ value, onChange }) => {
+const AlphabeticalSortFilter: React.FC<AlphabeticalSortFilterProps> = ({ value, onChange }) => {
     const logger = {
-        info: (...args) => console.log("[AlphabeticalSortFilter]", ...args),
-        error: (...args) => console.error("[AlphabeticalSortFilter]", ...args),
+        info: (...args: any[]) => console.log("[AlphabeticalSortFilter]", ...args),
+        error: (...args: any[]) => console.error("[AlphabeticalSortFilter]", ...args),
     };
 
     /**
@@ -23,7 +28,7 @@ const AlphabeticalSortFilter = ({ value, onChange }) => {
      * @function handleToggle
      */
     const handleToggle = () => {
-        const nextKey = value === "a-z" ? "z-a" : "a-z";
+        const nextKey: "a-z" | "z-a" = value === "a-z" ? "z-a" : "a-z";
         logger.info("Sort toggled", { from: value, to: nextKey });
         if (onChange) onChange(nextKey);
     };

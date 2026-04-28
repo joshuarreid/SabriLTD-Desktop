@@ -15,26 +15,23 @@
  */
 import { useMemo } from "react";
 
-const logger = {
-    info: (...args) => console.log("[useNaturalSort]", ...args),
-    error: (...args) => console.error("[useNaturalSort]", ...args),
+const logger: { info: (...args: any[]) => void; error: (...args: any[]) => void } = {
+    info: (...args: any[]) => console.log("[useNaturalSort]", ...args),
+    error: (...args: any[]) => console.error("[useNaturalSort]", ...args),
 };
 
-/**
- * Natural string comparison (locale-aware, numeric, case-insensitive).
- * @param {string} a
- * @param {string} b
- * @returns {number}
- */
-function naturalCompare(a = "", b = "") {
+function naturalCompare(a: string = "", b: string = ""): number {
     return a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" });
 }
 
-/**
- * Generic hook for natural alphabetical sorting.
- * Follows Bulletproof React recommendations for purity, memoization, logging, and docs.
- */
-export function useNaturalSort(items, options = {}) {
+type KeyFunction<T> = (item: T) => string;
+type Order = "asc" | "desc";
+interface UseNaturalSortOptions<T> {
+    key?: keyof T | KeyFunction<T>;
+    order?: Order;
+}
+
+export function useNaturalSort<T>(items: T[], options: UseNaturalSortOptions<T> = {}): T[] {
     const { key, order = "asc" } = options;
 
     const sorted = useMemo(() => {
@@ -45,23 +42,21 @@ export function useNaturalSort(items, options = {}) {
         });
         if (!Array.isArray(items) || items.length === 0) return [];
         return [...items].sort((a, b) => {
-            let aVal, bVal;
+            let aVal: string = "";
+            let bVal: string = "";
             if (typeof key === "function") {
                 aVal = key(a);
                 bVal = key(b);
             } else if (typeof key === "string") {
-                aVal = a?.[key];
-                bVal = b?.[key];
+                aVal = (a as any)[key] ?? "";
+                bVal = (b as any)[key] ?? "";
             } else {
-                aVal = a;
-                bVal = b;
+                aVal = String(a);
+                bVal = String(b);
             }
-            aVal = aVal == null ? "" : String(aVal).toLowerCase();
-            bVal = bVal == null ? "" : String(bVal).toLowerCase();
             const cmp = naturalCompare(aVal, bVal);
             return order === "desc" ? -cmp : cmp;
         });
     }, [items, key, order]);
-
     return sorted;
 }

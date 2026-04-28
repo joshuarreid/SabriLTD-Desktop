@@ -6,7 +6,7 @@
  * @module BuildingApiClient
  */
 
-import ApiClient from "../ApiClient.js";
+import ApiClient from "../ApiClient.ts";
 
 /**
  * Standardized logger for debugging and traceability.
