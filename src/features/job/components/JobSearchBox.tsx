@@ -12,16 +12,20 @@
  * @returns {JSX.Element}
  */
 
-import React from "react";
+import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./jobsearchbox.module.css";
 import useJobSearchBox from "../hooks/useJobSearchBox";
-import JobInfoCard from "./JobInfoCard";
-import CreateJobModal from "./CreateJobModal.jsx";
+import JobInfoCard, { JobInfo } from "./JobInfoCard";
+import CreateJobModal from "./CreateJobModal";
 import FilterDropdown from "../../../components/filterdropdown/FilterDropdown";
 import FilterDropdownSearch from "../../../components/filterdropdown/FilterDropdownSearch";
 import WideSearchBar from "../../../components/searchbar/WideSearchBar";
 
+interface JobSearchBoxProps {
+    onJobClick: (job: JobInfo) => void;
+    placeholder?: string;
+}
 
 /**
  * Logger for JobSearchBox.
@@ -30,11 +34,11 @@ import WideSearchBar from "../../../components/searchbar/WideSearchBar";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[JobSearchBox]", ...args),
-    error: (...args) => console.error("[JobSearchBox]", ...args),
+    info: (...args: unknown[]) => console.log("[JobSearchBox]", ...args),
+    error: (...args: unknown[]) => console.error("[JobSearchBox]", ...args),
 };
 
-const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
+const JobSearchBox: React.FC<JobSearchBoxProps> = ({ onJobClick, placeholder = "Search jobs" }) => {
     logger.info("JobSearchBox rendered");
 
     const {
@@ -84,7 +88,7 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
      * @param {React.ChangeEvent<HTMLInputElement>} event
      * @returns {void}
      */
-    const handleSearchChange = (event) => {
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const next = event.target.value;
         setSearchInput(next);
     };
@@ -97,7 +101,7 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
      * @param {React.KeyboardEvent<HTMLInputElement>} event
      * @returns {void}
      */
-    const handleSearchKeyDown = (event) => {
+    const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
             event.preventDefault();
             const value = searchInput.trim();
@@ -114,7 +118,7 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
      * @param {object} job
      * @returns {void}
      */
-    const handleCardClick = (job) => {
+    const handleCardClick = (job: JobInfo) => {
         if (!job || !job.jobId) {
             logger.error("handleCardClick called with invalid job", job);
             return;
@@ -135,8 +139,8 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
      */
     const buildCompanySearchOptions = () =>
         (companyOptions || [])
-            .filter((opt) => opt.value !== "all")
-            .map((opt) => ({ value: opt.value, label: opt.label }));
+            .filter((opt: any) => opt.value !== "all")
+            .map((opt: any) => ({ value: opt.value, label: opt.label }));
 
     /**
      * buildClientSearchOptions
@@ -146,8 +150,8 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
      */
     const buildClientSearchOptions = () =>
         (clientOptions || [])
-            .filter((opt) => opt.value !== "all")
-            .map((opt) => ({ value: opt.value, label: opt.label }));
+            .filter((opt: any) => opt.value !== "all")
+            .map((opt: any) => ({ value: opt.value, label: opt.label }));
 
     const companySearchOptions = buildCompanySearchOptions();
     const clientSearchOptions = buildClientSearchOptions();
@@ -176,7 +180,7 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
                     label="Sort by"
                     value={sortKey}
                     options={sortOptionsForDropdown}
-                    onChange={(value) => {
+                    onChange={(value: string) => {
                         const normalized = value || sortKey;
                         logger.info("Sort changed", { value: normalized });
                         setSortKey(normalized);
@@ -189,7 +193,7 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
                     label="Company"
                     value={companyFilter === "all" ? "" : companyFilter}
                     options={companySearchOptions}
-                    onChange={(nextValue) => {
+                    onChange={(nextValue: string) => {
                         const normalized = nextValue || "all";
                         logger.info("Company filter changed", { value: normalized });
                         setCompanyFilter(normalized);
@@ -201,7 +205,7 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
                     label="Client"
                     value={clientFilter === "all" ? "" : clientFilter}
                     options={clientSearchOptions}
-                    onChange={(nextValue) => {
+                    onChange={(nextValue: string) => {
                         const normalized = nextValue || "all";
                         logger.info("Client filter changed", { value: normalized });
                         setClientFilter(normalized);
@@ -213,7 +217,7 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
                     label="Status"
                     value={statusFilter || "all"}
                     options={statusOptions}
-                    onChange={(value) => {
+                    onChange={(value: string) => {
                         const normalized = value || "all";
                         logger.info("Status filter changed", { value: normalized });
                         setStatusFilter(normalized);
@@ -268,7 +272,7 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
                         }}
                     >
                         <AnimatePresence>
-                            {paginatedJobs.map((job) => (
+                            {paginatedJobs.map((job: JobInfo) => (
                                 <motion.div
                                     key={job.jobId}
                                     layout
@@ -306,7 +310,7 @@ const JobSearchBox = ({ onJobClick, placeholder = "Search jobs" }) => {
                     logger.info("Create job modal closed");
                     closeCreateJobModal();
                 }}
-                onSave={(payload) => {
+                onSave={(payload: any) => {
                     logger.info("Create job modal save submitted");
                     handleCreateJob(payload);
                 }}
