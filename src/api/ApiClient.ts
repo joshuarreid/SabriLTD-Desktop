@@ -17,7 +17,7 @@
  */
 
 import axios from 'axios';
-import {API_URL} from "../config/env.js";
+import { API_URL } from "../config/env";
 
 /**
  * Standardized logger for debugging and traceability.
@@ -26,9 +26,9 @@ import {API_URL} from "../config/env.js";
  * @constant
  * @type {{info: Function, error: Function}}
  */
-const logger = {
-    info: (...args) => console.log('[ApiClient]', ...args),
-    error: (...args) => console.error('[ApiClient]', ...args),
+const logger: { info: (...args: any[]) => void; error: (...args: any[]) => void } = {
+    info: (...args: any[]) => console.log('[ApiClient]', ...args),
+    error: (...args: any[]) => console.error('[ApiClient]', ...args),
 };
 
 /**
@@ -38,10 +38,10 @@ const logger = {
  * @private
  * @returns {string}
  */
-function generateTransactionId() {
+function generateTransactionId(): string {
     try {
-        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-            return crypto.randomUUID();
+        if (typeof crypto !== 'undefined' && typeof (crypto as any).randomUUID === 'function') {
+            return (crypto as any).randomUUID();
         }
     } catch (e) {
         // ignore and fall back
@@ -357,11 +357,11 @@ export default class ApiClient {
      *
      * @async
      * @param {string} endpoint
-     * @param {any|null} data
+     * @param {any} data
      * @param {Object} [options={}]
      * @returns {Promise<any>}
      */
-    async post(endpoint, data = null, options = {}) {
+    async post(endpoint, data: any = null, options = {}) {
         const config = { method: 'POST', ...options };
         if (data !== null && data !== undefined) {
             config.headers = { Accept: 'application/json', ...(options.headers || {}) };
@@ -413,11 +413,11 @@ export default class ApiClient {
      *
      * @async
      * @param {string} endpoint
-     * @param {any|null} data
+     * @param {any} data
      * @param {Object} [options={}]
      * @returns {Promise<any>}
      */
-    async put(endpoint, data = null, options = {}) {
+    async put(endpoint, data: any = null, options = {}) {
         const config = { method: 'PUT', ...options };
         if (data !== null && data !== undefined) {
             config.headers = { Accept: 'application/json', ...(options.headers || {}) };
@@ -431,11 +431,11 @@ export default class ApiClient {
      *
      * @async
      * @param {string} endpoint
-     * @param {any|null} data
+     * @param {any} data
      * @param {Object} [options={}]
      * @returns {Promise<any>}
      */
-    async patch(endpoint, data = null, options = {}) {
+    async patch(endpoint, data: any = null, options = {}) {
         const config = { method: 'PATCH', ...options };
         if (data !== null && data !== undefined) {
             config.headers = { Accept: 'application/json', ...(options.headers || {}) };
