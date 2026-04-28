@@ -1,10 +1,10 @@
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getJobById } from "../../../api/job/job.ts";
+import { getJobById } from "../api/job.ts";
 import { searchItems } from "../../../api/item/item.js";
 import { getCompanyById } from "../../../api/company/company.js";
 import { getUserById } from "../../../api/user/user.js";
-import { jobKeys } from "../../../api/job/jobQueryKeys.ts";
+import { jobKeys } from "../api/jobQueryKeys.ts";
 import { itemKeys } from "../../../api/item/ItemQueryKeys.js";
 import { companyKeys } from "../../../api/company/companyQueryKeys.js";
 import { userKeys } from "../../../api/user/userQueryKeys.js";

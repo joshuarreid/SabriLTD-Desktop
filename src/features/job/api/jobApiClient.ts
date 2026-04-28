@@ -1,4 +1,4 @@
-import ApiClient from "../ApiClient.js";
+import ApiClient from "../../../api/ApiClient.js";
 import type { Job } from "./job.types";
 
 const logger = {
