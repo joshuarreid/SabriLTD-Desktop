@@ -1,4 +1,4 @@
-import CategoryApiClient from "./categoryApiClient";
+import CategoryApiClient from "./categoryApiClient.js";
 
 /**
  * Singleton instance of CategoryApiClient.

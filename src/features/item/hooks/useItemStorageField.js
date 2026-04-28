@@ -14,10 +14,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllBuildings } from "../../../api/building/building";
-import { getAllStorage, createStorage } from "../../../api/storage/storage";
-import { buildingKeys } from "../../../api/building/buildingQueryKeys";
-import { storageKeys } from "../../../api/storage/storageQueryKeys";
+import { getAllBuildings } from "../../../api/building/building.js";
+import { getAllStorage, createStorage } from "../../../api/storage/storage.js";
+import { buildingKeys } from "../../../api/building/buildingQueryKeys.js";
+import { storageKeys } from "../../../api/storage/storageQueryKeys.js";
 
 /**
  * logger for useItemStorageField.

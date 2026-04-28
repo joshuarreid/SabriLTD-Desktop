@@ -22,11 +22,11 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import useCreateJobModal from "./useCreateJobModal";
-import {DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY, useJobFilters} from "./useJobFilters";
-import useJobSearch from "./useJobSearch";
-import useJobScreenPagination from "./useJobScreenPagination";
-import {getAllJobs, getJobClients, searchJobs} from "../../../api/job/job";
+import useCreateJobModal from "./useCreateJobModal.js";
+import {DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY, useJobFilters} from "./useJobFilters.js";
+import useJobSearch from "./useJobSearch.js";
+import useJobScreenPagination from "./useJobScreenPagination.js";
+import {getAllJobs, getJobClients, searchJobs} from "../../../api/job/job.js";
 
 
 /**
@@ -732,3 +732,4 @@ export const useJobSearchBox = ({ placeholder = "Search jobs" } = {}) => {
 };
 
 export default useJobSearchBox;
+

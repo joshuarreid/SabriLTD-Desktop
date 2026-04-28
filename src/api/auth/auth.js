@@ -1,4 +1,4 @@
-import AuthApiClient from "./authApiClient";
+import AuthApiClient from "./authApiClient.js";
 
 /**
  * Singleton instance of AuthApiClient.

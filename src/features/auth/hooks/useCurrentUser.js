@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import {userKeys} from "../../../api/user/userQueryKeys";
-import {getMe} from "../../../api/user/user";
+import {userKeys} from "../../../api/user/userQueryKeys.js";
+import { getMe } from '../../../api/user/user.js';
 
 /**
  * Logger for useCurrentUser.js.

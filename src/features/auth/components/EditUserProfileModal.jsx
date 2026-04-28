@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./edituserprofilemodal.module.css";
-import SaveStatus from "../../../components/save/SaveStatus";
-import { useEditUserProfileModal } from "../hooks/useEditUserProfileModal";
+import SaveStatus from "../../../components/save/SaveStatus.jsx";
+import { useEditUserProfileModal } from "../hooks/useEditUserProfileModal.js";
 import { FaRegTrashCan } from "react-icons/fa6";
 
 /**

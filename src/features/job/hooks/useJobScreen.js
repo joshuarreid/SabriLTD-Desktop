@@ -11,11 +11,10 @@ import {
     useJobFilters,
     DEFAULT_PAGE_SIZE,
     DEFAULT_SORT_KEY,
-} from "./useJobFilters";
-import { useJobSearch } from "./useJobSearch";
-import { useJobScreenPagination } from "./useJobScreenPagination";
-import { getAllJobs, getJobClients, searchJobs } from "../../../api/job/job";
-import { useCreateJobModal } from "./useCreateJobModal";
+} from "./useJobFilters.js";
+import { useJobSearch } from "./useJobSearch.js";
+import { useJobScreenPagination } from "./useJobScreenPagination.js";
+import { useCreateJobModal } from "./useCreateJobModal.js";
 
 const logger = {
     info: (...args) => console.log("[useJobScreen]", ...args),

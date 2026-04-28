@@ -1,4 +1,4 @@
-import ConditionApiClient from "./conditionApiClient";
+import ConditionApiClient from "./conditionApiClient.js";
 
 /**
  * Singleton instance of ConditionApiClient.

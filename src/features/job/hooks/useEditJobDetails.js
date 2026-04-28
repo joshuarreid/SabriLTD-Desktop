@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllCompanies, createCompany } from "../../../api/company/company";
-import { getJobClients, updateJob } from "../../../api/job/job";
-import { companyKeys } from "../../../api/company/companyQueryKeys";
-import { jobKeys } from "../../../api/job/jobQueryKeys";
-import { userKeys } from "../../../api/user/userQueryKeys";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { getAllCompanies, createCompany } from "../../../api/company/company.js";
+import { getJobClients, updateJob } from "../../../api/job/job.js";
+import { companyKeys } from "../../../api/company/companyQueryKeys.js";
+import { jobKeys } from "../../../api/job/jobQueryKeys.js";
+import { userKeys } from "../../../api/user/userQueryKeys.js";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
 
 /**
  * Logger for useEditJobDetails.
@@ -457,3 +457,4 @@ const useEditJobDetails = ({ job }) => {
 };
 
 export default useEditJobDetails;
+

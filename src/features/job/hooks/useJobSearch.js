@@ -16,8 +16,8 @@ import {
     getAllJobs,
     getJobCompanies,
     searchJobs,
-} from "../../../api/job/job";
-import { jobKeys } from "../../../api/job/jobQueryKeys";
+} from "../../../api/job/job.js";
+import { jobKeys } from "../../../api/job/jobQueryKeys.js";
 
 const logger = {
     info: (...args) => console.log("[useJobSearch]", ...args),

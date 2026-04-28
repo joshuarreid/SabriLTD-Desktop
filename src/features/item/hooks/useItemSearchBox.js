@@ -23,9 +23,9 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { itemKeys } from "../../../api/item/ItemQueryKeys";
-import { searchItems } from "../../../api/item/item";
-import { useItemSearchPagination } from "./useItemSearchPagination";
+import { itemKeys } from "../../../api/item/ItemQueryKeys.js";
+import { searchItems } from "../../../api/item/item.js";
+import { useItemSearchPagination } from "./useItemSearchPagination.js";
 
 /**
  * Logger for useItemSearchBox.
@@ -394,3 +394,4 @@ export const useItemSearchBox = ({
 };
 
 export default useItemSearchBox;
+

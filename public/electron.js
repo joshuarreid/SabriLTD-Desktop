@@ -1,19 +1,11 @@
-/**
- * Electron main process (SabriLTD Inventory App).
- *
- * - Handles secure token management and best-effort logout on both app open and app close.
- * - Implements robust, standardized logging.
- * - IPC handlers expose token operations and file/folder pickers to the renderer.
- * - On *open*: tries best-effort logout+token delete to prevent session reuse on abnormal shutdown.
- * - On *close*: best-effort logout and secure token deletion before exiting.
- *
- * See: Bulletproof conventions (robust logging, side-effect separation, JSDoc)
- */
+import path from 'path';
+import { app, BrowserWindow, ipcMain, dialog, screen } from 'electron';
+import keytar from 'keytar';
+import axios from 'axios';
+import { fileURLToPath } from 'url';
 
-const path = require('path');
-const { app, BrowserWindow, ipcMain, dialog, screen } = require('electron');
-const keytar = require('keytar');
-const axios = require('axios');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Service name and account for keytar-secured session token.

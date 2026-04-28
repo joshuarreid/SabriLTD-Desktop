@@ -9,8 +9,8 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import {getAllConditions} from "../../../api/condition/condition";
-import {conditionKeys} from "../../../api/condition/conditionQueryKeys";
+import { getAllConditions } from "../../../api/condition/condition.js";
+import { conditionKeys } from "../../../api/condition/conditionQueryKeys.js";
 
 
 /**

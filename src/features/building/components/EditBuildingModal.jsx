@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./editbuildingmodal.module.css";
-import SaveStatus from "../../../components/save/SaveStatus";
-import { useEditBuildingModal } from "../hooks/useEditBuildingModal";
+import SaveStatus from "../../../components/save/SaveStatus.jsx";
+import { useEditBuildingModal } from "../hooks/useEditBuildingModal.js";
 import { FaRegTrashCan } from "react-icons/fa6";
 
 /**

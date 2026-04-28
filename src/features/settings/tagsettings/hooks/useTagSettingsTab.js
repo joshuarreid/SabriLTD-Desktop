@@ -5,15 +5,15 @@ import {
     updateCategory,
     deleteCategory,
     getAllCategories,
-} from "../../../../api/category/category";
+} from "../../../../api/category/category.js";
 import {
     getAllTags,
     createTag,
     updateTag,
     deleteTag,
-} from "../../../../api/tag/tag";
-import { categoryKeys } from "../../../../api/category/categoryQueryKeys";
-import { tagKeys } from "../../../../api/tag/tagQueryKeys";
+} from "../../../../api/tag/tag.js";
+import { categoryKeys } from "../../../../api/category/categoryQueryKeys.js";
+import { tagKeys } from "../../../../api/tag/tagQueryKeys.js";
 
 /**
  * logger for useTagSettingsTab hook (Bulletproof React: business logic, robust logging).

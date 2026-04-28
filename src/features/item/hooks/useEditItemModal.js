@@ -16,10 +16,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createItem } from "../../../api/item/item";
-import { itemKeys } from "../../../api/item/ItemQueryKeys";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
-import { photoKeys } from "../../../api/photo/photoQueryKeys";
+import { createItem } from "../../../api/item/item.js";
+import { itemKeys } from "../../../api/item/ItemQueryKeys.js";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
+import { photoKeys } from "../../../api/photo/photoQueryKeys.js";
 
 /**
  * logger for useEditItemModal

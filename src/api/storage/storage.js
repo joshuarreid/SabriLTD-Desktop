@@ -1,4 +1,4 @@
-import StorageApiClient from "./storageApiClient";
+import StorageApiClient from "./storageApiClient.js";
 
 /**
  * Singleton instance of StorageApiClient.
