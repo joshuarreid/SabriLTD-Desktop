@@ -6,7 +6,8 @@ import {
   searchJobs,
   getJobById,
   updateJob,
-  deleteJob
+  deleteJob,
+  getJobClients
 } from "../api/job";
 import type { Job } from "../api/job.types";
 
@@ -36,6 +37,14 @@ export function useJobById(jobId: string) {
   });
 }
 
+// Fetch job clients by companyId
+export function useJobClients(params: Record<string, unknown>) {
+  return useQuery({
+    queryKey: jobKeys.clientsList(params),
+    queryFn: () => getJobClients(params),
+    enabled: !!params && !!params.companyId,
+  });
+}
 
 export function useCreateJob(options: UseMutationOptions<any, any, Job> = {}) {
   const queryClient = useQueryClient();
