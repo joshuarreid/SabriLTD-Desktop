@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllCompanies, createCompany } from "../../../api/company/company.js";
-import { getJobClients, updateJob } from "../../../api/job/job.js";
+import { getJobClients, updateJob } from "../../../api/job/job.ts";
 import { companyKeys } from "../../../api/company/companyQueryKeys.js";
-import { jobKeys } from "../../../api/job/jobQueryKeys.js";
+import { jobKeys } from "../../../api/job/jobQueryKeys.ts";
 import { userKeys } from "../../../api/user/userQueryKeys.js";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
 

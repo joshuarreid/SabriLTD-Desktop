@@ -11,8 +11,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createJob } from "../../../api/job/job.js";
-import { jobKeys } from "../../../api/job/jobQueryKeys.js";
+import { createJob } from "../../../api/job/job.ts";
+import { jobKeys } from "../../../api/job/jobQueryKeys.ts";
 import {useCurrentUser} from "../../auth/hooks/useCurrentUser.js";
 
 

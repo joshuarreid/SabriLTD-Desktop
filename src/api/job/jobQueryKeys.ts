@@ -129,7 +129,7 @@ export const jobKeys = {
      * @param {number|string} jobId - Unique job identifier
      * @returns {Array} React Query key for a specific job detail
      */
-    detail: (jobId) => [...jobKeys.all, "detail", jobId],
+    detail: (jobId: number | string): (string | number)[] => [...jobKeys.all, "detail", jobId],
 
     /**
      * Key for the create job mutation.
@@ -148,7 +148,7 @@ export const jobKeys = {
      * @param {number|string} jobId - Unique job identifier
      * @returns {Array} React Query key for update-job mutation
      */
-    update: (jobId) => [...jobKeys.detail(jobId), "update"],
+    update: (jobId: number | string): (string | number)[] => [...jobKeys.detail(jobId), "update"],
 
     /**
      * Key for the delete job mutation scoped by jobId.
@@ -158,5 +158,5 @@ export const jobKeys = {
      * @param {number|string} jobId - Unique job identifier
      * @returns {Array} React Query key for delete-job mutation
      */
-    remove: (jobId) => [...jobKeys.detail(jobId), "remove"],
+    remove: (jobId: number | string): (string | number)[] => [...jobKeys.detail(jobId), "remove"],
 };

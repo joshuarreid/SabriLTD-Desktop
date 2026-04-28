@@ -1,4 +1,5 @@
-import JobApiClient from "./jobApiClient.js";
+import JobApiClient from "./jobApiClient";
+import type { Job } from "./job.types";
 
 /**
  * Singleton instance of JobApiClient.
@@ -9,11 +10,11 @@ const apiClient = new JobApiClient();
  * Job module logger (standardized).
  */
 const logger = {
-    info: (...args) => console.log("[job]", ...args),
-    error: (...args) => console.error("[job]", ...args),
+    info: (...args: unknown[]) => console.log("[job]", ...args),
+    error: (...args: unknown[]) => console.error("[job]", ...args),
 };
 
-export async function createJob(job) {
+export async function createJob(job: Job): Promise<Job | null> {
     logger.info("createJob called", { name: job?.name });
     try {
         const response = await apiClient.createJob(job);
@@ -24,12 +25,7 @@ export async function createJob(job) {
     }
 }
 
-/**
- * getAllJobs
- * Now relies on JobApiClient.fetchAllJobs returning
- * { status, data, meta, transactionId, errors }.
- */
-export async function getAllJobs(params = {}) {
+export async function getAllJobs(params: Record<string, unknown> = {}): Promise<any> {
     logger.info("getAllJobs called", params);
     try {
         const response = await apiClient.fetchAllJobs(params);
@@ -52,11 +48,7 @@ export async function getAllJobs(params = {}) {
     }
 }
 
-/**
- * searchJobs
- * Uses JobApiClient.searchJobs which already normalizes meta.
- */
-export async function searchJobs(params) {
+export async function searchJobs(params: Record<string, unknown>): Promise<any> {
     logger.info("searchJobs called", params);
     try {
         const response = await apiClient.searchJobs(params);
@@ -79,7 +71,7 @@ export async function searchJobs(params) {
     }
 }
 
-export async function getJobById(jobId) {
+export async function getJobById(jobId: string): Promise<Job | null> {
     logger.info("getJobById called", { jobId });
     try {
         const response = await apiClient.fetchJobById(jobId);
@@ -90,7 +82,7 @@ export async function getJobById(jobId) {
     }
 }
 
-export async function updateJob(jobId, job) {
+export async function updateJob(jobId: string, job: Job): Promise<Job | null> {
     logger.info("updateJob called", { jobId });
     try {
         const response = await apiClient.updateJob(jobId, job);
@@ -101,7 +93,7 @@ export async function updateJob(jobId, job) {
     }
 }
 
-export async function deleteJob(jobId) {
+export async function deleteJob(jobId: string): Promise<void> {
     logger.info("deleteJob called", { jobId });
     try {
         await apiClient.deleteJob(jobId);
@@ -111,7 +103,7 @@ export async function deleteJob(jobId) {
     }
 }
 
-export async function getJobCompanies() {
+export async function getJobCompanies(): Promise<any[]> {
     logger.info("getJobCompanies called");
     try {
         const response = await apiClient.fetchJobCompanies();
@@ -122,7 +114,7 @@ export async function getJobCompanies() {
     }
 }
 
-export async function getJobClients(params = {}) {
+export async function getJobClients(params: Record<string, unknown> = {}): Promise<any[]> {
     logger.info("getJobClients called", params);
     try {
         const response = await apiClient.fetchJobClients(params);

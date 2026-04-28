@@ -2,7 +2,7 @@
  * Query keys for Photo-related TanStack queries & mutations.
  * Follows canonical key patterns to prevent cache bugs and ensure uniform query shapes.
  *
- * Pattern is aligned with jobQueryKeys.js:
+ * Pattern is aligned with jobQueryKeys.ts:
  *  - Root key: ['photo']
  *  - Lists, filtered lists, detail, upload, update, remove keys
  *  - Pending list keys, scoped keys for pending
