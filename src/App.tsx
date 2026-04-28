@@ -2,15 +2,15 @@ import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import './App.css';
-import { queryClient } from "./config/queryClient";
+import { queryClient } from "./config/queryClient.js";
 import LoginScreen from './pages/loginScreen.jsx';
 import { AuthProvider, useAuth } from './features/auth/hooks/useAuth';
-import ProtectedLayout from './layouts/ProtectedLayout';
+import ProtectedLayout from './layouts/ProtectedLayout.jsx';
 import UserProfileScreen from './pages/UserProfileScreen.jsx';
 import SettingsScreen from './pages/SettingsScreen.jsx';
-import JobScreen from "./pages/JobScreen";
+import JobScreen from "./pages/JobScreen.jsx";
 import HomeScreen from './pages/HomeScreen.jsx';
-import AddItemScreen from "./pages/AddItemScreen";
+import AddItemScreen from "./pages/AddItemScreen.jsx";
 import JobDetailScreen from "./pages/JobDetailScreen.jsx";
 
 /**
@@ -31,7 +31,12 @@ const ProtectedRoute = () => {
  * @component
  * @returns {JSX.Element}
  */
-const logger = {
+type Logger = {
+    info: (...args: any[]) => void;
+    error: (...args: any[]) => void;
+};
+
+const logger: Logger = {
     info: (...args) => console.log('[App]', ...args),
     error: (...args) => console.error('[App]', ...args),
 };

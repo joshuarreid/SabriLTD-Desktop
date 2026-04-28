@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
-import { updateUser } from "../../../api/user/user";
-import { userKeys } from "../../../api/user/userQueryKeys";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
+import { updateUser } from "../../../api/user/user.js";
+import { userKeys } from "../../../api/user/userQueryKeys.js";
 
 /**
  * Logger for useUserProfile module.

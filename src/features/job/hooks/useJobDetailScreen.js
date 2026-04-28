@@ -1,13 +1,13 @@
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getJobById } from "../../../api/job/job";
-import { searchItems } from "../../../api/item/item";
-import { getCompanyById } from "../../../api/company/company";
-import { getUserById } from "../../../api/user/user";
-import { jobKeys } from "../../../api/job/jobQueryKeys";
-import { itemKeys } from "../../../api/item/ItemQueryKeys";
-import { companyKeys } from "../../../api/company/companyQueryKeys";
-import { userKeys } from "../../../api/user/userQueryKeys";
+import { getJobById } from "../../../api/job/job.js";
+import { searchItems } from "../../../api/item/item.js";
+import { getCompanyById } from "../../../api/company/company.js";
+import { getUserById } from "../../../api/user/user.js";
+import { jobKeys } from "../../../api/job/jobQueryKeys.js";
+import { itemKeys } from "../../../api/item/ItemQueryKeys.js";
+import { companyKeys } from "../../../api/company/companyQueryKeys.js";
+import { userKeys } from "../../../api/user/userQueryKeys.js";
 
 /**
  * Logger for useJobDetailScreen.

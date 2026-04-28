@@ -17,7 +17,7 @@
  */
 
 import axios from 'axios';
-import {API_URL} from "../config/env";
+import {API_URL} from "../config/env.js";
 
 /**
  * Standardized logger for debugging and traceability.

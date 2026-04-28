@@ -1,7 +1,6 @@
 import React from "react";
 import styles from "./buildinginfocard.module.css";
-import { FcOrganization } from "react-icons/fc";
-import { FcInTransit } from "react-icons/fc";
+import { FcOrganization, FcInTransit } from "react-icons/fc";
 import { GiHouse } from "react-icons/gi";
 import { MdOutlineModeEditOutline } from "react-icons/md";
 

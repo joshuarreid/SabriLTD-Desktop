@@ -1,4 +1,4 @@
-import PhotoApiClient from "./photoApiClient";
+import PhotoApiClient from "./photoApiClient.js";
 
 /**
  * Singleton instance of PhotoApiClient.

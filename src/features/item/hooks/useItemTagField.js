@@ -1,9 +1,9 @@
 import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllCategories } from "../../../api/category/category";
-import { getAllTags, createTag } from "../../../api/tag/tag";
-import { categoryKeys } from "../../../api/category/categoryQueryKeys";
-import { tagKeys } from "../../../api/tag/tagQueryKeys";
+import { getAllCategories } from "../../../api/category/category.js";
+import { getAllTags, createTag } from "../../../api/tag/tag.js";
+import { categoryKeys } from "../../../api/category/categoryQueryKeys.js";
+import { tagKeys } from "../../../api/tag/tagQueryKeys.js";
 
 /**
  * logger for useItemTagField.

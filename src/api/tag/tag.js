@@ -1,4 +1,4 @@
-import TagApiClient from "./tagApiClient";
+import TagApiClient from "./tagApiClient.js";
 
 /**
  * Singleton instance of TagApiClient.

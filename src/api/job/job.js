@@ -1,4 +1,4 @@
-import JobApiClient from "./jobApiClient";
+import JobApiClient from "./jobApiClient.js";
 
 /**
  * Singleton instance of JobApiClient.

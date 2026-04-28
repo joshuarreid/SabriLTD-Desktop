@@ -1,4 +1,4 @@
-import BuildingApiClient from "./buildingApiClient";
+import BuildingApiClient from "./buildingApiClient.js";
 
 /**
  * Singleton instance of BuildingApiClient.

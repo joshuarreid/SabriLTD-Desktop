@@ -15,10 +15,10 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { getItemById, updateItem } from "../../../api/item/item";
-import { itemKeys } from "../../../api/item/ItemQueryKeys";
-import { jobKeys } from "../../../api/job/jobQueryKeys";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { getItemById, updateItem } from "../../../api/item/item.js";
+import { itemKeys } from "../../../api/item/ItemQueryKeys.js";
+import { jobKeys } from "../../../api/job/jobQueryKeys.js";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
 
 /**
  * Logger for useAddItemsToJobModal.
@@ -432,3 +432,4 @@ export const useAddItemsToJobModal = ({ jobId }) => {
 };
 
 export default useAddItemsToJobModal;
+

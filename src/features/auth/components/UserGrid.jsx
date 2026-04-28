@@ -16,8 +16,8 @@
  */
 import React from 'react';
 import styles from './UserGrid.module.css';
-import { UserTile } from './UserTile';
-import { UserGridArrowButton } from './UserGridArrowButton';
+import { UserTile } from './UserTile.jsx';
+import { UserGridArrowButton } from './UserGridArrowButton.jsx';
 
 const logger = {
     info: (...args) => console.log('[UserGrid]', ...args),

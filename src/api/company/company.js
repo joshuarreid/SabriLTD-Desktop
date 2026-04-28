@@ -7,7 +7,7 @@
  * All functions throw when the underlying request fails so callers can handle errors.
  */
 
-import CompanyApiClient from "./companyApiClient";
+import CompanyApiClient from "./companyApiClient.js";
 
 /**
  * Singleton CompanyApiClient instance.

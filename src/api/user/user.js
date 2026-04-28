@@ -1,4 +1,4 @@
-import UserApiClient from "./userApiClient";
+import UserApiClient from "./userApiClient.js";
 
 /**
  * Singleton instance of UserApiClient.
