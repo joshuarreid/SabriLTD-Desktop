@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "../styles/tagsettingstab.module.css";
 import CategoryInfoPill from "./CategoryInfoPill";
-import TagInfoPill from "../../../../components/taginfopill/TagInfoPill";
+import TagInfoPill from "../../../tag/components/TagInfoPill";
 import WideSearchBar from "../../../../components/searchbar/WideSearchBar";
 import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
@@ -33,10 +33,10 @@ const logger = {
  * @param {boolean} props.isCategoriesError - Error state for categories.
  * @param {Error|null} props.categoriesError - Categories error object (if any).
  * @param {Array} props.tags - Array of tag objects for the selected category.
- * @param {boolean} props.isTagsPending - Loading state for tags.
- * @param {boolean} props.isTagsError - Error state for tags.
+ * @param {boolean} props.isTagsPending - Loading state for tag.
+ * @param {boolean} props.isTagsError - Error state for tag.
  * @param {Error|null} props.tagsError - Tags error object (if any).
- * @param {string} props.tagSearch - Current search string for tags.
+ * @param {string} props.tagSearch - Current search string for tag.
  * @param {(e:React.ChangeEvent<HTMLInputElement>) => void} props.onTagSearchChange - Search input change handler.
  * @param {(e:React.KeyboardEvent<HTMLInputElement>) => void} props.onTagSearchKeyDown - Search input keydown handler (Enter to create).
  * @param {string} props.sortKey - Current sort key (e.g., "a-z" | "z-a").

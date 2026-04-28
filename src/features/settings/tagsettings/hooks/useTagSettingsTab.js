@@ -31,13 +31,13 @@ const logger = {
  * Mirrors the building → storage pattern used in useStorageSettingsTab:
  * - Loads all categories.
  * - Tracks a single selectedCategoryId in local state.
- * - Fetches tags for the selected category only, using a filtered list query key:
+ * - Fetches tag for the selected category only, using a filtered list query key:
  *     tagKeys.list({ categoryId })
- * - Clicking different CategoryInfoPills swaps selectedCategoryId, which updates the tags
+ * - Clicking different CategoryInfoPills swaps selectedCategoryId, which updates the tag
  *   query key and pulls the correct tag list from cache or network.
  *
  * Additional behavior:
- * - Manages a delete-confirmation flow for tags.
+ * - Manages a delete-confirmation flow for tag.
  * - Exposes a createTagAsDraft helper so the UI can create a new tag when the
  *   user hits Enter in the search box with no matches.
  *
@@ -72,7 +72,7 @@ export const useTagSettingsTab = () => {
 
     /**
      * Side-effect: when categories are successfully loaded and no category
-     * is selected yet, default to the first category to drive the tags query.
+     * is selected yet, default to the first category to drive the tag query.
      */
     useEffect(() => {
         if (
@@ -88,7 +88,7 @@ export const useTagSettingsTab = () => {
     }, [categories, isCategoriesPending, isCategoriesError, selectedCategoryId]);
 
     /**
-     * Query for all tags in the currently selected category.
+     * Query for all tag in the currently selected category.
      *
      * Pattern is intentionally the same as building → storage:
      *  - use a filtered list key: tagKeys.list({ categoryId: selectedCategoryId })
@@ -325,7 +325,7 @@ export const useTagSettingsTab = () => {
     /**
      * createTagAsDraft
      * - Helper used by the UI when the user presses Enter in the search bar
-     *   and there are no matching tags.
+     *   and there are no matching tag.
      *
      * @function createTagAsDraft
      * @param {{categoryId: number, name: string}} payload - New tag payload.

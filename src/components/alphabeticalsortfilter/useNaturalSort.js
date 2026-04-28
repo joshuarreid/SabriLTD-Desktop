@@ -3,14 +3,14 @@
  * Bulletproof React hook for naturally sorting arrays by a specified key, using localeCompare numeric order.
  *
  * @module useNaturalSort
- * @param {Array} items - The array of items to sort.
+ * @param {Array} item - The array of item to sort.
  * @param {Object} [options]
  * @param {string|function} [options.key] - Property name or accessor function for sort value.
  * @param {"asc"|"desc"} [options.order=asc] - Sort direction.
  * @returns {Array} Stable, naturally sorted array.
  *
  * @example
- * const sorted = useNaturalSort(items, { key: "name", order: "asc" });
+ * const sorted = useNaturalSort(item, { key: "name", order: "asc" });
  * const sorted = useNaturalSort(users, { key: u => u.email, order: "desc" });
  */
 import { useMemo } from "react";

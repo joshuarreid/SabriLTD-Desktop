@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "../styles/usersettingstab.module.css";
 import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
-import { useCurrentUser } from "../../../../hooks/useCurrentUser";
+import { useCurrentUser } from "../../../auth/hooks/useCurrentUser";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
-import EditUserProfileModal from "../../../../components/editusermodal/EditUserProfileModal";
+import EditUserProfileModal from "../../../auth/components/EditUserProfileModal";
 
 /**
  * UserSettingsTab

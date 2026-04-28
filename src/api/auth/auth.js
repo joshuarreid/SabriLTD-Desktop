@@ -10,7 +10,7 @@ import AuthApiClient from "./authApiClient";
 const apiClient = new AuthApiClient();
 
 /**
- * Performs login by sending credentials to /api/auth/login.
+ * Performs auth by sending credentials to /api/auth/auth.
  * Returns the session token or full session payload.
  *
  * @async
@@ -21,7 +21,7 @@ const apiClient = new AuthApiClient();
  * @throws {Error} If the request fails (network, 401, 500, etc).
  */
 export async function login(userId, passcode) {
-    logger.info('login called', { userId });
+    logger.info('auth called', { userId });
 
     try {
         // Validate parameters
@@ -30,25 +30,25 @@ export async function login(userId, passcode) {
             userId === null ||
             isNaN(Number(userId))
         ) {
-            throw new Error("userId (number) is required for login");
+            throw new Error("userId (number) is required for auth");
         }
         if (!passcode || typeof passcode !== "string" || passcode.trim() === "") {
-            throw new Error("passcode (string) is required for login");
+            throw new Error("passcode (string) is required for auth");
         }
 
-        // Call AuthApiClient.login({ userId, passcode }), returns full API response shape
+        // Call AuthApiClient.auth({ userId, passcode }), returns full API response shape
         const response = await apiClient.login({ userId, passcode });
 
         // Defensive: API wraps payload as { status, data, transactionId, errors }
         // Prefer to return data.token, fallback to all data
         if (response?.data?.token) {
-            logger.info('login successful (token received)', { userId });
+            logger.info('auth successful (token received)', { userId });
             return response.data.token;
         }
-        logger.info('login successful (no token field)', { userId });
+        logger.info('auth successful (no token field)', { userId });
         return response.data;
     } catch (error) {
-        logger.error('login failed', error);
+        logger.error('auth failed', error);
         throw error;
     }
 }

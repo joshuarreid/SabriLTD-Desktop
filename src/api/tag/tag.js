@@ -42,7 +42,7 @@ export async function createTag(tag) {
 }
 
 /**
- * Fetches all tags (supports filters, pagination, sorting, and optional categoryId filter).
+ * Fetches all tag (supports filters, pagination, sorting, and optional categoryId filter).
  * Follows Storage API pattern by returning the unwrapped data array.
  *
  * @async

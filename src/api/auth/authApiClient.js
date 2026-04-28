@@ -3,7 +3,7 @@ import ApiClient from "../ApiClient";
 /**
  * AuthApiClient
  * - Specialized API client for authentication endpoints (`/api/auth`).
- * - Implements login/logout and leverages the Bulletproof React API conventions.
+ * - Implements auth/logout and leverages the Bulletproof React API conventions.
  *
  * @class
  * @extends ApiClient
@@ -69,7 +69,7 @@ export default class AuthApiClient extends ApiClient {
     }
 
     /**
-     * Logs in a user via POST /login.
+     * Logs in a user via POST /auth.
      *
      * @async
      * @param {Object} credentials
@@ -79,16 +79,16 @@ export default class AuthApiClient extends ApiClient {
      * @throws {Error} If the request fails (401, 500, network, etc).
      */
     async login({ userId, passcode }) {
-        logger.info('login called', { userId });
+        logger.info('auth called', { userId });
         try {
             if (typeof userId === 'undefined' || !passcode) {
-                throw new Error('userId and passcode are required for login');
+                throw new Error('userId and passcode are required for auth');
             }
             const response = await this.post('/login', { userId, passcode });
-            logger.info('login success', { userId });
+            logger.info('auth success', { userId });
             return response;
         } catch (error) {
-            logger.error('login failed', error);
+            logger.error('auth failed', error);
             throw normalizeAuthError(error);
         }
     }

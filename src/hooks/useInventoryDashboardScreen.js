@@ -2,13 +2,13 @@
  * useInventoryDashboardScreen
  * Hook for InventoryDashboardScreen that:
  * - Fetches paginated item previews via useItemCardGrid (Meilisearch search).
- * - Eagerly caches full item details for all items on the current page using
+ * - Eagerly caches full item details for all item on the current page using
  *   the canonical itemKeys.details pattern (so ViewItemModal can reuse cache).
  * - Manages local search input state for the dashboard.
  *
  * @function useInventoryDashboardScreen
  * @returns {{
- *   items: Array,
+ *   item: Array,
  *   isPending: boolean,
  *   isError: boolean,
  *   error: any,
@@ -32,7 +32,7 @@
 
 import { useState, useCallback } from "react";
 import { useQueries } from "@tanstack/react-query";
-import useItemCardGrid from "../features/itemsearchbox/hooks/useItemCardGrid";
+import useItemCardGrid from "../features/item/hooks/useItemCardGrid";
 import itemKeys from "../api/item/ItemQueryKeys";
 import { getItemDetails } from "../api/item/item";
 
@@ -101,7 +101,7 @@ export const useInventoryDashboardScreen = () => {
     });
 
     /**
-     * Eagerly load and cache item details for all items on the current page.
+     * Eagerly load and cache item details for all item on the current page.
      * We use useQueries so each itemId has its own query, keyed by itemKeys.details(itemId),
      * matching the rest of the project (and ViewItemModal).
      */

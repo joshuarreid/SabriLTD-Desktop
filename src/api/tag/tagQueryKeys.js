@@ -34,7 +34,7 @@ export const tagKeys = {
      * Key for all tag lists (with/without filters/pagination).
      *
      * @function lists
-     * @returns {Array} The base list key for tags: ['tag', 'lists'].
+     * @returns {Array} The base list key for tag: ['tag', 'lists'].
      */
     lists: () => [...tagKeys.all, 'lists'],
 
@@ -42,7 +42,7 @@ export const tagKeys = {
      * Key for a filtered tag list.
      * Accepts plain filters (mirroring storageKeys.list) so we can include categoryId or
      * any other filter in a canonical way. These filters map directly to query params
-     * for GET /api/tags (e.g., { categoryId, page, size, sortField, sortOrder, name }).
+     * for GET /api/tag (e.g., { categoryId, page, size, sortField, sortOrder, name }).
      *
      * @function list
      * @param {object} filters - Optional filters object, e.g. { categoryId: 501 }.

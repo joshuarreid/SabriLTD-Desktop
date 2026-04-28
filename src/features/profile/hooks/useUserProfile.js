@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { useCurrentUser } from "../../../hooks/useCurrentUser";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
 import { updateUser } from "../../../api/user/user";
 import { userKeys } from "../../../api/user/userQueryKeys";
 
@@ -62,7 +62,7 @@ export const useUserProfile = () => {
 
     const queryClient = useQueryClient();
 
-    // 🟢 Only sync profile ONCE on mount, or if real new user login occurs
+    // 🟢 Only sync profile ONCE on mount, or if real new user auth occurs
     useEffect(() => {
         if (user && initialLoad.current) {
             setProfile({ name: user.name, email: user.email });
@@ -70,9 +70,9 @@ export const useUserProfile = () => {
             logger.info('Profile state initialized from user', user);
         }
         // If user "changes" due to re-fetch after save, don't reset saveState!
-        // Only reset form inputfields if the id has changed (i.e., logout/login of a diff user)
+        // Only reset form inputfields if the id has changed (i.e., logout/auth of a diff user)
         // Otherwise, keep profile and saveState as-is so green check stays visible.
-    }, [user && user.userId]); // Only react to userId change (new login), not every server update
+    }, [user && user.userId]); // Only react to userId change (new auth), not every server update
 
     // When user edits, mark saveState idle
     const handleChange = useCallback((e) => {

@@ -105,8 +105,8 @@
 }
 
 /* Grid container
-   Limit to maximum 3 cards per row on wide screens.
-   Use responsive fallbacks: 2 columns on medium screens, 1 column on narrow screens.
+   Limit to maximum 3 cards per row on wide pages.
+   Use responsive fallbacks: 2 columns on medium pages, 1 column on narrow pages.
 */
 .gridContainer {
     display: grid;

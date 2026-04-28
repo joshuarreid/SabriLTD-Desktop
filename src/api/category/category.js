@@ -120,12 +120,12 @@ export async function deleteCategory(categoryId) {
 }
 
 /**
- * Fetches all tag categories with their tags (authenticated aggregate endpoint).
+ * Fetches all tag categories with their tag (authenticated aggregate endpoint).
  *
  * @async
  * @function getCategoriesWithTags
  * @param {Object} [params={}] - Optional: pagination/sort/filter params
- * @returns {Promise<Array>} Categories with tags array ({categoryId, name, tags: [...]})
+ * @returns {Promise<Array>} Categories with tag array ({categoryId, name, tag: [...]})
  * @throws {Error} If request fails.
  */
 export async function getCategoriesWithTags(params = {}) {
