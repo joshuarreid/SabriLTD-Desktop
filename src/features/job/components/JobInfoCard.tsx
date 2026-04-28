@@ -11,8 +11,7 @@
  * @module JobInfoCard
  */
 
-import React from "react";
-import PropTypes from "prop-types";
+import * as React from "react";
 import styles from "./jobinfocard.module.css";
 import { FcFolder } from "react-icons/fc";
 import { TbProgressCheck } from "react-icons/tb";
@@ -22,8 +21,8 @@ import { TbProgressCheck } from "react-icons/tb";
  * @constant
  */
 const logger = {
-    info: (...args) => console.log("[JobInfoCard]", ...args),
-    error: (...args) => console.error("[JobInfoCard]", ...args),
+    info: (...args: unknown[]) => console.log("[JobInfoCard]", ...args),
+    error: (...args: unknown[]) => console.error("[JobInfoCard]", ...args),
 };
 
 /**
@@ -34,12 +33,26 @@ const logger = {
  * @param {number} maxLength
  * @returns {string}
  */
-const truncate = (text, maxLength) => {
+const truncate = (text: string, maxLength: number): string => {
     if (!text) return "";
     const str = String(text);
     if (str.length <= maxLength) return str;
     return `${str.slice(0, maxLength)}...`;
 };
+
+// Define types for props
+export interface JobInfo {
+    jobId: number;
+    name: string;
+    companyName?: string;
+    status?: string;
+    description?: string;
+}
+
+export interface JobInfoCardProps {
+    job: JobInfo;
+    onClick?: (job: JobInfo) => void;
+}
 
 /**
  * JobInfoCard
@@ -49,10 +62,10 @@ const truncate = (text, maxLength) => {
  * @param {function} [props.onClick] - Click handler (optional)
  * @returns {JSX.Element}
  */
-const JobInfoCard = ({ job, onClick }) => {
+const JobInfoCard = ({ job, onClick }: JobInfoCardProps): React.ReactElement => {
     logger.info("JobInfoCard rendered", { jobId: job?.jobId });
 
-    const handleKeyPress = (e) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (!onClick) return;
         if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -69,7 +82,7 @@ const JobInfoCard = ({ job, onClick }) => {
             role={onClick ? "button" : undefined}
             tabIndex={onClick ? 0 : undefined}
             onClick={() => onClick && onClick(job)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             aria-label={
                 job?.name
                     ? `Open job ${job.name}`
@@ -77,10 +90,8 @@ const JobInfoCard = ({ job, onClick }) => {
             }
         >
             <div className={styles.iconWrap} aria-hidden>
-                <FcFolder className={styles.icon} />
-                {isActive && (
-                    <TbProgressCheck className={styles.activeCheck} />
-                )}
+                {FcFolder && FcFolder({ className: styles.icon })}
+                {isActive && TbProgressCheck && TbProgressCheck({ className: styles.activeCheck })}
             </div>
             <div className={styles.nameWrap}>
                 <div className={styles.name}>{job?.name}</div>
@@ -94,19 +105,5 @@ const JobInfoCard = ({ job, onClick }) => {
     );
 };
 
-JobInfoCard.propTypes = {
-    job: PropTypes.shape({
-        jobId: PropTypes.number.isRequired,
-        name: PropTypes.string.isRequired,
-        companyName: PropTypes.string,
-        status: PropTypes.string,
-        description: PropTypes.string,
-    }).isRequired,
-    onClick: PropTypes.func,
-};
-
-JobInfoCard.defaultProps = {
-    onClick: undefined,
-};
 
 export default JobInfoCard;

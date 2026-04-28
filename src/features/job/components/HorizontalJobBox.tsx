@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types";
+import * as React from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./horizontaljobbox.module.css";
-import JobInfoCard from "./JobInfoCard";
+import JobInfoCard, { JobInfo } from "./JobInfoCard";
 
 /**
  * Logger for HorizontalJobBox.
@@ -10,8 +10,8 @@ import JobInfoCard from "./JobInfoCard";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[HorizontalJobBox]", ...args),
-    error: (...args) => console.error("[HorizontalJobBox]", ...args),
+    info: (...args: unknown[]) => console.log("[HorizontalJobBox]", ...args),
+    error: (...args: unknown[]) => console.error("[HorizontalJobBox]", ...args),
 };
 
 /**
@@ -26,13 +26,25 @@ const FADE_VARIANTS = {
 
 const PAGE_SIZE = 7;
 
+// Define the Job type for this component
+export interface HorizontalJob extends JobInfo {
+    client?: string;
+    dateUpdated?: string;
+    dateAdded?: string;
+}
+
+export interface HorizontalJobBoxProps {
+    jobs?: HorizontalJob[];
+    onJobClick?: (job: HorizontalJob) => void;
+}
+
 /**
  * sortJobs
  * Sort jobs by active status first (case-insensitive compare), then by most recent last updated date.
  * @param {Array} jobs - Array of jobs to sort
  * @returns {Array} Sorted jobs
  */
-const sortJobs = (jobs) => {
+const sortJobs = (jobs: HorizontalJob[]): HorizontalJob[] => {
     if (!Array.isArray(jobs)) return [];
     // Sort: active first, then most recent dateUpdated (descending), fallback to dateAdded (descending)
     return [...jobs].sort((a, b) => {
@@ -66,7 +78,7 @@ const sortJobs = (jobs) => {
  * @param {function} [props.onJobClick] - Callback when a job card is clicked.
  * @returns {JSX.Element}
  */
-const HorizontalJobBox = ({ jobs = [], onJobClick }) => {
+const HorizontalJobBox: React.FC<HorizontalJobBoxProps> = ({ jobs = [], onJobClick }) => {
     const [page, setPage] = useState(0);
 
     // Apply the sort: active first, then most recently updated
@@ -147,10 +159,8 @@ const HorizontalJobBox = ({ jobs = [], onJobClick }) => {
                                             companyName: job.client,
                                             status: job.status,
                                             description: job.description,
-                                            dateUpdated: job.dateUpdated,
-                                            dateAdded: job.dateAdded,
+                                            // dateUpdated and dateAdded are not used by JobInfoCard, but kept for sorting
                                         }}
-                                        descriptionClassName={styles.truncateDescription}
                                         onClick={() => onJobClick && onJobClick(job)}
                                     />
                                 </div>
@@ -181,9 +191,5 @@ const HorizontalJobBox = ({ jobs = [], onJobClick }) => {
     );
 };
 
-HorizontalJobBox.propTypes = {
-    jobs: PropTypes.arrayOf(PropTypes.object),
-    onJobClick: PropTypes.func,
-};
 
 export default HorizontalJobBox;
