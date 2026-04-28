@@ -10,8 +10,31 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
-import { useCreateJob } from "./useJobs.ts";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useCreateJob } from "./useJobs";
+
+export interface CreateJobPayload {
+    name: string;
+    companyId: string | number;
+    client: string;
+    description: string;
+    status: string;
+    [key: string]: any;
+}
+
+export type CreateJobModalStatus = "idle" | "saving" | "saved" | "error";
+
+export interface UseCreateJobModalReturn {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    status: CreateJobModalStatus;
+    setStatus: (status: CreateJobModalStatus) => void;
+    error: string | null;
+    setError: (err: string | null) => void;
+    pendingClose: boolean;
+    setPendingClose: (pending: boolean) => void;
+    createJobMutation: any;
+}
 
 /**
  * Standardized logger for useCreateJobModal.
@@ -20,18 +43,9 @@ import { useCreateJob } from "./useJobs.ts";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[useCreateJobModal]", ...args),
-    error: (...args) => console.error("[useCreateJobModal]", ...args),
+    info: (...args: any[]) => console.log("[useCreateJobModal]", ...args),
+    error: (...args: any[]) => console.error("[useCreateJobModal]", ...args),
 };
-
-/**
- * @typedef {object} CreateJobPayload
- * @property {string} name
- * @property {string|number} companyId
- * @property {string} client
- * @property {string} description
- * @property {string} status
- */
 
 /**
  * useCreateJobModal
@@ -40,7 +54,7 @@ const logger = {
  * @function useCreateJobModal
  * @returns {object}
  */
-export const useCreateJobModal = () => {
+export const useCreateJobModal = (): UseCreateJobModalReturn => {
     /**
      * Current user context for updatedBy stamping.
      *
@@ -64,51 +78,47 @@ export const useCreateJobModal = () => {
      *
      * @type {[boolean, Function]}
      */
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState<boolean>(false);
 
     /**
      * UI-friendly create mutation status.
      *
      * @type {["idle"|"saving"|"saved"|"error", Function]}
      */
-    const [status, setStatus] = useState("idle");
+    const [status, setStatus] = useState<CreateJobModalStatus>("idle");
 
     /**
      * Modal error message, if any.
      *
      * @type {[string|null, Function]}
      */
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
     /**
      * When true, a successful save will close the modal after a short delay.
      *
      * @type {[boolean, Function]}
      */
-    const [pendingClose, setPendingClose] = useState(false);
+    const [pendingClose, setPendingClose] = useState<boolean>(false);
 
     /**
      * Timeout ref for delayed close.
      *
      * @type {React.MutableRefObject<any>}
      */
-    const closeTimeoutRef = useRef();
+    const closeTimeoutRef = useRef<any>();
 
     // Use the new useCreateJob hook
     const createJobMutation = useCreateJob({
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
             logger.info("createJobMutation onSuccess", { jobId: data?.jobId });
             setStatus("saved");
+            setPendingClose(true);
         },
-        onError: (err) => {
+        onError: (err: any) => {
             logger.error("createJobMutation onError", err);
             setStatus("error");
-            setPendingClose(false);
-            const message =
-                err?.response?.data?.message ||
-                err?.message ||
-                "Failed to create job.";
-            setError(message);
+            setError(err?.message || "Failed to create job");
         },
     });
 
@@ -154,7 +164,7 @@ export const useCreateJobModal = () => {
      * @param {CreateJobPayload} payload
      * @returns {Promise<void>}
      */
-    const handleCreateJob = async (payload) => {
+    const handleCreateJob = async (payload: CreateJobPayload) => {
         logger.info("handleCreateJob called");
 
         setError(null);
@@ -203,12 +213,14 @@ export const useCreateJobModal = () => {
 
     return {
         open,
-        openModal,
-        closeModal,
+        setOpen,
         status,
-        isSaving: createJobMutation.status === "pending",
+        setStatus,
         error,
-        handleCreateJob,
+        setError,
+        pendingClose,
+        setPendingClose,
+        createJobMutation,
     };
 };
 

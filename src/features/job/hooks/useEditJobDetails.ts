@@ -1,11 +1,20 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllCompanies, createCompany } from "../../../api/company/company.js";
-import { getJobClients, updateJob } from "../api/job.ts";
-import { companyKeys } from "../../../api/company/companyQueryKeys.js";
-import { jobKeys } from "../api/jobQueryKeys.ts";
-import { userKeys } from "../../../api/user/userQueryKeys.js";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
+import { getAllCompanies, createCompany } from "../../../api/company/company";
+import { getJobClients, updateJob } from "../api/job";
+import { companyKeys } from "../../../api/company/companyQueryKeys";
+import { jobKeys } from "../api/jobQueryKeys";
+import { userKeys } from "../../../api/user/userQueryKeys";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+
+export interface CompanyOption {
+    value: string;
+    label: string;
+}
+export interface ClientOption {
+    value: string;
+    label: string;
+}
 
 /**
  * Logger for useEditJobDetails.
@@ -14,8 +23,8 @@ import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[useEditJobDetails]", ...args),
-    error: (...args) => console.error("[useEditJobDetails]", ...args),
+    info: (...args: any[]) => console.log("[useEditJobDetails]", ...args),
+    error: (...args: any[]) => console.error("[useEditJobDetails]", ...args),
 };
 
 /**
@@ -26,7 +35,7 @@ const logger = {
  * @param {string|number|null|undefined} value
  * @returns {string}
  */
-const normalizeIdToString = (value) => {
+const normalizeIdToString = (value: string | number | null | undefined): string => {
     if (value === null || value === undefined) return "";
     return String(value);
 };
@@ -39,7 +48,7 @@ const normalizeIdToString = (value) => {
  * @param {any} value
  * @returns {string}
  */
-const safeStringTrim = (value) => String(value || "").trim();
+const safeStringTrim = (value: any): string => String(value || "").trim();
 
 /**
  * resolveCurrentUserId
@@ -49,7 +58,7 @@ const safeStringTrim = (value) => String(value || "").trim();
  * @param {any} user
  * @returns {number|null}
  */
-const resolveCurrentUserId = (user) => {
+const resolveCurrentUserId = (user: any): number | null => {
     const candidate = user?.userId ?? user?.id ?? null;
     const asNum = candidate === null || candidate === undefined ? NaN : Number(candidate);
     if (Number.isNaN(asNum)) return null;
@@ -64,7 +73,7 @@ const resolveCurrentUserId = (user) => {
  * @param {Array<any>} companies
  * @returns {Array<{value: string, label: string}>}
  */
-const buildCompanyOptions = (companies) => {
+const buildCompanyOptions = (companies: any[]): CompanyOption[] => {
     if (!Array.isArray(companies)) return [];
     return companies.map((c) => ({
         value: normalizeIdToString(c.id ?? c.companyId),
@@ -80,7 +89,7 @@ const buildCompanyOptions = (companies) => {
  * @param {Array<any>} clients
  * @returns {Array<{value: string, label: string}>}
  */
-const buildClientOptions = (clients) => {
+const buildClientOptions = (clients: any[]): ClientOption[] => {
     if (!Array.isArray(clients)) return [];
 
     const uniqueClients = [
@@ -104,7 +113,7 @@ const buildClientOptions = (clients) => {
  * @param {any} job
  * @returns {{name: string, client: string, description: string, companyId: string}}
  */
-const getInitialEditValuesFromJob = (job) => {
+const getInitialEditValuesFromJob = (job: any) => {
     return {
         name: job?.name || "",
         client: job?.client || "",
@@ -122,7 +131,7 @@ const getInitialEditValuesFromJob = (job) => {
  * @param {any} params.job
  * @returns {object}
  */
-const useEditJobDetails = ({ job }) => {
+const useEditJobDetails = ({ job }: { job: any }) => {
     logger.info("useEditJobDetails initialized", { jobId: job?.jobId });
 
     const queryClient = useQueryClient();
@@ -164,7 +173,7 @@ const useEditJobDetails = ({ job }) => {
         });
     }, [job]);
 
-    const updateEditField = useCallback((field, nextValue) => {
+    const updateEditField = useCallback((field: string, nextValue: any) => {
         setEditValues((prev) => ({
             ...prev,
             [field]: nextValue,
@@ -183,7 +192,7 @@ const useEditJobDetails = ({ job }) => {
     });
 
     const createCompanyMutation = useMutation({
-        mutationFn: (companyDataToCreate) => createCompany(companyDataToCreate),
+        mutationFn: (companyDataToCreate: any) => createCompany(companyDataToCreate),
         onSuccess: (newCompany) => {
             logger.info("New company created successfully", { newCompanyId: newCompany?.id });
 
@@ -236,7 +245,7 @@ const useEditJobDetails = ({ job }) => {
         return [{ value: currentClient, label: currentClient }, ...apiOptions];
     }, [clients, selectedCompanyId, editValues.client]);
 
-    const handleCompanyChange = useCallback((nextCompanyId) => {
+    const handleCompanyChange = useCallback((nextCompanyId: string) => {
         logger.info("Company selection changed", { nextCompanyId });
 
         if (nextCompanyId === "") {
@@ -258,7 +267,7 @@ const useEditJobDetails = ({ job }) => {
         });
     }, []);
 
-    const handleClientChange = useCallback((nextClient) => {
+    const handleClientChange = useCallback((nextClient: string) => {
         logger.info("Client selection changed", { nextClient });
         setEditValues((prev) => ({
             ...prev,
@@ -267,7 +276,7 @@ const useEditJobDetails = ({ job }) => {
     }, []);
 
     const createNewCompany = useCallback(
-        (companyNameToCreate) => {
+        (companyNameToCreate: string) => {
             const trimmed = safeStringTrim(companyNameToCreate);
             if (!trimmed) {
                 logger.error("Cannot create company with empty name");
@@ -280,7 +289,7 @@ const useEditJobDetails = ({ job }) => {
     );
 
     const createNewClient = useCallback(
-        (clientName) => {
+        (clientName: string) => {
             const trimmed = safeStringTrim(clientName);
             if (!trimmed) {
                 logger.error("Cannot use empty client name");
@@ -321,7 +330,7 @@ const useEditJobDetails = ({ job }) => {
      * - Update job on server.
      */
     const saveJobMutation = useMutation({
-        mutationFn: (updatedJobData) => {
+        mutationFn: (updatedJobData: any) => {
             if (!job?.jobId) {
                 throw new Error("Cannot save job without a valid jobId");
             }
