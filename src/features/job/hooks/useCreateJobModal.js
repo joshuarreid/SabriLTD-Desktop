@@ -10,11 +10,8 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createJob } from "../../../api/job/job.ts";
-import { jobKeys } from "../../../api/job/jobQueryKeys.ts";
-import {useCurrentUser} from "../../auth/hooks/useCurrentUser.js";
-
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
+import { useCreateJob } from "./useJobs.ts";
 
 /**
  * Standardized logger for useCreateJobModal.
@@ -44,13 +41,6 @@ const logger = {
  * @returns {object}
  */
 export const useCreateJobModal = () => {
-    /**
-     * Query client for cache invalidation.
-     *
-     * @type {import('@tanstack/react-query').QueryClient}
-     */
-    const queryClient = useQueryClient();
-
     /**
      * Current user context for updatedBy stamping.
      *
@@ -104,83 +94,21 @@ export const useCreateJobModal = () => {
      */
     const closeTimeoutRef = useRef();
 
-    /**
-     * createJobMutation
-     * TanStack mutation for creating jobs.
-     */
-    const createJobMutation = useMutation({
-        mutationKey: jobKeys.create(),
-
-        /**
-         * mutationFn
-         * Calls API to create a job. Adds updatedBy from current user.
-         *
-         * @async
-         * @function mutationFn
-         * @param {CreateJobPayload} payload
-         * @returns {Promise<any>}
-         * @throws {Error} If API call fails.
-         */
-        mutationFn: async (payload) => {
-            logger.info("createJobMutation mutationFn called", {
-                hasName: !!payload?.name,
-                hasCompanyId: payload?.companyId !== "" && payload?.companyId !== null,
-                hasClient: !!payload?.client,
-                hasDescription: !!payload?.description,
-                status: payload?.status,
-                hasUpdatedBy: !!currentUserId,
-            });
-
-            const normalized = {
-                ...payload,
-                companyId: Number(payload.companyId),
-                name: String(payload.name || "").trim(),
-                client: String(payload.client || "").trim(),
-                description: String(payload.description || "").trim(),
-                status: payload.status || "Active",
-
-                // IMPORTANT: stamp updatedBy for API
-                updatedBy: currentUserId,
-            };
-
-            return createJob(normalized);
-        },
-
-        /**
-         * onSuccess
-         * Invalidates job list/search/client/company caches so the UI updates consistently.
-         *
-         * @async
-         * @function onSuccess
-         * @param {any} data
-         * @returns {Promise<void>}
-         */
-        onSuccess: async (data) => {
+    // Use the new useCreateJob hook
+    const createJobMutation = useCreateJob({
+        onSuccess: (data) => {
             logger.info("createJobMutation onSuccess", { jobId: data?.jobId });
-
-            try {
-                await Promise.all([
-                    queryClient.invalidateQueries({ queryKey: jobKeys.lists() }),
-                    queryClient.invalidateQueries({ queryKey: jobKeys.search() }),
-                    queryClient.invalidateQueries({ queryKey: jobKeys.clients() }),
-                    queryClient.invalidateQueries({ queryKey: jobKeys.companies() }),
-                ]);
-
-                logger.info("Job queries invalidated after create");
-            } catch (e) {
-                logger.error("Failed invalidating job queries after create", e);
-            }
+            setStatus("saved");
         },
-
-        /**
-         * onError
-         *
-         * @function onError
-         * @param {any} err
-         * @returns {void}
-         */
         onError: (err) => {
             logger.error("createJobMutation onError", err);
+            setStatus("error");
+            setPendingClose(false);
+            const message =
+                err?.response?.data?.message ||
+                err?.message ||
+                "Failed to create job.";
+            setError(message);
         },
     });
 
@@ -234,19 +162,20 @@ export const useCreateJobModal = () => {
         setPendingClose(true);
 
         try {
-            await createJobMutation.mutateAsync(payload);
-            setStatus("saved");
+            const normalized = {
+                ...payload,
+                companyId: Number(payload.companyId),
+                name: String(payload.name || "").trim(),
+                client: String(payload.client || "").trim(),
+                description: String(payload.description || "").trim(),
+                status: payload.status || "Active",
+
+                // IMPORTANT: stamp updatedBy for API
+                updatedBy: currentUserId,
+            };
+            await createJobMutation.mutateAsync(normalized);
         } catch (err) {
-            logger.error("handleCreateJob failed", err);
-            setStatus("error");
-            setPendingClose(false);
-
-            const message =
-                err?.response?.data?.message ||
-                err?.message ||
-                "Failed to create job.";
-
-            setError(message);
+            // onError will handle error state
         }
     };
 

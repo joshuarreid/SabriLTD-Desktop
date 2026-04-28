@@ -17,8 +17,8 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
-import { getAllJobs, searchJobs } from "../../../api/job/job.ts";
-import { jobKeys } from "../../../api/job/jobQueryKeys.ts";
+import { getAllJobs, searchJobs } from "../../job/api/job.ts";
+import { jobKeys } from "../../job/api/jobQueryKeys.ts";
 
 /**
  * logger for useItemJobField

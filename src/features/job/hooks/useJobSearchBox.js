@@ -26,7 +26,7 @@ import useCreateJobModal from "./useCreateJobModal.js";
 import {DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY, useJobFilters} from "./useJobFilters.js";
 import useJobSearch from "./useJobSearch.js";
 import useJobScreenPagination from "./useJobScreenPagination.js";
-import {getAllJobs, getJobClients, searchJobs} from "../../../api/job/job.ts";
+import {getAllJobs, getJobClients, searchJobs} from "../api/job.ts";
 
 
 /**
