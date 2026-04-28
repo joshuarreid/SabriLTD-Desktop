@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllCompanies, createCompany } from "../../../api/company/company";
-import { getJobClients, updateJob } from "../api/job";
 import { companyKeys } from "../../../api/company/companyQueryKeys";
 import { jobKeys } from "../api/jobQueryKeys";
 import { userKeys } from "../../../api/user/userQueryKeys";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useJobClients, useUpdateJob } from "./useJobs";
 
 export interface CompanyOption {
     value: string;
@@ -219,12 +219,7 @@ const useEditJobDetails = ({ job }: { job: any }) => {
         isPending: isClientsPending,
         isError: isClientsError,
         refetch: refetchClients,
-    } = useQuery({
-        queryKey: jobKeys.clientsList({ companyId: selectedCompanyId }),
-        queryFn: () => getJobClients({ companyId: selectedCompanyId }),
-        enabled: isEditMode && Boolean(selectedCompanyId),
-        staleTime: 5 * 60 * 1000,
-    });
+    } = useJobClients({ companyId: selectedCompanyId });
 
     const companyOptions = useMemo(() => buildCompanyOptions(companies), [companies]);
 
@@ -329,56 +324,17 @@ const useEditJobDetails = ({ job }: { job: any }) => {
      * saveJobMutation
      * - Update job on server.
      */
-    const saveJobMutation = useMutation({
-        mutationFn: (updatedJobData: any) => {
-            if (!job?.jobId) {
-                throw new Error("Cannot save job without a valid jobId");
-            }
-            return updateJob(job.jobId, updatedJobData);
-        },
+    const saveJobMutation = useUpdateJob({
         onSuccess: async (savedJob) => {
             logger.info("Job saved successfully", { jobId: job?.jobId });
-
             try {
-                /**
-                 * ✅ Fix #1:
-                 * Invalidate JobScreen caches so name/description changes are reflected
-                 * in lists/search immediately.
-                 */
                 await Promise.all([
-                    // detail screen cache
-                    job?.jobId
-                        ? queryClient.invalidateQueries({
-                            queryKey: jobKeys.detail(job.jobId),
-                        })
-                        : Promise.resolve(),
-
-                    // job screen caches
+                    job?.jobId && queryClient.invalidateQueries({ queryKey: jobKeys.detail(job?.jobId) }),
                     queryClient.invalidateQueries({ queryKey: jobKeys.lists() }),
-                    queryClient.invalidateQueries({ queryKey: jobKeys.search() }),
-
-                    // client lists (safe; client can be updated)
-                    queryClient.invalidateQueries({ queryKey: jobKeys.clients() }),
-
-                    // company-scoped client list currently in use (if applicable)
-                    selectedCompanyId
-                        ? queryClient.invalidateQueries({
-                            queryKey: jobKeys.clientsList({ companyId: selectedCompanyId }),
-                        })
-                        : Promise.resolve(),
-
-                    // user detail cache for updatedBy display
-                    savedJob?.updatedBy
-                        ? queryClient.invalidateQueries({
-                            queryKey: userKeys.detail(savedJob.updatedBy),
-                        })
-                        : Promise.resolve(),
                 ]);
-            } catch (err) {
-                logger.error("Failed to invalidate queries after saving job", err);
+            } catch (e) {
+                logger.error("Error invalidating queries after job save", e);
             }
-
-            setIsEditMode(false);
         },
         onError: (err) => {
             logger.error("Failed to save job", err);
@@ -410,7 +366,7 @@ const useEditJobDetails = ({ job }: { job: any }) => {
         };
 
         logger.info("Saving job");
-        saveJobMutation.mutate(payload);
+        saveJobMutation.mutate({ jobId: job.jobId, job: payload });
     }, [job, editValues, saveJobMutation, currentUser, currentUserLoading, currentUserError]);
 
     const hasChanges = useMemo(() => {
