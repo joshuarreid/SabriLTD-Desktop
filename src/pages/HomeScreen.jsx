@@ -1,5 +1,5 @@
 /**
- * InventoryDashboardScreen.jsx
+ * HomeScreen.jsx
  *
  * Home page showing a 5×5 grid of inventory item with integrated search.
  * Uses ItemSearchBox (reusable search bar + item preview grid) and
@@ -17,18 +17,18 @@ import { useViewItemModal } from "../features/item/hooks/useViewItemModal";
 import ViewItemModal from "../features/item/components/ViewItemModal";
 
 /**
- * Logger for InventoryDashboardScreen.
+ * Logger for HomeScreen.
  *
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[InventoryDashboardScreen]", ...args),
-    error: (...args) => console.error("[InventoryDashboardScreen]", ...args),
+    info: (...args) => console.log("[HomeScreen]", ...args),
+    error: (...args) => console.error("[HomeScreen]", ...args),
 };
 
-const InventoryDashboardScreen = () => {
-    logger.info("InventoryDashboardScreen rendered");
+const HomeScreen = () => {
+    logger.info("HomeScreen rendered");
 
     const {
         isOpen,
@@ -64,7 +64,7 @@ const InventoryDashboardScreen = () => {
     const handleItemClick = (item) => {
         if (!item) {
             logger.error(
-                "handleItemClick called without an item in InventoryDashboardScreen",
+                "handleItemClick called without an item in HomeScreen",
             );
             return;
         }
@@ -113,4 +113,4 @@ const InventoryDashboardScreen = () => {
     );
 };
 
-export default InventoryDashboardScreen;
+export default HomeScreen;

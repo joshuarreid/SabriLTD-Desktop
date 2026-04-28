@@ -1,6 +1,6 @@
 /**
  * useInventoryDashboardScreen
- * Hook for InventoryDashboardScreen that:
+ * Hook for HomeScreen that:
  * - Fetches paginated item previews via useItemCardGrid (Meilisearch search).
  * - Eagerly caches full item details for all item on the current page using
  *   the canonical itemKeys.details pattern (so ViewItemModal can reuse cache).
