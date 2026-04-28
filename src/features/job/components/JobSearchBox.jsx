@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import styles from "./jobsearchbox.module.css";
 import useJobSearchBox from "../hooks/useJobSearchBox";
 import JobInfoCard from "./JobInfoCard";
-import CreateJobModal from "./CreateJobModal";
+import CreateJobModal from "./CreateJobModal.jsx";
 import FilterDropdown from "../../../components/filterdropdown/FilterDropdown";
 import FilterDropdownSearch from "../../../components/filterdropdown/FilterDropdownSearch";
 import WideSearchBar from "../../../components/searchbar/WideSearchBar";

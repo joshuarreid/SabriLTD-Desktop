@@ -7,52 +7,23 @@ import Modal from "../../../components/modal/Modal";
  * Standardized logger for CreateJobModal.
  */
 const logger = {
-    info: (...args: any[]) => console.log("[CreateJobModal]", ...args),
-    error: (...args: any[]) => console.error("[CreateJobModal]", ...args),
+    info: (...args) => console.log("[CreateJobModal]", ...args),
+    error: (...args) => console.error("[CreateJobModal]", ...args),
 };
 
-export interface CreateJobPayload {
-    name: string;
-    companyId: string | number;
-    client: string;
-    description: string;
-    status: string;
-}
+const CreateJobModal = ({
+    open,
+    isSaving,
+    saveState,
+    onSave,
+    onClose,
+    error,
+    companyOptions,
+    statusOptions,
+}) => {
+    const nameInputRef = useRef(null);
 
-export interface CompanyOption {
-    value: string | number;
-    label: string;
-}
-
-export interface StatusOption {
-    value: string;
-    label: string;
-}
-
-export interface CreateJobModalProps {
-    open: boolean;
-    isSaving: boolean;
-    saveState: "idle" | "saving" | "saved" | "error";
-    onSave: (payload: CreateJobPayload) => void;
-    onClose: () => void;
-    error: string | null;
-    companyOptions: CompanyOption[];
-    statusOptions: StatusOption[];
-}
-
-const CreateJobModal: React.FC<CreateJobModalProps> = ({
-                                                           open,
-                                                           isSaving,
-                                                           saveState,
-                                                           onSave,
-                                                           onClose,
-                                                           error,
-                                                           companyOptions,
-                                                           statusOptions,
-                                                       }) => {
-    const nameInputRef = useRef<HTMLInputElement | null>(null);
-
-    const [draft, setDraft] = useState<CreateJobPayload>({
+    const [draft, setDraft] = useState({
         name: "",
         companyId: "",
         client: "",
@@ -73,15 +44,15 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({
         }
     }, [open]);
 
-    const companyChoices = useMemo<CompanyOption[]>(() => {
+    const companyChoices = useMemo(() => {
         return (companyOptions || []).filter((o) => o.value !== "all");
     }, [companyOptions]);
 
-    const statusChoices = useMemo<StatusOption[]>(() => {
+    const statusChoices = useMemo(() => {
         return (statusOptions || []).filter((o) => o.value !== "all");
     }, [statusOptions]);
 
-    const updateDraft = (field: keyof CreateJobPayload, value: any) => {
+    const updateDraft = (field, value) => {
         setDraft((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -93,7 +64,7 @@ const CreateJobModal: React.FC<CreateJobModalProps> = ({
         return hasName && hasCompany && hasClient && hasDescription && !isSaving;
     }, [draft.name, draft.companyId, draft.client, draft.description, isSaving]);
 
-    const buildPayload = (): CreateJobPayload => {
+    const buildPayload = () => {
         return {
             name: draft.name?.trim(),
             companyId: draft.companyId,
