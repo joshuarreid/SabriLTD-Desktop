@@ -1,5 +1,5 @@
 /**
- * ItemSearchBox.jsx
+ * ItemBrowser.jsx
  *
  * Reusable search bar + item preview grid component.
  *
@@ -28,24 +28,24 @@
  */
 
 import React, { useCallback } from "react";
-import styles from "../styles/itemsearchbox.module.css";
+import styles from "../styles/itembrowser.module.css";
 
-import { useItemSearchBox } from "../hooks/useItemSearchBox";
+import { useItemBrowser } from "../hooks/useItemBrowser.js";
 import WideSearchBar from "../../../components/searchbar/WideSearchBar";
 import ItemCardGrid from "./ItemCardGrid";
 
 /**
- * Logger for ItemSearchBox.
+ * Logger for ItemBrowser.
  *
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[ItemSearchBox]", ...args),
-    error: (...args) => console.error("[ItemSearchBox]", ...args),
+    info: (...args) => console.log("[ItemBrowser]", ...args),
+    error: (...args) => console.error("[ItemBrowser]", ...args),
 };
 
-const ItemSearchBox = ({
+const ItemBrowser = ({
                            mode = "browse",
                            onItemClick,
                            onItemOpenDetails,
@@ -58,7 +58,7 @@ const ItemSearchBox = ({
                            sortOrder = "asc",
                            placeholder = "Search inventory…",
                        }) => {
-    logger.info("ItemSearchBox rendered", { mode });
+    logger.info("ItemBrowser rendered", { mode });
 
     const {
         searchInput,
@@ -80,7 +80,7 @@ const ItemSearchBox = ({
         handleNext,
         handlePrevious,
         refetch,
-    } = useItemSearchBox({
+    } = useItemBrowser({
         fixedFilters,
         pageSize,
         sortField,
@@ -187,4 +187,4 @@ const ItemSearchBox = ({
     );
 };
 
-export default ItemSearchBox;
+export default ItemBrowser;

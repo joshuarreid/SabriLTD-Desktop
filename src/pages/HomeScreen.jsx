@@ -2,7 +2,7 @@
  * HomeScreen.jsx
  *
  * Home page showing a 5×5 grid of inventory item with integrated search.
- * Uses ItemSearchBox (reusable search bar + item preview grid) and
+ * Uses ItemBrowser (reusable search bar + item preview grid) and
  * ViewItemModal for read-only detail viewing on card click.
  *
  * All data fetching and business logic delegated to hooks per Bulletproof React conventions.
@@ -12,7 +12,7 @@
  */
 
 import React from "react";
-import ItemSearchBox from "../features/item/components/ItemSearchBox";
+import ItemBrowser from "../features/item/components/ItemBrowser.jsx";
 import { useViewItemModal } from "../features/item/hooks/useViewItemModal";
 import ViewItemModal from "../features/item/components/ViewItemModal";
 
@@ -54,7 +54,7 @@ const HomeScreen = () => {
 
     /**
      * handleItemClick
-     * Called when an ItemInfoCard is clicked inside ItemSearchBox.
+     * Called when an ItemInfoCard is clicked inside ItemBrowser.
      * Opens the view-item modal with the selected item preview data.
      *
      * @function handleItemClick
@@ -79,7 +79,7 @@ const HomeScreen = () => {
 
     return (
         <div>
-            <ItemSearchBox
+            <ItemBrowser
                 onItemClick={handleItemClick}
                 columns={5}
                 rows={5}
