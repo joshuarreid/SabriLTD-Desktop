@@ -1,7 +1,7 @@
 /**
- * useItemSearchBox.js
+ * useItemBrowser.js
  *
- * Reusable orchestration hook for ItemSearchBox.
+ * Reusable orchestration hook for ItemBrowser.
  * - Owns local search input + committed query state
  * - Fetches paginated item previews via Meilisearch (searchItems)
  * - Uses useItemSearchPagination for canonical pagination meta and clamping
@@ -18,7 +18,7 @@
  * @param {string} [options.sortOrder="asc"] - Default sort order.
  * @param {string} [options.placeholder="Search inventory…"] - Passed through for UI.
  * @param {boolean} [options.includeArchived=false] - Include archived item in search.
- * @returns {object} View model for ItemSearchBox rendering and interactions.
+ * @returns {object} View model for ItemBrowser rendering and interactions.
  */
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
@@ -28,14 +28,14 @@ import { searchItems } from "../api/item.ts";
 import { useItemSearchPagination } from "./useItemSearchPagination.js";
 
 /**
- * Logger for useItemSearchBox.
+ * Logger for useItemBrowser.
  *
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[useItemSearchBox]", ...args),
-    error: (...args) => console.error("[useItemSearchBox]", ...args),
+    info: (...args) => console.log("[useItemBrowser]", ...args),
+    error: (...args) => console.error("[useItemBrowser]", ...args),
 };
 
 /**
@@ -116,7 +116,7 @@ const normalizeItemSearchResponse = (raw) => {
     };
 };
 
-export const useItemSearchBox = ({
+export const useItemBrowser = ({
                                      fixedFilters = null,
                                      pageSize: initialPageSize = 25,
                                      sortField = "name",
@@ -124,7 +124,7 @@ export const useItemSearchBox = ({
                                      placeholder = "Search inventory…",
                                      includeArchived = false,
                                  } = {}) => {
-    logger.info("useItemSearchBox initialized", {
+    logger.info("useItemBrowser initialized", {
         fixedFilters,
         initialPageSize,
         sortField,
@@ -393,4 +393,4 @@ export const useItemSearchBox = ({
     };
 };
 
-export default useItemSearchBox;
+export default useItemBrowser;

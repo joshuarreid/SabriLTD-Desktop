@@ -1,7 +1,7 @@
 /**
  * useItemSearchPagination.js
  *
- * Centralized pagination logic for ItemSearchBox (Meilisearch-backed).
+ * Centralized pagination logic for ItemBrowser (Meilisearch-backed).
  * Mirrors the proven behavior of useJobScreenPagination, but is purpose-built
  * for Item Search API responses:
  *  - ItemSearchResponse: { hitsCount, totalHits, page, size }

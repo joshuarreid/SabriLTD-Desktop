@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import ItemSearchBox from "../../item/components/ItemSearchBox";
+import ItemBrowser from "../../item/components/ItemBrowser";
 import styles from "../styles/additemstojobmodal.module.css";
 
 export interface JobAddItemsFormProps {
@@ -48,7 +48,7 @@ const JobAddItemsForm: React.FC<JobAddItemsFormProps> = (props) => {
                 </div>
             ) : null}
             <div className={styles.searchBoxContainer}>
-                <ItemSearchBox
+                <ItemBrowser
                     mode="add"
                     onItemClick={onToggleItem}
                     onItemOpenDetails={onOpenItemDetails}

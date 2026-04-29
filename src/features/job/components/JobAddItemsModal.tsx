@@ -1,7 +1,7 @@
 /**
  * JobAddItemsModal.jsx
  *
- * Modal that shows an ItemSearchBox in "add" mode.
+ * Modal that shows an ItemBrowser in "add" mode.
  * Single-click selects item; double-click opens item details.
  * A footer bar shows selected count and an "Add Items" button.
  *

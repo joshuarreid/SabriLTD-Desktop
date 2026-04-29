@@ -3,7 +3,7 @@
  *
  * UI component for the item section of JobDetailScreen.
  * Renders an "Add Items" button at the top that opens a modal
- * with ItemSearchBox in add mode for selecting item to add to the job.
+ * with ItemBrowser in add mode for selecting item to add to the job.
  * Also renders the existing ItemCardGrid for item already on the job.
  *
  * @component
