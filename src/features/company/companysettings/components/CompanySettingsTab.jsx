@@ -15,10 +15,10 @@
 
 import React, { useMemo, useState } from "react";
 import styles from "../styles/companysettingstab.module.css";
-import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
-import CompanyInfoCard from "./CompanyInfoCard";
-import EditCompanyModal from "../../../../components/editcompanymodal/EditCompanyModal";
-import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab";
+import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.js";
+import CompanyInfoCard from "./CompanyInfoCard.jsx";
+import EditCompanyModal from "@/features/company/editcompanymodal/EditCompanyModal.jsx";
+import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab.js";
 
 /**
  * logger for CompanySettingsTab.

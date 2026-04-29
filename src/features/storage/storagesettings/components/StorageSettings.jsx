@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import StorageInfoCard from "../../../storage/components/StorageInfoCard";
-import EditStorageModal from "../../../storage/components/EditStorageModal";
-import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
-import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
-import {useNaturalSort} from "../../../../components/alphabeticalsortfilter/useNaturalSort";
+import StorageInfoCard from "../../components/StorageInfoCard.jsx";
+import EditStorageModal from "../../components/EditStorageModal.jsx";
+import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal.jsx";
+import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.js";
+import {useNaturalSort} from "../../../../components/alphabeticalsortfilter/useNaturalSort.js";
 
 
 /**

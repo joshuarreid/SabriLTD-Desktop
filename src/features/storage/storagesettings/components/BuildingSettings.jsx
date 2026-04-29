@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import BuildingInfoCard from "../../../building/components/BuildingInfoCard";
-import EditBuildingModal from "../../../building/components/EditBuildingModal";
-import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
+import BuildingInfoCard from "../../../building/components/BuildingInfoCard.jsx";
+import EditBuildingModal from "../../../building/components/EditBuildingModal.jsx";
+import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal.jsx";
 
 /**
  * BuildingSettings

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import { useTagSettingsTab } from "../hooks/useTagSettingsTab";
-import TagSettingsLayout from "./TagSettingsLayout";
+import { useTagSettingsTab } from "../hooks/useTagSettingsTab.js";
+import TagSettingsLayout from "./TagSettingsLayout.jsx";
 
 /**
  * logger for TagSettingsTab.

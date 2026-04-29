@@ -17,7 +17,7 @@
     background: var(--color-bg-surface, #ffffff);
     border-radius: 16px;
     box-shadow: 0 2px 18px 0 rgba(44,47,59,0.05);
-    box-sizing: border-box;
+    box-sizirng: border-box;
     overflow: hidden;
 }
 
