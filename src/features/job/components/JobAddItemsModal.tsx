@@ -22,7 +22,6 @@
  */
 
 import React, { useMemo } from "react";
-import Modal from "../../../components/modal/Modal";
 import JobModal from "./JobModal";
 import JobAddItemsForm from "./JobAddItemsForm";
 import styles from "../styles/additemstojobmodal.module.css";

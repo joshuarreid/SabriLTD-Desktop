@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, UseMutationOptions } from "@tanstack/react-query";
 import { jobKeys } from "../api/jobQueryKeys";
+
 import {
   createJob,
   getAllJobs,
@@ -7,9 +8,12 @@ import {
   getJobById,
   updateJob,
   deleteJob,
-  getJobClients
+  getJobClients,
+  updateJobItems
 } from "../api/job";
+import { getItemById, updateItem } from "../../../api/item/item";
 import type { Job } from "../api/job.types";
+import itemKeys from "../../../api/item/ItemQueryKeys.js";
 
 // Fetch all jobs
 export function useAllJobs(params: Record<string, unknown> = {}) {
@@ -100,4 +104,94 @@ export function useDeleteJob(options: UseMutationOptions<any, any, string> = {})
       if (options.onSuccess) options.onSuccess(data, jobId, context, mutation);
     },
   });
+}
+
+// Update job items mutation
+export function useUpdateJobItems(options: UseMutationOptions<any, any, { jobId: string | number, itemIds: (string | number)[] }> = {}) {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { jobId: string | number, itemIds: (string | number)[] }>({
+    mutationKey: jobKeys.update("update-items"),
+    mutationFn: ({ jobId, itemIds }) => updateJobItems(jobId, itemIds),
+    ...options,
+    onSuccess: async (data, variables, context, mutation) => {
+      if (variables?.jobId) {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: jobKeys.detail(variables.jobId) }),
+          queryClient.invalidateQueries({ queryKey: jobKeys.lists() }),
+        ]);
+      }
+      if (options.onSuccess) options.onSuccess(data, variables, context, mutation);
+    },
+  });
+}
+
+// Add items to job mutation
+export function useAddItemsToJob(options: UseMutationOptions<any, any, { jobId: string | number, itemIds: (string | number)[] }> = {}) {
+  const queryClient = useQueryClient();
+  return useMutation<any, any, { jobId: string | number, itemIds: (string | number)[] }>({
+    mutationKey: jobKeys.update("add-items"),
+    mutationFn: async ({ jobId, itemIds }) => {
+      // For each item, fetch and update
+      const results = [];
+      for (const itemId of itemIds) {
+        const fullItem = await getItemById(itemId);
+        if (!fullItem) throw new Error(`Failed to fetch item ${itemId}`);
+        const existingJobIds = Array.isArray(fullItem.jobIds)
+          ? fullItem.jobIds.map(Number)
+          : [];
+        const jobIdNum = typeof jobId === "string" ? parseInt(jobId as string, 10) : jobId;
+        const newJobIds = existingJobIds.includes(jobIdNum)
+          ? existingJobIds
+          : [...existingJobIds, jobIdNum];
+        const payload = {
+          name: fullItem.name,
+          description: fullItem.description ?? null,
+          conditionId: fullItem.conditionId ?? null,
+          jobIds: Array.isArray(newJobIds) ? newJobIds.map(Number) : [],
+          storageId: fullItem.storageId ?? null,
+          storageDesc: fullItem.storageDesc ?? null,
+          photoIds: Array.isArray(fullItem.photoIds) ? fullItem.photoIds.map(Number) : [],
+          tagIds: Array.isArray(fullItem.tagIds)
+            ? fullItem.tagIds.map((tag: any) => typeof tag === "object" && tag !== null ? Number(tag.id) : Number(tag))
+            : [],
+          comments: Array.isArray(fullItem.comments) ? fullItem.comments : [],
+          updatedBy: fullItem.updatedBy ?? null,
+          archived: typeof fullItem.archived === "boolean" ? fullItem.archived : false,
+        };
+        const result = await updateItem(itemId, payload);
+        results.push(result);
+      }
+      return results;
+    },
+    ...options,
+    onSuccess: async (data, variables, context, mutation) => {
+      // Invalidate all relevant queries
+      if (variables?.itemIds) {
+        await Promise.all(
+          variables.itemIds.map(async (itemId) => {
+            await queryClient.invalidateQueries({ queryKey: itemKeys.detail(itemId) });
+            await queryClient.invalidateQueries({ queryKey: itemKeys.details(itemId) });
+          })
+        );
+      }
+      if (variables?.jobId) {
+        await queryClient.invalidateQueries({ queryKey: jobKeys.detail(variables.jobId) });
+        await queryClient.invalidateQueries({ queryKey: jobKeys.lists() });
+      }
+      await queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
+      await queryClient.invalidateQueries({ queryKey: itemKeys.search() });
+      if (options.onSuccess) options.onSuccess(data, variables, context, mutation);
+    },
+  });
+}
+
+// Utility hook to manually invalidate a job's cache (detail and lists)
+export function useInvalidateJob(jobId: string | number) {
+  const queryClient = useQueryClient();
+  return () => {
+    if (jobId) {
+      queryClient.invalidateQueries({ queryKey: jobKeys.detail(jobId) });
+      queryClient.invalidateQueries({ queryKey: jobKeys.lists() });
+    }
+  };
 }
