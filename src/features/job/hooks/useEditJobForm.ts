@@ -17,14 +17,14 @@ export interface ClientOption {
 }
 
 /**
- * Logger for useEditJobDetails.
+ * Logger for useEditJobForm.
  *
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args: any[]) => console.log("[useEditJobDetails]", ...args),
-    error: (...args: any[]) => console.error("[useEditJobDetails]", ...args),
+    info: (...args: any[]) => console.log("[useEditJobForm]", ...args),
+    error: (...args: any[]) => console.error("[useEditJobForm]", ...args),
 };
 
 /**
@@ -123,16 +123,16 @@ const getInitialEditValuesFromJob = (job: any) => {
 };
 
 /**
- * useEditJobDetails
+ * useEditJobForm
  * - Edit-mode view model for JobDetailScreen.
  *
- * @function useEditJobDetails
+ * @function useEditJobForm
  * @param {object} params
  * @param {any} params.job
  * @returns {object}
  */
-const useEditJobDetails = ({ job }: { job: any }) => {
-    logger.info("useEditJobDetails initialized", { jobId: job?.jobId });
+const useEditJobForm = ({ job }: { job: any }) => {
+    logger.info("useEditJobForm initialized", { jobId: job?.jobId });
 
     const queryClient = useQueryClient();
 
@@ -421,5 +421,5 @@ const useEditJobDetails = ({ job }: { job: any }) => {
     };
 };
 
-export default useEditJobDetails;
+export default useEditJobForm;
 

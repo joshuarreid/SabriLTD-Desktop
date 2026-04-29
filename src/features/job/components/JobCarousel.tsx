@@ -1,17 +1,17 @@
 import * as React from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import styles from "../styles/horizontaljobbox.module.css";
+import styles from "../styles/jobcarousel.module.css";
 import JobInfoCard, { JobInfo } from "./JobInfoCard";
 
 /**
- * Logger for HorizontalJobBox.
+ * Logger for JobCarousel.
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args: unknown[]) => console.log("[HorizontalJobBox]", ...args),
-    error: (...args: unknown[]) => console.error("[HorizontalJobBox]", ...args),
+    info: (...args: unknown[]) => console.log("[JobCarousel]", ...args),
+    error: (...args: unknown[]) => console.error("[JobCarousel]", ...args),
 };
 
 /**
@@ -67,7 +67,7 @@ const sortJobs = (jobs: HorizontalJob[]): HorizontalJob[] => {
 };
 
 /**
- * HorizontalJobBox
+ * JobCarousel
  * Consistent horizontal job box with fixed overflow, ellipsized descriptions,
  * never wraps, never cuts off active job icon. Always sorts by active status, then most recent update.
  * Adds onJobClick handler for card navigation.
@@ -78,7 +78,7 @@ const sortJobs = (jobs: HorizontalJob[]): HorizontalJob[] => {
  * @param {function} [props.onJobClick] - Callback when a job card is clicked.
  * @returns {JSX.Element}
  */
-const HorizontalJobBox: React.FC<HorizontalJobBoxProps> = ({ jobs = [], onJobClick }) => {
+const JobCarousel: React.FC<HorizontalJobBoxProps> = ({ jobs = [], onJobClick }) => {
     const [page, setPage] = useState(0);
 
     // Apply the sort: active first, then most recently updated
@@ -107,7 +107,7 @@ const HorizontalJobBox: React.FC<HorizontalJobBoxProps> = ({ jobs = [], onJobCli
         logger.info("Navigated to next job page", { page: page + 1 });
     };
 
-    logger.info("HorizontalJobBox rendered", {
+    logger.info("JobCarousel rendered", {
         page,
         totalPages,
         jobsShowing: pagedJobs.length,
@@ -192,4 +192,4 @@ const HorizontalJobBox: React.FC<HorizontalJobBoxProps> = ({ jobs = [], onJobCli
 };
 
 
-export default HorizontalJobBox;
+export default JobCarousel;
