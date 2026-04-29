@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab";
-import BuildingSettings from "./BuildingSettings";
-import StorageSettings from "./StorageSettings";
+import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab.js";
+import BuildingSettings from "./BuildingSettings.jsx";
+import StorageSettings from "./StorageSettings.jsx";
 
 /**
  * StorageSettingsTab

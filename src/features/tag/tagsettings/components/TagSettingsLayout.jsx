@@ -1,11 +1,11 @@
 import React from "react";
 import styles from "../styles/tagsettingstab.module.css";
-import CategoryInfoPill from "./CategoryInfoPill";
-import TagInfoPill from "../../../tag/components/TagInfoPill";
-import WideSearchBar from "../../../../components/searchbar/WideSearchBar";
-import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
-import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
-import SaveStatus from "../../../../components/save/SaveStatus";
+import CategoryInfoPill from "./CategoryInfoPill.jsx";
+import TagInfoPill from "../../components/TagInfoPill.jsx";
+import WideSearchBar from "../../../../components/searchbar/WideSearchBar.jsx";
+import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.js";
+import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal.jsx";
+import SaveStatus from "../../../../components/save/SaveStatus.jsx";
 
 /**
  * logger for TagSettingsLayout.
