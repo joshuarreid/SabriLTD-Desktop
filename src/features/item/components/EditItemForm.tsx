@@ -5,15 +5,54 @@ import ItemJobField from "./ItemJobField";
 import ItemStorageField from "./ItemStorageField";
 import ItemTagField from "./ItemTagField";
 
+interface EditItemFormProps {
+    photo: { url: string } | null;
+    current: number;
+    photos: { url: string }[];
+    handlePrev: () => void;
+    handleNext: () => void;
+    handleSelect: (idx: number) => void;
+    handleCancel: () => void;
+    isFirst: boolean;
+    isLast: boolean;
+    itemName: string;
+    setItemName: (name: string) => void;
+    itemDescription: string;
+    setItemDescription: (desc: string) => void;
+    conditionId: number | null;
+    setConditionId: (id: number | null) => void;
+    jobIds: number[];
+    setJobIds: (ids: number[]) => void;
+    storageId: number | null;
+    setStorageId: (id: number | null) => void;
+    storageDesc: string;
+    setStorageDesc: (desc: string) => void;
+    comments: string;
+    setComments: (comments: string) => void;
+    selectedCategoryId: number | null;
+    setSelectedCategoryId: (id: number | null) => void;
+    selectedTagIds: number[];
+    setSelectedTagIds: (ids: number[]) => void;
+    tagSearch: string;
+    setTagSearch: (search: string) => void;
+    handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+    isSaving: boolean;
+    isSaved: boolean;
+    isSaveError: boolean;
+    saveStatus: string;
+    apiError: string;
+    itemTagFieldState: any;
+}
+
 /**
  * EditItemForm
  * Form for editing an inventory item. Extracted from the original EditItemModal.
  *
  * @component
- * @param {Object} props - Props passed from EditItemModal
+ * @param {EditItemFormProps} props - Props passed from EditItemModal
  * @returns {JSX.Element}
  */
-const EditItemForm = ({
+const EditItemForm: React.FC<EditItemFormProps> = ({
     photo,
     current,
     photos = [],
@@ -42,12 +81,12 @@ const EditItemForm = ({
     itemTagFieldState
 }) => {
     // Handlers for category and tag changes
-    const handleCategoryChange = (categoryId) => {
+    const handleCategoryChange = (categoryId: number | null) => {
         setSelectedCategoryId(categoryId);
         setSelectedTagIds([]);
         setTagSearch("");
     };
-    const handleTagChange = (tagIds) => {
+    const handleTagChange = (tagIds: number[]) => {
         setSelectedTagIds(tagIds);
     };
     // Only enable "Save" when all *required* fields except jobIds/comments are present
@@ -134,3 +173,4 @@ const EditItemForm = ({
 };
 
 export default EditItemForm;
+
