@@ -44,9 +44,9 @@ const truncate = (text: string, maxLength: number): string => {
 export interface JobInfo {
     jobId: number;
     name: string;
-    companyName?: string;
-    status?: string;
-    description?: string;
+    companyName: string;
+    status: string;
+    description: string;
 }
 
 export interface JobInfoCardProps {

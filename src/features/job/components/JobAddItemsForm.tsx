@@ -15,18 +15,26 @@ export interface JobAddItemsFormProps {
     error: string | null;
 }
 
-const JobAddItemsForm: React.FC<JobAddItemsFormProps> = ({
-    jobId,
-    onClose,
-    onToggleItem,
-    isItemSelected,
-    selectedCount,
-    onAddItems,
-    onOpenItemDetails,
-    isSaving,
-    status,
-    error,
-}) => {
+const JobAddItemsForm: React.FC<JobAddItemsFormProps> = (props) => {
+    const {
+        jobId,
+        onClose,
+        onToggleItem,
+        isItemSelected,
+        selectedCount,
+        onAddItems,
+        onOpenItemDetails,
+        isSaving,
+        status,
+        error,
+    } = props;
+    console.log("[JobAddItemsForm] props", {
+        jobId,
+        selectedCount,
+        isSaving,
+        status,
+        error
+    });
     const resolvedJobId = useMemo(() => {
         if (jobId === null || jobId === undefined) return "";
         return String(jobId);
@@ -51,6 +59,7 @@ const JobAddItemsForm: React.FC<JobAddItemsFormProps> = ({
                     sortField="name"
                     sortOrder="asc"
                     placeholder="Search items to add…"
+                    fixedFilters={[]}
                 />
             </div>
             {error ? <div className={styles.errorMsg}>{error}</div> : null}
@@ -93,4 +102,3 @@ const JobAddItemsForm: React.FC<JobAddItemsFormProps> = ({
 };
 
 export default JobAddItemsForm;
-

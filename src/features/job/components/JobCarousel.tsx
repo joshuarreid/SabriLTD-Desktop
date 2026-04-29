@@ -156,12 +156,14 @@ const JobCarousel: React.FC<HorizontalJobBoxProps> = ({ jobs = [], onJobClick })
                                         job={{
                                             jobId: job.jobId,
                                             name: job.name,
-                                            companyName: job.client,
-                                            status: job.status,
-                                            description: job.description,
-                                            // dateUpdated and dateAdded are not used by JobInfoCard, but kept for sorting
+                                            companyName: job.companyName || "",
+                                            status: job.status || "",
+                                            description: job.description || "",
                                         }}
-                                        onClick={() => onJobClick && onJobClick(job)}
+                                        onClick={() => {
+                                            console.log("[JobCarousel] JobInfoCard clicked", job);
+                                            onJobClick && onJobClick(job);
+                                        }}
                                     />
                                 </div>
                             ))}

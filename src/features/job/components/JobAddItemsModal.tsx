@@ -21,7 +21,7 @@
  * @returns {JSX.Element|null}
  */
 
-import React, { useMemo } from "react";
+import React from "react";
 import JobModal from "./JobModal";
 import JobAddItemsForm from "./JobAddItemsForm";
 import styles from "../styles/additemstojobmodal.module.css";
@@ -38,18 +38,29 @@ export interface JobAddItemsModalProps {
     isSaving: boolean;
     status: "idle" | "saving" | "saved" | "error";
     error: string | null;
+    trigger?: React.ReactNode;
 }
 
+const logger = {
+    info: (...args: any[]) => console.log("[JobAddItemsModal]", ...args),
+    error: (...args: any[]) => console.error("[JobAddItemsModal]", ...args),
+};
+
 const JobAddItemsModal: React.FC<JobAddItemsModalProps> = (props) => {
+    logger.info("Rendering JobAddItemsModal with props", props);
+    const { open, onClose, trigger = null, ...rest } = props;
     return (
         <JobModal
-            open={props.open}
-            onClose={props.onClose}
+            open={open}
+            onClose={() => {
+                logger.info("Modal closed");
+                onClose();
+            }}
             title={<h2 className={styles.modalTitle}>Add Items to Job</h2>}
             size="xl"
-            {...props}
+            trigger={trigger}
         >
-            <JobAddItemsForm {...props} />
+            <JobAddItemsForm {...rest} onClose={onClose} />
         </JobModal>
     );
 };
