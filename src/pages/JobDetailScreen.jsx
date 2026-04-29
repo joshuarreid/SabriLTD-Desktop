@@ -3,9 +3,9 @@ import { useParams } from "react-router-dom";
 import { useViewItemModal } from "../features/item/hooks/useViewItemModal";
 import ViewItemModal from "../features/item/components/ViewItemModal";
 import useJobDetailScreen from "../features/job/hooks/useJobDetailScreen.ts";
-import useEditJobDetails from "../features/job/hooks/useEditJobDetails.ts";
+import useEditJobForm from "../features/job/hooks/useEditJobForm.ts";
 import styles from "../features/job/styles/jobdetailscreen.module.css";
-import JobDetailsBox from "../features/job/components/JobDetailsBox";
+import EditJobForm from "../features/job/components/EditJobForm.tsx";
 import JobItemGridBox from "../features/job/components/JobItemGridBox";
 
 /**
@@ -94,7 +94,7 @@ const JobDetailScreen = () => {
         userError,
     } = jobDetail;
 
-    const edit = useEditJobDetails({ job });
+    const edit = useEditJobForm({ job });
 
     const viewItemModal = useViewItemModal();
 
@@ -160,7 +160,7 @@ const JobDetailScreen = () => {
 
     return (
         <div className={styles.jobDetailScreenRoot}>
-            <JobDetailsBox
+            <EditJobForm
                 job={job}
                 edit={edit}
                 isActive={isActive}

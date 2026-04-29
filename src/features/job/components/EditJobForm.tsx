@@ -1,5 +1,5 @@
 /**
- * JobDetailsBox.jsx
+ * EditJobForm.jsx
  *
  * UI-only component extracted from JobDetailScreen for scale.
  * Renders:
@@ -9,12 +9,12 @@
  *
  * IMPORTANT:
  * - No business logic or data fetching here.
- * - All orchestration stays in hooks (useJobDetailScreen/useEditJobDetails).
+ * - All orchestration stays in hooks (useJobDetailScreen/useEditJobForm).
  *
  * @component
  * @param {object} props
  * @param {any} props.job - Job data object.
- * @param {object} props.edit - View-model returned by useEditJobDetails({ job }).
+ * @param {object} props.edit - View-model returned by useEditJobForm({ job }).
  * @param {boolean} props.isActive - True if job.status is "active" (case-insensitive).
  * @param {string} props.companyName - Resolved company name for display.
  * @param {boolean} props.companyLoading - True while company query is pending.
@@ -34,17 +34,17 @@ import styles from "../styles/jobdetailscreen.module.css";
 import FilterDropdownSearchAndAdd from "../../../components/filterdropdown/FilterDropdownSearchAndAdd";
 
 /**
- * Logger for JobDetailsBox.
+ * Logger for EditJobForm.
  *
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[JobDetailsBox]", ...args),
-    error: (...args) => console.error("[JobDetailsBox]", ...args),
+    info: (...args) => console.log("[EditJobForm]", ...args),
+    error: (...args) => console.error("[EditJobForm]", ...args),
 };
 
-const JobDetailsBox = ({
+const EditJobForm = ({
                            job,
                            edit,
                            isActive,
@@ -56,7 +56,7 @@ const JobDetailsBox = ({
                            userError,
                            formatDisplayDate,
                        }) => {
-    logger.info("JobDetailsBox rendered", {
+    logger.info("EditJobForm rendered", {
         jobId: job?.jobId,
         isEditMode: !!edit?.isEditMode,
     });
@@ -310,4 +310,4 @@ const JobDetailsBox = ({
     );
 };
 
-export default JobDetailsBox;
+export default EditJobForm;

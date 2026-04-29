@@ -4,7 +4,7 @@ import styles from "./viewitemmodal.module.css";
 import ItemConditionIcon from "./ItemConditionIcon";
 import TagInfoPill from "../../tag/components/TagInfoPill";
 import PhotoPreview from "../../photo/components/PhotoPreview";
-import HorizontalJobBox from "../../job/components/HorizontalJobBox";
+import JobCarousel from "../../job/components/JobCarousel.tsx";
 
 /**
  * Logger for ViewItemModal.
@@ -254,7 +254,7 @@ const ViewItemModal = ({
                 {/* Jobs field (horizontal box, paginated) */}
                 {resolvedJobs.length > 0 && (
                     <div className={styles.fieldGroup}>
-                        <HorizontalJobBox
+                        <JobCarousel
                             jobs={resolvedJobs}
                             onJobClick={handleJobClick}
                         />
