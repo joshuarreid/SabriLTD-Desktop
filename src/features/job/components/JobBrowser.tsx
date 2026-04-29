@@ -1,9 +1,9 @@
 /**
- * JobSearchBox.jsx
+ * JobBrowser.jsx
  *
  * Reusable search bar + filter row + job card grid + pagination component.
  * Encapsulates all job search UI that was previously inline in JobScreen.
- * All data fetching and state management delegated to useJobSearchBox.
+ * All data fetching and state management delegated to useJobBrowser.
  *
  * @component
  * @param {object} props
@@ -14,8 +14,8 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import styles from "../styles/jobsearchbox.module.css";
-import useJobSearchBox from "../hooks/useJobSearchBox";
+import styles from "../styles/jobbrowser.module.css";
+import useJobBrowser from "../hooks/useJobBrowser";
 import JobInfoCard, { JobInfo } from "./JobInfoCard";
 import CreateJobModal from "./CreateJobModal";
 import FilterDropdown from "../../../components/filterdropdown/FilterDropdown";
@@ -34,17 +34,17 @@ interface JobSearchBoxProps {
 }
 
 /**
- * Logger for JobSearchBox.
+ * Logger for JobBrowser.
  *
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args: unknown[]) => console.log("[JobSearchBox]", ...args),
-    error: (...args: unknown[]) => console.error("[JobSearchBox]", ...args),
+    info: (...args: unknown[]) => console.log("[JobBrowser]", ...args),
+    error: (...args: unknown[]) => console.error("[JobBrowser]", ...args),
 };
 
-const JobSearchBox: React.FC<JobSearchBoxProps> = ({
+const JobBrowser: React.FC<JobSearchBoxProps> = ({
     onJobClick,
     placeholder = "Search jobs",
     openCreateJobModal,
@@ -54,9 +54,9 @@ const JobSearchBox: React.FC<JobSearchBoxProps> = ({
     createJobError,
     handleCreateJob,
 }) => {
-    logger.info("JobSearchBox rendered");
+    logger.info("JobBrowser rendered");
 
-    // Only useJobSearchBox for search/filter/pagination, NOT modal state
+    // Only useJobBrowser for search/filter/pagination, NOT modal state
     const {
         paginatedJobs,
         totalJobs,
@@ -88,7 +88,7 @@ const JobSearchBox: React.FC<JobSearchBoxProps> = ({
         itemEnd,
         handleResetFilters,
         applyGlobalSearch,
-    } = useJobSearchBox({ placeholder });
+    } = useJobBrowser({ placeholder });
 
     /**
      * handleSearchChange
@@ -366,4 +366,4 @@ const JobSearchBox: React.FC<JobSearchBoxProps> = ({
     );
 };
 
-export default JobSearchBox;
+export default JobBrowser;
