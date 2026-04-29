@@ -98,7 +98,7 @@ export const itemKeys = {
      * @param {number|string} itemId
      * @returns {Array}
      */
-    detail: (itemId) => [...itemKeys.all, "detail", itemId],
+    detail: (itemId: number | string) => [...itemKeys.all, "detail", itemId],
 
     /**
      * Key for expanded details (GET /details).
@@ -107,7 +107,7 @@ export const itemKeys = {
      * @param {number|string} itemId
      * @returns {Array}
      */
-    details: (itemId) => [...itemKeys.all, "details", itemId],
+    details: (itemId: number | string) => [...itemKeys.all, "details", itemId],
 
     /**
      * Key for create-item mutation.
@@ -124,7 +124,7 @@ export const itemKeys = {
      * @param {number|string} itemId
      * @returns {Array}
      */
-    update: (itemId) => [...itemKeys.detail(itemId), "update"],
+    update: (itemId: number | string) => [...itemKeys.detail(itemId), "update"],
 
     /**
      * Key for delete-item mutation.
@@ -133,7 +133,7 @@ export const itemKeys = {
      * @param {number|string} itemId
      * @returns {Array}
      */
-    remove: (itemId) => [...itemKeys.detail(itemId), "remove"],
+    remove: (itemId: number | string) => [...itemKeys.detail(itemId), "remove"],
 
     /**
      * Key for batch remove mutation.
