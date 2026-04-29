@@ -32,10 +32,31 @@
 
 import React from "react";
 import ItemCardGrid from "../../item/components/ItemCardGrid";
+import { useJobAddItemsModal } from "../hooks/useJobAddItemsModal";
+import styles from "../styles/jobitemgridbox.module.css";
+import JobAddItemsModal from "./JobAddItemsModal";
 
-import { useAddItemsToJobModal } from "../hooks/useAddItemsToJobModal";
-import styles from "./jobitemgridbox.module.css";
-import AddItemsToJobModal from "./AddItemToJobModal";
+interface JobItemGridBoxProps {
+    jobId: number | string;
+    items: any[];
+    isPending: boolean;
+    isError: boolean;
+    error: any;
+    page: number;
+    setPage: (page: number) => void;
+    pageSize: number;
+    setPageSize: (size: number) => void;
+    totalPages: number;
+    totalItems: number;
+    hasPrevious: boolean;
+    hasNext: boolean;
+    itemStart: number;
+    itemEnd: number;
+    handleNext: () => void;
+    handlePrevious: () => void;
+    refetch: () => void;
+    onItemClick: (item: object) => void;
+}
 
 /**
  * Logger for JobItemGridBox.
@@ -44,31 +65,31 @@ import AddItemsToJobModal from "./AddItemToJobModal";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[JobItemGridBox]", ...args),
-    error: (...args) => console.error("[JobItemGridBox]", ...args),
+    info: (...args: any[]) => console.log("[JobItemGridBox]", ...args),
+    error: (...args: any[]) => console.error("[JobItemGridBox]", ...args),
 };
 
-const JobItemGridBox = ({
-                            jobId,
-                            items,
-                            isPending,
-                            isError,
-                            error,
-                            page,
-                            setPage,
-                            pageSize,
-                            setPageSize,
-                            totalPages,
-                            totalItems,
-                            hasPrevious,
-                            hasNext,
-                            itemStart,
-                            itemEnd,
-                            handleNext,
-                            handlePrevious,
-                            refetch,
-                            onItemClick,
-                        }) => {
+const JobItemGridBox: React.FC<JobItemGridBoxProps> = ({
+    jobId,
+    items,
+    isPending,
+    isError,
+    error,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+    hasPrevious,
+    hasNext,
+    itemStart,
+    itemEnd,
+    handleNext,
+    handlePrevious,
+    refetch,
+    onItemClick,
+}) => {
     logger.info("JobItemGridBox rendered", {
         jobId,
         itemsCount: Array.isArray(items) ? items.length : 0,
@@ -77,7 +98,7 @@ const JobItemGridBox = ({
         totalItems,
     });
 
-    const addItemsModal = useAddItemsToJobModal({ jobId });
+    const addItemsModal = useJobAddItemsModal();
 
     return (
         <div className={styles.container}>
@@ -88,7 +109,7 @@ const JobItemGridBox = ({
                     type="button"
                     onClick={() => {
                         logger.info("Add Items button clicked", { jobId });
-                        addItemsModal.openModal();
+                        addItemsModal.openModal(jobId);
                     }}
                 >
                     + Add Items
@@ -112,21 +133,20 @@ const JobItemGridBox = ({
                 itemStart={itemStart}
                 itemEnd={itemEnd}
                 pageSize={pageSize}
-                setPageSize={setPageSize}
                 handleNext={handleNext}
                 handlePrevious={handlePrevious}
                 refetch={refetch}
             />
 
-            <AddItemsToJobModal
+            <JobAddItemsModal
                 open={addItemsModal.open}
-                jobId={jobId}
+                jobId={addItemsModal.jobId}
                 onClose={addItemsModal.closeModal}
                 onToggleItem={addItemsModal.toggleItem}
                 isItemSelected={addItemsModal.isItemSelected}
                 selectedCount={addItemsModal.selectedCount}
-                onAddItems={addItemsModal.handleAddItems}
-                onOpenItemDetails={onItemClick}
+                onAddItems={addItemsModal.onAddItems}
+                onOpenItemDetails={addItemsModal.onOpenItemDetails}
                 isSaving={addItemsModal.isSaving}
                 status={addItemsModal.status}
                 error={addItemsModal.error}

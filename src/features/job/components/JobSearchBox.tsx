@@ -14,7 +14,7 @@
 
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import styles from "./jobsearchbox.module.css";
+import styles from "../styles/jobsearchbox.module.css";
 import useJobSearchBox from "../hooks/useJobSearchBox";
 import JobInfoCard, { JobInfo } from "./JobInfoCard";
 import CreateJobModal from "./CreateJobModal";
@@ -25,6 +25,12 @@ import WideSearchBar from "../../../components/searchbar/WideSearchBar";
 interface JobSearchBoxProps {
     onJobClick: (job: JobInfo) => void;
     placeholder?: string;
+    openCreateJobModal: () => void;
+    isCreateJobModalOpen: boolean;
+    closeCreateJobModal: () => void;
+    createJobStatus: string;
+    createJobError: string;
+    handleCreateJob: (payload: any) => void;
 }
 
 /**
@@ -38,9 +44,19 @@ const logger = {
     error: (...args: unknown[]) => console.error("[JobSearchBox]", ...args),
 };
 
-const JobSearchBox: React.FC<JobSearchBoxProps> = ({ onJobClick, placeholder = "Search jobs" }) => {
+const JobSearchBox: React.FC<JobSearchBoxProps> = ({
+    onJobClick,
+    placeholder = "Search jobs",
+    openCreateJobModal,
+    isCreateJobModalOpen,
+    closeCreateJobModal,
+    createJobStatus,
+    createJobError,
+    handleCreateJob,
+}) => {
     logger.info("JobSearchBox rendered");
 
+    // Only useJobSearchBox for search/filter/pagination, NOT modal state
     const {
         paginatedJobs,
         totalJobs,
@@ -72,12 +88,6 @@ const JobSearchBox: React.FC<JobSearchBoxProps> = ({ onJobClick, placeholder = "
         itemEnd,
         handleResetFilters,
         applyGlobalSearch,
-        isCreateJobModalOpen,
-        openCreateJobModal,
-        closeCreateJobModal,
-        createJobStatus,
-        createJobError,
-        handleCreateJob,
     } = useJobSearchBox({ placeholder });
 
     /**

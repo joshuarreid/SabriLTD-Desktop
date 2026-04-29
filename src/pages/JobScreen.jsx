@@ -11,8 +11,9 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "../features/job/components/jobscreen.module.css";
+import styles from "../features/job/styles/jobscreen.module.css";
 import JobSearchBox from "../features/job/components/JobSearchBox";
+import useJobScreen from "../features/job/hooks/useJobScreen";
 
 
 /**
@@ -30,6 +31,15 @@ const JobScreen = () => {
     logger.info("JobScreen rendered");
 
     const navigate = useNavigate();
+    const {
+        openCreateJobModal,
+        isCreateJobModalOpen,
+        closeCreateJobModal,
+        createJobStatus,
+        createJobError,
+        handleCreateJob,
+        // ...other destructured values...
+    } = useJobScreen();
 
     /**
      * handleJobClick
@@ -57,6 +67,12 @@ const JobScreen = () => {
             <JobSearchBox
                 onJobClick={handleJobClick}
                 placeholder="Search jobs"
+                openCreateJobModal={openCreateJobModal}
+                isCreateJobModalOpen={isCreateJobModalOpen}
+                closeCreateJobModal={closeCreateJobModal}
+                createJobStatus={createJobStatus}
+                createJobError={createJobError}
+                handleCreateJob={handleCreateJob}
             />
         </div>
     );

@@ -4,7 +4,7 @@ import { useViewItemModal } from "../features/item/hooks/useViewItemModal";
 import ViewItemModal from "../features/item/components/ViewItemModal";
 import useJobDetailScreen from "../features/job/hooks/useJobDetailScreen.ts";
 import useEditJobDetails from "../features/job/hooks/useEditJobDetails.ts";
-import styles from "../features/job/components/jobdetailscreen.module.css";
+import styles from "../features/job/styles/jobdetailscreen.module.css";
 import JobDetailsBox from "../features/job/components/JobDetailsBox";
 import JobItemGridBox from "../features/job/components/JobItemGridBox";
 

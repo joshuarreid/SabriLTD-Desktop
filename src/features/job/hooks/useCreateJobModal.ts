@@ -221,6 +221,9 @@ export const useCreateJobModal = (): UseCreateJobModalReturn => {
         pendingClose,
         setPendingClose,
         createJobMutation,
+        openModal,
+        closeModal,
+        handleCreateJob,
     };
 };
 
