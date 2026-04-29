@@ -1,11 +1,11 @@
 /**
- * useJobSearchBox.js
+ * useJobBrowser.js
  *
- * Reusable orchestration hook for JobSearchBox.
+ * Reusable orchestration hook for JobBrowser.
  * Encapsulates all search, filter, sort, pagination, and create-job-modal state
  * that was previously in useJobScreen.
  *
- * Designed to be consumed by JobSearchBox (or any screen that needs a job search + grid).
+ * Designed to be consumed by JobBrowser (or any screen that needs a job search + grid).
  *
  * Rules (unchanged from useJobScreen):
  * - First non-"all" filter (company, client or status) becomes the PRIMARY GLOBAL FILTER.
@@ -15,10 +15,10 @@
  * - Status options are static and come from useJobFilters.
  * - Client options come from useJobFilters, optionally scoped by company via getJobClients.
  *
- * @function useJobSearchBox
+ * @function useJobBrowser
  * @param {object} [options]
  * @param {string} [options.placeholder="Search jobs"] - Search bar placeholder.
- * @returns {object} Full view model for JobSearchBox rendering.
+ * @returns {object} Full view model for JobBrowser rendering.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -29,18 +29,18 @@ import {getAllJobs, getJobClients, searchJobs} from "../api/job.ts";
 
 
 /**
- * Logger for useJobSearchBox.
+ * Logger for useJobBrowser.
  *
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[useJobSearchBox]", ...args),
-    error: (...args) => console.error("[useJobSearchBox]", ...args),
+    info: (...args) => console.log("[useJobBrowser]", ...args),
+    error: (...args) => console.error("[useJobBrowser]", ...args),
 };
 
-export const useJobSearchBox = ({ placeholder = "Search jobs" } = {}) => {
-    logger.info("useJobSearchBox render start");
+export const useJobBrowser = ({ placeholder = "Search jobs" } = {}) => {
+    logger.info("useJobBrowser render start");
 
     // ---- Central filter state (company, status, client) ----
     const [filtersState, setFiltersState] = useState({
@@ -717,5 +717,5 @@ export const useJobSearchBox = ({ placeholder = "Search jobs" } = {}) => {
     };
 };
 
-export default useJobSearchBox;
+export default useJobBrowser;
 

@@ -2,7 +2,7 @@
  * JobScreen.jsx
  *
  * Presentational jobs screen.
- * Uses JobSearchBox (reusable search + filters + grid + pagination) and
+ * Uses JobBrowser (reusable search + filters + grid + pagination) and
  * delegates navigation on card click.
  *
  * @component
@@ -12,7 +12,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../features/job/styles/jobscreen.module.css";
-import JobSearchBox from "../features/job/components/JobSearchBox";
+import JobBrowser from "../features/job/components/JobBrowser.tsx";
 import useJobScreen from "../features/job/hooks/useJobScreen";
 
 
@@ -64,7 +64,7 @@ const JobScreen = () => {
                 <h2 className={styles.title}>Jobs</h2>
             </header>
 
-            <JobSearchBox
+            <JobBrowser
                 onJobClick={handleJobClick}
                 placeholder="Search jobs"
                 openCreateJobModal={openCreateJobModal}
