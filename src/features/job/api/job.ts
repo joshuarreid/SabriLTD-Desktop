@@ -124,3 +124,21 @@ export async function getJobClients(params: Record<string, unknown> = {}): Promi
         throw error;
     }
 }
+
+/**
+ * Update items for a job
+ * @param jobId
+ * @param itemIds
+ * @returns {Promise<any>}
+ */
+export async function updateJobItems(jobId: string | number, itemIds: (string | number)[]): Promise<any> {
+    logger.info("updateJobItems called", { jobId, itemIds });
+    try {
+        // Adjust this to match your backend API route and payload
+        const response = await apiClient.updateJobItems(jobId, itemIds);
+        return response?.data || null;
+    } catch (error) {
+        logger.error("updateJobItems failed", error);
+        throw error;
+    }
+}

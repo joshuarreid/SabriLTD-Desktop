@@ -1,4 +1,7 @@
 import { useState, useCallback } from "react";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAddItemsToJob } from "./useJobs";
 
 export type JobAddItemsModalStatus = "idle" | "saving" | "saved" | "error";
 
@@ -25,9 +28,21 @@ export function useJobAddItemsModal(): UseJobAddItemsModalReturn {
   const [isSaving, setIsSaving] = useState(false);
   const [status, setStatus] = useState<JobAddItemsModalStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const { user: currentUser } = useCurrentUser();
+  const queryClient = useQueryClient();
+  const addItemsToJobMutation = useAddItemsToJob();
 
   const openModal = useCallback((id: string | number) => {
-    setJobId(id);
+    const normalizedId = typeof id === "string" ? parseInt(id, 10) : id;
+    if (normalizedId === null || normalizedId === undefined || Number.isNaN(normalizedId)) {
+      setError("No job specified. Please refresh and try again.");
+      setStatus("error");
+      setOpen(true);
+      setJobId(null);
+      setSelectedItems([]);
+      return;
+    }
+    setJobId(normalizedId);
     setOpen(true);
     setSelectedItems([]);
     setStatus("idle");
@@ -58,15 +73,30 @@ export function useJobAddItemsModal(): UseJobAddItemsModalReturn {
     [selectedItems]
   );
 
-  const onAddItems = useCallback(() => {
+  const onAddItems = useCallback(async () => {
+    if (!jobId || selectedItems.length === 0) return;
     setIsSaving(true);
     setStatus("saving");
-    // TODO: Implement API call to add items to job
-    setTimeout(() => {
-      setIsSaving(false);
+    setError(null);
+    try {
+      const itemIds = selectedItems.map(item => item.id);
+      await addItemsToJobMutation.mutateAsync({ jobId, itemIds });
       setStatus("saved");
-    }, 1000);
-  }, []);
+      setIsSaving(false);
+      setTimeout(() => {
+        setOpen(false);
+        setJobId(null);
+        setSelectedItems([]);
+        setStatus("idle");
+      }, 1000);
+    } catch (err: any) {
+      // Log the error response for debugging
+      console.error("Add items to job error:", err?.response ?? err);
+      setError(err && typeof err === "object" && "message" in err ? (err as any).message : "Failed to add items");
+      setStatus("error");
+      setIsSaving(false);
+    }
+  }, [jobId, selectedItems, addItemsToJobMutation]);
 
   const onOpenItemDetails = useCallback((item: any) => {
     // TODO: Implement open item details logic
@@ -88,4 +118,3 @@ export function useJobAddItemsModal(): UseJobAddItemsModalReturn {
     error,
   };
 }
-

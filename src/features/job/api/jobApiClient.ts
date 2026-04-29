@@ -246,4 +246,32 @@ export default class JobApiClient extends ApiClient {
             throw error;
         }
     }
+
+    /**
+     * Update items for a job
+     * @param jobId
+     * @param itemIds
+     * @returns {Promise<any>}
+     */
+    async updateJobItems(jobId: string | number, itemIds: (string | number)[]): Promise<any> {
+        logger.info("updateJobItems called", { jobId, itemIds });
+        try {
+            const token = await getTokenFromElectron();
+            if (!token) {
+                logger.error("updateJobItems failed: No token available");
+                throw new Error("No authentication token found");
+            }
+            // Adjust endpoint and payload as needed for your backend
+            const response = await this.put(`${jobId}/items`, { itemIds }, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            logger.info("updateJobItems success", { jobId, itemCount: itemIds.length });
+            return response;
+        } catch (error) {
+            logger.error("updateJobItems failed", error);
+            throw error;
+        }
+    }
 }
