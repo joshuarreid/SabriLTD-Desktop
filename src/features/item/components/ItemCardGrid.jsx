@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import { motion, AnimatePresence } from "framer-motion";
-import styles from "./itemcardgrid.module.css";
+import styles from "../styles/itemcardgrid.module.css";
 import ItemInfoCard from "./ItemInfoCard.jsx";
 
 /**

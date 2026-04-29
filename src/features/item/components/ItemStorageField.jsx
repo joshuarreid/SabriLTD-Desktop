@@ -11,7 +11,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useItemStorageField } from "../hooks/useItemStorageField";
 import { useNaturalSort } from "../../../components/alphabeticalsortfilter/useNaturalSort";
-import styles from "./itemstoragefield.module.css";
+import styles from "../styles/itemstoragefield.module.css";
 import StorageInfoCard from "../../storage/components/StorageInfoCard";
 import BuildingInfoCard from "../../building/components/BuildingInfoCard";
 import EditStorageModal from "../../storage/components/EditStorageModal";

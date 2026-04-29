@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useCallback } from "react";
-import styles from "../features/item/components/additemscreen.module.css";
+import styles from "../features/item/styles/additemscreen.module.css";
 import PhotoInfoCard from "../features/photo/components/photoInfoCard";
 import { usePendingPhotos } from "../features/item/hooks/useAddItemScreen";
 import { useUploadPhoto } from "../features/item/hooks/useUploadPhoto";

@@ -12,7 +12,7 @@
  * @returns {JSX.Element}
  */
 import React from "react";
-import styles from "./itemjobfield.module.css";
+import styles from "../styles/itemjobfield.module.css";
 
 const logger = {
     info: (...args) => console.log("[ItemJobPill]", ...args),
