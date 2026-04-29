@@ -1,19 +1,20 @@
 import React from "react";
 import Modal from "../../../components/modal/Modal";
 
+export interface JobModalProps {
+  open: boolean;
+  onClose: () => void;
+  title: React.ReactNode;
+  size?: "sm" | "md" | "lg" | "xl";
+  children: React.ReactNode;
+  trigger?: React.ReactElement;
+  [key: string]: any;
+}
+
 /**
  * Universal JobModal for create/edit job flows.
- *
- * Props:
- * - open: boolean (modal open state)
- * - onClose: () => void (close handler)
- * - title: React.ReactNode (modal title)
- * - size: string (modal size, e.g. "sm", "md", "lg", "xl")
- * - children: React.ReactNode (form component, e.g. <CreateJobForm /> or <EditJobForm />)
- * - trigger?: React.ReactElement (optional, for self-managed open)
- * - ...rest: any additional props passed to the form
  */
-const JobModal = ({
+const JobModal: React.FC<JobModalProps> = ({
   open,
   onClose,
   title,
@@ -23,8 +24,7 @@ const JobModal = ({
   ...rest
 }) => {
   const [internalOpen, setInternalOpen] = React.useState(false);
-  const isControlled = typeof open === "boolean";
-  const modalOpen = isControlled ? open : internalOpen;
+  const modalOpen = open;
 
   const handleOpen = () => setInternalOpen(true);
   const handleClose = () => {
@@ -34,7 +34,7 @@ const JobModal = ({
 
   return (
     <>
-      {trigger ? React.cloneElement(trigger, { onClick: handleOpen }) : null}
+      {trigger ? React.cloneElement(trigger as React.ReactElement<any>, { onClick: handleOpen }) : null}
       <Modal
         open={modalOpen}
         onClose={handleClose}
@@ -42,7 +42,7 @@ const JobModal = ({
         size={size}
       >
         {React.isValidElement(children)
-          ? React.cloneElement(children, { ...rest, onCancel: handleClose })
+          ? React.cloneElement(children as React.ReactElement<any>, { ...rest, onCancel: handleClose })
           : children}
       </Modal>
     </>
@@ -50,4 +50,3 @@ const JobModal = ({
 };
 
 export default JobModal;
-
