@@ -22,7 +22,6 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import useCreateJobModal from "./useCreateJobModal.ts";
 import {DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY, useJobFilters} from "./useJobFilters.ts";
 import useJobSearch from "./useJobSearch.ts";
 import useJobScreenPagination from "./useJobScreenPagination.ts";
@@ -42,11 +41,6 @@ const logger = {
 
 export const useJobSearchBox = ({ placeholder = "Search jobs" } = {}) => {
     logger.info("useJobSearchBox render start");
-
-    /**
-     * Create job modal orchestration (open/close/mutation).
-     */
-    const createJobModal = useCreateJobModal();
 
     // ---- Central filter state (company, status, client) ----
     const [filtersState, setFiltersState] = useState({
@@ -720,14 +714,6 @@ export const useJobSearchBox = ({ placeholder = "Search jobs" } = {}) => {
         // actions
         handleResetFilters,
         handleSetPageSize,
-
-        // create job modal
-        isCreateJobModalOpen: createJobModal.open,
-        openCreateJobModal: createJobModal.openModal,
-        closeCreateJobModal: createJobModal.closeModal,
-        createJobStatus: createJobModal.status,
-        createJobError: createJobModal.error,
-        handleCreateJob: createJobModal.handleCreateJob,
     };
 };
 

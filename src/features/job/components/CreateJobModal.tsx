@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import styles from "./createjobmodal.module.css";
+import styles from "../styles/createjobmodal.module.css";
 import Modal from "../../../components/modal/Modal";
 
 /**
@@ -93,7 +93,7 @@ const CreateJobModal = ({
             open={open}
             onClose={onClose}
             title={<h2 className={styles.modalTitle}>New Job</h2>}
-            width={520}
+            size="sm"
         >
             <div className={styles.form}>
                 <div className={styles.formGroup}>

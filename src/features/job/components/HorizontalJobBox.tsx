@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import styles from "./horizontaljobbox.module.css";
+import styles from "../styles/horizontaljobbox.module.css";
 import JobInfoCard, { JobInfo } from "./JobInfoCard";
 
 /**

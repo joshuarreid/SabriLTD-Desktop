@@ -12,7 +12,7 @@
  */
 
 import * as React from "react";
-import styles from "./jobinfocard.module.css";
+import styles from "../styles/jobinfocard.module.css";
 import { FcFolder } from "react-icons/fc";
 import { TbProgressCheck } from "react-icons/tb";
 

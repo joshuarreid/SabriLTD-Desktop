@@ -12,8 +12,8 @@ import {
     DEFAULT_PAGE_SIZE,
     DEFAULT_SORT_KEY,
 } from "./useJobFilters.ts";
-import { useJobSearch } from "./useJobSearch.js";
-import { useJobScreenPagination } from "./useJobScreenPagination.js";
+import { useJobSearch } from "./useJobSearch.ts";
+import { useJobScreenPagination } from "./useJobScreenPagination.ts";
 import { useCreateJobModal } from "./useCreateJobModal.ts";
 
 const logger = {

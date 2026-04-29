@@ -9,8 +9,16 @@ interface ModalProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   width?: string | number;
+  size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }
+
+const SIZE_WIDTH_MAP: Record<string, number> = {
+  sm: 360,
+  md: 500,
+  lg: 700,
+  xl: 900,
+};
 
 const Modal: React.FC<ModalProps> = ({
   open,
@@ -18,7 +26,8 @@ const Modal: React.FC<ModalProps> = ({
   title,
   children,
   footer,
-  width = 500,
+  width,
+  size = "md",
   className = "",
 }) => {
   useEffect(() => {
@@ -32,11 +41,14 @@ const Modal: React.FC<ModalProps> = ({
 
   if (!open) return null;
 
+  // Determine modal width: width prop takes precedence, otherwise use size
+  const modalWidth = width !== undefined ? width : SIZE_WIDTH_MAP[size] || SIZE_WIDTH_MAP.md;
+
   return ReactDOM.createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
       <div
         className={`${styles.modalCard} ${className}`}
-        style={{ width }}
+        style={{ width: modalWidth }}
         role="dialog"
         aria-modal="true"
         onClick={e => e.stopPropagation()}
@@ -52,4 +64,3 @@ const Modal: React.FC<ModalProps> = ({
 };
 
 export default Modal;
-
