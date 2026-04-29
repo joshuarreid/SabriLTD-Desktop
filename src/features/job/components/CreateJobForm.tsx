@@ -2,7 +2,25 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "../styles/createjobmodal.module.css";
 
-const CreateJobForm = ({
+interface CreateJobFormProps {
+    isSaving: boolean;
+    saveState: any;
+    onSave: (data: any) => void;
+    onCancel: () => void;
+    error: any;
+    companyOptions: Array<{ value: string | number; label: string }>;
+    statusOptions: Array<{ value: string | number; label: string }>;
+    autoFocus: boolean;
+    initialValues: {
+        name?: string;
+        companyId?: string | number;
+        client?: string;
+        description?: string;
+        status?: string;
+    };
+}
+
+const CreateJobForm: React.FC<CreateJobFormProps> = ({
     isSaving,
     saveState,
     onSave,
@@ -13,7 +31,7 @@ const CreateJobForm = ({
     autoFocus,
     initialValues,
 }) => {
-    const nameInputRef = useRef(null);
+    const nameInputRef = useRef<HTMLInputElement>(null);
     const [draft, setDraft] = useState({
         name: initialValues?.name || "",
         companyId: initialValues?.companyId || "",
@@ -40,7 +58,7 @@ const CreateJobForm = ({
         return (statusOptions || []).filter((o) => o.value !== "all");
     }, [statusOptions]);
 
-    const updateDraft = (field, value) => {
+    const updateDraft = (field: string, value: string) => {
         setDraft((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -62,7 +80,7 @@ const CreateJobForm = ({
         };
     };
 
-    const handleConfirm = (e) => {
+    const handleConfirm = (e: React.FormEvent) => {
         e?.preventDefault?.();
         onSave(buildPayload());
     };
@@ -191,4 +209,3 @@ const CreateJobForm = ({
 };
 
 export default CreateJobForm;
-
