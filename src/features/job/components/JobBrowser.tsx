@@ -298,11 +298,14 @@ const JobBrowser: React.FC<JobSearchBoxProps> = ({
                                         job={{
                                             jobId: job.jobId,
                                             name: job.name,
-                                            companyName: job.client,
-                                            status: job.status,
-                                            description: job.description,
+                                            companyName: job.companyName || "",
+                                            status: job.status || "",
+                                            description: job.description || "",
                                         }}
-                                        onClick={() => handleCardClick(job)}
+                                        onClick={() => {
+                                            logger.info("JobInfoCard clicked", job);
+                                            handleCardClick(job);
+                                        }}
                                     />
                                 </motion.div>
                             ))}
@@ -327,6 +330,7 @@ const JobBrowser: React.FC<JobSearchBoxProps> = ({
                 error={createJobError}
                 companyOptions={companyOptions}
                 statusOptions={statusOptions}
+                onCancel={closeCreateJobModal}
             />
 
             {/* Pagination footer */}

@@ -40,22 +40,50 @@ import FilterDropdownSearchAndAdd from "../../../components/filterdropdown/Filte
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[EditJobForm]", ...args),
-    error: (...args) => console.error("[EditJobForm]", ...args),
+    info: (...args: any[]) => console.log("[EditJobForm]", ...args),
+    error: (...args: any[]) => console.error("[EditJobForm]", ...args),
 };
 
-const EditJobForm = ({
-                           job,
-                           edit,
-                           isActive,
-                           companyName,
-                           companyLoading,
-                           companyError,
-                           userName,
-                           userLoading,
-                           userError,
-                           formatDisplayDate,
-                       }) => {
+interface EditJobFormProps {
+    job: any;
+    edit: any;
+    isActive: boolean;
+    companyName: string;
+    companyLoading: boolean;
+    companyError: string | null;
+    userName: string;
+    userLoading: boolean;
+    userError: string | null;
+    formatDisplayDate: (value: string) => string;
+    [key: string]: any;
+}
+
+const EditJobForm: React.FC<EditJobFormProps> = ({
+    job,
+    edit,
+    isActive,
+    companyName,
+    companyLoading,
+    companyError,
+    userName,
+    userLoading,
+    userError,
+    formatDisplayDate,
+    ...rest
+}) => {
+    logger.info("Rendering EditJobForm with props", {
+        job,
+        edit,
+        isActive,
+        companyName,
+        companyLoading,
+        companyError,
+        userName,
+        userLoading,
+        userError,
+        rest
+    });
+
     logger.info("EditJobForm rendered", {
         jobId: job?.jobId,
         isEditMode: !!edit?.isEditMode,
@@ -79,7 +107,7 @@ const EditJobForm = ({
                         onClick={edit.saveJob}
                         disabled={!edit.hasChanges || edit.saveJobState.isPending}
                     >
-                        <MdCheck size={26} />
+                        {MdCheck({ size: 26 })}
                     </button>
                 )}
                 <button
@@ -92,7 +120,7 @@ const EditJobForm = ({
                     tabIndex={0}
                     onClick={edit.toggleEditMode}
                 >
-                    {edit.isEditMode ? <MdClose size={26} /> : <MdOutlineModeEditOutline size={26} />}
+                    {edit.isEditMode ? MdClose({ size: 26 }) : MdOutlineModeEditOutline({ size: 26 })}
                 </button>
             </div>
 
@@ -104,14 +132,12 @@ const EditJobForm = ({
             )}
 
             <div className={styles.jobSummaryRow}>
-                {isActive && (
-                    <TbProgressCheck
-                        size={22}
-                        color="#338c41"
-                        className={styles.jobActiveIcon}
-                        aria-label="Active job"
-                    />
-                )}
+                {isActive && TbProgressCheck({
+                    size: 22,
+                    color: "#338c41",
+                    className: styles.jobActiveIcon,
+                    "aria-label": "Active job"
+                })}
                 <span className={styles.jobTitle}>
                     {edit.isEditMode ? edit.editValues.name : job.name} -{" "}
                     {edit.isEditMode ? edit.editValues.description : job.description}

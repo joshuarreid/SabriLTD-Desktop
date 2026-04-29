@@ -16,7 +16,6 @@
  * @param {number} props.page
  * @param {(page: number) => void} props.setPage
  * @param {number} props.pageSize
- * @param {(pageSize: number) => void} props.setPageSize
  * @param {number} props.totalPages
  * @param {number} props.totalItems
  * @param {boolean} props.hasPrevious
@@ -45,7 +44,6 @@ interface JobItemGridBoxProps {
     page: number;
     setPage: (page: number) => void;
     pageSize: number;
-    setPageSize: (size: number) => void;
     totalPages: number;
     totalItems: number;
     hasPrevious: boolean;
@@ -78,7 +76,6 @@ const JobItemGridBox: React.FC<JobItemGridBoxProps> = ({
     page,
     setPage,
     pageSize,
-    setPageSize,
     totalPages,
     totalItems,
     hasPrevious,
