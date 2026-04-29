@@ -51,9 +51,9 @@ export default class TagApiClient extends ApiClient {
      */
     constructor({ baseURL, timeout = 10000 } = {}) {
         // NOTE: apiPath MUST NOT have trailing slash, so that
-        // ApiClient._buildUrl + get() produce "/api/tag?categoryId=5"
-        // and NOT "/api/tag/?categoryId=5" (which your backend rejects)
-        super({ baseURL, timeout, apiPath: '/api/tag' });
+        // ApiClient._buildUrl + get() produce "/api/tags?categoryId=5"
+        // and NOT "/api/tags/?categoryId=5" (which your backend rejects)
+        super({ baseURL, timeout, apiPath: '/api/tags' });
         logger.info('TagApiClient initialized');
     }
 
@@ -104,7 +104,7 @@ export default class TagApiClient extends ApiClient {
                 throw new Error('No authentication token found');
             }
             // IMPORTANT: use '' (no trailing slash) just like fetchAllStorage does,
-            // so ApiClient.get builds "/api/tag?categoryId=5" instead of "/api/tag/?categoryId=5"
+            // so ApiClient.get builds "/api/tags?categoryId=5" instead of "/api/tags/?categoryId=5"
             const response = await this.get('', params, {
                 headers: {
                     Authorization: `Bearer ${token}`,

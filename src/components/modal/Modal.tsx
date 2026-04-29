@@ -18,6 +18,7 @@ const SIZE_WIDTH_MAP: Record<string, number> = {
   md: 500,
   lg: 700,
   xl: 900,
+    xxl: 1200
 };
 
 const Modal: React.FC<ModalProps> = ({
