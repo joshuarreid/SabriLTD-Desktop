@@ -16,7 +16,7 @@
  */
 import React from "react";
 import PropTypes from "prop-types";
-import styles from "./itemconditionpill.module.css";
+import styles from "../styles/itemconditionpill.module.css";
 
 /**
  * logger for ItemConditionPill.

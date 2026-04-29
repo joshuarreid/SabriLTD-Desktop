@@ -34,8 +34,8 @@
 
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import itemKeys from "../../../api/item/ItemQueryKeys.js";
-import { getItemDetails } from "../../../api/item/item.js";
+import itemKeys from "../api/ItemQueryKeys.ts";
+import { getItemDetails } from "../api/item.ts";
 
 /**
  * Logger for useViewItemModal.
@@ -275,4 +275,3 @@ export const useViewItemModal = (initialItem = null) => {
 };
 
 export default useViewItemModal;
-

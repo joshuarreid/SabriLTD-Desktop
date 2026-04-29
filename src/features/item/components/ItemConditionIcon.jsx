@@ -8,7 +8,7 @@ import {
     FaCircleQuestion,
     FaCircleXmark
 } from "react-icons/fa6";
-import styles from "./itemconditionicon.module.css";
+import styles from "../styles/itemconditionicon.module.css";
 
 /**
  * logger for ItemConditionIcon.

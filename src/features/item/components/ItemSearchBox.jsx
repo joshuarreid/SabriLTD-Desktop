@@ -28,7 +28,7 @@
  */
 
 import React, { useCallback } from "react";
-import styles from "./itemsearchbox.module.css";
+import styles from "../styles/itemsearchbox.module.css";
 
 import { useItemSearchBox } from "../hooks/useItemSearchBox";
 import WideSearchBar from "../../../components/searchbar/WideSearchBar";

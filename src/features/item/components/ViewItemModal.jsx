@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./viewitemmodal.module.css";
+import styles from "../styles/viewitemmodal.module.css";
 import ItemConditionIcon from "./ItemConditionIcon";
 import TagInfoPill from "../../tag/components/TagInfoPill";
 import PhotoPreview from "../../photo/components/PhotoPreview";

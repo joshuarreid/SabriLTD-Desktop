@@ -11,9 +11,9 @@ import {
   getJobClients,
   updateJobItems
 } from "../api/job";
-import { getItemById, updateItem } from "../../../api/item/item";
+import { getItemById, updateItem } from "../../item/api/item";
 import type { Job } from "../api/job.types";
-import itemKeys from "../../../api/item/ItemQueryKeys.js";
+import itemKeys from "../../item/api/ItemQueryKeys";
 
 // Fetch all jobs
 export function useAllJobs(params: Record<string, unknown> = {}) {

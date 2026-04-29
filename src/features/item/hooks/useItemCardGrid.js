@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { searchItems } from "../../../api/item/item";
-import itemKeys from "../../../api/item/ItemQueryKeys";
+import { searchItems } from "../api/item.ts";
+import itemKeys from "../api/ItemQueryKeys.ts";
 
 /**
  * logger for useItemCardGrid hook.
