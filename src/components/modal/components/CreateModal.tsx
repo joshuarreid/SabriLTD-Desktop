@@ -5,7 +5,7 @@ This should implement the Modal.tsx component for the create modal.
 
 */
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Modal from "./Modal";
 import SaveStatus from "../../save/SaveStatus";
 import ConfirmationModal from "../../confirmationmodal/ConfirmationModal";
@@ -40,6 +40,28 @@ const CreateModal: React.FC<CreateModalProps> = ({
   deleteTooltip = "Delete",
 }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingClose, setPendingClose] = useState(false);
+  const closeTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Start close timer only when saveState transitions to 'saved'
+  useEffect(() => {
+    if (saveState === "saved" && !pendingClose) {
+      setPendingClose(true);
+    }
+  }, [saveState, pendingClose]);
+
+  // Handle SaveStatus feedback and delayed close
+  useEffect(() => {
+    if (saveState === "saved" && pendingClose) {
+      closeTimeout.current = setTimeout(() => {
+        setPendingClose(false);
+        onClose();
+      }, 1000);
+      return () => {
+        if (closeTimeout.current) clearTimeout(closeTimeout.current);
+      };
+    }
+  }, [saveState, pendingClose, onClose]);
 
   const handleDelete = () => {
     setConfirmOpen(true);
@@ -52,14 +74,26 @@ const CreateModal: React.FC<CreateModalProps> = ({
     setConfirmOpen(false);
   };
 
+  // Intercept Create button to delay close
+  const handleCreate = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onCreate();
+  };
+
   return (
     <>
       <Modal
         open={open}
         onClose={onClose}
         title={
-          <div className={styles.modalTitle} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div className={styles.modalTitle} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
             <span>{title}</span>
+            {/* SaveStatus in top right */}
+            <div style={{ position: "absolute", top: 0, right: 0, zIndex: 2 }}>
+              {(saveState === "saved" || saveState === "saving") && (
+                <SaveStatus status={saveState} />
+              )}
+            </div>
             {showDelete && (
               <button
                 className={styles.trashButton}
@@ -76,8 +110,7 @@ const CreateModal: React.FC<CreateModalProps> = ({
         footer={
           <div className={styles.modalFooter}>
             <button className={styles.cancelButton} onClick={onCancel} type="button">Cancel</button>
-            <button className={styles.saveButton} onClick={onCreate} type="button" disabled={isSaving}>Create</button>
-            <SaveStatus state={saveState} />
+            <button className={styles.saveButton} onClick={handleCreate} type="button" disabled={isSaving}>Create</button>
           </div>
         }
       >

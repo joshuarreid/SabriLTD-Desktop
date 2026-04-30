@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import EditModal from "../../../components/modal/components/EditModal";
 import EditBuildingForm from "./EditBuildingForm";
 
@@ -39,11 +39,28 @@ const EditBuildingModal: React.FC<EditBuildingModalProps> = (props) => {
     logger.info("Rendering EditBuildingModal with props", props);
     const { open, onClose, building, onSave, onDelete, isSaving, saveState = 'idle', error, ...rest } = props;
     const formRef = useRef<any>(null);
+    // Add deleteStatus state
+    const [deleteStatus, setDeleteStatus] = useState<'idle' | 'deleting' | 'deleted' | 'error'>("idle");
+
     const handleSave = () => {
         if (formRef.current && typeof formRef.current.submit === 'function') {
             formRef.current.submit();
         }
     };
+    // Handle delete: set deleteStatus synchronously, then call onDelete
+    const handleDelete = async () => {
+        setDeleteStatus("deleting");
+        try {
+            if (onDelete) await onDelete(building.buildingId);
+            setDeleteStatus("deleted");
+        } catch (e) {
+            setDeleteStatus("error");
+        }
+    };
+    // Reset deleteStatus when modal closes
+    React.useEffect(() => {
+        if (!open) setDeleteStatus("idle");
+    }, [open]);
     return (
         <EditModal
             open={open}
@@ -53,10 +70,17 @@ const EditBuildingModal: React.FC<EditBuildingModalProps> = (props) => {
             }}
             onSave={handleSave}
             onCancel={onClose}
-            onDelete={onDelete ? () => onDelete(building.buildingId) : undefined}
+            onDelete={handleDelete}
             isSaving={isSaving}
             saveState={saveState}
             title={<h2>Edit Building</h2>}
+            deleteConfirmTitle="Delete Building"
+            deleteConfirmDescription="Deleting this building will also remove all associated storage. This action cannot be undone."
+            deleteConfirmText="Delete"
+            deleteCancelText="Cancel"
+            deleteStatus={deleteStatus}
+            deletingText="Deleting building..."
+            deletedText="Building deleted!"
         >
             <EditBuildingForm
                 ref={formRef}

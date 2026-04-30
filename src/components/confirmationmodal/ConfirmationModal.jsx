@@ -51,6 +51,9 @@ const ConfirmationModal = ({
                            }) => {
     logger.info('ConfirmationModal rendered', { open, deleteStatus });
 
+    // Remove local confirmClicked state
+    // Only rely on props for disabling the button
+
     if (!open) return null;
 
     return (
@@ -93,9 +96,19 @@ const ConfirmationModal = ({
                     <button
                         className={confirmClass || styles.deleteButton}
                         onClick={onConfirm}
-                        disabled={isConfirmLoading || confirmDisabled || deleteStatus === "deleting" || deleteStatus === "deleted"}
+                        disabled={
+                            isConfirmLoading ||
+                            confirmDisabled ||
+                            deleteStatus === "deleting" ||
+                            deleteStatus === "deleted"
+                        }
                         type="button"
-                        aria-disabled={isConfirmLoading || confirmDisabled || deleteStatus === "deleting" || deleteStatus === "deleted"}
+                        aria-disabled={
+                            isConfirmLoading ||
+                            confirmDisabled ||
+                            deleteStatus === "deleting" ||
+                            deleteStatus === "deleted"
+                        }
                         tabIndex={0}
                     >
                         {isConfirmLoading || deleteStatus === "deleting"
