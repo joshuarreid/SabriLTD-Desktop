@@ -33,7 +33,7 @@ const logger = {
 /**
  * useCompanySettingsTab
  *
- * @returns {object} Hook API consumed by CompanySettingsTab.jsx
+ * @returns {object} Hook API consumed by CompanySettingsTab.tsx
  */
 export const useCompanySettingsTab = () => {
     logger.info("useCompanySettingsTab initialized");
