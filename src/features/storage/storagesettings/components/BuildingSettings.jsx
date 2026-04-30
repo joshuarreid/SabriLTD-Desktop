@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import styles from "../styles/storagesettingstab.module.css";
 import { BuildingInfoCard } from "../../../building/components/BuildingInfoCard";
 import EditBuildingModal from "../../../building/components/EditBuildingModal";
-import BuildingModal from "../../../building/components/BuildingModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
 import useModal from "../../../../components/modal/useModal";
 
@@ -126,31 +125,20 @@ const BuildingSettings = ({
                 ))}
             </div>
             {editModal.open && (
-                <BuildingModal
+                <EditBuildingModal
+                    building={currEditBuilding}
                     open={editModal.open}
-                    onClose={editModal.closeModal}
-                    title={
-                        <h2 id="edit-building-modal-title">
-                            {isEditMode ? "Edit Building" : "Add Building"}
-                        </h2>
+                    isSaving={
+                        isEditMode
+                            ? editStatus === "saving"
+                            : addStatus === "saving"
                     }
-                    size="sm"
-                >
-                    <EditBuildingModal
-                        building={currEditBuilding}
-                        open={editModal.open}
-                        isSaving={
-                            isEditMode
-                                ? editStatus === "saving"
-                                : addStatus === "saving"
-                        }
-                        error={null}
-                        saveState={isEditMode ? editStatus : addStatus}
-                        onSave={handleBuildingModalSave}
-                        onClose={editModal.closeModal}
-                        onDelete={handleRequestBuildingDelete}
-                    />
-                </BuildingModal>
+                    error={null}
+                    saveState={isEditMode ? editStatus : addStatus}
+                    onSave={handleBuildingModalSave}
+                    onClose={editModal.closeModal}
+                    onDelete={handleRequestBuildingDelete}
+                />
             )}
             <ConfirmationModal
                 open={!!buildingDeleteId}
