@@ -19,8 +19,8 @@ import {
     createCompany,
     updateCompany,
     deleteCompany,
-} from "../../../../api/company/company.js";
-import { companyKeys } from "../../../../api/company/companyQueryKeys.js";
+} from "../api/company.ts";
+import { companyKeys } from "../api/companyQueryKeys.ts";
 
 /**
  * logger for useCompanySettingsTab hook.

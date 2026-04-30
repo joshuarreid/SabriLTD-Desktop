@@ -4,7 +4,7 @@ import styles from "../features/settings/settingsscreen.module.css";
 import UserSettingsTab from "../features/User/usersettings/components/UserSettingsTab";
 import StorageSettingsTab from "../features/storage/storagesettings/components/StorageSettingsTab";
 import TagSettingsTab from "../features/tag/tagsettings/components/TagSettingsTab";
-import CompanySettingsTab from "../features/company/companysettings/components/CompanySettingsTab";
+import CompanySettingsTab from "../features/company/components/CompanySettingsTab.jsx";
 
 
 /**
