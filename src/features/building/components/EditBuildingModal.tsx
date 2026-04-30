@@ -1,5 +1,5 @@
-import React from "react";
-import BuildingModal from "./BuildingModal";
+import React, { useRef } from "react";
+import EditModal from "../../../components/modal/components/EditModal";
 import EditBuildingForm from "./EditBuildingForm";
 
 interface EditBuildingModalProps {
@@ -37,20 +37,37 @@ const logger = {
 
 const EditBuildingModal: React.FC<EditBuildingModalProps> = (props) => {
     logger.info("Rendering EditBuildingModal with props", props);
-    const { open, onClose, trigger = null, ...rest } = props;
+    const { open, onClose, building, onSave, onDelete, isSaving, saveState = 'idle', error, ...rest } = props;
+    const formRef = useRef<any>(null);
+    const handleSave = () => {
+        if (formRef.current && typeof formRef.current.submit === 'function') {
+            formRef.current.submit();
+        }
+    };
     return (
-        <BuildingModal
+        <EditModal
             open={open}
             onClose={() => {
                 logger.info("Modal closed");
                 onClose();
             }}
+            onSave={handleSave}
+            onCancel={onClose}
+            onDelete={onDelete ? () => onDelete(building.buildingId) : undefined}
+            isSaving={isSaving}
+            saveState={saveState}
             title={<h2>Edit Building</h2>}
-            size="sm"
-            {...(trigger !== undefined ? { trigger } : {})}
         >
-            <EditBuildingForm {...rest} />
-        </BuildingModal>
+            <EditBuildingForm
+                ref={formRef}
+                building={building}
+                error={error}
+                isSaving={isSaving}
+                onSave={onSave}
+                onCancel={onClose}
+                {...rest}
+            />
+        </EditModal>
     );
 };
 

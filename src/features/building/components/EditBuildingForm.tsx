@@ -1,7 +1,6 @@
-import React from "react";
+import React, { forwardRef, useImperativeHandle } from "react";
 import styles from "../styles/editbuildingmodal.module.css";
 import SaveStatus from "../../../components/save/SaveStatus.jsx";
-import { FaRegTrashCan } from "react-icons/fa6";
 import { useEditBuildingModal } from "../hooks/useEditBuildingModal";
 
 interface EditBuildingFormProps {
@@ -14,7 +13,7 @@ interface EditBuildingFormProps {
     saveState?: 'saving' | 'saved' | 'idle' | 'error';
 }
 
-const EditBuildingForm: React.FC<EditBuildingFormProps> = ({
+const EditBuildingForm = forwardRef(function EditBuildingForm({
     building,
     isSaving = false,
     onSave,
@@ -22,7 +21,7 @@ const EditBuildingForm: React.FC<EditBuildingFormProps> = ({
     onDelete,
     error = null,
     saveState = "idle",
-}: EditBuildingFormProps) => {
+}: EditBuildingFormProps, ref) {
     const {
         draft,
         formError,
@@ -32,7 +31,18 @@ const EditBuildingForm: React.FC<EditBuildingFormProps> = ({
         resetDraft,
     } = useEditBuildingModal(building, isSaving);
 
-    // Save handler
+    useImperativeHandle(ref, () => ({
+        submit: () => {
+            if (!draft.name.trim() || !draft.address.trim() || !draft.manager.trim()) {
+                setFormError("All fields are required.");
+                return false;
+            }
+            setFormError(null);
+            onSave(building?.buildingId, { ...draft });
+            return true;
+        }
+    }));
+
     const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!draft.name.trim() || !draft.address.trim() || !draft.manager.trim()) {
@@ -85,39 +95,9 @@ const EditBuildingForm: React.FC<EditBuildingFormProps> = ({
             <div className={styles.saveFeedback}>
                 <SaveStatus state={saveState} />
             </div>
-            <div className={styles.formActions}>
-                <button
-                    type="submit"
-                    className={styles.saveButton}
-                    disabled={isSaving}
-                    aria-disabled={isSaving}
-                >
-                    {isSaving ? "Saving..." : "Save"}
-                </button>
-                <button
-                    type="button"
-                    className={styles.cancelButton}
-                    onClick={onCancel}
-                    disabled={isSaving}
-                    aria-disabled={isSaving}
-                >
-                    Cancel
-                </button>
-                {onDelete && (
-                    <button
-                        type="button"
-                        className={styles.deleteButton}
-                        onClick={() => onDelete(building?.buildingId)}
-                        disabled={isSaving}
-                        aria-disabled={isSaving}
-                        title="Delete building"
-                    >
-                        <FaRegTrashCan />
-                    </button>
-                )}
-            </div>
+            {/* Action buttons removed; handled by modal */}
         </form>
     );
-};
+});
 
 export default EditBuildingForm;

@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import styles from "../styles/storagesettingstab.module.css";
 import { BuildingInfoCard } from "../../../building/components/BuildingInfoCard";
 import EditBuildingModal from "../../../building/components/EditBuildingModal";
+import CreateBuildingModal from "../../../building/components/CreateBuildingModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
-import useModal from "../../../../components/modal/hooks/useModal.js";
+import useModal from "../../../../components/modal/hooks/useModal";
 
 /**
  * BuildingSettings
@@ -77,9 +78,9 @@ const BuildingSettings = ({
     const handleBuildingModalSave = (buildingId, payload) => {
         logger.info("handleBuildingModalSave", { buildingId, payload });
         if (!buildingId) {
-            handleAddBuilding(payload, (error) => {});
+            handleAddBuilding(payload, () => {});
         } else {
-            handleSaveEdit(buildingId, payload, (error) => {});
+            handleSaveEdit(buildingId, payload, () => {});
         }
     };
 
@@ -134,20 +135,28 @@ const BuildingSettings = ({
                     />
                 ))}
             </div>
-            {editModal.open && currEditBuilding && (
+            {editModal.open && currEditBuilding && isEditMode && (
                 <EditBuildingModal
                     building={currEditBuilding}
                     open={editModal.open}
-                    isSaving={
-                        isEditMode
-                            ? editStatus === "saving"
-                            : addStatus === "saving"
-                    }
+                    isSaving={editStatus === "saving"}
                     error={null}
-                    saveState={isEditMode ? editStatus : addStatus}
+                    saveState={editStatus}
                     onSave={handleBuildingModalSave}
                     onClose={editModal.closeModal}
                     onDelete={handleRequestBuildingDelete}
+                />
+            )}
+            {editModal.open && currEditBuilding && !isEditMode && (
+                <CreateBuildingModal
+                    open={editModal.open}
+                    isSaving={addStatus === "saving"}
+                    saveState={addStatus}
+                    onSave={(data) => handleBuildingModalSave(null, data)}
+                    onClose={editModal.closeModal}
+                    onCancel={editModal.closeModal}
+                    error={null}
+                    initialValues={currEditBuilding}
                 />
             )}
             <ConfirmationModal
