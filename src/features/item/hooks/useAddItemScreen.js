@@ -11,8 +11,8 @@
  * }
  */
 import { useQuery } from "@tanstack/react-query";
-import { photoKeys } from "../../../api/photo/photoQueryKeys.js";
-import { getPendingPhotos } from "../../../api/photo/photo.js";
+import { photoKeys } from "../../photo/api/photoQueryKeys.js";
+import { getPendingPhotos } from "../../photo/api/photo.js";
 
 
 const logger = {

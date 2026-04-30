@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createItem } from "../api/item.ts";
 import { itemKeys } from "../api/ItemQueryKeys.ts";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
-import { photoKeys } from "../../../api/photo/photoQueryKeys.js";
+import { photoKeys } from "../../photo/api/photoQueryKeys.js";
 
 interface Photo {
     photoId: number;
