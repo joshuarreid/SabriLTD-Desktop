@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import styles from "../styles/editbuildingmodal.module.css";
 
 interface CreateBuildingFormProps {
@@ -15,7 +15,7 @@ interface CreateBuildingFormProps {
     };
 }
 
-const CreateBuildingForm: React.FC<CreateBuildingFormProps> = ({
+const CreateBuildingForm = forwardRef(function CreateBuildingForm({
     isSaving,
     saveState = 'idle',
     onSave,
@@ -23,7 +23,7 @@ const CreateBuildingForm: React.FC<CreateBuildingFormProps> = ({
     error = null,
     autoFocus = false,
     initialValues = {},
-}) => {
+}: CreateBuildingFormProps, ref) {
     const nameInputRef = useRef<HTMLInputElement>(null);
     const [draft, setDraft] = useState({
         name: initialValues?.name || "",
@@ -31,6 +31,22 @@ const CreateBuildingForm: React.FC<CreateBuildingFormProps> = ({
         manager: initialValues?.manager || "",
     });
     const [formError, setFormError] = useState<string | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        submit: () => {
+            if (!draft.name.trim() || !draft.address.trim() || !draft.manager.trim()) {
+                setFormError("All fields are required.");
+                return false;
+            }
+            setFormError(null);
+            onSave({
+                name: draft.name.trim(),
+                address: draft.address.trim(),
+                manager: draft.manager.trim(),
+            });
+            return true;
+        }
+    }));
 
     useEffect(() => {
         if (autoFocus) {
@@ -102,27 +118,9 @@ const CreateBuildingForm: React.FC<CreateBuildingFormProps> = ({
             <div className={styles.saveFeedback}>
                 {saveState === "saved" ? <div className={styles.savedMsg}>Saved</div> : null}
             </div>
-            <div className={styles.formActions}>
-                <button
-                    type="submit"
-                    className={styles.saveButton}
-                    disabled={!canSubmit}
-                    aria-disabled={!canSubmit}
-                >
-                    {isSaving ? "Saving..." : "Create"}
-                </button>
-                <button
-                    type="button"
-                    className={styles.cancelButton}
-                    onClick={onCancel}
-                    disabled={isSaving}
-                    aria-disabled={isSaving}
-                >
-                    Cancel
-                </button>
-            </div>
+            {/* Action buttons removed; handled by modal */}
         </form>
     );
-};
+});
 
 export default CreateBuildingForm;
