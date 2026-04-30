@@ -13,7 +13,7 @@ import { useItemStorageField } from "../hooks/useItemStorageField";
 import { useNaturalSort } from "../../../components/alphabeticalsortfilter/useNaturalSort";
 import styles from "../styles/itemstoragefield.module.css";
 import StorageInfoCard from "../../storage/components/StorageInfoCard";
-import BuildingInfoCard from "../../building/components/BuildingInfoCard";
+import { BuildingInfoCard } from "../../building/components/BuildingInfoCard";
 import EditStorageModal from "../../storage/components/EditStorageModal";
 
 /**
@@ -287,3 +287,4 @@ export const ItemStorageField = ({
 };
 
 export default ItemStorageField;
+

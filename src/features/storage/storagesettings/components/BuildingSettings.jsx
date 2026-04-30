@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import BuildingInfoCard from "../../../building/components/BuildingInfoCard.jsx";
-import EditBuildingModal from "../../../building/components/EditBuildingModal.jsx";
-import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal.jsx";
+import { BuildingInfoCard } from "../../../building/components/BuildingInfoCard";
+import EditBuildingModal from "../../../building/components/EditBuildingModal";
+import BuildingModal from "../../../building/components/BuildingModal";
+import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
+import useModal from "../../../../components/modal/useModal";
 
 /**
  * BuildingSettings
@@ -19,29 +21,28 @@ const logger = {
 const EMPTY_BUILDING = { name: "", address: "", manager: "" };
 
 const BuildingSettings = ({
-                              buildings,
-                              isBuildingsPending,
-                              isBuildingsError,
-                              buildingsError,
-                              selectedBuildingId,
-                              setSelectedBuildingId,
-                              editingId,
-                              addingBuilding,
-                              openAddBuilding,
-                              handleAddBuilding,
-                              handleEditBuilding,
-                              handleSaveEdit,
-                              cancelEditOrAdd,
-                              editStatus,
-                              addStatus,
-                              buildingDeleteId,
-                              buildingDeleteStatus,
-                              triggerBuildingDelete,
-                              handleConfirmBuildingDelete,
-                              handleCancelBuildingDelete,
-                          }) => {
-    // Modal local state
-    const [editBuildingModalOpen, setEditBuildingModalOpen] = useState(false);
+    buildings,
+    isBuildingsPending,
+    isBuildingsError,
+    buildingsError,
+    selectedBuildingId,
+    setSelectedBuildingId,
+    editingId,
+    addingBuilding,
+    openAddBuilding,
+    handleAddBuilding,
+    handleEditBuilding,
+    handleSaveEdit,
+    cancelEditOrAdd,
+    editStatus,
+    addStatus,
+    buildingDeleteId,
+    buildingDeleteStatus,
+    triggerBuildingDelete,
+    handleConfirmBuildingDelete,
+    handleCancelBuildingDelete,
+}) => {
+    const editModal = useModal(false);
     const [currEditBuilding, setCurrEditBuilding] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
 
@@ -51,9 +52,9 @@ const BuildingSettings = ({
             const building = buildings.find((b) => b.buildingId === editingId);
             setCurrEditBuilding(building);
             setIsEditMode(true);
-            setEditBuildingModalOpen(true);
+            editModal.openModal();
         } else if (!addingBuilding) {
-            setEditBuildingModalOpen(false);
+            editModal.closeModal();
             setCurrEditBuilding(null);
         }
     }, [editingId, buildings, addingBuilding]);
@@ -62,9 +63,9 @@ const BuildingSettings = ({
         if (addingBuilding) {
             setCurrEditBuilding(EMPTY_BUILDING);
             setIsEditMode(false);
-            setEditBuildingModalOpen(true);
+            editModal.openModal();
         } else if (!editingId) {
-            setEditBuildingModalOpen(false);
+            editModal.closeModal();
             setCurrEditBuilding(null);
         }
     }, [addingBuilding, editingId]);
@@ -77,21 +78,10 @@ const BuildingSettings = ({
     const handleBuildingModalSave = (buildingId, payload) => {
         logger.info("handleBuildingModalSave", { buildingId, payload });
         if (!buildingId) {
-            handleAddBuilding(payload, (error) => { });
+            handleAddBuilding(payload, (error) => {});
         } else {
-            handleSaveEdit(buildingId, payload, (error) => { });
+            handleSaveEdit(buildingId, payload, (error) => {});
         }
-    };
-
-    /**
-     * Handles modal close/cancel for building.
-     */
-    const handleBuildingModalClose = () => {
-        logger.info("Building modal closed or cancelled");
-        cancelEditOrAdd();
-        setEditBuildingModalOpen(false);
-        setCurrEditBuilding(null);
-        setIsEditMode(false);
     };
 
     /**
@@ -135,17 +125,33 @@ const BuildingSettings = ({
                     />
                 ))}
             </div>
-            <EditBuildingModal
-                building={currEditBuilding}
-                open={editBuildingModalOpen}
-                isSaving={isEditMode ? editStatus === "saving" : addStatus === "saving"}
-                error={null}
-                saveState={isEditMode ? editStatus : addStatus}
-                onSave={handleBuildingModalSave}
-                onClose={handleBuildingModalClose}
-                onDelete={handleRequestBuildingDelete}
-            />
-            {/* Global delete modal for buildings */}
+            {editModal.open && (
+                <BuildingModal
+                    open={editModal.open}
+                    onClose={editModal.closeModal}
+                    title={
+                        <h2 id="edit-building-modal-title">
+                            {isEditMode ? "Edit Building" : "Add Building"}
+                        </h2>
+                    }
+                    size="sm"
+                >
+                    <EditBuildingModal
+                        building={currEditBuilding}
+                        open={editModal.open}
+                        isSaving={
+                            isEditMode
+                                ? editStatus === "saving"
+                                : addStatus === "saving"
+                        }
+                        error={null}
+                        saveState={isEditMode ? editStatus : addStatus}
+                        onSave={handleBuildingModalSave}
+                        onClose={editModal.closeModal}
+                        onDelete={handleRequestBuildingDelete}
+                    />
+                </BuildingModal>
+            )}
             <ConfirmationModal
                 open={!!buildingDeleteId}
                 onCancel={handleCancelBuildingDelete}
