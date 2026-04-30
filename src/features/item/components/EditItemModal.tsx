@@ -1,5 +1,5 @@
 import React from "react";
-import Modal from "../../../components/modal/Modal";
+import Modal from "../../../components/modal/components/Modal";
 import EditItemForm from "./EditItemForm";
 import { useEditItemModal } from "../hooks/useEditItemModal";
 import useItemTagField from "../hooks/useItemTagField";

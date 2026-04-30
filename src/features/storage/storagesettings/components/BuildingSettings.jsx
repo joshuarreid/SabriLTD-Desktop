@@ -3,7 +3,7 @@ import styles from "../styles/storagesettingstab.module.css";
 import { BuildingInfoCard } from "../../../building/components/BuildingInfoCard";
 import EditBuildingModal from "../../../building/components/EditBuildingModal";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
-import useModal from "../../../../components/modal/useModal";
+import useModal from "../../../../components/modal/hooks/useModal.js";
 
 /**
  * BuildingSettings

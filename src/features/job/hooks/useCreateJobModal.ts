@@ -11,7 +11,7 @@
 
 import { useEffect, useRef } from "react";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
-import useModal from "../../../components/modal/useModal";
+import useModal from "../../../components/modal/hooks/useModal";
 import useCreateJobMutation from "./useCreateJobMutation";
 
 export interface CreateJobPayload {
