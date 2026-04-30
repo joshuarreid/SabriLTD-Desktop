@@ -39,7 +39,6 @@ const EditBuildingModal: React.FC<EditBuildingModalProps> = (props) => {
     logger.info("Rendering EditBuildingModal with props", props);
     const { open, onClose, building, onSave, onDelete, isSaving, saveState = 'idle', error, ...rest } = props;
     const formRef = useRef<any>(null);
-    // Add deleteStatus state
     const [deleteStatus, setDeleteStatus] = useState<'idle' | 'deleting' | 'deleted' | 'error'>("idle");
 
     const handleSave = () => {
@@ -47,6 +46,7 @@ const EditBuildingModal: React.FC<EditBuildingModalProps> = (props) => {
             formRef.current.submit();
         }
     };
+
     // Handle delete: set deleteStatus synchronously, then call onDelete
     const handleDelete = async () => {
         setDeleteStatus("deleting");
@@ -57,10 +57,12 @@ const EditBuildingModal: React.FC<EditBuildingModalProps> = (props) => {
             setDeleteStatus("error");
         }
     };
+
     // Reset deleteStatus when modal closes
     React.useEffect(() => {
         if (!open) setDeleteStatus("idle");
     }, [open]);
+
     return (
         <EditModal
             open={open}
