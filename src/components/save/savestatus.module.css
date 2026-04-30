@@ -1,14 +1,14 @@
 .saveState {
     display: flex;
     align-items: center;
-    font-size: 1.06em;
-    font-weight: 500;
-    gap: 0.6em;
-    color: #444;
+    gap: 4px;
+    font-size: 12px;
 }
 
 .iconSpin {
     animation: spinAnim 0.9s linear infinite;
+    width: 16px !important;
+    height: 16px !important;
 }
 
 @keyframes spinAnim {
