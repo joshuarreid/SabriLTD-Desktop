@@ -59,7 +59,6 @@ const JobAddItemsForm: React.FC<JobAddItemsFormProps> = (props) => {
                     sortField="name"
                     sortOrder="asc"
                     placeholder="Search items to add…"
-                    fixedFilters={[]}
                 />
             </div>
             {error ? <div className={styles.errorMsg}>{error}</div> : null}
