@@ -1,6 +1,6 @@
 /**
  * useEditUserProfileModal
- * Encapsulates draft state, validation, and input logic for Add/Edit User Profile modals.
+ * Encapsulates draft state, validation, and input logic for Add/Edit user Profile modals.
  *
  * @param {object|null} user - If editing: existing user object. If adding: `{ name: "", email: "" }`.
  * @param {boolean} isSaving - Whether the save operation is in progress.

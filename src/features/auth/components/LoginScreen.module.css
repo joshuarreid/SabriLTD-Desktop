@@ -126,7 +126,7 @@
     min-height: 180px;
 }
 
-/* === User grid paging arrows (side of grid, vertically centered) === */
+/* === user grid paging arrows (side of grid, vertically centered) === */
 .userGridPagerWrapper {
     display: flex;
     flex-direction: row;
@@ -223,7 +223,7 @@
     }
 }
 
-/* User tile */
+/* user tile */
 .userTile {
     width: var(--tile-size);
     height: var(--tile-height);

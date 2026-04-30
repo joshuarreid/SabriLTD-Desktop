@@ -10,7 +10,7 @@ import { FaRegTrashCan } from "react-icons/fa6";
  *
  * @component
  * @param {object} props
- * @param {object} props.user - User object to edit ({userId, name, email}). Use {name: '', email: ''} for add mode.
+ * @param {object} props.user - user object to edit ({userId, name, email}). Use {name: '', email: ''} for add mode.
  * @param {boolean} props.open - Modal open state.
  * @param {boolean} props.isSaving - If the save action is pending.
  * @param {function} props.onSave - Receives (userId, {name, email}) on submit.
@@ -106,7 +106,7 @@ const EditUserProfileModal = ({
     const handleDeleteConfirm = () => {
         setDeleteConfirmOpen(false);
         if (onDelete && user.userId && !isCurrentUser) {
-            logger.info("User delete confirmed", user.userId);
+            logger.info("user delete confirmed", user.userId);
             onDelete(user.userId);
         }
     };
@@ -154,7 +154,7 @@ const EditUserProfileModal = ({
                     </button>
                 )}
                 <h2 className={styles.userTitle} id="edit-user-modal-title">
-                    {isAddUser ? "Add User" : "Edit User"}
+                    {isAddUser ? "Add user" : "Edit user"}
                 </h2>
                 <form
                     className={styles.userForm}

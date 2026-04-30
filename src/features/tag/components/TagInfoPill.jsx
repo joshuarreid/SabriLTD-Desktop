@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./taginfopill.module.css";
+import styles from "../styles/taginfopill.module.css";
 
 /**
  * logger for TagInfoPill component.

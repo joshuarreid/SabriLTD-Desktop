@@ -9,7 +9,7 @@
  *     • yellow underline for section title
  *     • small yellow status dot for cards (now shows on hover/focus)
  *     • subtle yellow pill for role badges
- *     • optional yellow "Add User" accent variant
+ *     • optional yellow "Add user" accent variant
  * - Keeps hover/focus states accessible and mild
  */
 
@@ -277,7 +277,7 @@
     transform: translateY(-1px);
 }
 
-/* User info */
+/* user info */
 .userInfo {
     display: flex;
     flex-direction: column;

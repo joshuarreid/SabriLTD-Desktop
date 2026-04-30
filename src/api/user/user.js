@@ -10,7 +10,7 @@ import UserApiClient from "./userApiClient.js";
 const apiClient = new UserApiClient();
 
 /**
- * User module logger (standardized).
+ * user module logger (standardized).
  *
  * @constant
  */
@@ -43,7 +43,7 @@ export async function getPublicUsers() {
  *
  * @async
  * @function getMe
- * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} User object
+ * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} user object
  * @throws {Error} If the request fails (network, 401, 500, etc).
  */
 export async function getMe() {
@@ -62,7 +62,7 @@ export async function getMe() {
  *
  * @async
  * @function getAllUsers
- * @returns {Promise<Array<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>>} User objects
+ * @returns {Promise<Array<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>>} user objects
  * @throws {Error} If the request fails (network, 401, 500, etc).
  */
 export async function getAllUsers() {
@@ -82,7 +82,7 @@ export async function getAllUsers() {
  * @async
  * @function getUserById
  * @param {number} userId - The user ID to fetch
- * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} User object
+ * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} user object
  * @throws {Error} If user is not found or request fails.
  */
 export async function getUserById(userId) {

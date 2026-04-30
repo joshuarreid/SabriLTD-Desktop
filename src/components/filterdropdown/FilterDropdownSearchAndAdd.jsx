@@ -178,7 +178,7 @@ const FilterDropdownSearchAndAdd = ({
      * - Show the "Create new" option when:
      *   1. onCreateNew callback is provided
      *   2. allowCreateNew is true
-     *   3. User has typed something in the search
+     *   3. user has typed something in the search
      *   4. No exact match exists in options
      *
      * @type {boolean}

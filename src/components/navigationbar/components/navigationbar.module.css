@@ -117,7 +117,7 @@
     color: var(--color-secondary, #ffd600);
 }
 
-/* User area alignment */
+/* user area alignment */
 .user {
     display: flex;
     align-items: center;

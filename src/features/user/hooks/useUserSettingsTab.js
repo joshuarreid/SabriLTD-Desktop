@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createUser, deleteUser, getAllUsers, getMe, updateUser } from "../../../../api/user/user.js";
-import { userKeys } from "../../../../api/user/userQueryKeys.js";
+import { createUser, deleteUser, getAllUsers, getMe, updateUser } from "../../../api/user/user.js";
+import { userKeys } from "../../../api/user/userQueryKeys.js";
 
 /**
  * logger for useUserSettingsTab hook.
@@ -71,7 +71,7 @@ export const useUserSettingsTab = () => {
         mutationFn: ({ userId, user }) => updateUser(userId, user),
         onMutate: () => setEditStatus('saving'),
         onSuccess: async (_updatedUser, { userId, user }) => {
-            logger.info('User updated, invalidating user keys');
+            logger.info('user updated, invalidating user keys');
             await invalidateAllUserKeys(queryClient, { ...user, userId });
             setEditStatus('saved');
             setTimeout(() => setEditStatus('idle'), 1800);
@@ -90,7 +90,7 @@ export const useUserSettingsTab = () => {
     const deleteUserMutation = useMutation({
         mutationFn: (userId) => deleteUser(userId),
         onSuccess: async (_data, userId) => {
-            logger.info('User deleted, invalidating user keys');
+            logger.info('user deleted, invalidating user keys');
             await invalidateAllUserKeys(queryClient, { userId });
         },
         onError: (err) => logger.error('deleteUser failed', err),
@@ -103,7 +103,7 @@ export const useUserSettingsTab = () => {
         mutationFn: (user) => createUser(user),
         onMutate: () => setAddStatus('saving'),
         onSuccess: async (createdUser) => {
-            logger.info('User created, invalidating user keys');
+            logger.info('user created, invalidating user keys');
             await invalidateAllUserKeys(queryClient, createdUser);
             setAddStatus('saved');
             setTimeout(() => setAddStatus('idle'), 1800);
@@ -134,7 +134,7 @@ export const useUserSettingsTab = () => {
      * Handles creation of a new user.
      *
      * @function handleAddUser
-     * @param {{name: string, email: string}} user - User object to create (name & email).
+     * @param {{name: string, email: string}} user - user object to create (name & email).
      * @param {function} [callback] - Optional, callback(error) after mutation completes.
      * @returns {void}
      */
