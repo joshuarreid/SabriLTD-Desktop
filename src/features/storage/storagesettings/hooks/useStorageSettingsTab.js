@@ -5,14 +5,14 @@ import {
     deleteBuilding,
     getAllBuildings,
     updateBuilding,
-} from "../../../../api/building/building.js";
+} from "../../../building/api/building.ts";
 import {
     createStorage,
     updateStorage,
     deleteStorage,
     getAllStorage,
 } from "../../../../api/storage/storage.js";
-import { buildingKeys } from "../../../../api/building/buildingQueryKeys.js";
+import { buildingKeys } from "../../../building/api/buildingQueryKeys.ts";
 import { storageKeys } from "../../../../api/storage/storageQueryKeys.js";
 
 /**

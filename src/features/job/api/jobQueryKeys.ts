@@ -2,7 +2,7 @@
  * Query keys for Job-related TanStack queries & mutations.
  * Follows canonical key patterns to prevent cache bugs and ensure uniform query shapes.
  *
- * Pattern is aligned with buildingQueryKeys.js:
+ * Pattern is aligned with buildingQueryKeys.ts:
  *  - Root key: ['job']
  *  - Lists, filtered lists, search, clients, companies, detail, create, update, remove keys
  *

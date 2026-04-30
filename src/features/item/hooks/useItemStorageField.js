@@ -14,9 +14,9 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllBuildings } from "../../../api/building/building.js";
+import { getAllBuildings } from "../../building/api/building.ts";
 import { getAllStorage, createStorage } from "../../../api/storage/storage.js";
-import { buildingKeys } from "../../../api/building/buildingQueryKeys.js";
+import { buildingKeys } from "../../building/api/buildingQueryKeys.ts";
 import { storageKeys } from "../../../api/storage/storageQueryKeys.js";
 
 /**

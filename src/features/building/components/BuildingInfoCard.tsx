@@ -1,26 +1,30 @@
 import React from "react";
-import styles from "./buildinginfocard.module.css";
+import styles from "../styles/buildinginfocard.module.css";
 import { FcOrganization, FcInTransit } from "react-icons/fc";
 import { GiHouse } from "react-icons/gi";
 import { MdOutlineModeEditOutline } from "react-icons/md";
 
 /**
- * logger for BuildingInfoCard.
- * @type {{info: Function, error: Function}}
+ * Props for BuildingInfoCard
  */
-const logger = {
-    info: (...args) => console.log("[BuildingInfoCard]", ...args),
-    error: (...args) => console.error("[BuildingInfoCard]", ...args),
-};
+export interface BuildingInfoCardProps {
+    building: {
+        buildingId: number;
+        name: string;
+        address?: string;
+        manager?: string;
+    };
+    selected?: boolean;
+    onClick?: () => void;
+    onEdit?: (building: any) => void;
+    showActions?: boolean;
+    compact?: boolean;
+}
 
 /**
  * Returns an icon for the building card based on building name.
- *
- * @function getBuildingIcon
- * @param {string} name
- * @returns {JSX.Element}
  */
-function getBuildingIcon(name) {
+function getBuildingIcon(name: string) {
     if (!name) return <FcOrganization className={styles.buildingIcon} />;
     const lower = name.toLowerCase();
     if (lower.includes("warehouse")) {
@@ -46,32 +50,15 @@ function getBuildingIcon(name) {
 /**
  * BuildingInfoCard
  * Renders a building card.
- *
- * @component
- * @param {object} props
- * @param {object} props.building - Building object ({ buildingId, name, address, manager })
- * @param {boolean} props.selected - Is this building selected
- * @param {function} [props.onClick] - Card click handler (optional)
- * @param {function} [props.onEdit] - (Optional) Edit callback for this building
- * @param {boolean} [props.showActions=true] - Show edit pencil (default: true)
- * @param {boolean} [props.compact=false] - Render compact/small for use in forms (default: false)
- * @returns {JSX.Element}
  */
-const BuildingInfoCard = ({
-                              building,
-                              selected,
-                              onClick,
-                              onEdit,
-                              showActions = true,
-                              compact = false
-                          }) => {
-    logger.info("BuildingInfoCard rendered", {
-        buildingId: building?.buildingId,
-        selected,
-        showActions,
-        compact
-    });
-
+export const BuildingInfoCard: React.FC<BuildingInfoCardProps> = ({
+    building,
+    selected = false,
+    onClick,
+    onEdit,
+    showActions = true,
+    compact = false
+}) => {
     // Merge classnames for compact mode
     const rootClass = [
         styles.buildingCard,
@@ -112,6 +99,7 @@ const BuildingInfoCard = ({
             </div>
             <div className={styles.buildingInfo}>
                 <div className={styles.buildingName}>{building.name}</div>
+                {building.address && <div className={styles.buildingAddress}>{building.address}</div>}
             </div>
         </button>
     );
