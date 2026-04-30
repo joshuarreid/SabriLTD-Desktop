@@ -1,4 +1,5 @@
 import { useState, useEffect, ChangeEvent, FormEvent, Dispatch, SetStateAction } from "react";
+import { useCreateBuilding, useUpdateBuilding, useDeleteBuilding } from './useBuildings';
 
 /**
  * Building draft type
@@ -22,7 +23,7 @@ export interface UseEditBuildingModalReturn {
     formError: string | null;
     setFormError: Dispatch<SetStateAction<string | null>>;
     handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
-    handleSubmit: (e: FormEvent, onSave: (buildingId: number | undefined, payload: BuildingDraft) => void) => void;
+    handleSubmit: (e: FormEvent) => void;
     resetDraft: () => void;
 }
 
@@ -45,9 +46,14 @@ const logger = {
 export const useEditBuildingModal = (
     building: { buildingId?: number; name: string; address: string; manager: string } | null,
     isSaving: boolean
-): UseEditBuildingModalReturn => {
+): UseEditBuildingModalReturn & { isLoading: boolean; mutationError: string | null } => {
     const [draft, setDraft] = useState<BuildingDraft>({ name: "", address: "", manager: "" });
     const [formError, setFormError] = useState<string | null>(null);
+
+    // Integrate TanStack mutations
+    const createMutation = useCreateBuilding();
+    const updateMutation = useUpdateBuilding();
+    const deleteMutation = useDeleteBuilding();
 
     useEffect(() => {
         if (building) setDraft({
@@ -71,18 +77,18 @@ export const useEditBuildingModal = (
     /**
      * Handles form submission and validation.
      * @param e - React.FormEvent
-     * @param onSave - Save handler
      */
-    const handleSubmit = (
-        e: FormEvent,
-        onSave: (buildingId: number | undefined, payload: BuildingDraft) => void
-    ) => {
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
         if (!draft.name.trim() || !draft.address.trim() || !draft.manager.trim()) {
             setFormError("All fields are required.");
             return;
         }
-        onSave(building?.buildingId, draft);
+        if (building?.buildingId) {
+            updateMutation.mutate({ buildingId: building.buildingId, building: draft });
+        } else {
+            createMutation.mutate(draft);
+        }
     };
 
     /**
@@ -108,5 +114,10 @@ export const useEditBuildingModal = (
         handleChange,
         handleSubmit,
         resetDraft,
+        isLoading: createMutation.isPending || updateMutation.isPending || deleteMutation.isPending,
+        mutationError: (createMutation.error as Error)?.message || (updateMutation.error as Error)?.message || (deleteMutation.error as Error)?.message || null,
+        createBuilding: createMutation.mutate,
+        updateBuilding: updateMutation.mutate,
+        deleteBuilding: deleteMutation.mutate,
     };
 };
