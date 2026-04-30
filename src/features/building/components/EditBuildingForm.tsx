@@ -97,75 +97,77 @@ const EditBuildingForm = ({
     const isAddBuilding = !building.buildingId;
 
     return (
-        <form className={styles.buildingForm} onSubmit={handleSubmit}>
-            <div className={styles.headerRow}>
-                <h3 className={styles.buildingTitle}>Edit Building</h3>
-                {!isAddBuilding && (
-                    <button
-                        type="button"
-                        className={styles.trashButton}
-                        onClick={handleTrashClick}
-                        title="Delete building"
-                        aria-label="Delete building"
+        <>
+            <form className={styles.buildingForm} onSubmit={handleSubmit}>
+                <div className={styles.headerRow}>
+                    <h3 className={styles.buildingTitle}>Edit Building</h3>
+                    {!isAddBuilding && (
+                        <button
+                            type="button"
+                            className={styles.trashButton}
+                            onClick={handleTrashClick}
+                            title="Delete building"
+                            aria-label="Delete building"
+                            disabled={isSaving}
+                            tabIndex={0}
+                        >
+                            <FaRegTrashCan size={20} />
+                        </button>
+                    )}
+                </div>
+                <div className={styles.formGroup}>
+                    <label htmlFor="building-name">Name</label>
+                    <input
+                        id="building-name"
+                        name="name"
+                        type="text"
+                        className={styles.input}
+                        value={draft.name}
+                        onChange={handleChange}
                         disabled={isSaving}
-                        tabIndex={0}
-                    >
-                        <FaRegTrashCan size={20} />
-                    </button>
+                        autoFocus
+                    />
+                </div>
+                <div className={styles.formGroup}>
+                    <label htmlFor="building-address">Address</label>
+                    <input
+                        id="building-address"
+                        name="address"
+                        type="text"
+                        className={styles.input}
+                        value={draft.address}
+                        onChange={handleChange}
+                        disabled={isSaving}
+                    />
+                </div>
+                <div className={styles.formGroup}>
+                    <label htmlFor="building-manager">Manager</label>
+                    <input
+                        id="building-manager"
+                        name="manager"
+                        type="text"
+                        className={styles.input}
+                        value={draft.manager}
+                        onChange={handleChange}
+                        disabled={isSaving}
+                    />
+                </div>
+                {(formError || error) && (
+                    <div className={styles.errorMsg}>{formError || error}</div>
                 )}
-            </div>
-            <div className={styles.formGroup}>
-                <label htmlFor="building-name">Name</label>
-                <input
-                    id="building-name"
-                    name="name"
-                    type="text"
-                    className={styles.input}
-                    value={draft.name}
-                    onChange={handleChange}
-                    disabled={isSaving}
-                    autoFocus
-                />
-            </div>
-            <div className={styles.formGroup}>
-                <label htmlFor="building-address">Address</label>
-                <input
-                    id="building-address"
-                    name="address"
-                    type="text"
-                    className={styles.input}
-                    value={draft.address}
-                    onChange={handleChange}
-                    disabled={isSaving}
-                />
-            </div>
-            <div className={styles.formGroup}>
-                <label htmlFor="building-manager">Manager</label>
-                <input
-                    id="building-manager"
-                    name="manager"
-                    type="text"
-                    className={styles.input}
-                    value={draft.manager}
-                    onChange={handleChange}
-                    disabled={isSaving}
-                />
-            </div>
-            {(formError || error) && (
-                <div className={styles.errorMsg}>{formError || error}</div>
-            )}
-            <div className={styles.formActions}>
-                <button type="button" className={styles.resetButton} onClick={handleCancel} disabled={isSaving}>
-                    Cancel
-                </button>
-                <button type="submit" className={styles.saveButton} disabled={isSaving}>
-                    Save
-                </button>
-                <span className={styles.saveFeedback}><SaveStatus state={saveState} /></span>
-            </div>
-            {/* Delete confirmation modal (simple inline version) */}
+                <div className={styles.formActions}>
+                    <button type="button" className={styles.resetButton} onClick={handleCancel} disabled={isSaving}>
+                        Cancel
+                    </button>
+                    <button type="submit" className={styles.saveButton} disabled={isSaving}>
+                        Save
+                    </button>
+                    <span className={styles.saveFeedback}><SaveStatus state={saveState} /></span>
+                </div>
+            </form>
+            {/* Delete confirmation modal (true overlay) */}
             {deleteConfirmOpen && (
-                <div className={styles.deleteConfirmOverlay}>
+                <div className={styles.deleteConfirmBackdrop}>
                     <div className={styles.deleteConfirmModal}>
                         <p>Are you sure you want to delete this building?</p>
                         <div className={styles.deleteConfirmActions}>
@@ -179,7 +181,7 @@ const EditBuildingForm = ({
                     </div>
                 </div>
             )}
-        </form>
+        </>
     );
 };
 
