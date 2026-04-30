@@ -3,8 +3,8 @@ import styles from "../styles/storagesettingstab.module.css";
 import StorageInfoCard from "../../components/StorageInfoCard.jsx";
 import EditStorageModal from "../../components/EditStorageModal.jsx";
 import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal.jsx";
-import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.js";
-import {useNaturalSort} from "../../../../components/alphabeticalsortfilter/useNaturalSort.js";
+import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.tsx";
+import { useNaturalSort } from "../../../../components/alphabeticalsortfilter/useNaturalSort";
 
 
 /**
@@ -20,7 +20,7 @@ const STORAGE_SORT_OPTIONS = [
 
 /**
  * EMPTY_STORAGE
- * Default storage object for add modal
+ * Default storage object for add modalimport useNaturalSort from "../../../../components/alphabeticalsortfilter/useNaturalSort";
  * @constant
  * @type {{ name: string, description: string, buildingId: string }}
  */
@@ -331,3 +331,4 @@ const StorageLocationsList = ({ storageList, onEditStorage }) => {
 };
 
 export default StorageSettings;
+
