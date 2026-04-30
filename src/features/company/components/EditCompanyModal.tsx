@@ -1,8 +1,28 @@
 import React from "react";
 import styles from "../styles/editcompanymodal.module.css";
 import SaveStatus from "../../../components/save/SaveStatus.jsx";
-import { useEditCompanyModal } from "../hooks/useEditCompanyModal.ts";
-import { FaRegTrashCan } from "react-icons/fa6";
+import { useEditCompanyModal } from "../hooks/useEditCompanyModal";
+import type { Company } from "./CompanyInfoCard";
+
+// Define the payload type for saving
+export interface CompanyPayload {
+    name: string;
+    address: string;
+    phone: string;
+    website: string;
+}
+
+// Define the props interface
+interface EditCompanyModalProps {
+    company: Company;
+    open: boolean;
+    isSaving: boolean;
+    onSave: (companyId: number | null, payload: Company) => void;
+    onClose: () => void;
+    onDelete?: (companyId: number) => void;
+    error?: string | null;
+    saveState?: 'saving' | 'saved' | 'idle' | 'error';
+}
 
 /**
  * logger for EditCompanyModal.
@@ -10,8 +30,8 @@ import { FaRegTrashCan } from "react-icons/fa6";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[EditCompanyModal]", ...args),
-    error: (...args) => console.error("[EditCompanyModal]", ...args),
+    info: (...args: any[]) => console.log("[EditCompanyModal]", ...args),
+    error: (...args: any[]) => console.error("[EditCompanyModal]", ...args),
 };
 
 /**
@@ -30,23 +50,22 @@ const logger = {
  * @param {'saving'|'saved'|'idle'|'error'} [props.saveState] - SaveStatus state (optional).
  * @returns {JSX.Element|null}
  */
-const EditCompanyModal = ({
-                              company,
-                              open,
-                              isSaving,
-                              onSave,
-                              onClose,
-                              onDelete,
-                              error,
-                              saveState = "idle",
-                          }) => {
+const EditCompanyModal: React.FC<EditCompanyModalProps> = ({
+    company,
+    open,
+    isSaving,
+    onSave,
+    onClose,
+    onDelete,
+    error,
+    saveState = "idle",
+}) => {
     const {
         draft,
         formError,
         setFormError,
         handleChange,
-        handleSubmit,
-        resetDraft,
+        handleSubmit
     } = useEditCompanyModal(company, isSaving);
 
     const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
@@ -76,7 +95,7 @@ const EditCompanyModal = ({
     /**
      * Open delete confirmation (only for edit mode).
      */
-    const handleTrashClick = (e) => {
+    const handleTrashClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         setDeleteConfirmOpen(true);
     };
@@ -125,7 +144,8 @@ const EditCompanyModal = ({
                         disabled={isSaving}
                         tabIndex={0}
                     >
-                        <FaRegTrashCan size={20} />
+                        {/* Fallback trash icon */}
+                        <span role="img" aria-label="Delete">🗑️</span>
                     </button>
                 )}
 

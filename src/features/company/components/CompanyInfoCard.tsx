@@ -14,14 +14,32 @@
 import React from "react";
 import styles from "../styles/companyinfocard.module.css";
 
+// Define the Company interface
+export interface Company {
+    companyId: number;
+    name: string;
+    address?: string;
+    phone?: string;
+    website?: string;
+}
+
+// Define the props interface
+interface CompanyInfoCardProps {
+    company: Company;
+    selected?: boolean;
+    onClick?: (company: Company) => void;
+    onEdit?: (company: Company) => void;
+    onDelete?: (companyId: number) => void;
+}
+
 /**
  * logger for CompanyInfoCard.
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[CompanyInfoCard]", ...args),
-    error: (...args) => console.error("[CompanyInfoCard]", ...args),
+    info: (...args: any[]) => console.log("[CompanyInfoCard]", ...args),
+    error: (...args: any[]) => console.error("[CompanyInfoCard]", ...args),
 };
 
 /**
@@ -38,7 +56,7 @@ const logger = {
  * @param {(companyId:number) => void} [props.onDelete] - Called when the delete action is triggered.
  * @returns {JSX.Element}
  */
-const CompanyInfoCard = ({ company, selected = false, onClick, onEdit, onDelete }) => {
+const CompanyInfoCard: React.FC<CompanyInfoCardProps> = ({ company, selected = false, onClick, onEdit, onDelete }) => {
     logger.info("CompanyInfoCard rendered", { companyId: company?.companyId, selected });
 
     return (

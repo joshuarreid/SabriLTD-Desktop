@@ -15,18 +15,18 @@
 
 import React, { useMemo, useState } from "react";
 import styles from "../styles/companysettingstab.module.css";
-import AlphabeticalSortFilter from "../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.tsx";
-import CompanyInfoCard from "./CompanyInfoCard.jsx";
-import EditCompanyModal from "./EditCompanyModal.jsx";
-import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab.ts";
+import AlphabeticalSortFilter from "../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
+import CompanyInfoCard, { Company } from "./CompanyInfoCard";
+import EditCompanyModal from "./EditCompanyModal";
+import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab";
 
 /**
  * logger for CompanySettingsTab.
  * @constant
  */
 const logger = {
-    info: (...args) => console.log("[CompanySettingsTab]", ...args),
-    error: (...args) => console.error("[CompanySettingsTab]", ...args),
+    info: (...args: any[]) => console.log("[CompanySettingsTab]", ...args),
+    error: (...args: any[]) => console.error("[CompanySettingsTab]", ...args),
 };
 
 /**
@@ -57,7 +57,6 @@ const CompanySettingsTab = () => {
         modalMode,
         modalCompany,
         modalError,
-        pendingClose,
         openEditModal,
         openAddModal,
         handleModalSaveEdit,
@@ -72,19 +71,17 @@ const CompanySettingsTab = () => {
         handleDeleteDirect,
     } = useCompanySettingsTab();
 
-    const [sortKey, setSortKey] = useState("a-z");
+    const [sortKey, setSortKey] = useState<string>("a-z");
 
-    const currentSort = useMemo(
-        () => COMPANY_SORT_OPTIONS.find((opt) => opt.key === sortKey) || COMPANY_SORT_OPTIONS[0],
+    const currentSort = useMemo(() =>
+        COMPANY_SORT_OPTIONS.find((opt) => opt.key === sortKey) ?? COMPANY_SORT_OPTIONS[0],
         [sortKey],
     );
-
-    const sortedCompanies = useMemo(() => {
+    const sortedCompanies = useMemo<Company[]>(() => {
         if (isPending || isError) return [];
         const base = Array.isArray(companies) ? [...companies] : [];
-        const field = currentSort.field || "name";
-        const order = currentSort.order || "asc";
-
+        const field = currentSort?.field || "name";
+        const order = currentSort?.order || "asc";
         base.sort((a, b) => {
             const aName = String(a?.[field] ?? "").toLowerCase();
             const bName = String(b?.[field] ?? "").toLowerCase();
@@ -94,16 +91,13 @@ const CompanySettingsTab = () => {
             }
             return bName.localeCompare(aName, undefined, { numeric: true, sensitivity: "base" });
         });
-
         return base;
-    }, [companies, isPending, isError, currentSort.field, currentSort.order]);
-
-    const onSortChange = (key) => {
+    }, [companies, isPending, isError, currentSort]);
+    const onSortChange = (key: string) => {
         logger.info("Sort changed", key);
         setSortKey(key);
     };
-
-    const removingCompany = removingId ? companies.find((c) => c.companyId === removingId) : null;
+    const removingCompany = removingId ? companies.find((c: Company) => c.companyId === removingId) : null;
 
     if (isPending) {
         return <div className={styles.loading}>Loading companies...</div>;
@@ -133,13 +127,11 @@ const CompanySettingsTab = () => {
                     <CompanyInfoCard
                         key={company.companyId}
                         company={company}
-                        // DO NOT pass a persistent `selected` prop so the card won't stay highlighted
-                        onClick={(c) => {
-                            // open modal (no setSelected behavior) — matches user tiles interaction
+                        onClick={(c: Company) => {
                             openEditModal(c);
                         }}
-                        onEdit={(c) => openEditModal(c)}
-                        onDelete={(companyId) => handlePromptDelete(companyId)}
+                        onEdit={(c: Company) => openEditModal(c)}
+                        onDelete={(companyId: number) => handlePromptDelete(companyId)}
                     />
                 ))}
             </div>
@@ -150,7 +142,7 @@ const CompanySettingsTab = () => {
                     company={modalCompany}
                     open={!!modalCompany}
                     isSaving={modalIsSaving}
-                    onSave={(companyId, payload) => {
+                    onSave={(companyId: number | null, payload: any) => {
                         if (modalMode === "edit") {
                             handleModalSaveEdit(companyId, payload);
                         } else {
@@ -158,8 +150,7 @@ const CompanySettingsTab = () => {
                         }
                     }}
                     onClose={closeModal}
-                    onDelete={(companyId) => {
-                        // EditCompanyModal shows its own confirmation. Perform direct delete if confirmed.
+                    onDelete={(companyId: number) => {
                         handleDeleteDirect(companyId);
                     }}
                     error={modalError}
