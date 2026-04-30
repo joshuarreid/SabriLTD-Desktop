@@ -4,6 +4,7 @@ import ItemConditionField from "./ItemConditionField";
 import ItemJobField from "./ItemJobField";
 import ItemStorageField from "./ItemStorageField";
 import ItemTagField from "./ItemTagField";
+import styles from "../styles/edititemmodal.module.css";
 
 interface EditItemFormProps {
     photo: { url: string } | null;
@@ -92,42 +93,128 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
     // Only enable "Save" when all *required* fields except jobIds/comments are present
     const isFormReady = !!itemName && !!conditionId && !!storageId && selectedTagIds.length > 0;
     if (!photos.length) return null;
+    const allowedSaveStatus = saveStatus === "saving" || saveStatus === "saved" ? saveStatus : undefined;
     return (
-        <form onSubmit={handleSubmit} autoComplete="off" id="edit-item-modal-form">
-            <div style={{ display: "flex", flexDirection: "row", gap: 24 }}>
-                {/* Left column: General + Associations + Tag/Category */}
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
-                    {/* General fields */}
-                    <input
-                        type="text"
-                        placeholder="Enter item name"
-                        value={itemName}
-                        onChange={e => setItemName(e.target.value)}
-                        autoComplete="off"
-                        required
-                    />
-                    <textarea
-                        placeholder="Enter a longer description for this item"
-                        value={itemDescription}
-                        onChange={e => setItemDescription(e.target.value)}
-                        rows={5}
-                    />
-                    <ItemConditionField value={conditionId} onChange={setConditionId} />
-                    <ItemJobField value={jobIds} onChange={setJobIds} />
-                    <ItemStorageField value={storageId} onChange={setStorageId} />
-                    <input
-                        type="text"
-                        placeholder="Enter storage location/notes"
-                        value={storageDesc}
-                        onChange={e => setStorageDesc(e.target.value)}
-                        autoComplete="off"
-                    />
-                    {/* Tagging (Category + Tags) */}
+        <form onSubmit={handleSubmit} autoComplete="off" id="edit-item-modal-form" style={{ height: "100%" }}>
+            {/* Image preview at the top */}
+            <div className={styles.photoModernCardStyledTall} style={{ margin: "0 auto 32px auto" }}>
+                <div className={styles.photoModernSquareFrameXXLTall}>
+                    {photo?.url ? (
+                        <img
+                            src={photo.url}
+                            alt="Item photo preview"
+                            className={styles.photoModernSquareImgXXLTall}
+                        />
+                    ) : (
+                        <div className={styles.photoModernPlaceholderXXL}>No Photo Available</div>
+                    )}
+                    <div className={styles.photoModernSquareNavXXL}>
+                        <button
+                            className={styles.photoModernSquareArrowXXL}
+                            onClick={handlePrev}
+                            disabled={isFirst}
+                            aria-label="Previous photo"
+                            tabIndex={0}
+                            type="button"
+                        >
+                            <span>&#9664;</span>
+                        </button>
+                        {photos.length > 1 && (
+                            <div className={styles.photoModernSquareDotsXXL}>
+                                {photos.map((_, idx) => (
+                                    <span
+                                        key={idx}
+                                        className={
+                                            styles.photoModernSquareDotXXL +
+                                            (idx === current ? ` ${styles.photoModernSquareDotActiveXXL}` : "")
+                                        }
+                                        onClick={() => handleSelect(idx)}
+                                        aria-label={
+                                            idx === current
+                                                ? `Photo ${idx + 1} (current)`
+                                                : `Go to photo ${idx + 1}`
+                                        }
+                                        tabIndex={0}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                        <button
+                            className={styles.photoModernSquareArrowXXL}
+                            onClick={handleNext}
+                            disabled={isLast}
+                            aria-label="Next photo"
+                            tabIndex={0}
+                            type="button"
+                        >
+                            <span>&#9654;</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {/* All fields stacked vertically with reduced side padding */}
+            <div style={{ width: "100%", boxSizing: "border-box", padding: "0 30px", display: "flex", flexDirection: "column", gap: 24 }}>
+                <div className={styles.formPanelCardGeneral}>
+                    <div className={styles.fieldModernBlockXXLCompact}>
+                        <label className={styles.labelModernXXL} htmlFor="edit-item-title">Title</label>
+                        <input
+                            id="edit-item-title"
+                            type="text"
+                            placeholder="Enter item name"
+                            value={itemName}
+                            onChange={e => setItemName(e.target.value)}
+                            className={styles.inputModernXXLCompact}
+                            autoComplete="off"
+                            required
+                        />
+                    </div>
+                    <div className={styles.fieldModernBlockXXLCompact}>
+                        <label className={styles.labelModernXXL} htmlFor="edit-item-description">Description</label>
+                        <textarea
+                            id="edit-item-description"
+                            placeholder="Enter a longer description for this item"
+                            value={itemDescription}
+                            onChange={e => setItemDescription(e.target.value)}
+                            className={styles.inputModernXXLDescription}
+                            rows={5}
+                        />
+                    </div>
+                </div>
+                <div className={styles.formPanelCard}>
+                    <div className={styles.fieldModernBlockXXLCompact}>
+                        <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
+                            <ItemConditionField value={conditionId} onChange={setConditionId} />
+                        </div>
+                    </div>
+                    <div className={styles.fieldModernBlockXXLCompact}>
+                        <div className={styles.inputModernXXLCompact} style={{ padding: 0, border: "none", background: "none" }}>
+                            <ItemJobField value={jobIds} onChange={setJobIds} />
+                        </div>
+                    </div>
+                    <div className={styles.fieldModernBlockXXLCompact}>
+                        {/* @ts-ignore: JSX component from JS file */}
+                        <ItemStorageField value={storageId} onChange={setStorageId} />
+                    </div>
+                    <div className={styles.fieldModernBlockXXLCompact}>
+                        <label className={styles.labelModernXXL} htmlFor="edit-item-storage-desc">Storage Description</label>
+                        <input
+                            id="edit-item-storage-desc"
+                            type="text"
+                            placeholder="Enter storage location/notes"
+                            value={storageDesc}
+                            onChange={e => setStorageDesc(e.target.value)}
+                            className={styles.inputModernXXLCompact}
+                            autoComplete="off"
+                        />
+                    </div>
+                </div>
+                <div className={styles.formPanelCardTagTall}>
+                    <div className={styles.itemModernTitleXXL}>Tagging</div>
                     <ItemTagField
                         selectedCategoryId={selectedCategoryId}
                         selectedTagIds={selectedTagIds}
-                        onCategoryChange={handleCategoryChange}
-                        onTagChange={handleTagChange}
+                        onCategoryChange={setSelectedCategoryId}
+                        onTagChange={setSelectedTagIds}
                         itemTagFieldState={{
                             ...itemTagFieldState,
                             tagSearch,
@@ -135,38 +222,46 @@ const EditItemForm: React.FC<EditItemFormProps> = ({
                         }}
                     />
                 </div>
-                {/* Right column: Photo + Comments */}
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
-                    {/* Photo preview and navigation */}
-                    {photos && photos.length > 0 && (
-                        <div>
-                            <img
-                                src={photo?.url}
-                                alt="Item Preview"
-                                style={{ width: "100%", maxHeight: 200, objectFit: "contain" }}
-                            />
-                            <div>
-                                <button type="button" onClick={handlePrev} disabled={isFirst}>&lt;</button>
-                                <button type="button" onClick={handleNext} disabled={isLast}>&gt;</button>
-                            </div>
-                        </div>
-                    )}
-                    {/* Comments */}
-                    <input
-                        type="text"
-                        placeholder="Add comments"
-                        value={comments}
-                        onChange={e => setComments(e.target.value)}
-                        autoComplete="off"
-                    />
+                {/* Comments at the very bottom */}
+                <div className={styles.formPanelCard}>
+                    <div className={styles.itemModernTitleXXL}>Comments</div>
+                    <div className={styles.fieldModernBlockXXLCompact}>
+                        <label className={styles.labelModernXXL} htmlFor="edit-item-comments">Comments</label>
+                        <input
+                            id="edit-item-comments"
+                            type="text"
+                            placeholder="Add comments"
+                            value={comments}
+                            onChange={e => setComments(e.target.value)}
+                            className={styles.inputModernXXLCompact}
+                            autoComplete="off"
+                        />
+                    </div>
+                </div>
+                {/* Sticky Save/cancel bottom right -- always visible, scrolls with modal */}
+                <div className={styles.modernFormActionRowXXLCompact}>
+                    <button
+                        type="submit"
+                        className={styles.saveModernButtonXXLCompact}
+                        disabled={!isFormReady || isSaving}
+                    >
+                        {isSaving ? "Saving…" : "Save"}
+                    </button>
+                    <button
+                        type="button"
+                        className={styles.cancelModernButtonXXLCompact}
+                        onClick={handleCancel}
+                        disabled={isSaving}
+                    >
+                        Cancel
+                    </button>
                 </div>
             </div>
-            {/* Save status and actions */}
-            <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end", gap: 12 }}>
-                <SaveStatus status={saveStatus} />
-                {apiError && <div style={{ color: "#cd384a" }}>{apiError}</div>}
-                <button type="button" onClick={handleCancel} disabled={isSaving}>Cancel</button>
-                <button type="submit" disabled={!isFormReady || isSaving}>{isSaving ? "Saving…" : "Save"}</button>
+            <div className={styles.saveFeedback}>
+                <SaveStatus status={allowedSaveStatus} />
+                {apiError && (
+                    <div className={styles.errorMessage}>{apiError}</div>
+                )}
             </div>
         </form>
     );
