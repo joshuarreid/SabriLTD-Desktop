@@ -18,7 +18,7 @@ import SaveStatus from "../components/save/SaveStatus";
 import EditItemModal from "../features/item/components/EditItemModal";
 import { useDeletePhotos } from "../features/item/hooks/useDeletePhotos";
 import { useQueryClient } from "@tanstack/react-query";
-import { photoKeys } from "../api/photo/photoQueryKeys";
+import { photoKeys } from "../features/photo/api/photoQueryKeys.js";
 import ConfirmationModal from "../components/confirmationmodal/ConfirmationModal";
 
 /**
