@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import styles from "./photopreview.module.css";
+import styles from "../styles/photopreview.module.css";
 import usePhotoPreview from "../hooks/usePhotoPreview";
 
 /**

@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./editstoragemodal.module.css";
+import styles from "../styles/editstoragemodal.module.css";
 import SaveStatus from "../../../components/save/SaveStatus";
 import { useEditStorageModal } from "../hooks/useEditStorageModal";
 import { FaRegTrashCan } from "react-icons/fa6";

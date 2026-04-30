@@ -12,7 +12,7 @@
  * @returns {JSX.Element}
  */
 import React from "react";
-import styles from "./photoinfocard.module.css";
+import styles from "../styles/photoinfocard.module.css";
 
 /**
  * logger for PhotoInfoCard.

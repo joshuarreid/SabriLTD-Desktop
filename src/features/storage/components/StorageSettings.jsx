@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import StorageInfoCard from "../../components/StorageInfoCard.jsx";
-import EditStorageModal from "../../components/EditStorageModal.jsx";
-import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal.jsx";
-import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.tsx";
-import { useNaturalSort } from "../../../../components/alphabeticalsortfilter/useNaturalSort";
+import StorageInfoCard from "./StorageInfoCard.jsx";
+import EditStorageModal from "./EditStorageModal.jsx";
+import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal.jsx";
+import AlphabeticalSortFilter from "../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.tsx";
+import { useNaturalSort } from "../../../components/alphabeticalsortfilter/useNaturalSort";
 
 
 /**
@@ -331,4 +331,3 @@ const StorageLocationsList = ({ storageList, onEditStorage }) => {
 };
 
 export default StorageSettings;
-
