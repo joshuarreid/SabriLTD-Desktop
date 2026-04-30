@@ -1,7 +1,7 @@
 import React from "react";
-import styles from "./editcompanymodal.module.css";
+import styles from "../styles/editcompanymodal.module.css";
 import SaveStatus from "../../../components/save/SaveStatus.jsx";
-import { useEditCompanyModal } from "./useEditCompanyModal.js";
+import { useEditCompanyModal } from "../hooks/useEditCompanyModal.js";
 import { FaRegTrashCan } from "react-icons/fa6";
 
 /**

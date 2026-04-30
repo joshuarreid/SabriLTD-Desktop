@@ -15,9 +15,9 @@
 
 import React, { useMemo, useState } from "react";
 import styles from "../styles/companysettingstab.module.css";
-import AlphabeticalSortFilter from "../../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.tsx";
+import AlphabeticalSortFilter from "../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.tsx";
 import CompanyInfoCard from "./CompanyInfoCard.jsx";
-import EditCompanyModal from "../../editcompanymodal/EditCompanyModal.jsx";
+import EditCompanyModal from "./EditCompanyModal.jsx";
 import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab.js";
 
 /**
