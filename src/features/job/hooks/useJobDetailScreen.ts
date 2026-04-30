@@ -1,13 +1,11 @@
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getJobById } from "../api/job.ts";
 import { searchItems } from "../../item/api/item";
-import { getCompanyById } from "../../company/api/company.js";
+import { useCompanyById } from "../../company/hooks/useCompanies";
 import { getUserById } from "../../../api/user/user.js";
-import { jobKeys } from "../api/jobQueryKeys.ts";
 import { itemKeys } from "../../item/api/ItemQueryKeys";
-import { companyKeys } from "../../company/api/companyQueryKeys.js";
 import { userKeys } from "../../../api/user/userQueryKeys.js";
+import { useJobById } from "./useJobs";
 
 /**
  * Logger for useJobDetailScreen.
@@ -16,8 +14,8 @@ import { userKeys } from "../../../api/user/userQueryKeys.js";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[useJobDetailScreen]", ...args),
-    error: (...args) => console.error("[useJobDetailScreen]", ...args),
+    info: (...args: unknown[]) => console.log("[useJobDetailScreen]", ...args),
+    error: (...args: unknown[]) => console.error("[useJobDetailScreen]", ...args),
 };
 
 /**
@@ -88,58 +86,26 @@ const useJobDetailScreen = ({ jobId, condition }) => {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(20);
 
-    /**
-     * Fetch job details using a canonical query key.
-     */
+    // --- Use useJobById hook for job fetching ---
     const {
         data: job,
         isPending: isJobPending,
         isError: isJobError,
         error: jobError,
         refetch: refetchJob,
-    } = useQuery({
-        queryKey: jobKeys.detail(jobId),
-        queryFn: () => getJobById(jobId),
-        enabled: !!jobId,
-        retry: false,
-    });
+    } = useJobById(jobId);
 
-    /**
-     * Fetch company using canonical query key.
-     */
+    // --- Use useCompanyById hook for company fetching ---
     const {
-        data: companyData,
+        data: companyResp,
         isPending: isCompanyPending,
         isError: isCompanyError,
-    } = useQuery({
-        queryKey: job && job.companyId ? companyKeys.detail(job.companyId) : ["company", "none"],
-        queryFn: () =>
-            job && job.companyId ? getCompanyById(job.companyId) : Promise.resolve(undefined),
-        enabled: !!(job && job.companyId),
-        retry: false,
-    });
+    } = useCompanyById(job?.companyId ?? "");
+    const companyData = companyResp?.data;
 
-    /**
-     * Canonical company name logic for field display.
-     *
-     * @type {string}
-     */
+    // --- Company display logic ---
     let companyName = "-";
-
-    /**
-     * companyError
-     * - UI-friendly error string for company lookup.
-     *
-     * @type {string|null}
-     */
     let companyError = null;
-
-    /**
-     * companyLoading
-     * - True while company lookup is in-flight.
-     *
-     * @type {boolean}
-     */
     let companyLoading = false;
 
     if (job && job.companyId) {

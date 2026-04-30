@@ -16,30 +16,28 @@
  */
 
 import { useState, useEffect } from "react";
+import type { Company } from "../api/company.types";
 
-/**
- * logger for useEditCompanyModal.
- * @constant
- */
-const logger = {
-    info: (...args) => console.log("[useEditCompanyModal]", ...args),
-    error: (...args) => console.error("[useEditCompanyModal]", ...args),
-};
+interface UseEditCompanyModalReturn {
+    draft: Company;
+    formError: string | null;
+    setFormError: (err: string | null) => void;
+    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleSubmit: (e: React.FormEvent, onSave: (companyId: number | null, payload: Company) => void) => void;
+    resetDraft: () => void;
+}
 
-/**
- * useEditCompanyModal
- * @param {object|null} company
- * @param {boolean} isSaving
- * @returns {object}
- */
-export const useEditCompanyModal = (company, isSaving) => {
-    const [draft, setDraft] = useState({
+export const useEditCompanyModal = (
+    company: Company | null,
+    isSaving: boolean
+): UseEditCompanyModalReturn => {
+    const [draft, setDraft] = useState<Company>({
         name: "",
         address: "",
         phone: "",
         website: "",
     });
-    const [formError, setFormError] = useState(null);
+    const [formError, setFormError] = useState<string | null>(null);
 
     useEffect(() => {
         if (company) {
@@ -53,7 +51,6 @@ export const useEditCompanyModal = (company, isSaving) => {
             setDraft({ name: "", address: "", phone: "", website: "" });
         }
         setFormError(null);
-        logger.info("Initialized company draft", company);
     }, [company]);
 
     /**
@@ -61,7 +58,7 @@ export const useEditCompanyModal = (company, isSaving) => {
      * Updates draft field and clears form error.
      * @param {React.ChangeEvent<HTMLInputElement>} e
      */
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setDraft((prev) => ({ ...prev, [name]: value }));
         setFormError(null);
@@ -74,17 +71,19 @@ export const useEditCompanyModal = (company, isSaving) => {
      * - Prevents saving unchanged data in edit mode.
      *
      * @param {React.FormEvent} e
-     * @param {function} onSave - (companyId: number|null, payload: object) => void
+     * @param {function} onSave - (companyId: number|null, payload: Company) => void
      */
-    const handleSubmit = (e, onSave) => {
+    const handleSubmit = (
+        e: React.FormEvent,
+        onSave: (companyId: number | null, payload: Company) => void
+    ) => {
         e.preventDefault();
         if (!draft.name || !draft.name.trim()) {
             setFormError("Name is required.");
-            logger.error("Validation failed: missing company name");
             return;
         }
 
-        const trimmed = {
+        const trimmed: Company = {
             name: draft.name.trim(),
             address: (draft.address || "").trim(),
             phone: (draft.phone || "").trim(),
@@ -100,15 +99,11 @@ export const useEditCompanyModal = (company, isSaving) => {
             trimmed.website === (company.website || "")
         ) {
             setFormError("No changes to save.");
-            logger.info("handleSubmit aborted: no changes detected");
             return;
         }
-
-        logger.info("Submitting company save", { id: company?.companyId ?? null, ...trimmed });
         try {
-            onSave(company ? company.companyId : null, trimmed);
-        } catch (err) {
-            logger.error("onSave threw an error", err);
+            onSave(company ? company.companyId ?? null : null, trimmed);
+        } catch (err: any) {
             setFormError(err?.message || "Failed to save.");
         }
     };
@@ -129,7 +124,6 @@ export const useEditCompanyModal = (company, isSaving) => {
             setDraft({ name: "", address: "", phone: "", website: "" });
         }
         setFormError(null);
-        logger.info("Company draft reset");
     };
 
     return {
