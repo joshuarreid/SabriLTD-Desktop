@@ -90,6 +90,16 @@ const BuildingSettings = ({
         triggerBuildingDelete(buildingId);
     };
 
+    // Safe wrappers to always open modal, even for same building/add
+    const safeHandleEditBuilding = (id) => {
+        cancelEditOrAdd(); // Reset editingId/addingBuilding in parent
+        setTimeout(() => handleEditBuilding(id), 0);
+    };
+    const safeOpenAddBuilding = () => {
+        cancelEditOrAdd(); // Reset editingId/addingBuilding in parent
+        setTimeout(() => openAddBuilding(), 0);
+    };
+
     if (isBuildingsPending) {
         return <div className={styles.loading}>Loading buildings…</div>;
     }
@@ -108,7 +118,7 @@ const BuildingSettings = ({
                 <button
                     className={styles.addUserBtn}
                     type="button"
-                    onClick={openAddBuilding}
+                    onClick={safeOpenAddBuilding}
                 >
                     + Add Building
                 </button>
@@ -120,11 +130,11 @@ const BuildingSettings = ({
                         building={building}
                         selected={selectedBuildingId === building.buildingId}
                         onClick={() => setSelectedBuildingId(building.buildingId)}
-                        onEdit={() => handleEditBuilding(building.buildingId)}
+                        onEdit={() => safeHandleEditBuilding(building.buildingId)}
                     />
                 ))}
             </div>
-            {editModal.open && (
+            {editModal.open && currEditBuilding && (
                 <EditBuildingModal
                     building={currEditBuilding}
                     open={editModal.open}
