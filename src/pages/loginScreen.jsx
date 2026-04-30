@@ -76,7 +76,7 @@ export const LoginScreen = () => {
                     className={`${styles.panelsWrap} ${step === 'select' ? styles.panelsWrapWide : ''}`}
                     aria-live="polite"
                 >
-                    {/* User select panel */}
+                    {/* user select panel */}
                     <section
                         className={`${styles.panel} ${styles.selectPanel} ${
                             step === 'select' ? styles.panelActive : styles.panelInactive

@@ -25,7 +25,7 @@ const logger = {
 
 /**
  * Derives avatar initials from a user's name.
- * @param {object} user - User object containing name.
+ * @param {object} user - user object containing name.
  * @returns {string} Initials string or '?' if not available.
  */
 const getInitials = (user) => {
@@ -40,7 +40,7 @@ const getInitials = (user) => {
 /**
  * Renders a round avatar: initials or fallback user SVG icon.
  * @param {object} props
- * @param {object} props.user - User object for initials.
+ * @param {object} props.user - user object for initials.
  * @returns {JSX.Element}
  */
 const Avatar = ({ user }) => {

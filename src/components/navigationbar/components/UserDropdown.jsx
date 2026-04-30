@@ -23,7 +23,7 @@ const logger = {
 /**
  * Gets avatar initials from name or email.
  * @function getInitials
- * @param {object} user - User object from /me endpoint.
+ * @param {object} user - user object from /me endpoint.
  * @returns {string} Initials string, or '?' if not available.
  */
 const getInitials = (user) => {
@@ -43,7 +43,7 @@ const getInitials = (user) => {
 /**
  * Renders the avatar icon with user's initials or fallback icon.
  * @function renderAvatar
- * @param {object} user - User object.
+ * @param {object} user - user object.
  * @returns {JSX.Element} Avatar element.
  */
 const renderAvatar = (user) => {
@@ -160,7 +160,7 @@ const UserDropdown = ({ user }) => {
             >
                 {renderAvatar(user)}
                 <span className={styles.userName}>
-                    {user.name || user.email || 'Current User'}
+                    {user.name || user.email || 'Current user'}
                 </span>
             </button>
             {open && (

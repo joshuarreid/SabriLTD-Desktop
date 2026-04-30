@@ -16,7 +16,7 @@ const apiClient = new AuthApiClient();
  * @async
  * @function login
  * @param {number} userId - Unique user ID (numeric, required)
- * @param {string} passcode - User's password/passcode (required)
+ * @param {string} passcode - user's password/passcode (required)
  * @returns {Promise<string|Object>} JWT token string, or session data object if no token found.
  * @throws {Error} If the request fails (network, 401, 500, etc).
  */

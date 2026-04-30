@@ -74,7 +74,7 @@ export default class AuthApiClient extends ApiClient {
      * @async
      * @param {Object} credentials
      * @param {number} credentials.userId - Unique user ID.
-     * @param {string} credentials.passcode - User's password or code.
+     * @param {string} credentials.passcode - user's password or code.
      * @returns {Promise<Object>} API response with session/token data.
      * @throws {Error} If the request fails (401, 500, network, etc).
      */

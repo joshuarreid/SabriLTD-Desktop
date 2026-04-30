@@ -77,7 +77,7 @@ export const useEditItemModal = ({ photos = [], open, onClose }: UseEditItemModa
     const [saveStatus, setSaveStatus] = useState("idle");
     const [apiError, setApiError] = useState("");
 
-    // --- Get Current User ---
+    // --- Get Current user ---
     const { user, loading: userLoading, error: userError } = useCurrentUser();
 
     // --- React Query/Create-Item mutation logic ---
@@ -157,7 +157,7 @@ export const useEditItemModal = ({ photos = [], open, onClose }: UseEditItemModa
             return;
         }
         if (userLoading) {
-            setApiError("User info is still loading.");
+            setApiError("user info is still loading.");
             setSaveStatus("error");
             return;
         }
