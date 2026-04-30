@@ -1,29 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import styles from "../styles/editbuildingmodal.module.css";
 import SaveStatus from "../../../components/save/SaveStatus.jsx";
 import { FaRegTrashCan } from "react-icons/fa6";
+import { useEditBuildingModal } from "../hooks/useEditBuildingModal";
 
-/**
- * EditBuildingForm
- * UI form for editing a building's profile (name, address, manager).
- *
- * @component
- * @param {object} props
- * @param {object} props.building - Building object to edit ({buildingId, name, address, manager}).
- * @param {boolean} props.isSaving - If the save action is pending.
- * @param {function} props.onSave - Receives (buildingId, {name, address, manager}) on submit.
- * @param {function} props.onCancel - Called on cancel.
- * @param {function} [props.onDelete] - Called when user confirms building deletion. Receives buildingId.
- * @param {string|null} props.error - Error message string (optional).
- * @param {'saving'|'saved'|'idle'|'error'} [props.saveState] - Current save state for SaveStatus indicator.
- * @returns {JSX.Element|null}
- */
-const logger = {
-    info: (...args) => console.log("[EditBuildingForm]", ...args),
-    error: (...args) => console.error("[EditBuildingForm]", ...args),
-};
+interface EditBuildingFormProps {
+    building: { buildingId?: number; name: string; address: string; manager: string };
+    isSaving: boolean;
+    onSave: (buildingId: number | undefined, data: { name: string; address: string; manager: string }) => void;
+    onCancel: () => void;
+    onDelete?: (buildingId: number | undefined) => void;
+    error?: string | null;
+    saveState?: 'saving' | 'saved' | 'idle' | 'error';
+}
 
-const EditBuildingForm = ({
+const EditBuildingForm: React.FC<EditBuildingFormProps> = ({
     building,
     isSaving = false,
     onSave,
@@ -31,157 +22,101 @@ const EditBuildingForm = ({
     onDelete,
     error = null,
     saveState = "idle",
-}) => {
-    const [draft, setDraft] = useState({
-        name: building?.name || "",
-        address: building?.address || "",
-        manager: building?.manager || "",
-    });
-    const [formError, setFormError] = useState(null);
-    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+}: EditBuildingFormProps) => {
+    const {
+        draft,
+        formError,
+        setFormError,
+        handleChange,
+        handleSubmit,
+        resetDraft,
+    } = useEditBuildingModal(building, isSaving);
 
-    useEffect(() => {
-        setDraft({
-            name: building?.name || "",
-            address: building?.address || "",
-            manager: building?.manager || "",
-        });
-    }, [building]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setDraft((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const validate = () => {
-        if (!draft.name.trim()) return "Name is required.";
-        if (!draft.address.trim()) return "Address is required.";
-        if (!draft.manager.trim()) return "Manager is required.";
-        return null;
-    };
-
-    const handleSubmit = (e) => {
+    // Save handler
+    const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const validationError = validate();
-        if (validationError) {
-            setFormError(validationError);
-            logger.error("Validation failed:", validationError);
+        if (!draft.name.trim() || !draft.address.trim() || !draft.manager.trim()) {
+            setFormError("All fields are required.");
             return;
         }
         setFormError(null);
-        logger.info("Submitting building update", draft);
-        onSave?.(building.buildingId, draft);
+        onSave(building?.buildingId, { ...draft });
     };
-
-    const handleCancel = (e) => {
-        e.preventDefault();
-        setFormError(null);
-        logger.info("Edit cancelled");
-        onCancel?.();
-    };
-
-    const handleTrashClick = (e) => {
-        e.stopPropagation();
-        setDeleteConfirmOpen(true);
-    };
-    const handleDeleteCancel = () => setDeleteConfirmOpen(false);
-    const handleDeleteConfirm = () => {
-        setDeleteConfirmOpen(false);
-        if (onDelete && building.buildingId) {
-            logger.info("Building delete confirmed", building.buildingId);
-            onDelete(building.buildingId);
-        }
-    };
-
-    if (!building) return null;
-    const isAddBuilding = !building.buildingId;
 
     return (
-        <>
-            <form className={styles.buildingForm} onSubmit={handleSubmit}>
-                <div className={styles.headerRow}>
-                    <h3 className={styles.buildingTitle}>Edit Building</h3>
-                    {!isAddBuilding && (
-                        <button
-                            type="button"
-                            className={styles.trashButton}
-                            onClick={handleTrashClick}
-                            title="Delete building"
-                            aria-label="Delete building"
-                            disabled={isSaving}
-                            tabIndex={0}
-                        >
-                            <FaRegTrashCan size={20} />
-                        </button>
-                    )}
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="building-name">Name</label>
-                    <input
-                        id="building-name"
-                        name="name"
-                        type="text"
-                        className={styles.input}
-                        value={draft.name}
-                        onChange={handleChange}
+        <form className={styles.form} onSubmit={onFormSubmit}>
+            <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="edit-building-name">Name</label>
+                <input
+                    id="edit-building-name"
+                    className={styles.input}
+                    name="name"
+                    value={draft.name}
+                    onChange={handleChange}
+                    placeholder="Enter building name"
+                    disabled={isSaving}
+                />
+            </div>
+            <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="edit-building-address">Address</label>
+                <input
+                    id="edit-building-address"
+                    className={styles.input}
+                    name="address"
+                    value={draft.address}
+                    onChange={handleChange}
+                    placeholder="Enter address"
+                    disabled={isSaving}
+                />
+            </div>
+            <div className={styles.formGroup}>
+                <label className={styles.label} htmlFor="edit-building-manager">Manager</label>
+                <input
+                    id="edit-building-manager"
+                    className={styles.input}
+                    name="manager"
+                    value={draft.manager}
+                    onChange={handleChange}
+                    placeholder="Enter manager name"
+                    disabled={isSaving}
+                />
+            </div>
+            {(formError || error) && <div className={styles.errorMsg}>{formError || error}</div>}
+            <div className={styles.saveFeedback}>
+                <SaveStatus state={saveState} />
+            </div>
+            <div className={styles.formActions}>
+                <button
+                    type="submit"
+                    className={styles.saveButton}
+                    disabled={isSaving}
+                    aria-disabled={isSaving}
+                >
+                    {isSaving ? "Saving..." : "Save"}
+                </button>
+                <button
+                    type="button"
+                    className={styles.cancelButton}
+                    onClick={onCancel}
+                    disabled={isSaving}
+                    aria-disabled={isSaving}
+                >
+                    Cancel
+                </button>
+                {onDelete && (
+                    <button
+                        type="button"
+                        className={styles.deleteButton}
+                        onClick={() => onDelete(building?.buildingId)}
                         disabled={isSaving}
-                        autoFocus
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="building-address">Address</label>
-                    <input
-                        id="building-address"
-                        name="address"
-                        type="text"
-                        className={styles.input}
-                        value={draft.address}
-                        onChange={handleChange}
-                        disabled={isSaving}
-                    />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="building-manager">Manager</label>
-                    <input
-                        id="building-manager"
-                        name="manager"
-                        type="text"
-                        className={styles.input}
-                        value={draft.manager}
-                        onChange={handleChange}
-                        disabled={isSaving}
-                    />
-                </div>
-                {(formError || error) && (
-                    <div className={styles.errorMsg}>{formError || error}</div>
+                        aria-disabled={isSaving}
+                        title="Delete building"
+                    >
+                        <FaRegTrashCan />
+                    </button>
                 )}
-                <div className={styles.formActions}>
-                    <button type="button" className={styles.resetButton} onClick={handleCancel} disabled={isSaving}>
-                        Cancel
-                    </button>
-                    <button type="submit" className={styles.saveButton} disabled={isSaving}>
-                        Save
-                    </button>
-                    <span className={styles.saveFeedback}><SaveStatus state={saveState} /></span>
-                </div>
-            </form>
-            {/* Delete confirmation modal (true overlay) */}
-            {deleteConfirmOpen && (
-                <div className={styles.deleteConfirmBackdrop}>
-                    <div className={styles.deleteConfirmModal}>
-                        <p>Are you sure you want to delete this building?</p>
-                        <div className={styles.deleteConfirmActions}>
-                            <button type="button" onClick={handleDeleteCancel}>
-                                Cancel
-                            </button>
-                            <button type="button" onClick={handleDeleteConfirm}>
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </>
+            </div>
+        </form>
     );
 };
 

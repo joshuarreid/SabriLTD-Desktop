@@ -2,6 +2,18 @@ import React from "react";
 import BuildingModal from "./BuildingModal";
 import EditBuildingForm from "./EditBuildingForm";
 
+interface EditBuildingModalProps {
+    open: boolean;
+    onClose: () => void;
+    building: { buildingId?: number; name: string; address: string; manager: string };
+    isSaving: boolean;
+    onSave: (buildingId: number | undefined, data: { name: string; address: string; manager: string }) => void;
+    onDelete?: (buildingId: number | undefined) => void;
+    error?: string | null;
+    saveState?: 'saving' | 'saved' | 'idle' | 'error';
+    [key: string]: any;
+}
+
 /**
  * EditBuildingModal
  * Modal wrapper for editing a building. Renders EditBuildingForm inside BuildingModal.
@@ -19,14 +31,13 @@ import EditBuildingForm from "./EditBuildingForm";
  * @returns {JSX.Element|null}
  */
 const logger = {
-    info: (...args) => console.log("[EditBuildingModal]", ...args),
-    error: (...args) => console.error("[EditBuildingModal]", ...args),
+    info: (...args: unknown[]) => console.log("[EditBuildingModal]", ...args),
+    error: (...args: unknown[]) => console.error("[EditBuildingModal]", ...args),
 };
 
-const EditBuildingModal = (props) => {
+const EditBuildingModal: React.FC<EditBuildingModalProps> = (props) => {
     logger.info("Rendering EditBuildingModal with props", props);
     const { open, onClose, trigger = null, ...rest } = props;
-    if (!open) return null;
     return (
         <BuildingModal
             open={open}
@@ -36,7 +47,7 @@ const EditBuildingModal = (props) => {
             }}
             title={<h2>Edit Building</h2>}
             size="sm"
-            trigger={trigger}
+            {...(trigger !== undefined ? { trigger } : {})}
         >
             <EditBuildingForm {...rest} />
         </BuildingModal>
