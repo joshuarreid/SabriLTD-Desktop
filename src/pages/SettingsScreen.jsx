@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "../features/settings/settingsscreen.module.css";
 import UserSettingsTab from "../features/User/usersettings/components/UserSettingsTab";
-import StorageSettingsTab from "../features/storage/storagesettings/components/StorageSettingsTab";
+import StorageSettingsTab from "../features/storage/components/StorageSettingsTab.jsx";
 import TagSettingsTab from "../features/tag/tagsettings/components/TagSettingsTab";
 import CompanySettingsTab from "../features/company/components/CompanySettingsTab.tsx";
 

@@ -1,26 +1,50 @@
 import React, { useEffect, useState } from "react";
-import styles from "../styles/storagesettingstab.module.css";
-import { BuildingInfoCard } from "../../../building/components/BuildingInfoCard";
-import EditBuildingModal from "../../../building/components/EditBuildingModal";
-import CreateBuildingModal from "../../../building/components/CreateBuildingModal";
-import ConfirmationModal from "../../../../components/confirmationmodal/ConfirmationModal";
-import useModal from "../../../../components/modal/hooks/useModal";
+import styles from "../../storage/styles/storagesettingstab.module.css";
+import { BuildingInfoCard } from "./BuildingInfoCard";
+import EditBuildingModal from "./EditBuildingModal";
+import CreateBuildingModal from "./CreateBuildingModal";
+import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal.jsx";
+import useModal from "../../../components/modal/hooks/useModal";
 
-/**
- * BuildingSettings
- * UI component for managing buildings list and editing/adding/deleting buildings.
- * Delegates business logic to the parent hook.
- *
- * @param {object} props - All props/data from useStorageSettingsTab
- */
+// Type definitions
+export interface Building {
+    buildingId?: number;
+    name: string;
+    address: string;
+    manager: string;
+}
+
+interface BuildingSettingsProps {
+    buildings: Building[];
+    isBuildingsPending: boolean;
+    isBuildingsError: boolean;
+    buildingsError: any;
+    selectedBuildingId: number | null;
+    setSelectedBuildingId: (id: number | null) => void;
+    editingId: number | null;
+    addingBuilding: boolean;
+    openAddBuilding: () => void;
+    handleAddBuilding: (payload: Omit<Building, "buildingId"> | null, cb: () => void) => void;
+    handleEditBuilding: (id: number | null) => void;
+    handleSaveEdit: (id: number, payload: Omit<Building, "buildingId">, cb: () => void) => void;
+    cancelEditOrAdd: () => void;
+    editStatus: string;
+    addStatus: string;
+    buildingDeleteId: number | null;
+    buildingDeleteStatus: string;
+    triggerBuildingDelete: (id: number) => void;
+    handleConfirmBuildingDelete: (id: number | null) => void;
+    handleCancelBuildingDelete: () => void;
+}
+
 const logger = {
-    info: (...args) => console.log("[BuildingSettings]", ...args),
-    error: (...args) => console.error("[BuildingSettings]", ...args),
+    info: (...args: any[]) => console.log("[BuildingSettings]", ...args),
+    error: (...args: any[]) => console.error("[BuildingSettings]", ...args),
 };
 
-const EMPTY_BUILDING = { name: "", address: "", manager: "" };
+const EMPTY_BUILDING: Omit<Building, "buildingId"> = { name: "", address: "", manager: "" };
 
-const BuildingSettings = ({
+const BuildingSettings: React.FC<BuildingSettingsProps> = ({
     buildings,
     isBuildingsPending,
     isBuildingsError,
@@ -43,7 +67,7 @@ const BuildingSettings = ({
     handleCancelBuildingDelete,
 }) => {
     const editModal = useModal(false);
-    const [currEditBuilding, setCurrEditBuilding] = useState(null);
+    const [currEditBuilding, setCurrEditBuilding] = useState<Building | null>(null);
     const [isEditMode, setIsEditMode] = useState(false);
     // Modal UI synchronization (extracts business state from hook)
     useEffect(() => {
@@ -74,7 +98,7 @@ const BuildingSettings = ({
      * @param {number|null} buildingId
      * @param {{name: string, address: string, manager: string}} payload
      */
-    const handleBuildingModalSave = (buildingId, payload) => {
+    const handleBuildingModalSave = (buildingId: number | null, payload: Omit<Building, "buildingId">) => {
         logger.info("handleBuildingModalSave", { buildingId, payload });
         if (!buildingId) {
             handleAddBuilding(payload, () => {});
@@ -86,12 +110,12 @@ const BuildingSettings = ({
     /**
      * Handles trash click in building modal (initiate global delete state/modal).
      */
-    const handleRequestBuildingDelete = (buildingId) => {
+    const handleRequestBuildingDelete = (buildingId: number) => {
         triggerBuildingDelete(buildingId);
     };
 
     // Safe wrappers to always open modal, even for same building/add
-    const safeHandleEditBuilding = (id) => {
+    const safeHandleEditBuilding = (id: number) => {
         if (editingId === id) {
             setSelectedBuildingId(null);
             handleEditBuilding(null);

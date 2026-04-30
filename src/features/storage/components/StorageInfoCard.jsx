@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./storageinfocard.module.css";
+import styles from "../styles/storageinfocard.module.css";
 import { PiSelectionForegroundBold, PiOfficeChairBold } from "react-icons/pi";
 import { FcFilingCabinet } from "react-icons/fc";
 import { MdShelves } from "react-icons/md";

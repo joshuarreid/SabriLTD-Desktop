@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
-import styles from "./uploadphotomodal.module.css";
+import styles from "../styles/uploadphotomodal.module.css";
 
 /**
  * logger for UploadPhotoModal
