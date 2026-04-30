@@ -18,7 +18,7 @@ import styles from "../styles/companysettingstab.module.css";
 import AlphabeticalSortFilter from "../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.tsx";
 import CompanyInfoCard from "./CompanyInfoCard.jsx";
 import EditCompanyModal from "./EditCompanyModal.jsx";
-import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab.js";
+import { useCompanySettingsTab } from "../hooks/useCompanySettingsTab.ts";
 
 /**
  * logger for CompanySettingsTab.
