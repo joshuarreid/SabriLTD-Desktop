@@ -45,7 +45,6 @@ const BuildingSettings = ({
     const editModal = useModal(false);
     const [currEditBuilding, setCurrEditBuilding] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
-
     // Modal UI synchronization (extracts business state from hook)
     useEffect(() => {
         if (editingId != null) {
@@ -93,24 +92,22 @@ const BuildingSettings = ({
 
     // Safe wrappers to always open modal, even for same building/add
     const safeHandleEditBuilding = (id) => {
-        cancelEditOrAdd(); // Reset editingId/addingBuilding in parent
-        setTimeout(() => handleEditBuilding(id), 0);
-    };
-    const safeOpenAddBuilding = () => {
-        cancelEditOrAdd(); // Reset editingId/addingBuilding in parent
-        setTimeout(() => openAddBuilding(), 0);
+        if (editingId === id) {
+            setSelectedBuildingId(null);
+            handleEditBuilding(null);
+        } else {
+            setSelectedBuildingId(id);
+            handleEditBuilding(id);
+        }
     };
 
-    if (isBuildingsPending) {
-        return <div className={styles.loading}>Loading buildings…</div>;
-    }
-    if (isBuildingsError) {
-        return (
-            <div className={styles.error}>
-                Error: {buildingsError?.message || "Failed to load buildings."}
-            </div>
-        );
-    }
+    const safeOpenAddBuilding = () => {
+        if (addingBuilding) {
+            handleAddBuilding(null, () => {});
+        } else {
+            openAddBuilding();
+        }
+    };
 
     return (
         <>
@@ -154,8 +151,6 @@ const BuildingSettings = ({
                     saveState={addStatus}
                     onSave={(data) => handleBuildingModalSave(null, data)}
                     onClose={editModal.closeModal}
-                    onCancel={editModal.closeModal}
-                    error={null}
                     initialValues={currEditBuilding}
                 />
             )}
@@ -163,6 +158,9 @@ const BuildingSettings = ({
                 open={!!buildingDeleteId}
                 onCancel={handleCancelBuildingDelete}
                 onConfirm={() => handleConfirmBuildingDelete(buildingDeleteId)}
+                onSave={handleBuildingModalSave}
+                onClose={editModal.closeModal}
+                onDelete={handleRequestBuildingDelete}
                 title="Delete Building"
                 description="Deleting this building will also remove all associated storage. This action cannot be undone."
                 confirmText="Delete"

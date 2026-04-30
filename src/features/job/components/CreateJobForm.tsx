@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
 
 import styles from "../styles/createjobmodal.module.css";
 
@@ -20,7 +20,7 @@ interface CreateJobFormProps {
     };
 }
 
-const CreateJobForm: React.FC<CreateJobFormProps> = ({
+const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
     isSaving,
     saveState,
     onSave,
@@ -30,8 +30,9 @@ const CreateJobForm: React.FC<CreateJobFormProps> = ({
     statusOptions,
     autoFocus,
     initialValues,
-}) => {
+}, ref) => {
     const nameInputRef = useRef<HTMLInputElement>(null);
+    const formRef = useRef<HTMLFormElement>(null);
     const [draft, setDraft] = useState({
         name: initialValues?.name || "",
         companyId: initialValues?.companyId || "",
@@ -39,6 +40,14 @@ const CreateJobForm: React.FC<CreateJobFormProps> = ({
         description: initialValues?.description || "",
         status: initialValues?.status || "Active",
     });
+
+    useImperativeHandle(ref, () => ({
+        submit: () => {
+            if (formRef.current) {
+                formRef.current.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+            }
+        }
+    }));
 
     useEffect(() => {
         if (autoFocus) {
@@ -86,7 +95,7 @@ const CreateJobForm: React.FC<CreateJobFormProps> = ({
     };
 
     return (
-        <form className={styles.form} onSubmit={handleConfirm}>
+        <form ref={formRef} className={styles.form} onSubmit={handleConfirm}>
             <div className={styles.formGroup}>
                 <label className={styles.label} htmlFor="create-job-name">
                     Job Name
@@ -183,29 +192,9 @@ const CreateJobForm: React.FC<CreateJobFormProps> = ({
                     <div className={styles.savedMsg}>Saved</div>
                 ) : null}
             </div>
-
-            <div className={styles.formActions}>
-                <button
-                    type="submit"
-                    className={styles.saveButton}
-                    disabled={!canSubmit}
-                    aria-disabled={!canSubmit}
-                >
-                    {isSaving ? "Saving..." : "Create"}
-                </button>
-
-                <button
-                    type="button"
-                    className={styles.cancelButton}
-                    onClick={onCancel}
-                    disabled={isSaving}
-                    aria-disabled={isSaving}
-                >
-                    Cancel
-                </button>
-            </div>
+            {/* Action buttons removed; handled by modal */}
         </form>
     );
-};
+});
 
 export default CreateJobForm;
