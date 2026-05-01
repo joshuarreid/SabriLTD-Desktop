@@ -40,10 +40,6 @@ export default class PhotoApiClient extends ApiClient {
         logger.info("PhotoApiClient initialized");
     }
 
-    // Type declarations for inherited HTTP methods (if not present in base class)
-    public postMultipart?: (url: string, data: any, config?: any) => Promise<any>;
-    public get?: (url: string, params?: any, config?: any) => Promise<any>;
-    public delete?: (url: string, params?: any, config?: any) => Promise<any>;
 
     /**
      * Uploads photos (multipart/form-data).
