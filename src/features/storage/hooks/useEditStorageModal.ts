@@ -15,14 +15,41 @@
  */
 import { useState, useEffect } from "react";
 
+interface StorageDraft {
+    name: string;
+    description: string;
+}
+
+interface StorageObject {
+    storageId?: number;
+    name?: string;
+    description?: string;
+}
+
+interface UseEditStorageModalReturn {
+    draft: StorageDraft;
+    formError: string | null;
+    setFormError: (err: string | null) => void;
+    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    handleSubmit: (
+        e: React.FormEvent,
+        buildingId: number,
+        onSave: (storageId: number | null, payload: { name: string; description: string; buildingId: number }) => void
+    ) => void;
+    resetDraft: () => void;
+}
+
 const logger = {
-    info: (...args) => console.log("[useEditStorageModal]", ...args),
-    error: (...args) => console.error("[useEditStorageModal]", ...args),
+    info: (...args: any[]) => console.log("[useEditStorageModal]", ...args),
+    error: (...args: any[]) => console.error("[useEditStorageModal]", ...args),
 };
 
-export const useEditStorageModal = (storage, isSaving) => {
-    const [draft, setDraft] = useState({ name: "", description: "" });
-    const [formError, setFormError] = useState(null);
+export const useEditStorageModal = (
+    storage: StorageObject | null,
+    isSaving: boolean
+): UseEditStorageModalReturn => {
+    const [draft, setDraft] = useState<StorageDraft>({ name: "", description: "" });
+    const [formError, setFormError] = useState<string | null>(null);
 
     useEffect(() => {
         if (storage) setDraft({
@@ -37,7 +64,7 @@ export const useEditStorageModal = (storage, isSaving) => {
      * Handles input field changes for name/description.
      * @param {object} e - React.ChangeEvent
      */
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setDraft((prev) => ({ ...prev, [name]: value }));
         setFormError(null);
@@ -49,7 +76,11 @@ export const useEditStorageModal = (storage, isSaving) => {
      * @param {number|string} buildingId - The building ID to send in payload (NOT from draft!)
      * @param {function} onSave - (storageId, { name, description, buildingId })
      */
-    const handleSubmit = (e, buildingId, onSave) => {
+    const handleSubmit = (
+        e: React.FormEvent,
+        buildingId: number,
+        onSave: (storageId: number | null, payload: { name: string; description: string; buildingId: number }) => void
+    ) => {
         e.preventDefault();
         if (!draft.name.trim()) {
             setFormError("Name is required.");
@@ -71,7 +102,7 @@ export const useEditStorageModal = (storage, isSaving) => {
         }
         logger.info("Saving storage edit", { id: storage && storage.storageId, ...draft, buildingId });
         onSave(
-            storage ? storage.storageId : null,
+            storage ? storage.storageId ?? null : null,
             {
                 name: draft.name.trim(),
                 description: draft.description || "",

@@ -1,11 +1,25 @@
 import React, { useState, useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import StorageInfoCard from "./StorageInfoCard.jsx";
-import EditStorageModal from "./EditStorageModal.jsx";
-import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal.jsx";
-import AlphabeticalSortFilter from "../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.tsx";
+import StorageInfoCard from "./StorageInfoCard";
+import EditStorageModal from "./EditStorageModal";
+import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal";
+import AlphabeticalSortFilter from "../../../components/alphabeticalsortfilter/AlphabeticalSortFilter";
 import { useNaturalSort } from "../../../components/alphabeticalsortfilter/useNaturalSort";
+import { Storage } from "../api/storage.types";
 
+
+interface StorageSettingsProps {
+    storageList: Storage[];
+    isStoragePending: boolean;
+    isStorageError: boolean;
+    storageError: any;
+    selectedBuildingId: string | null;
+    storageEditStatus: string;
+    storageAddStatus: string;
+    createStorageMutation: any;
+    updateStorageMutation: any;
+    deleteStorageMutation: any;
+}
 
 /**
  * STORAGE_SORT_OPTIONS
@@ -24,7 +38,7 @@ const STORAGE_SORT_OPTIONS = [
  * @constant
  * @type {{ name: string, description: string, buildingId: string }}
  */
-const EMPTY_STORAGE = { name: "", description: "", buildingId: "" };
+const EMPTY_STORAGE: Storage = { name: "", description: "", buildingId: "" };
 
 /**
  * logger
@@ -33,8 +47,8 @@ const EMPTY_STORAGE = { name: "", description: "", buildingId: "" };
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[StorageSettings]", ...args),
-    error: (...args) => console.error("[StorageSettings]", ...args),
+    info: (...args: any[]) => console.log("[StorageSettings]", ...args),
+    error: (...args: any[]) => console.error("[StorageSettings]", ...args),
 };
 
 /**
@@ -45,25 +59,25 @@ const logger = {
  * @param {object} props - All props/data from useStorageSettingsTab
  * @returns {JSX.Element}
  */
-const StorageSettings = ({
-                             storageList,
-                             isStoragePending,
-                             isStorageError,
-                             storageError,
-                             selectedBuildingId,
-                             storageEditStatus,
-                             storageAddStatus,
-                             createStorageMutation,
-                             updateStorageMutation,
-                             deleteStorageMutation,
-                         }) => {
+const StorageSettings: React.FC<StorageSettingsProps> = ({
+    storageList,
+    isStoragePending,
+    isStorageError,
+    storageError,
+    selectedBuildingId,
+    storageEditStatus,
+    storageAddStatus,
+    createStorageMutation,
+    updateStorageMutation,
+    deleteStorageMutation,
+}) => {
     // Modal state
     const [editStorageModalOpen, setEditStorageModalOpen] = useState(false);
-    const [currEditStorage, setCurrEditStorage] = useState(null);
+    const [currEditStorage, setCurrEditStorage] = useState<Storage | null>(null);
     const [isEditStorageMode, setIsEditStorageMode] = useState(false);
 
     // Delete confirmation modal state
-    const [removingStorage, setRemovingStorage] = useState(null);
+    const [removingStorage, setRemovingStorage] = useState<Storage | null>(null);
     const [deleteStatus, setDeleteStatus] = useState("idle");
     const [pendingClose, setPendingClose] = useState(false);
 
@@ -90,7 +104,7 @@ const StorageSettings = ({
      * @function
      * @param {object} storage
      */
-    const handleEditStorage = (storage) => {
+    const handleEditStorage = (storage: Storage) => {
         logger.info("Opening EditStorageModal", { storageId: storage.storageId });
         setCurrEditStorage(storage);
         setIsEditStorageMode(true);
@@ -129,7 +143,7 @@ const StorageSettings = ({
      * @param {number|null} storageId
      * @param {{name: string, description: string}} payload
      */
-    const handleStorageModalSave = (storageId, payload) => {
+    const handleStorageModalSave = (storageId: number | null, payload: { name: string, description: string }) => {
         logger.info("handleStorageModalSave", { storageId, payload, selectedBuildingId });
         const fullPayload = {
             ...payload,
@@ -147,13 +161,13 @@ const StorageSettings = ({
      * @function
      * @param {number} storageId
      */
-    const handleRequestDelete = (storageId) => {
+    const handleRequestDelete = (storageId: number) => {
         logger.info("Delete requested for storage", storageId);
         setEditStorageModalOpen(false);
         setCurrEditStorage(null);
         setIsEditStorageMode(false);
         const found = storageList.find((s) => s.storageId === storageId);
-        setRemovingStorage(found);
+        setRemovingStorage(found || null);
         setDeleteStatus("idle");
         setPendingClose(false);
     };
@@ -163,7 +177,7 @@ const StorageSettings = ({
      * @function
      * @param {object} storage
      */
-    const handlePromptRemoveStorage = (storage) => {
+    const handlePromptRemoveStorage = (storage: Storage) => {
         setRemovingStorage(storage);
         setDeleteStatus("idle");
         setPendingClose(false);
@@ -174,7 +188,7 @@ const StorageSettings = ({
      * @function
      * @param {number} storageId
      */
-    const confirmRemoveStorage = (storageId) => {
+    const confirmRemoveStorage = (storageId: number) => {
         setDeleteStatus("deleting");
         deleteStorageMutation.mutate(storageId, {
             onSuccess: () => {
@@ -301,10 +315,10 @@ const StorageSettings = ({
  * @param {Function} [props.onEditStorage]
  * @returns {JSX.Element}
  */
-const StorageLocationsList = ({ storageList, onEditStorage }) => {
+const StorageLocationsList = ({ storageList, onEditStorage }: { storageList: Storage[]; onEditStorage?: (storage: Storage) => void }) => {
     const logger = {
-        info: (...args) => console.log("[StorageLocationsList]", ...args),
-        error: (...args) => console.error("[StorageLocationsList]", ...args),
+        info: (...args: any[]) => console.log("[StorageLocationsList]", ...args),
+        error: (...args: any[]) => console.error("[StorageLocationsList]", ...args),
     };
 
     logger.info("StorageLocationsList rendered", { number: storageList.length });
