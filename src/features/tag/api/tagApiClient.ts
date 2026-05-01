@@ -77,8 +77,8 @@ export default class TagApiClient extends ApiClient {
                 logger.error('createTag failed: No token available');
                 throw new Error('No authentication token found');
             }
-            // Storage client posts to '' (no trailing slash) – do the same here
-            const response = await this.post('/tag', tag, {
+            // Use '' so final URL is /api/tags
+            const response = await this.post('', tag, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -108,9 +108,8 @@ export default class TagApiClient extends ApiClient {
                 logger.error('fetchAllTags failed: No token available');
                 throw new Error('No authentication token found');
             }
-            // IMPORTANT: use '' (no trailing slash) just like fetchAllStorage does,
-            // so ApiClient.get builds "/api/tags?categoryId=5" instead of "/api/tags/?categoryId=5"
-            const response = await this.get('/tag', params, {
+            // Use '' so final URL is /api/tags
+            const response = await this.get('', params, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -141,7 +140,8 @@ export default class TagApiClient extends ApiClient {
                 logger.error('fetchTagById failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const response = await this.get(`/tag/${tagId}`, {}, {
+            // Use /{id} so final URL is /api/tags/{id}
+            const response = await this.get(`/${tagId}`, {}, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -170,7 +170,8 @@ export default class TagApiClient extends ApiClient {
                 logger.error('updateTag failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const response = await this.put(`/tag/${tagId}`, tag, {
+            // Use /{id} so final URL is /api/tags/{id}
+            const response = await this.put(`/${tagId}`, tag, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -198,7 +199,8 @@ export default class TagApiClient extends ApiClient {
                 logger.error('deleteTag failed: No token available');
                 throw new Error('No authentication token found');
             }
-            await this.delete(`/tag/${tagId}`, {}, {
+            // Use /{id} so final URL is /api/tags/{id}
+            await this.delete(`/${tagId}`, {}, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
