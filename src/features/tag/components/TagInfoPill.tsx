@@ -1,6 +1,13 @@
 import React from "react";
 import styles from "../styles/taginfopill.module.css";
 
+interface TagInfoPillProps {
+    label: string;
+    active?: boolean;
+    onClick?: () => void;
+    onDelete?: () => void;
+}
+
 /**
  * logger for TagInfoPill component.
  *
@@ -8,8 +15,8 @@ import styles from "../styles/taginfopill.module.css";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[TagInfoPill]", ...args),
-    error: (...args) => console.error("[TagInfoPill]", ...args),
+    info: (...args: unknown[]) => console.log("[TagInfoPill]", ...args),
+    error: (...args: unknown[]) => console.error("[TagInfoPill]", ...args),
 };
 
 /**
@@ -24,7 +31,7 @@ const logger = {
  * @param {function} [props.onDelete] - Optional handler invoked when the delete "x" is clicked.
  * @returns {JSX.Element}
  */
-const TagInfoPill = ({ label, active = false, onClick, onDelete }) => {
+const TagInfoPill: React.FC<TagInfoPillProps> = ({ label, active = false, onClick, onDelete }) => {
     logger.info("TagInfoPill rendered", { label, active });
 
     /**
@@ -33,7 +40,7 @@ const TagInfoPill = ({ label, active = false, onClick, onDelete }) => {
      * @param {React.MouseEvent<HTMLButtonElement>} event
      * @returns {void}
      */
-    const handleDeleteClick = (event) => {
+    const handleDeleteClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.stopPropagation();
         if (onDelete) {
             onDelete();
@@ -48,15 +55,16 @@ const TagInfoPill = ({ label, active = false, onClick, onDelete }) => {
             onClick={onClick}
         >
             <span className={styles.pillLabel}>{label}</span>
-            {/* Always render the X for now; if you only want it sometimes, wrap in {onDelete && ...} */}
-            <button
-                type="button"
-                className={styles.deleteButton}
-                aria-label={`Remove tag ${label}`}
-                onClick={handleDeleteClick}
-            >
-                ×
-            </button>
+            {onDelete && (
+                <button
+                    type="button"
+                    className={styles.deleteBtn}
+                    aria-label={`Delete tag ${label}`}
+                    onClick={handleDeleteClick}
+                >
+                    ×
+                </button>
+            )}
         </span>
     );
 };

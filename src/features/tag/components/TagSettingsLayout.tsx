@@ -1,11 +1,53 @@
 import React from "react";
 import styles from "../styles/tagsettingstab.module.css";
-import CategoryInfoPill from "./CategoryInfoPill.jsx";
-import TagInfoPill from "./TagInfoPill.jsx";
+import CategoryInfoPill from "./CategoryInfoPill";
+import TagInfoPill from "./TagInfoPill";
 import WideSearchBar from "../../../components/searchbar/WideSearchBar.jsx";
-import AlphabeticalSortFilter from "../../../components/alphabeticalsortfilter/AlphabeticalSortFilter.tsx";
 import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal.jsx";
 import SaveStatus from "../../../components/save/SaveStatus.jsx";
+
+interface Category {
+    categoryId: number;
+    name: string;
+    emoji?: string;
+}
+
+interface Tag {
+    tagId: number;
+    name: string;
+    categoryId: number;
+    updatedBy?: string;
+    dateAdded?: string;
+    dateUpdated?: string;
+}
+
+type CreateTagStatus = 'idle' | 'saving' | 'saved' | 'error';
+type TagDeleteStatus = 'idle' | 'deleting' | 'deleted' | 'error';
+
+interface TagSettingsLayoutProps {
+    categories: Category[];
+    selectedCategoryId: number | null;
+    onCategoryClick: (categoryId: number) => void;
+    isCategoriesPending: boolean;
+    isCategoriesError: boolean;
+    categoriesError: Error | null;
+    tags: Tag[];
+    isTagsPending: boolean;
+    isTagsError: boolean;
+    tagsError: Error | null;
+    tagSearch: string;
+    onTagSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onTagSearchKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    sortKey: string;
+    onSortChange: (key: string) => void;
+    filteredTags: Tag[];
+    createTagStatus: CreateTagStatus;
+    tagDeleteId: number | null;
+    tagDeleteStatus: TagDeleteStatus;
+    onConfirmTagDelete: () => void;
+    onCancelTagDelete: () => void;
+    onTagDeleteRequest: (tagId: number, tagName: string) => void;
+}
 
 /**
  * logger for TagSettingsLayout.
@@ -14,8 +56,8 @@ import SaveStatus from "../../../components/save/SaveStatus.jsx";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[TagSettingsLayout]", ...args),
-    error: (...args) => console.error("[TagSettingsLayout]", ...args),
+    info: (...args: unknown[]) => console.log("[TagSettingsLayout]", ...args),
+    error: (...args: unknown[]) => console.error("[TagSettingsLayout]", ...args),
 };
 
 /**
@@ -50,30 +92,30 @@ const logger = {
  * @param {(tagId:number, tagName:string) => void} props.onTagDeleteRequest - Called when delete "x" is clicked on a TagInfoPill.
  * @returns {JSX.Element}
  */
-const TagSettingsLayout = ({
-                               categories,
-                               selectedCategoryId,
-                               onCategoryClick,
-                               isCategoriesPending,
-                               isCategoriesError,
-                               categoriesError,
-                               tags,
-                               isTagsPending,
-                               isTagsError,
-                               tagsError,
-                               tagSearch,
-                               onTagSearchChange,
-                               onTagSearchKeyDown,
-                               sortKey,
-                               onSortChange,
-                               filteredTags,
-                               createTagStatus,
-                               tagDeleteId,
-                               tagDeleteStatus,
-                               onConfirmTagDelete,
-                               onCancelTagDelete,
-                               onTagDeleteRequest,
-                           }) => {
+const TagSettingsLayout: React.FC<TagSettingsLayoutProps> = ({
+    categories = [],
+    selectedCategoryId,
+    onCategoryClick,
+    isCategoriesPending,
+    isCategoriesError,
+    categoriesError,
+    tags = [],
+    isTagsPending,
+    isTagsError,
+    tagsError,
+    tagSearch,
+    onTagSearchChange,
+    onTagSearchKeyDown,
+    sortKey,
+    onSortChange,
+    filteredTags = [],
+    createTagStatus,
+    tagDeleteId,
+    tagDeleteStatus,
+    onConfirmTagDelete,
+    onCancelTagDelete,
+    onTagDeleteRequest,
+}) => {
     logger.info("TagSettingsLayout rendered", {
         categoriesCount: categories?.length ?? 0,
         tagsCount: tags?.length ?? 0,
@@ -105,11 +147,11 @@ const TagSettingsLayout = ({
     return (
         <div className={styles.tabRoot}>
             <div className={styles.sectionHeaderRow}>
-            <h2 className={styles.sectionTitle}>Manage Tags</h2>
+                <h2 className={styles.sectionTitle}>Manage Tags</h2>
             </div>
             {/* Category pills row */}
             <div className={styles.pillsContainer}>
-                {categories && categories.length > 0 ? (
+                {categories.length > 0 ? (
                     categories.map((cat) => (
                         <CategoryInfoPill
                             key={cat.categoryId}
@@ -159,7 +201,7 @@ const TagSettingsLayout = ({
                         <span className={styles.noTagsMsg} style={{ color: "#cd384a" }}>
                             Failed to load tags. {tagsError?.message || "Please try again."}
                         </span>
-                    ) : filteredTags.length > 0 ? (
+                    ) : (filteredTags.length > 0 ? (
                         filteredTags.map((tag) => (
                             <TagInfoPill
                                 key={tag.tagId}
@@ -169,7 +211,7 @@ const TagSettingsLayout = ({
                         ))
                     ) : (
                         <span className={styles.noTagsMsg}>No tags found.</span>
-                    )}
+                    ))}
                 </div>
             </div>
 
@@ -189,9 +231,12 @@ const TagSettingsLayout = ({
                 deleteStatus={tagDeleteStatus}
                 deletingText="Deleting tag..."
                 deletedText="Tag deleted"
+                confirmClass=""
+                cancelClass=""
             />
         </div>
     );
 };
 
 export default TagSettingsLayout;
+
