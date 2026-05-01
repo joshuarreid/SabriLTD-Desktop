@@ -6,14 +6,8 @@ import {
     getAllBuildings,
     updateBuilding,
 } from "../../building/api/building.ts";
-import {
-    createStorage,
-    updateStorage,
-    deleteStorage,
-    getAllStorage,
-} from "../api/storage";
+import { useAllStorage, useCreateStorage, useUpdateStorage, useDeleteStorage } from "./useStorage";
 import { buildingKeys } from "../../building/api/buildingQueryKeys.ts";
-import { storageKeys } from "../api/storageQueryKeys";
 import type { Building } from "../../building/api/building.types";
 import type { Storage } from "../api/storage.types";
 
@@ -36,11 +30,6 @@ const logger = {
  */
 export const useStorageSettingsTab = () => {
     logger.info("useStorageSettingsTab initialized");
-
-    /**
-     * Locally selected building. Set to a valid buildingId to filter storage queries.
-     * @type {[number|null, Function]}
-     */
     const [selectedBuildingId, setSelectedBuildingId] = useState<number | null>(null);
 
     /**
@@ -56,23 +45,17 @@ export const useStorageSettingsTab = () => {
         queryFn: () => getAllBuildings(),
     });
 
-    /**
-     * Query for storage locations for the active building.
-     * Only fetches when a building is selected.
-     */
+    // --- Storage queries and mutations (now via hooks) ---
     const {
         data: storageList = [],
         isPending: isStoragePending,
         isError: isStorageError,
         error: storageError,
-    } = useQuery<Storage[]>({
-        queryKey: storageKeys.list({ buildingId: selectedBuildingId }),
-        queryFn: () =>
-            selectedBuildingId != null
-                ? getAllStorage({ buildingId: selectedBuildingId })
-                : [],
-        enabled: !!selectedBuildingId,
-    });
+    } = useAllStorage(selectedBuildingId ?? undefined);
+
+    const createStorageMutation = useCreateStorage();
+    const updateStorageMutation = useUpdateStorage();
+    const deleteStorageMutation = useDeleteStorage();
 
     /**
      * react-query's QueryClient for cache and invalidation.
@@ -163,76 +146,6 @@ export const useStorageSettingsTab = () => {
             logger.error("createBuilding failed", err);
             setAddStatus("error");
             setTimeout(() => setAddStatus("idle"), 1800);
-        },
-    });
-
-    // --- Storage mutations and UI states (per-building only) ---
-    const [storageEditStatus, setStorageEditStatus] = useState<string>("idle");
-    const [storageAddStatus, setStorageAddStatus] = useState<string>("idle");
-
-    /**
-     * Invalidates storage queries for a specific building after mutation.
-     * @async
-     * @function invalidateThisBuildingStorage
-     * @param {number} buildingId - Building whose storage queries will be invalidated.
-     */
-    const invalidateThisBuildingStorage = async (buildingId: number | null) => {
-        logger.info("Invalidating storage for building", buildingId);
-        // Invalidate ONLY the list query for the building, not all storage
-        await queryClient.invalidateQueries({
-            queryKey: storageKeys.list({ buildingId }),
-        });
-    };
-
-    /**
-     * Updates storage by ID and payload. Invalidates only affected building's storage.
-     */
-    const updateStorageMutation = useMutation({
-        mutationFn: ({ storageId, payload }: { storageId: number; payload: Partial<Storage> }) => updateStorage(storageId, payload),
-        onMutate: () => setStorageEditStatus("saving"),
-        onSuccess: async (updatedStorage: Storage, { storageId, payload }) => {
-            logger.info("Storage updated, invalidating keys for buildingId:", payload.buildingId);
-            await invalidateThisBuildingStorage(payload.buildingId);
-            setStorageEditStatus("saved");
-            setTimeout(() => setStorageEditStatus("idle"), 1800);
-        },
-        onError: (err) => {
-            logger.error("updateStorage failed", err);
-            setStorageEditStatus("error");
-            setTimeout(() => setStorageEditStatus("idle"), 1800);
-        },
-    });
-
-    /**
-     * Creates storage for a building. Invalidates only that building's storage.
-     */
-    const createStorageMutation = useMutation({
-        mutationFn: createStorage,
-        onMutate: () => setStorageAddStatus("saving"),
-        onSuccess: async (createdStorage: Storage) => {
-            logger.info("Storage created, invalidating keys for buildingId:", createdStorage.buildingId);
-            await invalidateThisBuildingStorage(createdStorage.buildingId);
-            setStorageAddStatus("saved");
-            setTimeout(() => setStorageAddStatus("idle"), 1800);
-        },
-        onError: (err) => {
-            logger.error("createStorage failed", err);
-            setStorageAddStatus("error");
-            setTimeout(() => setStorageAddStatus("idle"), 1800);
-        },
-    });
-
-    /**
-     * Deletes storage by ID. Invalidates current building's storage query only.
-     */
-    const deleteStorageMutation = useMutation({
-        mutationFn: deleteStorage,
-        onSuccess: async (_data, storageId: number) => {
-            logger.info("Storage deleted, invalidating storage for building", selectedBuildingId);
-            await invalidateThisBuildingStorage(selectedBuildingId);
-        },
-        onError: (err) => {
-            logger.error("deleteStorage failed", err);
         },
     });
 
@@ -363,12 +276,11 @@ export const useStorageSettingsTab = () => {
         handleSaveEdit,
 
         // Storage mutations and UI states
-        storageEditStatus,
-        storageAddStatus,
-        setStorageEditStatus,
-        setStorageAddStatus,
         updateStorageMutation,
         createStorageMutation,
         deleteStorageMutation,
+        // Optionally expose status from mutation objects for UI
+        storageEditStatus: updateStorageMutation.status,
+        storageAddStatus: createStorageMutation.status,
     };
 };
