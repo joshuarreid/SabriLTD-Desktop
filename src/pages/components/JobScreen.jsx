@@ -11,9 +11,9 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "../features/job/styles/jobscreen.module.css";
-import JobBrowser from "../features/job/components/JobBrowser.tsx";
-import useJobScreen from "../features/job/hooks/useJobScreen";
+import styles from "../styles/jobscreen.module.css";
+import JobBrowser from "../../features/job/components/JobBrowser.tsx";
+import useJobScreen from "../hooks/useJobScreen.ts";
 
 
 /**

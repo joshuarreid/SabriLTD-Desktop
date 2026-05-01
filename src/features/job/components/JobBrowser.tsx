@@ -18,8 +18,8 @@ import styles from "../styles/jobbrowser.module.css";
 import useJobBrowser from "../hooks/useJobBrowser";
 import JobInfoCard, { JobInfo } from "./JobInfoCard";
 import CreateJobModal from "./CreateJobModal";
-import FilterDropdown from "../../../components/filterdropdown/FilterDropdown";
-import FilterDropdownSearch from "../../../components/filterdropdown/FilterDropdownSearch";
+import FilterDropdown from "../../../components/filterdropdown/components/FilterDropdown";
+import FilterDropdownSearch from "../../../components/filterdropdown/components/FilterDropdownSearch";
 import WideSearchBar from "../../../components/searchbar/WideSearchBar";
 
 interface JobSearchBoxProps {

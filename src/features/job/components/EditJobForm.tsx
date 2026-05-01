@@ -30,8 +30,8 @@ import React from "react";
 import { TbProgressCheck } from "react-icons/tb";
 import { MdOutlineModeEditOutline, MdClose, MdCheck } from "react-icons/md";
 
-import styles from "../styles/jobdetailscreen.module.css";
-import FilterDropdownSearchAndAdd from "../../../components/filterdropdown/FilterDropdownSearchAndAdd";
+import styles from "../../../pages/styles/jobdetailscreen.module.css";
+import FilterDropdownSearchAndAdd from "../../../components/filterdropdown/components/FilterDropdownSearchAndAdd";
 
 /**
  * Logger for EditJobForm.

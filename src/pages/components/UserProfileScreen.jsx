@@ -1,7 +1,7 @@
 import React from 'react';
-import styles from '../features/user/styles/userprofilescreen.module.css';
-import { useUserProfile } from "../features/user/hooks/useUserProfile.js";
-import SaveStatus from "../components/save/SaveStatus";
+import styles from '../styles/userprofilescreen.module.css';
+import { useUserProfile } from "../../features/user/hooks/useUserProfile.js";
+import SaveStatus from "../../components/save/SaveStatus.jsx";
 
 /**
  * UserProfileScreen

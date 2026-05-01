@@ -12,7 +12,7 @@ import React, { useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FiSettings } from "react-icons/fi";
 import { FaBuilding } from "react-icons/fa";
-import styles from "./settingsdropdown.module.css";
+import styles from '../styles/settingsdropdown.module.css';
 import { IoPersonOutline } from "react-icons/io5";
 import { MdWarehouse } from "react-icons/md";
 import { IoPricetagsOutline } from "react-icons/io5";

@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import { FiSearch, FiPlus } from "react-icons/fi";
-import styles from "./filterdropdownsearchandadd.module.css";
+import { FiSearch } from "react-icons/fi";
+import styles from "../styles/filterdropdownsearch.module.css";
 
 /**
- * Logger for FilterDropdownSearchAndAdd component.
+ * logger for FilterDropdownSearch component.
  *
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[FilterDropdownSearchAndAdd]", ...args),
-    error: (...args) => console.error("[FilterDropdownSearchAndAdd]", ...args),
+    info: (...args) => console.log("[FilterDropdownSearch]", ...args),
+    error: (...args) => console.error("[FilterDropdownSearch]", ...args),
 };
 
 /**
@@ -34,42 +34,28 @@ const buildPinnedAndRemainingOptions = (options, value) => {
     }
 
     const pinned = options.find((opt) => opt.value === value) || null;
-    const rest = pinned ? options.filter((opt) => opt.value !== pinned.value) : options;
+    const rest = pinned
+        ? options.filter((opt) => opt.value !== pinned.value)
+        : options;
 
     return { pinned, rest };
 };
 
 /**
- * getSearchPlaceholder
- * - Builds a contextual placeholder string based on label.
- *   Example: "Client" -> "Search Clients"
+ * FilterDropdownSearch
  *
- * @function getSearchPlaceholder
- * @param {string} label
- * @returns {string}
- */
-const getSearchPlaceholder = (label) => {
-    if (!label) return "Search";
-    const base = String(label).trim();
-    if (!base) return "Search";
-    const plural =
-        base.toLowerCase().endsWith("y") ? `${base.slice(0, -1)}ies` : `${base}s`;
-    return `Search ${plural}`;
-};
-
-/**
- * FilterDropdownSearchAndAdd
- *
- * Searchable dropdown with optional create/add flow:
- * - Trigger button matches textbox sizing via parent (.jobFieldDropdownInline > button)
+ * Variant of FilterDropdown specialized for job / entity selection:
+ * - Trigger button matches FilterDropdown styling.
  * - Menu opens with a search input as the first row.
  * - Initially shows only the first 5 most recently updated options (caller provides sorted list).
  * - Typing in the search input filters the list client-side.
  * - When a value is selected:
- *   - The selected value is shown inside the trigger.
+ *   - The selected value is shown next to the label on the trigger.
  *   - Inside the menu, the selected option is pinned at the top
  *     with a "Clear" button to remove the filter.
- * - Supports creating new options when no exact match is found via onCreateNew callback.
+ *
+ * NOTE:
+ * - This component is UI-only; fetching and sorting should be handled by a hook.
  *
  * @component
  * @param {Object} props
@@ -79,52 +65,19 @@ const getSearchPlaceholder = (label) => {
  * @param {(value:string)=>void} props.onChange - Called when user selects a value.
  * @param {string} [props.className] - Optional extra className for root wrapper.
  * @param {string} [props.emptyLabel="No options found"] - Text shown when no options match.
- * @param {(name:string)=>void} props.onCreateNew - Callback to create a new option when not found.
- * @param {string} [props.createNewLabel="Create new"] - Label for the create new button.
- * @param {boolean} [props.allowCreateNew=true] - Whether to show the create new option.
  * @returns {JSX.Element}
  */
-const FilterDropdownSearchAndAdd = ({
-                                        label,
-                                        options,
-                                        value,
-                                        onChange,
-                                        className,
-                                        emptyLabel = "No options found",
-                                        onCreateNew,
-                                        createNewLabel = "Create new",
-                                        allowCreateNew = true,
-                                    }) => {
-    /**
-     * open
-     * - True when the dropdown menu is open.
-     *
-     * @type {boolean}
-     */
+const FilterDropdownSearch = ({
+                                  label,
+                                  options,
+                                  value,
+                                  onChange,
+                                  className,
+                                  emptyLabel = "No options found",
+                              }) => {
     const [open, setOpen] = useState(false);
-
-    /**
-     * searchTerm
-     * - Current user-typed search term.
-     *
-     * @type {string}
-     */
     const [searchTerm, setSearchTerm] = useState("");
-
-    /**
-     * rootRef
-     * - Ref used to detect outside clicks for closing.
-     *
-     * @type {React.RefObject<HTMLDivElement|null>}
-     */
     const rootRef = useRef(null);
-
-    /**
-     * searchInputRef
-     * - Ref to focus search input on open.
-     *
-     * @type {React.RefObject<HTMLInputElement|null>}
-     */
     const searchInputRef = useRef(null);
 
     /**
@@ -164,54 +117,19 @@ const FilterDropdownSearchAndAdd = ({
      * @type {Array<{value:string,label:string}>}
      */
     const visibleOptions = useMemo(() => {
-        if (!Array.isArray(rest) || rest.length === 0) return [];
+        if (!Array.isArray(rest) || rest.length === 0) {
+            return [];
+        }
         const trimmed = searchTerm.trim().toLowerCase();
-        if (!trimmed) return rest.slice(0, 5);
-
+        if (!trimmed) {
+            return rest.slice(0, 5);
+        }
         return rest.filter((opt) =>
-            String(opt.label || "").toLowerCase().includes(trimmed),
+            String(opt.label || "")
+                .toLowerCase()
+                .includes(trimmed),
         );
     }, [rest, searchTerm]);
-
-    /**
-     * showCreateNewOption
-     * - Show the "Create new" option when:
-     *   1. onCreateNew callback is provided
-     *   2. allowCreateNew is true
-     *   3. user has typed something in the search
-     *   4. No exact match exists in options
-     *
-     * @type {boolean}
-     */
-    const showCreateNewOption = useMemo(() => {
-        if (!onCreateNew || !allowCreateNew) return false;
-        const trimmed = searchTerm.trim();
-        if (!trimmed) return false;
-
-        const hasExactMatch = options.some(
-            (opt) => String(opt.label || "").toLowerCase() === trimmed.toLowerCase(),
-        );
-
-        return !hasExactMatch;
-    }, [onCreateNew, allowCreateNew, searchTerm, options]);
-
-    /**
-     * handleCreateNew
-     * - Creates a new option using the current search term.
-     *
-     * @function handleCreateNew
-     * @returns {void}
-     */
-    const handleCreateNew = () => {
-        const trimmed = searchTerm.trim();
-        if (!trimmed || !onCreateNew) return;
-
-        logger.info("Creating new option", { label, value: trimmed });
-        onCreateNew(trimmed);
-
-        setSearchTerm("");
-        setOpen(false);
-    };
 
     /**
      * handleToggle
@@ -222,7 +140,7 @@ const FilterDropdownSearchAndAdd = ({
      */
     const handleToggle = () => {
         setOpen((prev) => !prev);
-        logger.info("Dropdown toggled", { label, open: !open });
+        logger.info("FilterDropdownSearch toggled", { label, open: !open });
     };
 
     /**
@@ -234,7 +152,7 @@ const FilterDropdownSearchAndAdd = ({
      * @returns {void}
      */
     const handleSelect = (nextValue) => {
-        logger.info("Option selected", { label, value: nextValue });
+        logger.info("FilterDropdownSearch option selected", { label, value: nextValue });
         onChange(nextValue);
         setOpen(false);
     };
@@ -247,8 +165,9 @@ const FilterDropdownSearchAndAdd = ({
      * @returns {void}
      */
     const handleClear = () => {
-        logger.info("Selection cleared", { label });
+        logger.info("FilterDropdownSearch selection cleared", { label });
         onChange("");
+        // keep menu open so user can immediately re-select
     };
 
     /**
@@ -301,12 +220,6 @@ const FilterDropdownSearchAndAdd = ({
         }
     };
 
-    /**
-     * controlClassName
-     * - Computed trigger class names.
-     *
-     * @type {string}
-     */
     const controlClassName = [
         styles.filterControl,
         hasSelection ? styles.filterControlActive : "",
@@ -317,10 +230,19 @@ const FilterDropdownSearchAndAdd = ({
     /**
      * searchPlaceholder
      * - Contextual placeholder text based on the dropdown label.
+     *   Example: label "Client" -> "Search Clients".
      *
      * @type {string}
      */
-    const searchPlaceholder = useMemo(() => getSearchPlaceholder(label), [label]);
+    const searchPlaceholder = useMemo(() => {
+        const base = label.trim();
+        if (!base) return "Search";
+        const plural =
+            base.toLowerCase().endsWith("y")
+                ? `${base.slice(0, -1)}ies`
+                : `${base}s`;
+        return `Search ${plural}`;
+    }, [label]);
 
     return (
         <div
@@ -335,19 +257,35 @@ const FilterDropdownSearchAndAdd = ({
                 aria-haspopup="listbox"
                 aria-expanded={open}
             >
-                {/* Match the rest of the form: show value only, not duplicated COMPANY/CLIENT text */}
-                <span className={styles.filterSelectedValue}>
-                    {hasSelection ? selectedLabel : label}
+                <span
+                    className={
+                        styles.filterLabel +
+                        (hasSelection ? ` ${styles.filterLabelActive}` : "")
+                    }
+                >
+                    {label.toUpperCase()}
                 </span>
-
+                {hasSelection && (
+                    <span className={styles.filterSelectedValue}>
+                        {selectedLabel}
+                    </span>
+                )}
                 <span className={styles.filterCaret}>▾</span>
             </button>
 
             {open && (
-                <div className={styles.filterMenu} role="listbox" aria-label={label || "Select"}>
+                <div
+                    className={styles.filterMenu}
+                    role="listbox"
+                    aria-label={label}
+                >
                     {/* Search row */}
                     <div className={styles.searchRow}>
-                        <FiSearch size={16} className={styles.searchIcon} aria-hidden="true" />
+                        <FiSearch
+                            size={16}
+                            className={styles.searchIcon}
+                            aria-hidden="true"
+                        />
                         <input
                             ref={searchInputRef}
                             type="search"
@@ -382,42 +320,29 @@ const FilterDropdownSearchAndAdd = ({
                     )}
 
                     {/* Options */}
-                    {visibleOptions.length === 0 && !showCreateNewOption ? (
+                    {visibleOptions.length === 0 ? (
                         <div className={styles.emptyRow}>{emptyLabel}</div>
                     ) : (
-                        <>
-                            {visibleOptions.map((opt) => {
-                                const isActive = opt.value === value;
-                                return (
-                                    <button
-                                        key={opt.value}
-                                        type="button"
-                                        className={
-                                            styles.filterMenuItem +
-                                            (isActive ? ` ${styles.filterMenuItemActive}` : "")
-                                        }
-                                        onClick={() => handleSelect(opt.value)}
-                                        role="option"
-                                        aria-selected={isActive}
-                                    >
-                                        {opt.label}
-                                    </button>
-                                );
-                            })}
-
-                            {showCreateNewOption && (
+                        visibleOptions.map((opt) => {
+                            const isActive = opt.value === value;
+                            return (
                                 <button
+                                    key={opt.value}
                                     type="button"
-                                    className={`${styles.filterMenuItem} ${styles.createNewItem}`}
-                                    onClick={handleCreateNew}
+                                    className={
+                                        styles.filterMenuItem +
+                                        (isActive
+                                            ? ` ${styles.filterMenuItemActive}`
+                                            : "")
+                                    }
+                                    onClick={() => handleSelect(opt.value)}
                                     role="option"
-                                    aria-selected={false}
+                                    aria-selected={isActive}
                                 >
-                                    <FiPlus size={14} className={styles.createNewIcon} />
-                                    {createNewLabel}: "{searchTerm.trim()}"
+                                    {opt.label}
                                 </button>
-                            )}
-                        </>
+                            );
+                        })
                     )}
                 </div>
             )}
@@ -425,7 +350,7 @@ const FilterDropdownSearchAndAdd = ({
     );
 };
 
-FilterDropdownSearchAndAdd.propTypes = {
+FilterDropdownSearch.propTypes = {
     label: PropTypes.string.isRequired,
     options: PropTypes.arrayOf(
         PropTypes.shape({
@@ -437,17 +362,11 @@ FilterDropdownSearchAndAdd.propTypes = {
     onChange: PropTypes.func.isRequired,
     className: PropTypes.string,
     emptyLabel: PropTypes.string,
-    onCreateNew: PropTypes.func,
-    createNewLabel: PropTypes.string,
-    allowCreateNew: PropTypes.bool,
 };
 
-FilterDropdownSearchAndAdd.defaultProps = {
+FilterDropdownSearch.defaultProps = {
     className: "",
     emptyLabel: "No results found",
-    onCreateNew: null,
-    createNewLabel: "Create new",
-    allowCreateNew: true,
 };
 
-export default FilterDropdownSearchAndAdd;
+export default FilterDropdownSearch;

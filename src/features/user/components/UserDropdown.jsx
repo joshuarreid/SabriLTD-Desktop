@@ -8,8 +8,8 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './userdropdown.module.css';
-import { useAuth } from '../../../features/auth/hooks/useAuth';
+import styles from '../styles/userdropdown.module.css';
+import { useAuth } from '../../auth/hooks/useAuth.tsx';
 
 /**
  * logger for UserDropdown component.
