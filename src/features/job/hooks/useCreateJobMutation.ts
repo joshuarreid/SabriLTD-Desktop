@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useCurrentUser } from "../../user/hooks/useCurrentUser";
 import { useCreateJob } from "./useJobs";
 
 export type CreateJobPayload = {

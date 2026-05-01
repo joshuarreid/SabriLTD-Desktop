@@ -1,4 +1,4 @@
-import ApiClient from "../ApiClient.ts";
+import ApiClient from "../../../api/ApiClient.ts";
 
 /**
  * AuthApiClient

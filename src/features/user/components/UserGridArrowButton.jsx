@@ -11,7 +11,7 @@
  * @returns {JSX.Element}
  */
 import React from 'react';
-import styles from './UserGridArrowButton.module.css';
+import styles from '../styles/UserGridArrowButton.module.css';
 
 const logger = {
     info: (...args) => console.log('[UserGridArrowButton]', ...args),

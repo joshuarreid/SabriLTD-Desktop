@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createItem } from "../api/item.ts";
 import { itemKeys } from "../api/ItemQueryKeys.ts";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
+import { useCurrentUser } from "../../user/hooks/useCurrentUser.js";
 import { photoKeys } from "../../photo/api/photoQueryKeys";
 
 interface Photo {

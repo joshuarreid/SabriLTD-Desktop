@@ -13,7 +13,7 @@
  * @returns {JSX.Element}
  */
 import React from 'react';
-import styles from './UserTile.module.css';
+import styles from '../styles/UserTile.module.css';
 
 /**
  * logger for UserTile component

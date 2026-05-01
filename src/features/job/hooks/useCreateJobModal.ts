@@ -10,7 +10,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useCurrentUser } from "../../user/hooks/useCurrentUser";
 import useModal from "../../../components/modal/hooks/useModal";
 import useCreateJobMutation from "./useCreateJobMutation";
 

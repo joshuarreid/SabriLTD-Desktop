@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../features/auth/hooks/useAuth.tsx';
-import { login } from '../../api/auth/auth.js';
+import { login } from '../../features/auth/api/auth.js';
 import { getPublicUsers } from '../../api/user/user.js';
 import { userKeys } from '../../api/user/userQueryKeys.js';
 

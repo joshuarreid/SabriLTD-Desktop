@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import styles from '../styles/LoginScreen.module.css';
 import {useLoginScreen} from "../hooks/useLoginScreen.js";
-import { UserGrid } from '../../features/auth/components/UserGrid.jsx';
+import { UserGrid } from '../../features/user/components/UserGrid.jsx';
 import { LoginForm } from '../../features/auth/components/LoginForm.jsx';
 
 import BrandLogo from '../../assets/logos/Sabri-headerlogo1.png';

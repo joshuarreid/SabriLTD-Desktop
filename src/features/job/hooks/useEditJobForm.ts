@@ -4,7 +4,7 @@ import { getAllCompanies, createCompany } from "../../company/api/company";
 import { companyKeys } from "../../company/api/companyQueryKeys";
 import { jobKeys } from "../api/jobQueryKeys";
 import { userKeys } from "../../../api/user/userQueryKeys";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useCurrentUser } from "../../user/hooks/useCurrentUser";
 import { useJobClients, useUpdateJob } from "./useJobs";
 
 export interface CompanyOption {

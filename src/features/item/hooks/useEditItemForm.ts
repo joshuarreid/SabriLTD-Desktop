@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useCurrentUser } from "../../user/hooks/useCurrentUser";
 import ItemApiClient from "../api/itemApiClient";
 
 export interface EditItemValues {
