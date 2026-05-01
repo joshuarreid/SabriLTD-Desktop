@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useTagSettingsTab } from "../hooks/useTagSettingsTab.js";
+import { useTagSettingsTab } from "../hooks/useTagSettingsTab.ts";
 import TagSettingsLayout from "./TagSettingsLayout.jsx";
 
 /**
