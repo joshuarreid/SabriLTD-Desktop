@@ -1,12 +1,13 @@
-import ApiClient from "../../../api/ApiClient.ts";
+import ApiClient from "../../../api/ApiClient";
+import { PhotoResponse, PhotoListResponse, UploadPhotoFields } from "./photo.types";
 
 /**
  * Standardized logger for PhotoApiClient.
  * Never logs sensitive data.
  */
 const logger = {
-    info: (...args) => console.log("[PhotoApiClient]", ...args),
-    error: (...args) => console.error("[PhotoApiClient]", ...args),
+    info: (...args: any[]) => console.log("[PhotoApiClient]", ...args),
+    error: (...args: any[]) => console.error("[PhotoApiClient]", ...args),
 };
 
 /**
@@ -34,17 +35,22 @@ const getTokenFromElectron = async () => {
  * Handles API requests for upload, fetch, get, delete photo endpoints.
  */
 export default class PhotoApiClient extends ApiClient {
-    constructor({ baseURL, timeout = 10000 } = {}) {
+    constructor({ baseURL, timeout = 10000 }: { baseURL?: string; timeout?: number } = {}) {
         super({ baseURL, timeout, apiPath: "/api/photos" });
         logger.info("PhotoApiClient initialized");
     }
+
+    // Type declarations for inherited HTTP methods (if not present in base class)
+    public postMultipart?: (url: string, data: any, config?: any) => Promise<any>;
+    public get?: (url: string, params?: any, config?: any) => Promise<any>;
+    public delete?: (url: string, params?: any, config?: any) => Promise<any>;
 
     /**
      * Uploads photos (multipart/form-data).
      * @param {Object} fields { photoFiles: File[], itemId?: number, updatedBy: number }
      * @returns {Object}
      */
-    async uploadPhoto(fields) {
+    async uploadPhoto(fields: UploadPhotoFields): Promise<PhotoResponse> {
         logger.info("uploadPhoto called", {
             itemId: fields?.itemId,
             updatedBy: fields?.updatedBy,
@@ -62,7 +68,7 @@ export default class PhotoApiClient extends ApiClient {
             }
 
             const formData = new FormData();
-            fields.photoFiles.forEach((file, idx) => {
+            fields.photoFiles.forEach((file) => {
                 formData.append("photoFiles", file); // backend should expect 'photoFiles' as array
             });
             formData.append("updatedBy", fields.updatedBy);
@@ -75,7 +81,7 @@ export default class PhotoApiClient extends ApiClient {
             });
 
             logger.info("uploadPhoto success", { response });
-            return response;
+            return response as PhotoResponse;
         } catch (error) {
             logger.error("uploadPhoto failed", error);
             throw error;
@@ -86,7 +92,7 @@ export default class PhotoApiClient extends ApiClient {
      * Fetches all photos.
      * @returns {Object}
      */
-    async fetchAllPhotos() {
+    async fetchAllPhotos(): Promise<PhotoListResponse> {
         logger.info("fetchAllPhotos called");
         try {
             const token = await getTokenFromElectron();
@@ -102,7 +108,7 @@ export default class PhotoApiClient extends ApiClient {
             logger.info("fetchAllPhotos success", {
                 count: Array.isArray(response?.data) ? response.data.length : 0,
             });
-            return response;
+            return response as PhotoListResponse;
         } catch (error) {
             logger.error("fetchAllPhotos failed", error);
             throw error;
@@ -113,7 +119,7 @@ export default class PhotoApiClient extends ApiClient {
      * Fetches pending photos (itemId is null).
      * @returns {Object}
      */
-    async fetchPendingPhotos() {
+    async fetchPendingPhotos(): Promise<PhotoListResponse> {
         logger.info("fetchPendingPhotos called");
         try {
             const token = await getTokenFromElectron();
@@ -129,7 +135,7 @@ export default class PhotoApiClient extends ApiClient {
             logger.info("fetchPendingPhotos success", {
                 count: Array.isArray(response?.data) ? response.data.length : 0,
             });
-            return response;
+            return response as PhotoListResponse;
         } catch (error) {
             logger.error("fetchPendingPhotos failed", error);
             throw error;
@@ -141,7 +147,7 @@ export default class PhotoApiClient extends ApiClient {
      * @param {number} photoId
      * @returns {Object}
      */
-    async fetchPhotoById(photoId) {
+    async fetchPhotoById(photoId: number): Promise<PhotoResponse> {
         logger.info("fetchPhotoById called", { photoId });
         try {
             const token = await getTokenFromElectron();
@@ -155,7 +161,7 @@ export default class PhotoApiClient extends ApiClient {
                 },
             });
             logger.info("fetchPhotoById success", { found: !!response?.data, photoId: response?.data?.photoId });
-            return response;
+            return response as PhotoResponse;
         } catch (error) {
             logger.error("fetchPhotoById failed", error);
             throw error;
@@ -167,7 +173,7 @@ export default class PhotoApiClient extends ApiClient {
      * @param {number} photoId
      * @returns {void}
      */
-    async deletePhoto(photoId) {
+    async deletePhoto(photoId: number): Promise<void> {
         logger.info("deletePhoto called", { photoId });
         try {
             const token = await getTokenFromElectron();

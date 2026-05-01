@@ -4,7 +4,6 @@
  *
  * @function usePhotoPreview
  * @param {object} options
- * @param {Array<{photoId:number, url:string}>} options.photos - Array of item photo objects.
  * @param {string} options.itemName - Name of the item (for descriptive alt text).
  * @returns {{
  *   hasPhotos: boolean,
@@ -13,6 +12,21 @@
  * }}
  */
 import { useMemo } from "react";
+import { useAllPhotos } from "./usePhotos";
+import type { Photo } from "../api/photo.types";
+
+interface UsePhotoPreviewOptions {
+    itemName: string;
+}
+
+interface UsePhotoPreviewResult {
+    hasPhotos: boolean;
+    mainPhoto: Photo | null;
+    altText: string;
+    allPhotos: Photo[];
+    isLoading: boolean;
+    isError: boolean;
+}
 
 /**
  * Logger for usePhotoPreview.
@@ -21,12 +35,14 @@ import { useMemo } from "react";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[usePhotoPreview]", ...args),
-    error: (...args) => console.error("[usePhotoPreview]", ...args),
+    info: (...args: any[]) => console.log("[usePhotoPreview]", ...args),
+    error: (...args: any[]) => console.error("[usePhotoPreview]", ...args),
 };
 
-export const usePhotoPreview = ({ photos, itemName }) => {
-    // Memoize resolution for performance and traceability
+export const usePhotoPreview = ({ itemName }: UsePhotoPreviewOptions): UsePhotoPreviewResult => {
+    const { data, isLoading, isError } = useAllPhotos();
+    const photos = data?.data || [];
+
     const { hasPhotos, mainPhoto, altText } = useMemo(() => {
         const hasPhotos = Array.isArray(photos) && photos.length > 0;
         const mainPhoto = hasPhotos ? photos[0] : null;
@@ -37,7 +53,7 @@ export const usePhotoPreview = ({ photos, itemName }) => {
         return { hasPhotos, mainPhoto, altText };
     }, [photos, itemName]);
 
-    return { hasPhotos, mainPhoto, altText };
+    return { hasPhotos, mainPhoto, altText, allPhotos: photos, isLoading, isError };
 };
 
 export default usePhotoPreview;

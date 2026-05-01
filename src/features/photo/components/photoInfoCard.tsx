@@ -12,7 +12,14 @@
  * @returns {JSX.Element}
  */
 import React from "react";
+import type { Photo } from "../api/photo.types";
 import styles from "../styles/photoinfocard.module.css";
+
+interface PhotoInfoCardProps {
+    photo: Photo;
+    selected?: boolean;
+    onClick?: (photo: Photo) => void;
+}
 
 /**
  * logger for PhotoInfoCard.
@@ -20,11 +27,11 @@ import styles from "../styles/photoinfocard.module.css";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[PhotoInfoCard]", ...args),
-    error: (...args) => console.error("[PhotoInfoCard]", ...args),
+    info: (...args: any[]) => console.log("[PhotoInfoCard]", ...args),
+    error: (...args: any[]) => console.error("[PhotoInfoCard]", ...args),
 };
 
-const PhotoInfoCard = ({ photo, selected = false, onClick }) => {
+const PhotoInfoCard: React.FC<PhotoInfoCardProps> = ({ photo, selected = false, onClick }) => {
     logger.info("PhotoInfoCard rendered", { photoId: photo?.photoId });
 
     return (

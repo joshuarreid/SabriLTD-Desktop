@@ -1,7 +1,16 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../styles/photopreview.module.css";
-import usePhotoPreview from "../hooks/usePhotoPreview";
+import { usePhotoPreview } from "../hooks/usePhotoPreview";
+import type { Photo } from "../api/photo.types";
+
+interface FullPhotoModalProps {
+    open: boolean;
+    photos: Photo[];
+    current: number;
+    onClose: () => void;
+    onNavigate: (direction: "prev" | "next") => void;
+}
 
 /**
  * FullPhotoModal
@@ -17,14 +26,14 @@ import usePhotoPreview from "../hooks/usePhotoPreview";
  * @param {function} props.onNavigate
  * @returns {JSX.Element}
  */
-const FullPhotoModal = ({
-                            open,
-                            photos,
-                            current,
-                            onClose,
-                            onNavigate
-                        }) => {
-    const imgRef = useRef(null);
+const FullPhotoModal: React.FC<FullPhotoModalProps> = ({
+    open,
+    photos,
+    current,
+    onClose,
+    onNavigate
+}) => {
+    const imgRef = useRef<HTMLImageElement | null>(null);
     const [zoom, setZoom] = useState(1);
     const [drag, setDrag] = useState(false);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -35,7 +44,7 @@ const FullPhotoModal = ({
     // Keyboard: arrows to navigate, esc to close, +,- to zoom, double click to reset
     useEffect(() => {
         if (!open) return;
-        const handleKey = (e) => {
+        const handleKey = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
             else if (e.key === "ArrowLeft") onNavigate("prev");
             else if (e.key === "ArrowRight") onNavigate("next");
@@ -47,40 +56,35 @@ const FullPhotoModal = ({
     }, [open, onClose, onNavigate]);
 
     // Mouse wheel zoom
-    const handleWheel = (e) => {
+    const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
         if (!open) return;
-        setZoom(z =>
-            Math.max(
-                1,
-                Math.min(z + (e.deltaY < 0 ? 0.16 : -0.16), 3)
-            )
-        );
+        setZoom(z => Math.max(1, Math.min(z + (e.deltaY < 0 ? 0.16 : -0.16), 3)));
     };
 
     // Mouse/touch drag pan
-    const handleMouseDown = (e) => {
+    const handleMouseDown = (e: React.MouseEvent<HTMLImageElement>) => {
         e.preventDefault();
         setDrag(true);
         setStart({ x: e.clientX, y: e.clientY });
     };
     const handleMouseUp = () => setDrag(false);
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
         if (!drag) return;
-        setOffset((prev) => ({
+        setOffset(prev => ({
             x: prev.x + e.clientX - start.x,
             y: prev.y + e.clientY - start.y
         }));
         setStart({ x: e.clientX, y: e.clientY });
     };
-    const handleTouchStart = (e) => {
+    const handleTouchStart = (e: React.TouchEvent<HTMLImageElement>) => {
         if (e.touches.length !== 1) return;
         setDrag(true);
         setStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
     };
     const handleTouchEnd = () => setDrag(false);
-    const handleTouchMove = (e) => {
+    const handleTouchMove = (e: React.TouchEvent<HTMLImageElement>) => {
         if (!drag || e.touches.length !== 1) return;
-        setOffset((prev) => ({
+        setOffset(prev => ({
             x: prev.x + e.touches[0].clientX - start.x,
             y: prev.y + e.touches[0].clientY - start.y
         }));
@@ -139,6 +143,11 @@ const FullPhotoModal = ({
     );
 };
 
+interface PhotoPreviewProps {
+    photos: Photo[];
+    itemName: string;
+}
+
 /**
  * PhotoPreview
  * Main preview card with thumbnail strip.
@@ -150,19 +159,22 @@ const FullPhotoModal = ({
  * @returns {JSX.Element}
  */
 const logger = {
-    info: (...args) => console.log("[PhotoPreview]", ...args),
-    error: (...args) => console.error("[PhotoPreview]", ...args),
+    info: (...args: any[]) => console.log("[PhotoPreview]", ...args),
+    error: (...args: any[]) => console.error("[PhotoPreview]", ...args),
 };
 
-const PhotoPreview = ({ photos, itemName }) => {
-    const { hasPhotos, mainPhoto, altText } = usePhotoPreview({ photos, itemName });
+const PhotoPreview: React.FC<PhotoPreviewProps> = ({ photos, itemName }) => {
     const [current, setCurrent] = useState(0);
     const [modalOpen, setModalOpen] = useState(false);
+
+    const hasPhotos = Array.isArray(photos) && photos.length > 0;
+    const mainPhoto = hasPhotos ? photos[current] : null;
+    const altText = mainPhoto ? (itemName || "Item photo") : "No photo available";
 
     /**
      * Keyboard navigation for gallery (main preview area).
      */
-    const handleGalleryKey = useCallback((e) => {
+    const handleGalleryKey = useCallback((e: KeyboardEvent) => {
         if (e.key === "ArrowLeft") setCurrent(i => Math.max(0, i - 1));
         else if (e.key === "ArrowRight") setCurrent(i => Math.min(photos.length - 1, i + 1));
     }, [photos.length]);
@@ -174,7 +186,7 @@ const PhotoPreview = ({ photos, itemName }) => {
     /**
      * Modal navigation (prev/next).
      */
-    const handleModalNavigate = (direction) => {
+    const handleModalNavigate = (direction: "prev" | "next") => {
         setCurrent(i => {
             if (direction === "prev") return Math.max(0, i - 1);
             if (direction === "next") return Math.min(photos.length - 1, i + 1);
@@ -196,8 +208,6 @@ const PhotoPreview = ({ photos, itemName }) => {
         );
     }
 
-    const currPhoto = photos[current];
-
     logger.info("PhotoPreview rendered", { current, total: photos.length });
 
     return (
@@ -210,7 +220,7 @@ const PhotoPreview = ({ photos, itemName }) => {
                 transition={{ type: "spring", stiffness: 220, damping: 18 }}
             >
                 <motion.img
-                    src={currPhoto.url}
+                    src={mainPhoto.url}
                     alt={altText}
                     className={styles.previewImg}
                     onClick={() => setModalOpen(true)}
