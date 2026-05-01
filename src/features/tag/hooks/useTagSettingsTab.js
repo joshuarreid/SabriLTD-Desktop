@@ -11,9 +11,9 @@ import {
     createTag,
     updateTag,
     deleteTag,
-} from "../api/tag.js";
+} from "../api/tag.ts";
 import { categoryKeys } from "../../../api/category/categoryQueryKeys.js";
-import { tagKeys } from "../api/tagQueryKeys.js";
+import { tagKeys } from "../api/tagQueryKeys.ts";
 
 /**
  * logger for useTagSettingsTab hook (Bulletproof React: business logic, robust logging).

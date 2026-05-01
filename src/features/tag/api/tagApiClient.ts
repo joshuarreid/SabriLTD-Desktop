@@ -1,4 +1,5 @@
-import ApiClient from "../../../api/ApiClient.ts";
+import ApiClient from "../../../api/ApiClient";
+import { Tag, TagResponse, TagListResponse } from "./tag.types";
 
 /**
  * Standardized logger for debugging and traceability.
@@ -7,8 +8,8 @@ import ApiClient from "../../../api/ApiClient.ts";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log('[TagApiClient]', ...args),
-    error: (...args) => console.error('[TagApiClient]', ...args),
+    info: (...args: any[]) => console.log('[TagApiClient]', ...args),
+    error: (...args: any[]) => console.error('[TagApiClient]', ...args),
 };
 
 /**
@@ -17,13 +18,13 @@ const logger = {
  * @function getTokenFromElectron
  * @returns {Promise<string|null>} The authentication token, or null if unavailable.
  */
-const getTokenFromElectron = async () => {
+const getTokenFromElectron = async (): Promise<string | null> => {
     logger.info('getTokenFromElectron called');
     if (window.electronAPI && window.electronAPI.tokenGet) {
         try {
             const { success, token } = await window.electronAPI.tokenGet();
             logger.info('getTokenFromElectron response', { success });
-            return success ? token : null;
+            return success ? (token ?? null) : null;
         } catch (error) {
             logger.error('getTokenFromElectron error', error);
             return null;
@@ -49,11 +50,15 @@ export default class TagApiClient extends ApiClient {
      * @param {string} [options.baseURL] - Optional override for API base URL.
      * @param {number} [options.timeout=10000] - Request timeout in ms.
      */
-    constructor({ baseURL, timeout = 10000 } = {}) {
+    constructor(options: { baseURL?: string; timeout?: number } = {}) {
         // NOTE: apiPath MUST NOT have trailing slash, so that
         // ApiClient._buildUrl + get() produce "/api/tags?categoryId=5"
         // and NOT "/api/tags/?categoryId=5" (which your backend rejects)
-        super({ baseURL, timeout, apiPath: '/api/tags' });
+        super({
+            baseURL: options.baseURL,
+            timeout: options.timeout ?? 10000,
+            apiPath: '/api/tags',
+        });
         logger.info('TagApiClient initialized');
     }
 
@@ -64,8 +69,8 @@ export default class TagApiClient extends ApiClient {
      * @returns {Promise<Object>} API response with new tag
      * @throws {Error} If request fails or validation error.
      */
-    async createTag(payload) {
-        logger.info('createTag called', { name: payload?.name, categoryId: payload?.categoryId });
+    async createTag(tag: Omit<Tag, "tagId" | "dateAdded" | "dateUpdated">): Promise<TagResponse> {
+        logger.info('createTag called', { name: tag?.name, categoryId: tag?.categoryId });
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -73,7 +78,7 @@ export default class TagApiClient extends ApiClient {
                 throw new Error('No authentication token found');
             }
             // Storage client posts to '' (no trailing slash) – do the same here
-            const response = await this.post('', payload, {
+            const response = await this.post('/tag', tag, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -95,7 +100,7 @@ export default class TagApiClient extends ApiClient {
      * @returns {Promise<Object>} API response with array of tag objects
      * @throws {Error} If request fails.
      */
-    async fetchAllTags(params = {}) {
+    async getAllTags(params: Record<string, any> = {}): Promise<TagListResponse> {
         logger.info('fetchAllTags called', params);
         try {
             const token = await getTokenFromElectron();
@@ -105,7 +110,7 @@ export default class TagApiClient extends ApiClient {
             }
             // IMPORTANT: use '' (no trailing slash) just like fetchAllStorage does,
             // so ApiClient.get builds "/api/tags?categoryId=5" instead of "/api/tags/?categoryId=5"
-            const response = await this.get('', params, {
+            const response = await this.get('/tag', params, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -128,7 +133,7 @@ export default class TagApiClient extends ApiClient {
      * @returns {Promise<Object>} API response with tag object
      * @throws {Error} If tag not found or request fails.
      */
-    async fetchTagById(tagId) {
+    async fetchTagById(tagId: number): Promise<TagResponse> {
         logger.info('fetchTagById called', { tagId });
         try {
             const token = await getTokenFromElectron();
@@ -136,7 +141,7 @@ export default class TagApiClient extends ApiClient {
                 logger.error('fetchTagById failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const response = await this.get(`/${tagId}`, {}, {
+            const response = await this.get(`/tag/${tagId}`, {}, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -157,7 +162,7 @@ export default class TagApiClient extends ApiClient {
      * @returns {Promise<Object>} API response with updated tag
      * @throws {Error} If not found, validation fails, or request fails.
      */
-    async updateTag(tagId, payload) {
+    async updateTag(tagId: number, tag: Omit<Tag, "tagId" | "dateAdded" | "dateUpdated">): Promise<TagResponse> {
         logger.info('updateTag called', { tagId });
         try {
             const token = await getTokenFromElectron();
@@ -165,7 +170,7 @@ export default class TagApiClient extends ApiClient {
                 logger.error('updateTag failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const response = await this.put(`/${tagId}`, payload, {
+            const response = await this.put(`/tag/${tagId}`, tag, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -185,7 +190,7 @@ export default class TagApiClient extends ApiClient {
      * @returns {Promise<void>} Resolves on success or throws if failed
      * @throws {Error} If tag is not found or request fails.
      */
-    async deleteTag(tagId) {
+    async deleteTag(tagId: number): Promise<void> {
         logger.info('deleteTag called', { tagId });
         try {
             const token = await getTokenFromElectron();
@@ -193,7 +198,7 @@ export default class TagApiClient extends ApiClient {
                 logger.error('deleteTag failed: No token available');
                 throw new Error('No authentication token found');
             }
-            await this.delete(`/${tagId}`, {}, {
+            await this.delete(`/tag/${tagId}`, {}, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
