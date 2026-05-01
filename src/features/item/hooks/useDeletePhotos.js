@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { photoKeys } from "../../photo/api/photoQueryKeys.js";
-import { deletePhoto } from "../../photo/api/photo.js";
+import { photoKeys } from "../../photo/api/photoQueryKeys.ts";
+import { deletePhoto } from "../../photo/api/photo.ts";
 
 /**
  * logger for useDeletePhotos

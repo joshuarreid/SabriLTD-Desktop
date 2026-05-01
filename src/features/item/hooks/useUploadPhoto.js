@@ -9,8 +9,8 @@
  */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { photoKeys } from "../../photo/api/photoQueryKeys.js";
-import { uploadPhoto } from "../../photo/api/photo.js";
+import { photoKeys } from "../../photo/api/photoQueryKeys.ts";
+import { uploadPhoto } from "../../photo/api/photo.ts";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser.js";
 
 /**

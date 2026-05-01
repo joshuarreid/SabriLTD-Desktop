@@ -1,4 +1,5 @@
-import PhotoApiClient from "./photoApiClient.js";
+import PhotoApiClient from "./photoApiClient";
+import { Photo, PhotoResponse, PhotoListResponse, UploadPhotoFields } from "./photo.types";
 
 /**
  * Singleton instance of PhotoApiClient.
@@ -9,8 +10,8 @@ const apiClient = new PhotoApiClient();
  * Photo module logger (standardized).
  */
 const logger = {
-    info: (...args) => console.log("[photo]", ...args),
-    error: (...args) => console.error("[photo]", ...args),
+    info: (...args: any[]) => console.log("[photo]", ...args),
+    error: (...args: any[]) => console.error("[photo]", ...args),
 };
 
 /**
@@ -18,7 +19,7 @@ const logger = {
  * @param {Object} fields { photoFiles: File[], itemId?: number, updatedBy: number }
  * @returns {Object|null} PhotoResponse or null
  */
-export async function uploadPhoto(fields) {
+export async function uploadPhoto(fields: UploadPhotoFields): Promise<Photo | null> {
     logger.info("uploadPhoto called", { itemId: fields?.itemId, updatedBy: fields?.updatedBy, fileCount: Array.isArray(fields?.photoFiles) ? fields.photoFiles.length : 0 });
     try {
         const response = await apiClient.uploadPhoto(fields);
@@ -34,7 +35,7 @@ export async function uploadPhoto(fields) {
  * Fetches all photos.
  * @returns {Object} { status, data, transactionId, errors }
  */
-export async function getAllPhotos() {
+export async function getAllPhotos(): Promise<PhotoListResponse> {
     logger.info("getAllPhotos called");
     try {
         const response = await apiClient.fetchAllPhotos();
@@ -57,7 +58,7 @@ export async function getAllPhotos() {
  * Fetches all pending photos (staged, not linked to itemId).
  * @returns {Object} { status, data, transactionId, errors }
  */
-export async function getPendingPhotos() {
+export async function getPendingPhotos(): Promise<PhotoListResponse> {
     logger.info("getPendingPhotos called");
     try {
         const response = await apiClient.fetchPendingPhotos();
@@ -81,7 +82,7 @@ export async function getPendingPhotos() {
  * @param {number} photoId
  * @returns {Object|null} PhotoResponse or null
  */
-export async function getPhotoById(photoId) {
+export async function getPhotoById(photoId: number): Promise<Photo | null> {
     logger.info("getPhotoById called", { photoId });
     try {
         const response = await apiClient.fetchPhotoById(photoId);
@@ -98,7 +99,7 @@ export async function getPhotoById(photoId) {
  * @param {number} photoId
  * @returns {void}
  */
-export async function deletePhoto(photoId) {
+export async function deletePhoto(photoId: number): Promise<void> {
     logger.info("deletePhoto called", { photoId });
     try {
         await apiClient.deletePhoto(photoId);
