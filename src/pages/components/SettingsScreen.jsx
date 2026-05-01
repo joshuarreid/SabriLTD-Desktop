@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import styles from "../styles/settingsscreen.module.css";
 import UserSettingsTab from "../../features/user/components/UserSettingsTab.jsx";
 import StorageSettingsTab from "../../features/storage/components/StorageSettingsTab.tsx";
-import TagSettingsTab from "../../features/tag/components/TagSettingsTab.jsx";
+import TagSettingsTab from "../../features/tag/components/TagSettingsTab.tsx";
 import CompanySettingsTab from "../../features/company/components/CompanySettingsTab.tsx";
 
 

@@ -19,7 +19,7 @@
 
 import React, { useMemo } from "react";
 import styles from "../styles/itemtagfield.module.css";
-import CategoryInfoPill from "../../tag/components/CategoryInfoPill.jsx";
+import CategoryInfoPill from "../../tag/components/CategoryInfoPill.tsx";
 import TagInfoPill from "../../tag/components/TagInfoPill";
 
 /**
@@ -243,3 +243,4 @@ const ItemTagField = ({
 };
 
 export default ItemTagField;
+

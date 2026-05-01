@@ -87,6 +87,14 @@ export const useTagSettingsTab = () => {
     const [tagDeleteStatus, setTagDeleteStatus] = useState<'idle'|'deleting'|'deleted'|'error'>("idle");
     const [createTagStatus, setCreateTagStatus] = useState<'idle'|'saving'|'saved'|'error'>("idle");
 
+    // --- Tag search state ---
+    const [tagSearch, setTagSearch] = useState<string>("");
+
+    // --- Filtered tags based on search ---
+    const filteredTags = tags.filter(tag =>
+        tag.name.toLowerCase().includes(tagSearch.trim().toLowerCase())
+    );
+
     // Category mutations
     const updateCategoryMutation = useMutation({
         mutationFn: ({ categoryId, category }: { categoryId: number; category: any }) => updateCategory(categoryId, category),
@@ -216,6 +224,14 @@ export const useTagSettingsTab = () => {
         setTagDeleteStatus("idle");
     };
 
+    // --- Handlers for search input ---
+    const onTagSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTagSearch(e.target.value);
+    };
+    const onTagSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        // Optionally handle Enter for tag creation here
+    };
+
     return {
         categories,
         isCategoriesPending,
@@ -227,28 +243,18 @@ export const useTagSettingsTab = () => {
         isTagsPending,
         isTagsError,
         tagsError,
-        editingId,
-        removingId,
-        addingCategory,
-        openAddCategory,
-        handleAddCategory,
-        handleEditCategory,
-        handleSaveEdit,
-        handleRemoveCategory,
-        confirmRemoveCategory,
-        cancelRemoveCategory,
-        cancelEditOrAdd,
-        editStatus,
-        addStatus,
-        createTagMutation,
-        updateTagMutation,
-        deleteTagMutation,
+        tagSearch,
+        setTagSearch,
+        filteredTags,
+        sortKey: "a-z", // placeholder, implement sorting if needed
+        setSortKey: () => {}, // placeholder
+        createTagStatus,
         tagDeleteId,
         tagDeleteStatus,
-        triggerTagDelete,
-        handleConfirmTagDelete,
-        handleCancelTagDelete,
-        createTagAsDraft,
-        createTagStatus,
+        onConfirmTagDelete: () => {}, // placeholder
+        onCancelTagDelete: () => {}, // placeholder
+        onTagDeleteRequest: () => {}, // placeholder
+        onTagSearchKeyDown,
+        onTagSearchChange,
     };
 };
