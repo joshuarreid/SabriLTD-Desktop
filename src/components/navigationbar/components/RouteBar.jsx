@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { AiOutlineHome } from "react-icons/ai";
-import styles from "./routebar.module.css";
+import styles from '../styles/routebar.module.css';
 
 /**
  * logger for RouteBar component.

@@ -3,15 +3,15 @@ import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-rou
 import { QueryClientProvider } from '@tanstack/react-query';
 import './App.css';
 import { queryClient } from "./config/queryClient.js";
-import LoginScreen from './pages/loginScreen.jsx';
+import LoginScreen from './pages/components/loginScreen.jsx';
 import { AuthProvider, useAuth } from './features/auth/hooks/useAuth';
 import ProtectedLayout from './layouts/ProtectedLayout.jsx';
-import UserProfileScreen from './pages/UserProfileScreen.jsx';
-import SettingsScreen from './pages/SettingsScreen.jsx';
-import JobScreen from "./pages/JobScreen.jsx";
-import HomeScreen from './pages/HomeScreen.jsx';
-import AddItemScreen from "./pages/AddItemScreen.jsx";
-import JobDetailScreen from "./pages/JobDetailScreen.jsx";
+import UserProfileScreen from './pages/components/UserProfileScreen.jsx';
+import SettingsScreen from './pages/components/SettingsScreen.jsx';
+import JobScreen from "./pages/components/JobScreen.jsx";
+import HomeScreen from './pages/components/HomeScreen.jsx';
+import AddItemScreen from "./pages/components/AddItemScreen.jsx";
+import JobDetailScreen from "./pages/components/JobDetailScreen.jsx";
 
 /**
  * ProtectedRoute

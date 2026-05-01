@@ -1,6 +1,6 @@
 import React from "react";
-import NavigationBar from "../components/navigationbar/components/NavigationBar";
-import RouteBar from "../components/navigationbar/components/RouteBar";
+import NavigationBar from "../components/navigationbar/components/NavigationBar.jsx";
+import RouteBar from "../components/navigationbar/components/RouteBar.jsx";
 
 
 /**

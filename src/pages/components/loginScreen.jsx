@@ -8,12 +8,12 @@
  */
 
 import React, { useState } from 'react';
-import styles from '../features/auth/components/LoginScreen.module.css';
-import {useLoginScreen} from "../features/auth/hooks/useLoginScreen";
-import { UserGrid } from '../features/auth/components/UserGrid';
-import { LoginForm } from '../features/auth/components/LoginForm';
+import styles from '../styles/LoginScreen.module.css';
+import {useLoginScreen} from "../hooks/useLoginScreen.js";
+import { UserGrid } from '../../features/auth/components/UserGrid.jsx';
+import { LoginForm } from '../../features/auth/components/LoginForm.jsx';
 
-import BrandLogo from '../assets/logos/Sabri-headerlogo1.png';
+import BrandLogo from '../../assets/logos/Sabri-headerlogo1.png';
 
 
 /**

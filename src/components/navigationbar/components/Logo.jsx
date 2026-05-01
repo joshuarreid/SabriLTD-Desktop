@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './logo.module.css';
+import styles from '../styles/logo.module.css';
 import logoImg from '../../../assets/logos/Sabri-headerlogo1.png';
 
 /**

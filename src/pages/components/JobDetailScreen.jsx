@@ -1,12 +1,12 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { useViewItemModal } from "../features/item/hooks/useViewItemModal";
-import ViewItemModal from "../features/item/components/ViewItemModal";
-import useJobDetailScreen from "../features/job/hooks/useJobDetailScreen.ts";
-import useEditJobForm from "../features/job/hooks/useEditJobForm.ts";
-import styles from "../features/job/styles/jobdetailscreen.module.css";
-import EditJobForm from "../features/job/components/EditJobForm.tsx";
-import JobItemGridBox from "../features/job/components/JobItemGridBox";
+import { useViewItemModal } from "../../features/item/hooks/useViewItemModal.js";
+import ViewItemModal from "../../features/item/components/ViewItemModal.jsx";
+import useJobDetailScreen from "../hooks/useJobDetailScreen.ts";
+import useEditJobForm from "../../features/job/hooks/useEditJobForm.ts";
+import styles from "../styles/jobdetailscreen.module.css";
+import EditJobForm from "../../features/job/components/EditJobForm.tsx";
+import JobItemGridBox from "../../features/job/components/JobItemGridBox.tsx";
 
 /**
  * Logger for JobDetailScreen.

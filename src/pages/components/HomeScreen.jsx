@@ -12,9 +12,9 @@
  */
 
 import React from "react";
-import ItemBrowser from "../features/item/components/ItemBrowser.jsx";
-import { useViewItemModal } from "../features/item/hooks/useViewItemModal";
-import ViewItemModal from "../features/item/components/ViewItemModal";
+import ItemBrowser from "../../features/item/components/ItemBrowser.jsx";
+import { useViewItemModal } from "../../features/item/hooks/useViewItemModal.js";
+import ViewItemModal from "../../features/item/components/ViewItemModal.jsx";
 
 /**
  * Logger for HomeScreen.

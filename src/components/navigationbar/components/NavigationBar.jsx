@@ -2,11 +2,11 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { RiFunctionAddLine } from "react-icons/ri";
 import { IoFolderOpenOutline } from "react-icons/io5";
-import Logo from "./Logo";
-import UserDropdown from "./UserDropdown";
-import SettingsDropdown from "./SettingsDropdown";
-import { useCurrentUser } from "../../../features/auth/hooks/useCurrentUser";
-import styles from "./navigationbar.module.css";
+import Logo from "./Logo.jsx";
+import UserDropdown from "../../../features/user/components/UserDropdown.jsx";
+import SettingsDropdown from "./SettingsDropdown.jsx";
+import { useCurrentUser } from "../../../features/auth/hooks/useCurrentUser.js";
+import styles from '../styles/navigationbar.module.css';
 
 /**
  * logger for NavigationBar component.
