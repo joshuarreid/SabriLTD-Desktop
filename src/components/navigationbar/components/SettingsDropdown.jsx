@@ -49,7 +49,7 @@ const SETTINGS_OPTIONS = [
     {
         label: "Tags",
         key: "tags",
-        route: "/settings?tab=tag",
+        route: "/settings?tab=tags", // <-- Fixed to plural
         icon: <IoPricetagsOutline />,
     },
     {
