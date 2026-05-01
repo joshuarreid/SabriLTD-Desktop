@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useCurrentUser } from "../../user/hooks/useCurrentUser";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAddItemsToJob } from "./useJobs";
 

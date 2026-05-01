@@ -5,7 +5,7 @@ import { IoFolderOpenOutline } from "react-icons/io5";
 import Logo from "./Logo.jsx";
 import UserDropdown from "../../../features/user/components/UserDropdown.jsx";
 import SettingsDropdown from "./SettingsDropdown.jsx";
-import { useCurrentUser } from "../../../features/auth/hooks/useCurrentUser.js";
+import { useCurrentUser } from "../../../features/user/hooks/useCurrentUser.js";
 import styles from '../styles/navigationbar.module.css';
 
 /**

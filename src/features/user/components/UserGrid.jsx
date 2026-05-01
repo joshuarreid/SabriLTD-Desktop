@@ -15,7 +15,7 @@
  * @returns {JSX.Element}
  */
 import React from 'react';
-import styles from './UserGrid.module.css';
+import styles from '../styles/UserGrid.module.css';
 import { UserTile } from './UserTile.jsx';
 import { UserGridArrowButton } from './UserGridArrowButton.jsx';
 
