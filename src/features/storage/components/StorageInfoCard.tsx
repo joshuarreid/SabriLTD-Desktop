@@ -5,6 +5,11 @@ import { FcFilingCabinet } from "react-icons/fc";
 import { MdShelves } from "react-icons/md";
 import { FaBoxOpen } from "react-icons/fa";
 
+interface StorageInfoCardProps {
+    name: string;
+    // Add other props as needed
+}
+
 /**
  * getStorageIcon
  * Selects the icon for storage based on its name.
@@ -13,7 +18,7 @@ import { FaBoxOpen } from "react-icons/fa";
  * @param {string} name - Storage name
  * @returns {JSX.Element}
  */
-function getStorageIcon(name) {
+function getStorageIcon(name: string): JSX.Element {
     // Official colors
     const brown = "#C97E38";    // orangish brown
     const grey = "#8187A6";
@@ -71,7 +76,7 @@ const logger = {
  * @param {function} [props.onClick] - Optional callback when the card is clicked (for edit).
  * @returns {JSX.Element}
  */
-const StorageInfoCard = ({ storage, onClick }) => {
+const StorageInfoCard: React.FC<StorageInfoCardProps> = ({ storage, onClick }) => {
     logger.info("StorageInfoCard rendered", { storageId: storage?.storageId });
     return (
         <div

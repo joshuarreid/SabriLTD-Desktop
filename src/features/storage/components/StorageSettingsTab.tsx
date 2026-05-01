@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import styles from "../styles/storagesettingstab.module.css";
-import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab.js";
-import BuildingSettings from "../../building/components/BuildingSettings.tsx";
-import StorageSettings from "./StorageSettings.jsx";
+import { useStorageSettingsTab } from "../hooks/useStorageSettingsTab";
+import BuildingSettings from "../../building/components/BuildingSettings";
+import StorageSettings from "./StorageSettings";
 
 /**
  * StorageSettingsTab
@@ -12,11 +12,11 @@ import StorageSettings from "./StorageSettings.jsx";
  * @returns {JSX.Element}
  */
 const logger = {
-    info: (...args) => console.log("[StorageSettingsTab]", ...args),
-    error: (...args) => console.error("[StorageSettingsTab]", ...args),
+    info: (...args: any[]) => console.log("[StorageSettingsTab]", ...args),
+    error: (...args: any[]) => console.error("[StorageSettingsTab]", ...args),
 };
 
-const StorageSettingsTab = () => {
+const StorageSettingsTab: React.FC = () => {
     logger.info("StorageSettingsTab mounted");
 
     // All business logic packed in custom hook
@@ -48,9 +48,9 @@ const StorageSettingsTab = () => {
         <div className={styles.tabRoot}>
             <div className={styles.buildingContainer}>
                 <BuildingSettings {...hookValues} />
-                <div className={styles.storageLocationsContainer}>
-                    <StorageSettings {...hookValues} />
-                </div>
+            </div>
+            <div className={styles.storageContainer}>
+                <StorageSettings {...hookValues} />
             </div>
         </div>
     );

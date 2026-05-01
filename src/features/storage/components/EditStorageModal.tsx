@@ -3,6 +3,19 @@ import styles from "../styles/editstoragemodal.module.css";
 import SaveStatus from "../../../components/save/SaveStatus";
 import { useEditStorageModal } from "../hooks/useEditStorageModal";
 import { FaRegTrashCan } from "react-icons/fa6";
+import { Storage } from "../api/storage.types";
+
+interface EditStorageModalProps {
+    storage: Storage;
+    selectedBuildingId: number | string;
+    open: boolean;
+    isSaving: boolean;
+    onSave: (storageId: number | string, storage: Partial<Storage>) => void;
+    onClose: () => void;
+    onDelete?: (storageId: number | string) => void;
+    error?: string | null;
+    saveState?: 'saving' | 'saved' | 'idle' | 'error';
+}
 
 /**
  * EditStorageModal
@@ -22,21 +35,21 @@ import { FaRegTrashCan } from "react-icons/fa6";
  * @returns {JSX.Element|null}
  */
 const logger = {
-    info: (...args) => console.log("[EditStorageModal]", ...args),
-    error: (...args) => console.error("[EditStorageModal]", ...args),
+    info: (...args: any[]) => console.log("[EditStorageModal]", ...args),
+    error: (...args: any[]) => console.error("[EditStorageModal]", ...args),
 };
 
-const EditStorageModal = ({
-                              storage,
-                              selectedBuildingId,
-                              open,
-                              isSaving,
-                              onSave,
-                              onClose,
-                              onDelete,
-                              error,
-                              saveState = "idle",
-                          }) => {
+const EditStorageModal: React.FC<EditStorageModalProps> = ({
+    storage,
+    selectedBuildingId,
+    open,
+    isSaving,
+    onSave,
+    onClose,
+    onDelete,
+    error,
+    saveState = "idle",
+}) => {
     const {
         draft,
         formError,

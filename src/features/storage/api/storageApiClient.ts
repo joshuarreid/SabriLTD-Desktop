@@ -1,13 +1,14 @@
-import ApiClient from "../ApiClient.ts";
+import ApiClient from "../../../api/ApiClient";
+import { Storage, StorageResponse, StorageListResponse } from "./storage.types";
 
 /**
  * logger for StorageApiClient - robust, standardized, no sensitive data.
  * @constant
  * @type {{info: Function, error: Function}}
  */
-const logger = {
-    info: (...args) => console.log('[StorageApiClient]', ...args),
-    error: (...args) => console.error('[StorageApiClient]', ...args),
+const logger: { info: (...args: any[]) => void; error: (...args: any[]) => void } = {
+    info: (...args: any[]) => console.log('[StorageApiClient]', ...args),
+    error: (...args: any[]) => console.error('[StorageApiClient]', ...args),
 };
 
 /**
@@ -16,13 +17,13 @@ const logger = {
  * @function getTokenFromElectron
  * @returns {Promise<string|null>} The authentication token, or null if unavailable.
  */
-const getTokenFromElectron = async () => {
+const getTokenFromElectron = async (): Promise<string | null> => {
     logger.info('getTokenFromElectron called');
     if (window.electronAPI && window.electronAPI.tokenGet) {
         try {
             const { success, token } = await window.electronAPI.tokenGet();
             logger.info('getTokenFromElectron response', { success });
-            return success ? token : null;
+            return success ? token ?? null : null;
         } catch (error) {
             logger.error('getTokenFromElectron error', error);
             return null;
@@ -46,7 +47,7 @@ export default class StorageApiClient extends ApiClient {
      * @param {string} [options.baseURL] - The API base url.
      * @param {number} [options.timeout=10000] - Request timeout in ms.
      */
-    constructor({ baseURL, timeout = 10000 } = {}) {
+    constructor({ baseURL, timeout = 10000 }: { baseURL?: string; timeout?: number } = {}) {
         super({ baseURL, timeout, apiPath: '/api/storage' });
         logger.info('StorageApiClient initialized');
     }
@@ -54,11 +55,11 @@ export default class StorageApiClient extends ApiClient {
     /**
      * Creates a new storage location (requires authentication).
      * @async
-     * @param {Object} payload - { name, description, buildingId }
-     * @returns {Promise<Object>} API response with new storage object.
+     * @param {Storage} payload - { name, description, buildingId }
+     * @returns {Promise<StorageResponse>} API response with new storage object.
      * @throws {Error} On request failure, duplicate, or validation error.
      */
-    async createStorage(payload) {
+    async createStorage(payload: Storage): Promise<StorageResponse> {
         logger.info('createStorage called', { name: payload?.name });
         try {
             const token = await getTokenFromElectron();
@@ -72,7 +73,7 @@ export default class StorageApiClient extends ApiClient {
                 }
             });
             logger.info('createStorage success', { storageId: response?.data?.storageId });
-            return response;
+            return response as StorageResponse;
         } catch (error) {
             logger.error('createStorage failed', error);
             throw error;
@@ -82,11 +83,11 @@ export default class StorageApiClient extends ApiClient {
     /**
      * Retrieves all storage records, optionally filtered by buildingId. Requires authentication.
      * @async
-     * @param {Object} [params={}] - e.g. { buildingId, page, size }
-     * @returns {Promise<Object>} API response with array of storage objects.
+     * @param {Partial<Storage> & { page?: number; size?: number }} [params={}] - e.g. { buildingId, page, size }
+     * @returns {Promise<StorageListResponse>} API response with array of storage objects.
      * @throws {Error} On network or server error.
      */
-    async fetchAllStorage(params = {}) {
+    async fetchAllStorage(params: Partial<Storage> & { page?: number; size?: number } = {}): Promise<StorageListResponse> {
         logger.info('fetchAllStorage called', params);
         try {
             const token = await getTokenFromElectron();
@@ -103,7 +104,7 @@ export default class StorageApiClient extends ApiClient {
                 'fetchAllStorage success',
                 { count: Array.isArray(response?.data?.data) ? response.data.data.length : 0 }
             );
-            return response;
+            return response as StorageListResponse;
         } catch (error) {
             logger.error('fetchAllStorage failed', error);
             throw error;
@@ -114,10 +115,10 @@ export default class StorageApiClient extends ApiClient {
      * Fetches a specific storage record by storageId (requires authentication).
      * @async
      * @param {number} storageId - The storage ID.
-     * @returns {Promise<Object>} API response with storage object.
+     * @returns {Promise<StorageResponse>} API response with storage object.
      * @throws {Error} If fetch fails or not found.
      */
-    async fetchStorageById(storageId) {
+    async fetchStorageById(storageId: number): Promise<StorageResponse> {
         logger.info('fetchStorageById called', { storageId });
         try {
             const token = await getTokenFromElectron();
@@ -131,7 +132,7 @@ export default class StorageApiClient extends ApiClient {
                 }
             });
             logger.info('fetchStorageById success', { storageId: response?.data?.storageId });
-            return response;
+            return response as StorageResponse;
         } catch (error) {
             logger.error('fetchStorageById failed', error);
             throw error;
@@ -142,11 +143,11 @@ export default class StorageApiClient extends ApiClient {
      * Updates a storage record by storageId (requires authentication).
      * @async
      * @param {number} storageId - Storage ID to update.
-     * @param {Object} payload - Fields to update: { name, description, buildingId }
-     * @returns {Promise<Object>} API response with updated storage.
+     * @param {Storage} payload - Fields to update: { name, description, buildingId }
+     * @returns {Promise<StorageResponse>} API response with updated storage.
      * @throws {Error} If not found or request fails.
      */
-    async updateStorage(storageId, payload) {
+    async updateStorage(storageId: number, payload: Storage): Promise<StorageResponse> {
         logger.info('updateStorage called', { storageId });
         try {
             const token = await getTokenFromElectron();
@@ -160,7 +161,7 @@ export default class StorageApiClient extends ApiClient {
                 }
             });
             logger.info('updateStorage success', { storageId: response?.data?.storageId });
-            return response;
+            return response as StorageResponse;
         } catch (error) {
             logger.error('updateStorage failed', error);
             throw error;
@@ -171,10 +172,10 @@ export default class StorageApiClient extends ApiClient {
      * Deletes a storage record by storageId (requires authentication).
      * @async
      * @param {number} storageId - The storage ID to delete.
-     * @returns {Promise<Object>} API success response or throws.
+     * @returns {Promise<StorageResponse>} API success response or throws.
      * @throws {Error} If delete fails or storage not found.
      */
-    async deleteStorage(storageId) {
+    async deleteStorage(storageId: number): Promise<StorageResponse> {
         logger.info('deleteStorage called', { storageId });
         try {
             const token = await getTokenFromElectron();
@@ -188,7 +189,7 @@ export default class StorageApiClient extends ApiClient {
                 }
             });
             logger.info('deleteStorage success', { storageId });
-            return response;
+            return response as StorageResponse;
         } catch (error) {
             logger.error('deleteStorage failed', error);
             throw error;

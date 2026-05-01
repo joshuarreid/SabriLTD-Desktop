@@ -1,4 +1,5 @@
-import StorageApiClient from "./storageApiClient.js";
+import StorageApiClient from "./storageApiClient";
+import { Storage, StorageResponse, StorageListResponse } from "./storage.types";
 
 /**
  * Singleton instance of StorageApiClient.
@@ -14,9 +15,9 @@ const apiClient = new StorageApiClient();
  *
  * @constant
  */
-const logger = {
-    info: (...args) => console.log('[storage]', ...args),
-    error: (...args) => console.error('[storage]', ...args),
+const logger: { info: (...args: any[]) => void; error: (...args: any[]) => void } = {
+    info: (...args: any[]) => console.log('[storage]', ...args),
+    error: (...args: any[]) => console.error('[storage]', ...args),
 };
 
 /**
@@ -24,14 +25,14 @@ const logger = {
  *
  * @async
  * @function createStorage
- * @param {{name: string, description: string, buildingId: number}} storage - Storage payload.
- * @returns {Promise<{storageId: number, name: string, description: string, buildingId: number}>} Storage object.
+ * @param {Storage} storage - Storage payload.
+ * @returns {Promise<Storage | null>} Storage object.
  * @throws {Error} If request fails: duplicate, invalid, or server error.
  */
-export async function createStorage(storage) {
+export async function createStorage(storage: Storage): Promise<Storage | null> {
     logger.info('createStorage called', { name: storage?.name });
     try {
-        const response = await apiClient.createStorage(storage);
+        const response: StorageResponse = await apiClient.createStorage(storage);
         return response?.data || null;
     } catch (error) {
         logger.error('createStorage failed', error);
@@ -44,14 +45,14 @@ export async function createStorage(storage) {
  *
  * @async
  * @function getAllStorage
- * @param {Object} [params={}] - Optional params: { buildingId, page, size }
- * @returns {Promise<Array<{storageId: number, name: string, description: string, buildingId: number}>>} Storage objects.
+ * @param {Partial<Storage> & { page?: number; size?: number }} [params={}] - Optional params: { buildingId, page, size }
+ * @returns {Promise<Storage[]>} Storage objects.
  * @throws {Error} If request fails (network, 401, 500, etc).
  */
-export async function getAllStorage(params = {}) {
+export async function getAllStorage(params: Partial<Storage> & { page?: number; size?: number } = {}): Promise<Storage[]> {
     logger.info('getAllStorage called', params);
     try {
-        const response = await apiClient.fetchAllStorage(params);
+        const response: StorageListResponse = await apiClient.fetchAllStorage(params);
         return response?.data || [];
     } catch (error) {
         logger.error('getAllStorage failed', error);
@@ -65,13 +66,13 @@ export async function getAllStorage(params = {}) {
  * @async
  * @function getStorageById
  * @param {number} storageId
- * @returns {Promise<{storageId: number, name: string, description: string, buildingId: number}>} Storage object.
+ * @returns {Promise<Storage | null>} Storage object.
  * @throws {Error} If storage is not found or request fails.
  */
-export async function getStorageById(storageId) {
+export async function getStorageById(storageId: number): Promise<Storage | null> {
     logger.info('getStorageById called', { storageId });
     try {
-        const response = await apiClient.fetchStorageById(storageId);
+        const response: StorageResponse = await apiClient.fetchStorageById(storageId);
         return response?.data || null;
     } catch (error) {
         logger.error('getStorageById failed', error);
@@ -85,14 +86,14 @@ export async function getStorageById(storageId) {
  * @async
  * @function updateStorage
  * @param {number} storageId - The storage id to update.
- * @param {{name: string, description: string, buildingId: number}} storage - The inputfields to update.
- * @returns {Promise<{storageId: number, name: string, description: string, buildingId: number}>} Updated storage.
+ * @param {Storage} storage - The inputfields to update.
+ * @returns {Promise<Storage | null>} Updated storage.
  * @throws {Error} If not found, validation fails, or request fails.
  */
-export async function updateStorage(storageId, storage) {
+export async function updateStorage(storageId: number, storage: Storage): Promise<Storage | null> {
     logger.info('updateStorage called', { storageId });
     try {
-        const response = await apiClient.updateStorage(storageId, storage);
+        const response: StorageResponse = await apiClient.updateStorage(storageId, storage);
         return response?.data || null;
     } catch (error) {
         logger.error('updateStorage failed', error);
@@ -109,7 +110,7 @@ export async function updateStorage(storageId, storage) {
  * @returns {Promise<void>} Resolves on success or throws if failed.
  * @throws {Error} If storage is not found or request fails.
  */
-export async function deleteStorage(storageId) {
+export async function deleteStorage(storageId: number): Promise<void> {
     logger.info('deleteStorage called', { storageId });
     try {
         await apiClient.deleteStorage(storageId);

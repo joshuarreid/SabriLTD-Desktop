@@ -15,9 +15,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllBuildings } from "../../building/api/building.ts";
-import { getAllStorage, createStorage } from "../../../api/storage/storage.js";
+import { getAllStorage, createStorage } from "../../storage/api/storage.ts";
 import { buildingKeys } from "../../building/api/buildingQueryKeys.ts";
-import { storageKeys } from "../../../api/storage/storageQueryKeys.js";
+import { storageKeys } from "../../storage/api/storageQueryKeys.ts";
 
 /**
  * logger for useItemStorageField.
