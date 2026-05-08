@@ -3,7 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate, Outlet } from 'react-rou
 import { QueryClientProvider } from '@tanstack/react-query';
 import './App.css';
 import { queryClient } from "./config/queryClient.js";
-import LoginScreen from './pages/components/loginScreen.jsx';
+import LoginScreen from './pages/components/loginScreen';
 import { AuthProvider, useAuth } from './features/auth/hooks/useAuth';
 import ProtectedLayout from './layouts/ProtectedLayout.jsx';
 import UserProfileScreen from './pages/components/UserProfileScreen.jsx';

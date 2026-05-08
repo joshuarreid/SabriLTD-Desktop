@@ -8,8 +8,9 @@
  */
 
 import React, { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import styles from '../styles/LoginScreen.module.css';
-import {useLoginScreen} from "../hooks/useLoginScreen.js";
+import {useLoginScreen} from "../hooks/useLoginScreen";
 import { UserGrid } from '../../features/user/components/UserGrid.jsx';
 import { LoginForm } from '../../features/auth/components/LoginForm.jsx';
 
@@ -21,8 +22,8 @@ import BrandLogo from '../../assets/logos/Sabri-headerlogo1.png';
  * @constant
  */
 const logger = {
-    info: (...args) => console.log('[LoginScreen]', ...args),
-    error: (...args) => console.error('[LoginScreen]', ...args),
+    info: (...args: unknown[]) => console.log('[LoginScreen]', ...args),
+    error: (...args: unknown[]) => console.error('[LoginScreen]', ...args),
 };
 
 /**
@@ -36,13 +37,13 @@ export const LoginScreen = () => {
     logger.info('LoginScreen mounted');
 
     const {
+        isAuthenticated,
         isLoadingUsers,
         usersError,
         error,
         publicUsers,
         selectedUserId,
         mutationIsPending,
-        redirectElement,
         step,
         selectUser,
         continueToPassword,
@@ -51,7 +52,10 @@ export const LoginScreen = () => {
         resetError,
     } = useLoginScreen();
 
-    const [userPage, setUserPage] = useState(0);
+    const [userPage, setUserPage] = useState<number>(0);
+
+    // Redirect if authenticated
+    if (isAuthenticated) return <Navigate to="/" replace />;
 
     // Pagination logic for user grid
     const USERS_PER_PAGE = 4;
@@ -60,10 +64,8 @@ export const LoginScreen = () => {
 
     // Get the user object for the selected userId, if available
     const currentUser = (publicUsers || []).find(
-        (u) => String(u.userId) === String(selectedUserId)
+        (u) => String(u.id) === String(selectedUserId)
     );
-
-    if (redirectElement) return redirectElement;
 
     return (
         <div className={styles.loginScreen}>
