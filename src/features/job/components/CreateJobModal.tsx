@@ -29,6 +29,8 @@ const logger = {
 
 const CreateJobModal: React.FC<CreateJobModalProps> = (props) => {
     logger.info("Rendering CreateJobModal with props", props);
+    logger.info("companyOptions in CreateJobModal:", props.companyOptions);
+    logger.info("statusOptions in CreateJobModal:", props.statusOptions);
     const {
         open,
         onClose,
@@ -70,7 +72,8 @@ const CreateJobModal: React.FC<CreateJobModalProps> = (props) => {
                 saveState={saveState}
                 onSave={onSave}
                 onCancel={onCancel}
-                {...rest}
+                statusOptions={props.statusOptions}
+                {...Object.fromEntries(Object.entries(rest).filter(([key]) => key !== "statusOptions"))}
             />
         </CreateModal>
     );
