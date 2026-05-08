@@ -1,6 +1,6 @@
 {
-  "name": "my-electron-app-template",
-  "version": "0.1.0",
+  "name": "sabri-ltd-desktop",
+  "version": "1.0.0",
   "private": true,
   "description": "Electron + CRA template (no Vite) — base scaffold",
   "main": "public/electron.js",
@@ -40,7 +40,7 @@
   },
   "build": {
     "appId": "com.example.my_electron_app",
-    "productName": "MyElectronApp",
+    "productName": "SabriLTD Desktop",
     "directories": {
       "output": "dist"
     },

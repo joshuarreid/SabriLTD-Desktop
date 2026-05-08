@@ -188,16 +188,56 @@ function createMainWindow() {
         }
     });
 
+    // Helpful diagnostics for the "white screen" class of issues.
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+        logger.error('did-fail-load', { errorCode, errorDescription, validatedURL });
+        try {
+            // In packaged apps, a blank window with no clues is painful; open devtools on failure.
+            if (!isDev) {
+                mainWindow.webContents.openDevTools({ mode: 'detach' });
+            }
+        } catch (err) {
+            logger.error('openDevTools (on did-fail-load) failed', err?.message);
+        }
+
+        const escaped = String(errorDescription || 'Unknown error')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        mainWindow.loadURL(
+            `data:text/html;charset=utf-8,` +
+            encodeURIComponent(
+                `<html><body style="font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial; padding: 24px;">
+                  <h2>SabriLTD Desktop failed to load</h2>
+                  <p><b>Error</b>: ${escaped}</p>
+                  <p><b>Code</b>: ${errorCode}</p>
+                  <p><b>URL</b>: ${validatedURL || ''}</p>
+                  <p>Check the DevTools console for details.</p>
+                </body></html>`
+            )
+        ).catch(err => logger.error('Failed to load diagnostics page', err?.message));
+    });
+
+    mainWindow.webContents.on('render-process-gone', (event, details) => {
+        logger.error('render-process-gone', details);
+    });
+
+    mainWindow.webContents.on('unresponsive', () => {
+        logger.error('renderer became unresponsive');
+    });
+
     mainWindow.once('ready-to-show', () => {
         logger.info('mainWindow ready-to-show -> showing');
         mainWindow.show();
     });
     mainWindow.on('closed', () => logger.info('mainWindow closed'));
 
-    if (isDev) {
-        const devUrl = 'http://localhost:3000';
-        logger.info('Loading dev URL:', devUrl);
-        mainWindow.loadURL(devUrl).then(() => {
+    // --- FIXED LOGIC BELOW ---
+    const startUrl = process.env.ELECTRON_START_URL;
+    if (startUrl) {
+        logger.info('Loading ELECTRON_START_URL:', startUrl);
+        mainWindow.loadURL(startUrl).then(() => {
             logger.info('Dev URL loaded');
         }).catch(err => logger.error('Error loading dev URL', err?.message));
         try {
@@ -210,7 +250,14 @@ function createMainWindow() {
         logger.info('Loading production index file:', indexPath);
         mainWindow.loadFile(indexPath).then(() => {
             logger.info('Production index.html loaded');
-        }).catch(err => logger.error('Error loading production index.html', err?.message));
+        }).catch(err => {
+            logger.error('Error loading production index.html', err?.message);
+            try {
+                mainWindow.webContents.openDevTools({ mode: 'detach' });
+            } catch (e) {
+                // ignore
+            }
+        });
     }
     return mainWindow;
 }
