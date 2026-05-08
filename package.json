@@ -44,7 +44,7 @@
   },
   "build": {
     "appId": "com.example.my_electron_app",
-    "productName": "SabriLTD Desktop v1.0.1",
+    "productName": "SabriLTD Desktop",
     "directories": {
       "output": "dist"
     },
