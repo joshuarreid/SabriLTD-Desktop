@@ -1,16 +1,41 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { useCurrentUser } from "./useCurrentUser.ts";
-import { updateUser } from "../../../api/user/user.js";
-import { userKeys } from "../../../api/user/userQueryKeys.js";
+import { useCurrentUser } from "./useCurrentUser";
+import { updateUser } from "../../../api/user/user";
+import { userKeys } from "../../../api/user/userQueryKeys";
+import type { ChangeEvent, FormEvent } from "react";
+
+export type User = {
+    userId: number;
+    name: string;
+    email: string;
+    [key: string]: any;
+};
+
+type ProfileDraft = { name: string; email: string };
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
+type UseUserProfileReturn = {
+    user: User | null;
+    loading: boolean;
+    error: Error | null;
+    profile: ProfileDraft;
+    formError: string | null;
+    handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
+    handleSubmit: (e: FormEvent) => void;
+    handleReset: () => void;
+    isSaving: boolean;
+    hasChanges: boolean;
+    saveState: SaveState;
+};
 
 /**
  * Logger for useUserProfile module.
  * @constant
  */
 const logger = {
-    info: (...args) => console.log('[useUserProfile]', ...args),
-    error: (...args) => console.error('[useUserProfile]', ...args),
+    info: (...args: unknown[]) => console.log('[useUserProfile]', ...args),
+    error: (...args: unknown[]) => console.error('[useUserProfile]', ...args),
 };
 
 /**
@@ -19,7 +44,7 @@ const logger = {
  * @param {object} user
  * @returns {boolean}
  */
-const isChanged = (profile, user) => (
+const isChanged = (profile: ProfileDraft, user: User | null): boolean => (
     !!user && (
         String(profile.name).trim() !== String(user.name).trim() ||
         String(profile.email).trim() !== String(user.email).trim()
@@ -44,7 +69,7 @@ const isChanged = (profile, user) => (
  *   saveState: string
  * }}
  */
-export const useUserProfile = () => {
+export const useUserProfile = (): UseUserProfileReturn => {
     logger.info('useUserProfile called');
 
     const {
@@ -53,13 +78,12 @@ export const useUserProfile = () => {
         error,
     } = useCurrentUser();
 
-    const [profile, setProfile] = useState({ name: '', email: '' });
-    const [formError, setFormError] = useState(null);
-    const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved' | 'error'
+    const [profile, setProfile] = useState<ProfileDraft>({ name: '', email: '' });
+    const [formError, setFormError] = useState<string | null>(null);
+    const [saveState, setSaveState] = useState<SaveState>('idle');
 
     // Used to run "profile sync" effect only after certain updates (not after EVERY user change)
     const initialLoad = useRef(true);
-
     const queryClient = useQueryClient();
 
     // 🟢 Only sync profile ONCE on mount, or if real new user auth occurs
@@ -69,13 +93,10 @@ export const useUserProfile = () => {
             initialLoad.current = false;
             logger.info('Profile state initialized from user', user);
         }
-        // If user "changes" due to re-fetch after save, don't reset saveState!
-        // Only reset form inputfields if the id has changed (i.e., logout/auth of a diff user)
-        // Otherwise, keep profile and saveState as-is so green check stays visible.
     }, [user && user.userId]); // Only react to userId change (new auth), not every server update
 
     // When user edits, mark saveState idle
-    const handleChange = useCallback((e) => {
+    const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setProfile((prev) => ({
             ...prev,
@@ -92,12 +113,14 @@ export const useUserProfile = () => {
      * Calls updateUser and invalidates all cache for current user on success.
      */
     const { mutate: updateProfile, isPending: isSaving } = useMutation({
-        mutationFn: async (fields) => {
+        mutationFn: async (fields: ProfileDraft) => {
             logger.info('updateProfile mutationFn called', { fields });
+            if (!user) throw new Error('No user to update');
             return await updateUser(user.userId, fields);
         },
         onSuccess: async (data) => {
             logger.info('Profile updated successfully', { data });
+            if (!user) return;
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: userKeys.me() }),
                 queryClient.invalidateQueries({ queryKey: userKeys.detail(user.userId) }),
@@ -108,14 +131,14 @@ export const useUserProfile = () => {
             setFormError(null);
             setSaveState('saved'); // Stay saved until user types again
         },
-        onError: (err) => {
+        onError: (err: any) => {
             logger.error('Profile update failed', err);
             setFormError(err?.message || 'Failed to update profile. Please try again.');
             setSaveState('error');
         }
     });
 
-    const handleSubmit = useCallback((e) => {
+    const handleSubmit = useCallback((e: FormEvent) => {
         e.preventDefault();
         if (!hasChanges || isSaving) return;
 
@@ -145,9 +168,9 @@ export const useUserProfile = () => {
     }, [user]);
 
     return {
-        user,
+        user: user ?? null,
         loading,
-        error,
+        error: error ?? null,
         profile,
         formError,
         handleChange,

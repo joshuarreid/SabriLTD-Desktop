@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from '../styles/userprofilescreen.module.css';
-import { useUserProfile } from "../../features/user/hooks/useUserProfile.js";
+import { useUserProfile } from "../../features/user/hooks/useUserProfile.ts";
 import SaveStatus from "../../components/save/SaveStatus.jsx";
 
 /**
