@@ -1,0 +1,284 @@
+:root {
+    --accent: var(--color-secondary, #ffd600);
+    --card-elevation: rgba(0, 0, 0, 0.04);
+    --card-elevation-strong: rgba(0, 0, 0, 0.06);
+    --filter-bg: var(--color-bg-surface, #ffffff);
+    --filter-border: var(--color-border-subtle, #e0e3f0);
+    --filter-border-strong: var(--color-border-strong, #c0c6e4);
+}
+
+/**
+ * Root layout for the JobScreen.
+ * Constrains content to a centered column that matches other pages.
+ */
+.jobScreen {
+    max-width: 1120px;
+    margin: 32px auto 40px auto;
+    padding: 0 24px 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 120px); /* helps keep footer near bottom on tall pages */
+}
+
+/* Header row */
+.headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+
+/* ---------------- SEARCH BAR LAYOUT (JobScreen-specific) --------------- */
+
+.searchRow {
+    margin-bottom: 14px;
+}
+
+/* WideSearchBar uses fluid layout on this screen */
+.searchRow :global(.cardSearchTopBarWrap) {
+    width: 100%;
+    margin-bottom: 0;
+    justify-content: flex-start;
+}
+
+.searchRow :global(.cardSearchBarContainer) {
+    width: 100%;
+    max-width: 100%;
+}
+
+.searchRow :global(.cardSearchBar) {
+    font-size: 1rem;
+}
+
+/* ---------------- FILTER ROW + CLEAR BUTTON ---------------------------- */
+
+.filtersRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 22px;
+    flex-wrap: wrap;
+}
+
+/* Legacy filterControl styles left for any remaining select-based filters */
+.filterControl {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 12px;
+    min-height: 34px;
+    min-width: 150px;
+    border-radius: 6px;
+    border: 1px solid var(--filter-border);
+    background: var(--filter-bg);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 1px 3px rgba(15, 23, 42, 0.06);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease,
+    background-color 0.15s ease, transform 0.08s ease;
+}
+
+.filterControl:hover,
+.filterControl:focus-within {
+    border-color: var(--filter-border-strong);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+    background: #f7f7ff;
+    transform: translateY(-1px);
+}
+
+.filterLabel {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-primary-muted, #6f6f7f);
+    white-space: nowrap;
+}
+
+/* Spacer to push actions to the right */
+.filtersSpacer {
+    flex: 1 1 auto;
+    min-width: 8px;
+}
+
+/* Filter action area (clear, etc.) */
+.filterActions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* New button (matches app standard "+ New" styling) */
+.addUserBtn {
+    background-color: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #ffffff);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5em 1.35em;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.05);
+}
+
+.addUserBtn:hover {
+    background-color: var(--sabri-grey-900, #191919);
+    transform: translateY(-1px);
+}
+
+/* Clear button styled as subtle square chip */
+.clearButton {
+    background: #f8f7ff;
+    border-radius: 6px;
+    border: 1px solid var(--filter-border);
+    padding: 6px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.86rem;
+    color: var(--color-primary-muted, #55586b);
+    transition: background-color 0.12s ease, border-color 0.12s ease,
+    color 0.12s ease, transform 0.08s ease, box-shadow 0.12s ease;
+}
+
+.clearButton:hover {
+    background: #ecebff;
+    border-color: var(--filter-border-strong);
+    color: var(--color-primary, #333645);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+/* ---------------- FOLDER GRID ----------------------------------------- */
+
+.folderGridSection {
+    margin-top: 6px;
+    flex: 1 1 auto; /* let grid grow and push footer to bottom */
+}
+
+/* Folder tiles grid */
+.folderGrid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
+    row-gap: 32px;
+    column-gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 1180px) {
+    .folderGrid {
+        grid-template-columns: repeat(4, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 980px) {
+    .folderGrid {
+        grid-template-columns: repeat(3, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .folderGrid {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .folderGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------------- PAGINATION FOOTER ----------------------------------- */
+
+.paginationFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--color-border-subtle, #e4e6ec);
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #6b6f7a);
+}
+
+.paginationSummary {
+    white-space: nowrap;
+}
+
+.paginationControls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.paginationButton {
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--filter-border);
+    background: #f8f7ff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-primary-muted, #55586b);
+    cursor: pointer;
+    transition: background-color 0.12s ease, border-color 0.12s ease,
+    color 0.12s ease, transform 0.08s ease, box-shadow 0.12s ease;
+}
+
+.paginationButton:hover:not(:disabled) {
+    background: #ecebff;
+    border-color: var(--filter-border-strong);
+    color: var(--color-primary, #333645);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+.paginationButton:disabled {
+    opacity: 0.45;
+    cursor: default;
+    box-shadow: none;
+    transform: none;
+}
+
+.paginationIndicator {
+    font-size: 0.88rem;
+    color: var(--color-primary-muted, #6b6f7a);
+}
+
+.searchingHint {
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+    color: var(--color-primary-muted, #7a7f90);
+}
+/* ---------------- FEEDBACK STATES ------------------------------------- */
+
+.emptyState {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 0.98rem;
+    color: var(--color-text-muted, #868099);
+}
+
+.loading,
+.error {
+    padding: 40px 0;
+    text-align: center;
+}
+
+.error {
+    color: #cd384a;
+}

@@ -1,0 +1,37 @@
+/**
+ * itembrowser.module.css
+ *
+ * Scoped styles for ItemBrowser.
+ * Keeps the search bar + grid as a cohesive visual unit.
+ */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+}
+
+.searchRow {
+    margin-bottom: 18px;
+}
+
+/* Let WideSearchBar fill the row */
+.searchRow :global(.cardSearchTopBarWrap) {
+    width: 100%;
+    margin-bottom: 0;
+    justify-content: flex-start;
+}
+
+.searchRow :global(.cardSearchBarContainer) {
+    width: 100%;
+    max-width: 100%;
+}
+
+.searchRow :global(.cardSearchBar) {
+    font-size: 1rem;
+}
+
+.gridSection {
+    flex: 1 1 auto;
+}

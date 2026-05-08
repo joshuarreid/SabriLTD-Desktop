@@ -1,5 +1,5 @@
 /**
- * Query keys for User-related TanStack queries & mutations.
+ * Query keys for user-related TanStack queries & mutations.
  *
  * Canonical, canonicalized shape to avoid cache bugs and ensure uniform query shape across the app.
  *
@@ -14,7 +14,7 @@
 export const USER = ['user'];
 
 /**
- * Canonical User query/mutation cache keys.
+ * Canonical user query/mutation cache keys.
  *
  * Usage examples:
  *   userKeys.lists()                       // ['user', 'lists']

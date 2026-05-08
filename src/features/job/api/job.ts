@@ -1,0 +1,144 @@
+import JobApiClient from "./jobApiClient";
+import type { Job } from "./job.types";
+
+/**
+ * Singleton instance of JobApiClient.
+ */
+const apiClient = new JobApiClient();
+
+/**
+ * Job module logger (standardized).
+ */
+const logger = {
+    info: (...args: unknown[]) => console.log("[job]", ...args),
+    error: (...args: unknown[]) => console.error("[job]", ...args),
+};
+
+export async function createJob(job: Job): Promise<Job | null> {
+    logger.info("createJob called", { name: job?.name });
+    try {
+        const response = await apiClient.createJob(job);
+        return response?.data || null;
+    } catch (error) {
+        logger.error("createJob failed", error);
+        throw error;
+    }
+}
+
+export async function getAllJobs(params: Record<string, unknown> = {}): Promise<any> {
+    logger.info("getAllJobs called", params);
+    try {
+        const response = await apiClient.fetchAllJobs(params);
+
+        logger.info("getAllJobs normalized response", {
+            dataCount: Array.isArray(response?.data) ? response.data.length : 0,
+            meta: response?.meta,
+        });
+
+        return {
+            status: response?.status,
+            data: response?.data || [],
+            meta: response?.meta,
+            transactionId: response?.transactionId,
+            errors: response?.errors ?? null,
+        };
+    } catch (error) {
+        logger.error("getAllJobs failed", error);
+        throw error;
+    }
+}
+
+export async function searchJobs(params: Record<string, unknown>): Promise<any> {
+    logger.info("searchJobs called", params);
+    try {
+        const response = await apiClient.searchJobs(params);
+
+        logger.info("searchJobs normalized response", {
+            dataCount: Array.isArray(response?.data) ? response.data.length : 0,
+            meta: response?.meta,
+        });
+
+        return {
+            status: response?.status,
+            data: response?.data || [],
+            meta: response?.meta,
+            transactionId: response?.transactionId,
+            errors: response?.errors ?? null,
+        };
+    } catch (error) {
+        logger.error("searchJobs failed", error);
+        throw error;
+    }
+}
+
+export async function getJobById(jobId: string): Promise<Job | null> {
+    logger.info("getJobById called", { jobId });
+    try {
+        const response = await apiClient.fetchJobById(jobId);
+        return response?.data || null;
+    } catch (error) {
+        logger.error("getJobById failed", error);
+        throw error;
+    }
+}
+
+export async function updateJob(jobId: string, job: Job): Promise<Job | null> {
+    logger.info("updateJob called", { jobId });
+    try {
+        const response = await apiClient.updateJob(jobId, job);
+        return response?.data || null;
+    } catch (error) {
+        logger.error("updateJob failed", error);
+        throw error;
+    }
+}
+
+export async function deleteJob(jobId: string): Promise<void> {
+    logger.info("deleteJob called", { jobId });
+    try {
+        await apiClient.deleteJob(jobId);
+    } catch (error) {
+        logger.error("deleteJob failed", error);
+        throw error;
+    }
+}
+
+export async function getJobCompanies(): Promise<any[]> {
+    logger.info("getJobCompanies called");
+    try {
+        const response = await apiClient.fetchJobCompanies();
+        return response?.data || [];
+    } catch (error) {
+        logger.error("getJobCompanies failed", error);
+        throw error;
+    }
+}
+
+export async function getJobClients(params: Record<string, unknown> = {}): Promise<any[]> {
+    logger.info("getJobClients called", params);
+    try {
+        const response = await apiClient.fetchJobClients(params);
+        return response?.data || [];
+    } catch (error) {
+        logger.error("getJobClients failed", error);
+        throw error;
+    }
+}
+
+/**
+ * Update items for a job
+ * @param jobId
+ * @param itemIds
+ * @returns {Promise<any>}
+ */
+export async function updateJobItems(jobId: string | number, itemIds: (string | number)[]): Promise<any> {
+    logger.info("updateJobItems called", { jobId, itemIds });
+    try {
+        // Adjust this to match your backend API route and payload
+        const response = await apiClient.updateJobItems(jobId, itemIds);
+        return response?.data || null;
+    } catch (error) {
+        logger.error("updateJobItems failed", error);
+        throw error;
+    }
+}

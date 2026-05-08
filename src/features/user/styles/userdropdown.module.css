@@ -1,0 +1,167 @@
+/**
+ * UserDropdown (tokenized)
+ * - Primary: neutral greys via --color-primary / --color-text-main
+ * - Secondary: sabri yellow via --color-secondary used sparingly for subtle accents
+ * - Uses global tokens from App.css for consistent theming
+ */
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Pill-style user button (surface + subtle border + elevation) */
+.userButton {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 6px 14px 6px 6px;
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 90px;
+    border: 1.5px solid var(--color-border-subtle, #ececf0);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.12s, transform 0.12s;
+    outline: none;
+    color: var(--color-text-main, #23263b);
+}
+
+.userButton:focus,
+.userButton:hover {
+    border-color: var(--sabri-grey-300, #cfd2da);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    background: var(--color-bg-subtle, #f5f5f7);
+    transform: translateY(-1px);
+}
+
+/* Accessible focus ring — very subtle secondary wash */
+.userButton:focus-visible {
+    box-shadow:
+            0 0 0 3px var(--sabri-grey-300, rgba(207,210,218,0.6)),
+            0 0 0 5px var(--color-secondary-muted, rgba(255,214,0,0.06));
+}
+
+/* Avatar circle */
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sabri-grey-200, #e4e6ec) 65%, var(--color-bg-surface, #ffffff) 100%);
+    color: var(--color-primary, #333645);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    user-select: none;
+    border: 1px solid var(--sabri-grey-200, #e4e6ec);
+}
+
+/* Smaller avatar icon usage */
+.avatarIcon {
+    width: 20px;
+    height: 20px;
+    color: var(--sabri-grey-400, #b5b6bc);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Username text */
+.userName {
+    color: var(--color-text-main, #23263b);
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+/* Dropdown menu surface */
+.dropdownMenu {
+    position: absolute;
+    right: 0;
+    top: 110%;
+    background: var(--color-bg-surface, #ffffff);
+    border: 1.4px solid var(--color-border-subtle, #e8eaf0);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    margin-top: 0.6rem;
+    padding: 0.35rem 0;
+    min-width: 175px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    animation: fadeIn 0.18s cubic-bezier(.43,.02,.26,.97);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Menu button (row) */
+.menuButton {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 10px 18px;
+    color: var(--color-primary, #362d58);
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: background 0.14s, color 0.13s, transform 0.08s;
+    cursor: pointer;
+    outline: none;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+/* Icon in menu rows */
+.menuButton svg {
+    color: var(--sabri-grey-400, #b3abc8);
+    font-size: 1.12rem;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+/* Hover / focus for menu item — neutral greys; keep purple removed */
+.menuButton:hover,
+.menuButton:focus {
+    background: var(--color-bg-subtle, #f5f5f7);
+    color: var(--color-primary, #333645);
+    transform: translateY(-1px);
+}
+
+/* Menu icon color follows state */
+.menuButton:hover svg,
+.menuButton:focus svg {
+    color: var(--color-primary, #333645);
+}
+
+/* Active menu item styling (selected) */
+.menuButtonActive {
+    background: var(--color-bg-subtle, #f5f5f7) !important;
+    color: var(--color-primary, #333645) !important;
+}
+
+/* Focus-visible for each menu item with a subtle secondary ring */
+.menuButton:focus-visible {
+    box-shadow:
+            0 0 0 3px var(--sabri-grey-300, rgba(207,210,218,0.6)),
+            0 0 0 5px var(--color-secondary-muted, rgba(255,214,0,0.06));
+    border-radius: 8px;
+}
+
+/* Responsive adjustments (small pages) */
+@media (max-width: 500px) {
+    .dropdownMenu {
+        min-width: 140px;
+        font-size: 0.98rem;
+    }
+}

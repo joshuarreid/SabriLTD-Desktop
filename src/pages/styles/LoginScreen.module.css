@@ -1,0 +1,449 @@
+:root {
+    --chevron-color: var(--sabri-grey-400, #b3abc8);
+    --chevron-size: 32px;
+    --chevron-hover: var(--color-secondary, #ffd600);
+    --form-width: clamp(560px, 56vw, 720px);
+    --wide-form-width: clamp(720px, 70vw, 980px);
+    --tile-size: 128px;
+    --tile-height: 148px;
+    --panel-duration: 560ms;
+    --panel-ease: cubic-bezier(.22,.95,.15,1);
+    --tile-duration: 454ms;
+    --tile-stagger: 48ms;
+    --password-panel-max-width: 460px;
+}
+
+.loginScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #faf9fb;
+    color: var(--color-text-main, #23263b);
+    box-sizing: border-box;
+}
+
+.loginCard {
+    background: var(--color-bg-surface, #ffffff);
+    color: var(--color-text-main, #23263b);
+    border-radius: 24px;
+    box-shadow:
+            0 6px 24px rgba(0, 0, 0, 0.12),
+            0 3px 10px rgba(0, 0, 0, 0.05);
+    padding: 36px 28px;
+    min-height: 60vh;
+    max-width: 980px;
+    width: min(var(--form-width), 96vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    box-sizing: border-box;
+    border: 1.5px solid var(--color-border-subtle, #ececf0);
+}
+
+.brandLogo {
+    display: block;
+    width: clamp(250px, 9vw, 100px);
+    height: auto;
+    margin: 0 auto 6px auto;
+    user-select: none;
+    -webkit-user-drag: none;
+    object-fit: contain;
+}
+
+.loginTitle {
+    font-size: clamp(1.6rem, 2.2vw, 2rem);
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+    text-align: center;
+    color: var(--color-primary, #23263b);
+}
+
+/* Panels wrapper for animation and width */
+.panelsWrap {
+    width: 100%;
+    max-width: var(--form-width);
+    min-height: 260px;
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    overflow: visible;
+}
+.panelsWrapWide {
+    width: 100%;
+    max-width: var(--wide-form-width);
+}
+
+.panel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 18px 10px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    background: transparent;
+    will-change: transform, opacity;
+    transition: transform var(--panel-duration) var(--panel-ease), opacity var(--panel-duration) var(--panel-ease);
+    overflow: visible;
+}
+.panelActive {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+    z-index: 2;
+}
+.panelInactive {
+    transform: translateX(100%) scale(0.997);
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+.selectPanel.panelInactive {
+    transform: translateX(-100%) scale(0.997);
+}
+.passwordPanel.panelInactive {
+    transform: translateX(100%) scale(0.997);
+}
+
+/* Centered panel content */
+.panelInner {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 180px;
+}
+
+/* === user grid paging arrows (side of grid, vertically centered) === */
+.userGridPagerWrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+    min-height: var(--tile-height);
+}
+
+/* Minimal chevron arrow, no circle */
+.userGridArrowButton {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0 8px;
+    margin: 0 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.18s, opacity 0.18s;
+    height: var(--chevron-size);
+    width: var(--chevron-size);
+}
+.userGridArrowButton:disabled {
+    opacity: 0.24;
+    cursor: not-allowed;
+}
+
+.userGridArrowSpacer {
+    width: var(--chevron-size);
+    height: var(--chevron-size);
+    display: inline-block;
+}
+
+.userGridArrowButton svg {
+    display: block;
+    height: var(--chevron-size);
+    width: var(--chevron-size);
+}
+
+.chevron {
+    stroke: var(--chevron-color);
+    transition: stroke 0.17s;
+}
+.userGridArrowButton:not(:disabled):hover .chevron {
+    stroke: var(--chevron-hover);
+}
+
+/* Responsive for arrows */
+@media (max-width: 640px) {
+    .userGridArrowButton {
+        height: 26px;
+        width: 26px;
+        padding: 0 4px;
+    }
+    .userGridArrowSpacer {
+        width: 26px;
+        height: 26px;
+    }
+    .userGridArrowButton svg {
+        height: 26px;
+        width: 26px;
+    }
+}
+
+/* === USER GRID (always 4 per row, padded if fewer users) === */
+.usersGrid {
+    display: grid;
+    grid-template-columns: repeat(4, var(--tile-size));
+    gap: 16px;
+    margin: 0 auto;
+    width: auto;
+    justify-items: center;
+    align-items: center;
+    padding: 6px 0;
+    box-sizing: border-box;
+    position: relative;
+}
+
+@media (max-width: 640px) {
+    .loginCard {
+        width: 98vw;
+        min-width: 0;
+        padding: 12px;
+    }
+    .panelsWrap {
+        max-width: 98vw;
+    }
+    .usersGrid {
+        grid-template-columns: repeat(2, var(--tile-size));
+        gap: 12px;
+    }
+}
+
+/* user tile */
+.userTile {
+    width: var(--tile-size);
+    height: var(--tile-height);
+    background: var(--color-bg-subtle, #fafafd);
+    border: 1.5px solid var(--color-border-subtle, #ececf0);
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    cursor: pointer;
+    transition:
+            border 160ms linear,
+            box-shadow 160ms linear,
+            transform var(--tile-duration) var(--panel-ease),
+            opacity calc(var(--tile-duration) - 40ms) var(--panel-ease);
+    position: relative;
+    user-select: none;
+    box-sizing: border-box;
+    outline: none;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+.userTile:focus {
+    box-shadow:
+            0 0 0 2px var(--sabri-grey-300, #cfd2da);
+    border-color: var(--color-primary, #333645);
+    transform: translateY(-4px);
+}
+.userTile.selected {
+    border-color: var(--color-primary, #333645);
+    box-shadow:
+            0 0 0 2px rgba(255, 214, 0, 0.08); /* very subtle yellow hint */
+}
+.panelInactive .userTile {
+    opacity: 0;
+    transform: translateY(10px) scale(0.997);
+}
+.profilePicBlank {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--color-bg-subtle, #f2f0f7);
+    border: 2.5px solid var(--sabri-grey-200, #ede1fb);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--sabri-grey-400, #b3abc8);
+    flex-shrink: 0;
+    transition: border-color 0.16s;
+}
+.userName {
+    color: var(--color-primary, #333645);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    font-size: 1rem;
+    text-align: center;
+    margin-top: auto;
+    padding: 0 6px;
+    word-break: break-word;
+}
+
+/* Password Panel: Constrain input + button width and align Back button correctly */
+.passwordPanel .loginFormContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin-top: 8px;
+}
+.passwordPanel .loginForm {
+    width: 100%;
+    max-width: var(--password-panel-max-width, 460px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+
+.passwordPanel .passwordInput,
+.passwordPanel .submitButton,
+.passwordPanel .continueButton {
+    width: 100%;
+    max-width: var(--password-panel-max-width, 460px);
+    margin: 0 auto;
+}
+
+.passwordPanel .actionsRowActions {
+    width: 100%;
+    max-width: var(--password-panel-max-width, 460px);
+    margin: 12px auto 0;
+    display: flex;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+@media (max-width: 640px) {
+    .passwordPanel .loginForm,
+    .passwordPanel .actionsRowActions {
+        max-width: 100%;
+        padding: 0 4px;
+    }
+}
+
+.loginFormContainer {
+    margin-top: 8px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+.loginForm {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 0;
+    align-items: stretch;
+}
+.passwordInput {
+    font-size: clamp(1rem, 1.6vw, 1.12rem);
+    padding: 12px 12px;
+    border: 1.5px solid var(--color-border-subtle, #ececf0);
+    border-radius: 12px;
+    background: var(--color-bg-subtle, #f5f5f7);
+    color: var(--color-text-main, #23263b);
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.14s;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+.passwordInput:focus {
+    border-color: var(--sabri-grey-500, #777c88);
+    box-shadow:
+            0 0 0 1px var(--sabri-grey-300, #cfd2da),
+            0 0 0 2px var(--color-secondary-muted, rgba(255, 214, 0, 0.12));
+    background: var(--color-bg-surface, #ffffff);
+}
+.submitButton,
+.continueButton {
+    background: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #ffffff);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 1.02rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, filter 0.16s, transform 0.12s, box-shadow 0.14s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+.submitButton:active,
+.continueButton:active {
+    transform: translateY(1px);
+}
+.submitButton:disabled,
+.continueButton:disabled {
+    opacity: 0.62;
+    cursor: not-allowed;
+    background: var(--sabri-grey-200, #ede1fb);
+    color: var(--sabri-grey-400, #b8b2cc);
+    box-shadow: none;
+}
+.submitButton:hover:not(:disabled),
+.continueButton:hover:not(:disabled) {
+    background: var(--sabri-grey-900, #191919);
+    color: var(--color-primary-contrast, #ffffff);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+.backButton {
+    background: transparent;
+    border: none;
+    color: var(--color-primary-muted, #5d6170);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 7px;
+    transition: background 0.16s, color 0.13s;
+}
+.backButton:hover,
+.backButton:focus {
+    background: rgba(255, 214, 0, 0.08); /* very subtle yellow wash */
+    color: var(--color-primary, #333645);
+}
+.actionsRow {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+.actionsRowActions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    margin-top: 12px;
+}
+.errorMsg {
+    color: #b00020;
+    background: #fff5f5;
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 12px;
+    font-weight: 500;
+    font-size: 0.96rem;
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .panel,
+    .panelActive,
+    .panelInactive,
+    .userTile,
+    .userGridArrowButton {
+        transition: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+    }
+}

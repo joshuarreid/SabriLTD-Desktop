@@ -1,0 +1,406 @@
+/**
+ * usersettingstab.module.css
+ *
+ * Visual refresh to add restrained SabriLTD color accents (yellow) while keeping
+ * the neutral/accessible primary greys from App.css.
+ *
+ * - Uses global tokens where available (--color-primary, --color-secondary, --color-bg-subtle, etc.)
+ * - Adds small, tasteful accents:
+ *     • yellow underline for section title
+ *     • small yellow status dot for cards (now shows on hover/focus)
+ *     • subtle yellow pill for role badges
+ *     • optional yellow "Add user" accent variant
+ * - Keeps hover/focus states accessible and mild
+ */
+
+:root {
+    --accent: var(--color-secondary, #ffd600);
+    --accent-muted: rgba(255, 214, 0, 0.08);
+    --card-elevation: rgba(0, 0, 0, 0.04);
+    --card-elevation-strong: rgba(0, 0, 0, 0.06);
+}
+
+/* Panel */
+.profilePanel {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+    box-sizing: border-box;
+    background: transparent;
+}
+
+/* Header */
+.headerSection {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 28px;
+}
+
+/* Section title with a subtle yellow underline accent */
+.sectionTitle {
+    font-size: 1.28rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0;
+    letter-spacing: 0.01em;
+    position: relative;
+    padding-bottom: 8px;
+}
+.sectionTitle::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 4px;
+    border-radius: 6px;
+    background: var(--accent);
+    opacity: 0.95;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+
+/* Actions */
+.addUserBtn {
+    background-color: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #ffffff);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5em 1.35em;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.14s, transform 0.08s, box-shadow 0.12s;
+    box-shadow: 0 2px 6px var(--card-elevation);
+    outline: none;
+}
+/* Optional bright accent variant for the Add button */
+.addUserBtn.accent {
+    background: var(--accent);
+    color: var(--color-text-main, #191919);
+    box-shadow: 0 6px 18px rgba(255,214,0,0.12);
+}
+.addUserBtn:hover {
+    background-color: var(--sabri-grey-900, #191919);
+    transform: translateY(-1px);
+}
+.addUserBtn.accent:hover {
+    filter: brightness(0.96);
+    transform: translateY(-1px);
+}
+
+/* Layout grid */
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(216px, 1fr));
+    gap: 22px;
+    width: 100%;
+    align-items: start;
+    box-sizing: border-box;
+}
+
+/* Card surface that aligns with UserTile visual system */
+.userCard {
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 13px;
+    box-shadow: 0 2px 8px var(--card-elevation);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    min-height: 185px;
+    padding: 0 0 16px 0;
+    position: relative;
+    transition:
+            box-shadow 0.18s cubic-bezier(.22,.95,.15,1),
+            transform 0.16s cubic-bezier(.22,.95,.15,1),
+            border-color 0.14s;
+    border: 1.5px solid var(--color-border-subtle, #f5f2fa);
+    box-sizing: border-box;
+}
+
+/* Accent line at top of card when selected — subtle lift */
+.userCard.selected {
+    border-color: var(--color-border-strong, #ede1fb);
+    background: var(--color-bg-subtle, #f5f5f7);
+    box-shadow: 0 10px 30px var(--card-elevation-strong);
+}
+.userCard.selected::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 10px;
+    height: 6px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--accent), rgba(255,214,0,0.6));
+    opacity: 0.95;
+}
+
+/* Hover */
+.userCard:hover {
+    box-shadow: 0 10px 30px var(--card-elevation-strong);
+    transform: translateY(-4px);
+    border-color: var(--color-border-strong, #ede1fb);
+}
+
+/* Card menu overrides */
+.cardMenu {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 3;
+}
+.menuWrapper { position: relative; }
+
+.menuBtn {
+    background: none;
+    border: none;
+    font-size: 1.15rem;
+    color: var(--sabri-grey-400, #b3abc8);
+    padding: 6px;
+    cursor: pointer;
+    transition: color 0.14s, background 0.12s;
+    border-radius: 6px;
+    outline: none;
+}
+.menuBtn:hover,
+.menuBtn:focus-visible {
+    color: var(--color-primary, #333645);
+    background: var(--color-bg-subtle, #f5f5f7);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* Dropdown */
+.dropdownMenu {
+    position: absolute;
+    top: 36px;
+    right: 0;
+    background: var(--color-bg-surface, #ffffff);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    padding: 6px 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+    z-index: 20;
+    border: 1px solid var(--color-border-subtle, #ececf6);
+}
+
+/* Dropdown item */
+.dropdownItem {
+    background: none;
+    border: none;
+    color: var(--color-primary, #362d58);
+    font-size: 1rem;
+    min-width: 140px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.12s, color 0.12s, transform 0.06s;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    outline: none;
+}
+.dropdownItem:hover,
+.dropdownItem:focus-visible {
+    background: var(--color-bg-subtle, #f5f5f7);
+    color: var(--color-primary, #333645);
+    transform: translateY(-1px);
+}
+.dropdownIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+    font-size: 1.13rem;
+    color: var(--sabri-grey-400, #b3abc8);
+    width: 22px;
+    min-width: 22px;
+}
+
+/* Avatar — match UserTile styling, allow accent ring when card is selected */
+.avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--color-bg-subtle, #f2f0f7);
+    color: var(--sabri-grey-700, #9d95bc);
+    font-size: 1.32rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 26px auto 0 auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    letter-spacing: 0.03em;
+    user-select: none;
+    border: 1.5px solid var(--sabri-grey-200, #e7e2f9);
+    transition: border-color 150ms, background 130ms, color 130ms;
+}
+.userCard.selected .avatar {
+    border-color: rgba(255, 214, 0, 0.85); /* restrained yellow ring */
+    background: var(--color-bg-surface, #ffffff);
+    color: var(--color-primary, #333645);
+}
+
+/* --------------------
+   Small status dot near avatar for visual color cue
+   - Hidden by default (opacity: 0)
+   - Revealed on hover, focus-visible, and when selected
+   - Slight translateY to match company/building behavior
+   -------------------- */
+.userCard .statusDot {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 2px 6px rgba(255,214,0,0.18);
+    opacity: 0;
+    transform: translateY(0);
+    transition: opacity 150ms ease, transform 120ms ease;
+    z-index: 4;
+}
+
+/* reveal on hover, keyboard focus, and selected states */
+.userCard:hover .statusDot,
+.userCard:focus-visible .statusDot,
+.userCard.selected .statusDot,
+.userCard.selected:hover .statusDot,
+.userCard.selected:focus-visible .statusDot {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+/* user info */
+.userInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 18px;
+    width: 100%;
+    padding: 0 14px;
+    box-sizing: border-box;
+}
+
+.userName {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--color-primary, #362d58);
+    margin-bottom: 4px;
+    text-align: center;
+    word-break: break-word;
+    max-width: 90%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Email muted */
+.userEmail {
+    font-size: 0.95rem;
+    color: var(--color-text-muted, #868099);
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 6px;
+    word-break: break-all;
+    max-width: 98%;
+    opacity: 0.95;
+}
+
+/* Role badge with soft yellow background — subtle but colorful */
+.userRole {
+    display: inline-block;
+    font-size: 0.82rem;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: var(--color-primary-muted, #777c88);
+    background: rgba(15, 20, 25, 0.03);
+    font-weight: 600;
+    margin-top: 2px;
+}
+.userCard.selected .userRole {
+    background: var(--accent-muted);
+    color: var(--color-primary, #333645);
+    box-shadow: 0 2px 6px rgba(255,214,0,0.06);
+}
+
+/* Empty / helper states */
+.noUsers {
+    text-align: center;
+    font-size: 1.18rem;
+    color: var(--sabri-grey-400, #a6a4b4);
+    margin-top: 18px;
+}
+
+/* Loading / error */
+.loading,
+.error {
+    font-size: 1.13rem;
+    color: var(--color-primary, #593ebc);
+    padding: 2em 0;
+    text-align: center;
+}
+
+/* Confirmation modal */
+.confirmOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(36,14,41,0.12);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.confirmCard {
+    background: var(--color-bg-surface, #ffffff);
+    border-radius: 16px;
+    box-shadow: 0 10px 32px rgba(0,0,0,0.08);
+    padding: 2rem 1.7rem 1.2rem 1.7rem;
+    min-width: 340px;
+    max-width: 99vw;
+    text-align: center;
+    border: 1px solid var(--color-border-subtle, #ececf0);
+}
+.confirmTitle {
+    font-size: 1.18rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--color-primary, #362d58);
+    letter-spacing: 0.01em;
+}
+.confirmText {
+    font-size: 1rem;
+    color: var(--color-text-muted, #444);
+    margin-bottom: 18px;
+}
+.confirmActions {
+    display: flex;
+    justify-content: center;
+    gap: 1.7em;
+}
+
+/* Responsive tweaks */
+@media (max-width: 640px) {
+    .gridContainer {
+        gap: 14px;
+    }
+    .userCard {
+        min-height: 150px;
+        padding-bottom: 12px;
+    }
+    .avatar {
+        width: 48px;
+        height: 48px;
+        font-size: 1.1rem;
+        margin-top: 18px;
+    }
+    .userName {
+        font-size: 1.02rem;
+    }
+}

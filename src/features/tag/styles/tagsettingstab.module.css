@@ -1,0 +1,186 @@
+.tabRoot {
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding-top: 32px;
+    background: transparent;
+}
+
+.pillsContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    margin-bottom: 20px;
+    padding-left: 10px;
+    justify-content: flex-start;
+}
+
+/* Shared placeholder/card container */
+.placeholder {
+    background: var(--color-bg-surface, #fff);
+    border-radius: 16px;
+    box-shadow: 0 3px 14px 0 rgba(44,47,59,0.07);
+    padding: 26px 24px 28px 24px;
+    min-height: 120px;
+    text-align: center;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    position: relative;
+    border: 1px solid var(--color-border-subtle, #e8eaf0);
+}
+
+/* Header row inside placeholder for tag: search on left, +New + sort on right */
+.tagsHeaderRow {
+    width: 100%;
+    display: flex;
+    align-items: center;          /* vertically center search + button + sorter */
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+/* Actions on the right of the search bar (matches StorageSettings header actions) */
+.tagsHeaderActions {
+    display: flex;
+    align-items: center;          /* vertically center +New and sorter relative to each other */
+    gap: 10px;
+}
+
+/* Match StorageSettings "New" button look and feel */
+.addUserBtn {
+    background-color: var(--color-primary, #333645);
+    color: var(--color-primary-contrast, #ffffff);
+    border: none;
+    border-radius: 12px;
+    padding: 0.55em 1.6em;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+    display: inline-flex;
+    align-items: center;          /* keep + and "New" on same line & centered */
+    justify-content: center;
+    line-height: 1;
+    gap: 0.4em;                   /* space between + and label */
+}
+
+/* "+" and "New" are separate spans so they stay on one line and align cleanly */
+.addUserBtnIcon {
+    font-size: 1.05em;
+    transform: translateY(-0.02em); /* tiny optical tweak so plus feels centered */
+}
+.addUserBtnLabel {
+    font-size: 0.96rem;
+}
+
+.addUserBtn:hover {
+    background-color: var(--sabri-grey-900, #191919);
+    transform: translateY(-1px);
+}
+
+/* Tag pills row */
+.tagsPillsRow {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.48em;
+    min-height: 34px;
+    justify-content: center;
+    margin-bottom: 10px;
+    margin-top: 4px;
+}
+
+.noTagsMsg {
+    color: var(--color-text-muted, #b6b3be);
+    font-size: 1.08em;
+    font-weight: 400;
+    padding: 0.2em 1.3em 0.1em 0.2em;
+    letter-spacing: 0.02em;
+}
+
+/* Header row for buildings + actions */
+.sectionHeaderRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 28px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Title matches settings/users titles & uses app primary */
+.sectionTitle {
+    font-size: 1.28rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0;
+    letter-spacing: 0.01em;
+    position: relative;      /* required for the underline pseudo */
+    padding-bottom: 8px;     /* space for the underline */
+}
+
+/* Proportional accent underline under the section title (matches user tab style)
+   - scales with title width (50%), bounded by min/max for consistency
+   - uses global color token --color-secondary via --accent
+*/
+.sectionTitle::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
+    width: 100%;               /* proportional to the title width */
+    min-width: 28px;          /* ensures visible minimum */
+    height: 4px;
+    border-radius: 6px;
+    background: var(--accent);
+    opacity: 0.95;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+}
+
+
+/* Storage section title — now includes the same proportional underline as .sectionTitle */
+.categoryTitle {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--color-primary, #333645);
+    margin: 0;
+    letter-spacing: 0.01em;
+    position: relative;
+    padding-bottom: 8px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 900px) {
+    .placeholder {
+        padding: 20px 16px 22px 16px;
+    }
+
+    .tagsHeaderRow {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .tagsHeaderActions {
+        justify-content: flex-end;
+    }
+}
+
+
+/* Responsive: scale down title accent on small pages */
+@media (max-width: 640px) {
+    .sectionTitle::after {
+        width: 40%;
+        max-width: 48px;
+        height: 3px;
+    }
+    .categoryTitle::after {
+        width: 36%;
+        max-width: 44px;
+        height: 3px;
+    }
+}

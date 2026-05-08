@@ -1,12 +1,12 @@
 /**
  * CategoryApiClient
  * - Specialized API client for Tag Category endpoints.
- * - Implements category CRUD, audited responses, filtering, pagination, and advanced with-tags aggregation.
+ * - Implements category CRUD, audited responses, filtering, pagination, and advanced with-tag aggregation.
  *
  * @module CategoryApiClient
  */
 
-import ApiClient from "../ApiClient";
+import ApiClient from "../ApiClient.ts";
 
 /**
  * Standardized logger for debugging and traceability.
@@ -43,7 +43,7 @@ const getTokenFromElectron = async () => {
 
 /**
  * CategoryApiClient
- * Handles API requests to tag category endpoints, including CRUD and with-tags aggregate endpoints.
+ * Handles API requests to tag category endpoints, including CRUD and with-tag aggregate endpoints.
  *
  * @class
  * @extends ApiClient
@@ -203,11 +203,11 @@ export default class CategoryApiClient extends ApiClient {
     }
 
     /**
-     * Fetches all tag categories with their tags (advanced aggregate endpoint).
+     * Fetches all tag categories with their tag (advanced aggregate endpoint).
      * @async
      * @function fetchCategoriesWithTags
      * @param {Object} [params={}] - Optional: pagination/sort/filter params
-     * @returns {Promise<Object>} API response with array of category-with-tags objects
+     * @returns {Promise<Object>} API response with array of category-with-tag objects
      * @throws {Error} If request fails.
      */
     async fetchCategoriesWithTags(params = {}) {

@@ -19,8 +19,8 @@ export const CATEGORY = ['category'];
  *   categoryKeys.lists()                                 // ['category', 'lists']
  *   categoryKeys.list({ sortField, name })               // ['category', 'lists', { filters: { sortField, name } }]
  *   categoryKeys.detail(501)                             // ['category', 'detail', 501]
- *   categoryKeys.withTags()                              // ['category', 'with-tags']
- *   categoryKeys.withTagsList({ name: 'Item Type' })     // ['category', 'with-tags-list', { filters: { name: 'Item Type' } }]
+ *   categoryKeys.withTags()                              // ['category', 'with-tag']
+ *   categoryKeys.withTagsList({ name: 'Item Type' })     // ['category', 'with-tag-list', { filters: { name: 'Item Type' } }]
  *   categoryKeys.create()                                // ['category', 'create']
  *   categoryKeys.update(501)                             // ['category', 'detail', 501, 'update']
  *   categoryKeys.remove(501)                             // ['category', 'detail', 501, 'remove']
@@ -53,17 +53,17 @@ export const categoryKeys = {
     detail: (categoryId) => [...categoryKeys.all, 'detail', categoryId],
 
     /**
-     * Key for tag categories-with-tags (aggregate endpoint).
+     * Key for tag categories-with-tag (aggregate endpoint).
      * @returns {Array}
      */
-    withTags: () => [...categoryKeys.all, 'with-tags'],
+    withTags: () => [...categoryKeys.all, 'with-tag'],
 
     /**
-     * Key for tag categories-with-tags with filters.
+     * Key for tag categories-with-tag with filters.
      * @param {object} filters
      * @returns {Array}
      */
-    withTagsList: (filters = {}) => [...categoryKeys.all, 'with-tags-list', { filters }],
+    withTagsList: (filters = {}) => [...categoryKeys.all, 'with-tag-list', { filters }],
 
     /**
      * Key for the create tag category mutation.

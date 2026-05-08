@@ -6,7 +6,7 @@
  * @module UserApiClient
  */
 
-import ApiClient from "../ApiClient";
+import ApiClient from "../ApiClient.ts";
 
 /**
  * Standardized logger for debugging and traceability.
