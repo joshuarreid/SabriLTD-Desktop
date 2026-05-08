@@ -1,6 +1,6 @@
 {
   "name": "sabri-ltd-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Electron + CRA template (no Vite) — base scaffold",
   "main": "public/electron.js",
@@ -10,9 +10,13 @@
     "build": "react-scripts build",
     "electron": "electron .",
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-dev-local": "concurrently \"npm start\" \"ELECTRON_START_URL=http://localhost:3000/ npm run electron\"",
     "dist": "npm run build && electron-builder",
     "dist-mac": "npm run build && electron-builder --mac",
-    "dist-win": "npm run build && electron-builder --win"
+    "dist-win": "npm run build && electron-builder --win",
+    "clean": "rm -rf dist build node_modules/.cache",
+    "build:mac": "npm run clean && npm run build && electron-builder --mac",
+    "dist:mac:clean": "npm run clean && npm run build && electron-builder --mac"
   },
   "keywords": [],
   "author": "",
@@ -40,7 +44,7 @@
   },
   "build": {
     "appId": "com.example.my_electron_app",
-    "productName": "SabriLTD Desktop",
+    "productName": "SabriLTD Desktop v1.0.1",
     "directories": {
       "output": "dist"
     },

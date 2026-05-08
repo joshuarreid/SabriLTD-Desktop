@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import { useAllCompanies } from "../../company/hooks/useCompanies";
 
 import styles from "../styles/createjobmodal.module.css";
 
@@ -8,7 +9,6 @@ interface CreateJobFormProps {
     onSave: (data: any) => void;
     onCancel: () => void;
     error: any;
-    companyOptions: Array<{ value: string | number; label: string }>;
     statusOptions: Array<{ value: string | number; label: string }>;
     autoFocus: boolean;
     initialValues: {
@@ -26,11 +26,12 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
     onSave,
     onCancel,
     error,
-    companyOptions,
     statusOptions,
     autoFocus,
     initialValues,
 }, ref) => {
+    console.log("[CreateJobForm] statusOptions prop:", statusOptions);
+
     const nameInputRef = useRef<HTMLInputElement>(null);
     const formRef = useRef<HTMLFormElement>(null);
     const [draft, setDraft] = useState({
@@ -40,6 +41,15 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
         description: initialValues?.description || "",
         status: initialValues?.status || "Active",
     });
+
+    const { data: companiesData, isLoading: companiesLoading } = useAllCompanies();
+    const companyOptions = useMemo(() => {
+        if (!companiesData || !Array.isArray(companiesData.data)) return [];
+        return companiesData.data.map((company: any) => ({
+            value: company.id,
+            label: company.name,
+        }));
+    }, [companiesData]);
 
     useImperativeHandle(ref, () => ({
         submit: () => {
@@ -60,7 +70,9 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
     }, [autoFocus]);
 
     const companyChoices = useMemo(() => {
-        return (companyOptions || []).filter((o) => o.value !== "all");
+        const filtered = (companyOptions || []).filter((o) => o.value !== "all");
+        console.log("[CreateJobForm] companyChoices after filter:", filtered);
+        return filtered;
     }, [companyOptions]);
 
     const statusChoices = useMemo(() => {
@@ -70,14 +82,6 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
     const updateDraft = (field: string, value: string) => {
         setDraft((prev) => ({ ...prev, [field]: value }));
     };
-
-    const canSubmit = useMemo(() => {
-        const hasName = !!draft.name?.trim();
-        const hasCompany = draft.companyId !== "" && draft.companyId !== null;
-        const hasClient = !!draft.client?.trim();
-        const hasDescription = !!draft.description?.trim();
-        return hasName && hasCompany && hasClient && hasDescription && !isSaving;
-    }, [draft.name, draft.companyId, draft.client, draft.description, isSaving]);
 
     const buildPayload = () => {
         return {
@@ -119,8 +123,9 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
                     className={styles.select}
                     value={draft.companyId}
                     onChange={(e) => updateDraft("companyId", e.target.value)}
+                    disabled={companiesLoading}
                 >
-                    <option value="">Select a company</option>
+                    <option value="">{companiesLoading ? "Loading companies..." : "Select a company"}</option>
                     {companyChoices.map((opt) => (
                         <option key={String(opt.value)} value={opt.value}>
                             {opt.label}
