@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { RiFunctionAddLine } from "react-icons/ri";
 import { IoFolderOpenOutline } from "react-icons/io5";
 import Logo from "./Logo.jsx";
-import UserDropdown from "../../../features/user/components/UserDropdown.jsx";
+import UserDropdown from "../../../features/user/components/UserDropdown.tsx";
 import SettingsDropdown from "./SettingsDropdown.jsx";
 import { useCurrentUser } from "../../../features/user/hooks/useCurrentUser.ts";
 import styles from '../styles/navigationbar.module.css';

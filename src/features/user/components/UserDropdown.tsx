@@ -11,22 +11,21 @@ import { useNavigate } from 'react-router-dom';
 import styles from '../styles/userdropdown.module.css';
 import { useAuth } from '../../auth/hooks/useAuth.tsx';
 
-/**
- * logger for UserDropdown component.
- * @type {{info: Function, error: Function}}
- */
+export interface UserDropdownProps {
+    user: {
+        userId?: number;
+        name?: string;
+        email?: string;
+        [key: string]: any;
+    } | null;
+}
+
 const logger = {
-    info: (...args) => console.log('[UserDropdown]', ...args),
-    error: (...args) => console.error('[UserDropdown]', ...args),
+    info: (...args: unknown[]) => console.log('[UserDropdown]', ...args),
+    error: (...args: unknown[]) => console.error('[UserDropdown]', ...args),
 };
 
-/**
- * Gets avatar initials from name or email.
- * @function getInitials
- * @param {object} user - user object from /me endpoint.
- * @returns {string} Initials string, or '?' if not available.
- */
-const getInitials = (user) => {
+const getInitials = (user: UserDropdownProps["user"]): string => {
     if (!user) return '';
     if (user.name) {
         const parts = user.name.trim().split(' ').filter(Boolean);
@@ -40,13 +39,7 @@ const getInitials = (user) => {
     return '?';
 };
 
-/**
- * Renders the avatar icon with user's initials or fallback icon.
- * @function renderAvatar
- * @param {object} user - user object.
- * @returns {JSX.Element} Avatar element.
- */
-const renderAvatar = (user) => {
+const renderAvatar = (user: UserDropdownProps["user"]): JSX.Element => {
     const initials = getInitials(user);
     if (initials === '?') {
         // Show a generic user SVG icon as fallback
@@ -78,9 +71,9 @@ const renderAvatar = (user) => {
  * @param {object} props.user - The currently authenticated user from /me endpoint.
  * @returns {JSX.Element}
  */
-const UserDropdown = ({ user }) => {
-    const [open, setOpen] = useState(false);
-    const dropdownRef = useRef(null);
+const UserDropdown: React.FC<UserDropdownProps> = ({ user }) => {
+    const [open, setOpen] = useState<boolean>(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const { logout } = useAuth();
 
@@ -89,9 +82,10 @@ const UserDropdown = ({ user }) => {
      * @function
      * @param {Event} event - The DOM event.
      */
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent) => {
         if (
             dropdownRef.current &&
+            event.target instanceof Node &&
             !dropdownRef.current.contains(event.target)
         ) {
             setOpen(false);
@@ -122,7 +116,7 @@ const UserDropdown = ({ user }) => {
      * @function
      * @param {React.MouseEvent} e
      */
-    const handleProfile = (e) => {
+    const handleProfile = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         logger.info('Profile selected');
         setOpen(false);
@@ -135,7 +129,7 @@ const UserDropdown = ({ user }) => {
      * @function
      * @param {React.MouseEvent} e
      */
-    const handleLogout = async (e) => {
+    const handleLogout = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         logger.info('Logout selected');
         setOpen(false);
@@ -188,3 +182,4 @@ const UserDropdown = ({ user }) => {
 };
 
 export default UserDropdown;
+
