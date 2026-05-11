@@ -9,7 +9,7 @@ import {
 import { useAllStorage, useCreateStorage, useUpdateStorage, useDeleteStorage } from "./useStorage";
 import { buildingKeys } from "../../building/api/buildingQueryKeys.ts";
 import type { Building } from "../../building/api/building.types";
-import type { Storage } from "../api/storage.types";
+
 
 /**
  * logger for useStorageSettingsTab hook (Bulletproof React: business logic, robust logging).
