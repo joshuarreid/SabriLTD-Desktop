@@ -2,9 +2,8 @@ import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { searchItems } from "../../features/item/api/item";
 import { useCompanyById } from "../../features/company/hooks/useCompanies";
-import { getUserById } from "../../api/user/user.js";
+import { useUserById } from "../../features/user/hooks/useUsers";
 import { itemKeys } from "../../features/item/api/ItemQueryKeys";
-import { userKeys } from "../../api/user/userQueryKeys.js";
 import { useJobById } from "../../features/job/hooks/useJobs";
 
 /**
@@ -128,9 +127,9 @@ const useJobDetailScreen = ({ jobId, condition }) => {
         isPending: isUserPending,
         isError: isUserError,
     } = useQuery({
-        queryKey: job && job.updatedBy ? userKeys.detail(job.updatedBy) : ["user", "none"],
+        queryKey: job && job.updatedBy ? ["user", job.updatedBy] : ["user", "none"],
         queryFn: () =>
-            job && job.updatedBy ? getUserById(job.updatedBy) : Promise.resolve(undefined),
+            job && job.updatedBy ? useUserById(job.updatedBy) : Promise.resolve(undefined),
         enabled: !!(job && job.updatedBy),
         retry: false,
     });

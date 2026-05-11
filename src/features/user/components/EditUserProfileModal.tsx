@@ -1,8 +1,20 @@
 import React from "react";
 import styles from "../styles/edituserprofilemodal.module.css";
 import SaveStatus from "../../../components/save/SaveStatus.jsx";
-import { useEditUserProfileModal } from "../hooks/useEditUserProfileModal.js";
+import { useEditUserProfileModal } from "../hooks/useEditUserProfileModal.ts";
 import { FaRegTrashCan } from "react-icons/fa6";
+
+export interface EditUserProfileModalProps {
+    user: { userId?: number; name: string; email: string } | null;
+    open: boolean;
+    isSaving: boolean;
+    onSave: (userId: number | null, payload: { name: string; email: string }) => void;
+    onClose: () => void;
+    onDelete?: (userId: number) => void;
+    error?: string | null;
+    saveState?: 'saving' | 'saved' | 'idle' | 'error';
+    currentUser?: { userId?: number } | null;
+}
 
 /**
  * EditUserProfileModal
@@ -22,21 +34,21 @@ import { FaRegTrashCan } from "react-icons/fa6";
  * @returns {JSX.Element|null}
  */
 const logger = {
-    info: (...args) => console.log("[EditUserProfileModal]", ...args),
-    error: (...args) => console.error("[EditUserProfileModal]", ...args),
+    info: (...args: unknown[]) => console.log("[EditUserProfileModal]", ...args),
+    error: (...args: unknown[]) => console.error("[EditUserProfileModal]", ...args),
 };
 
-const EditUserProfileModal = ({
-                                  user,
-                                  open,
-                                  isSaving,
-                                  onSave,
-                                  onClose,
-                                  onDelete,
-                                  error,
-                                  saveState = "idle",
-                                  currentUser
-                              }) => {
+const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({
+    user,
+    open,
+    isSaving,
+    onSave,
+    onClose,
+    onDelete,
+    error,
+    saveState = "idle",
+    currentUser
+}) => {
     const {
         draft,
         formError,
@@ -47,13 +59,12 @@ const EditUserProfileModal = ({
     } = useEditUserProfileModal(user, isSaving);
 
     // Controls the confirmation modal for deletion (edit mode only)
-    const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState<boolean>(false);
 
     if (!open || !user) return null;
 
     /**
      * Handles cancel (closes modal and resets error).
-     * @function handleCancel
      */
     const handleCancel = () => {
         setFormError(null);
@@ -72,7 +83,6 @@ const EditUserProfileModal = ({
 
     /**
      * Determines if the user being edited is the current user.
-     * @type {boolean}
      */
     const isCurrentUser =
         !!user &&
@@ -81,10 +91,8 @@ const EditUserProfileModal = ({
 
     /**
      * Opens confirmation dialog for delete.
-     * @function handleTrashClick
-     * @param {React.MouseEvent} e
      */
-    const handleTrashClick = (e) => {
+    const handleTrashClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         if (!isCurrentUser && !isSaving) {
             setDeleteConfirmOpen(true);
@@ -93,7 +101,6 @@ const EditUserProfileModal = ({
 
     /**
      * Closes the delete confirmation.
-     * @function handleDeleteCancel
      */
     const handleDeleteCancel = () => {
         setDeleteConfirmOpen(false);
@@ -101,7 +108,6 @@ const EditUserProfileModal = ({
 
     /**
      * Confirms deletion, notifies parent.
-     * @function handleDeleteConfirm
      */
     const handleDeleteConfirm = () => {
         setDeleteConfirmOpen(false);
@@ -250,3 +256,4 @@ const EditUserProfileModal = ({
 };
 
 export default EditUserProfileModal;
+

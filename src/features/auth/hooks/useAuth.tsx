@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { userKeys } from '../../../api/user/userQueryKeys.js';
+import { userKeys } from '../../user/api/userQueryKeys.ts';
 
 // Extend the Window interface for electronAPI
 // This must be after imports and before any code using window.electronAPI

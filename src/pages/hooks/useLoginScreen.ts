@@ -1,10 +1,38 @@
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { useNavigate, Navigate } from 'react-router-dom';
-import { useAuth } from '../../features/auth/hooks/useAuth.tsx';
-import { login } from '../../features/auth/api/auth.js';
-import { getPublicUsers } from '../../api/user/user.js';
-import { userKeys } from '../../api/user/userQueryKeys.js';
+import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query';
+import { useAuth } from '../../features/auth/hooks/useAuth';
+import { login } from '../../features/auth/api/auth';
+import { usePublicUsers } from '../../features/user/hooks/useUsers';
+
+// --- Types ---
+type PublicUser = {
+    id: number;
+    username: string;
+    [key: string]: any;
+};
+
+type LoginMutationVars = { passcode: string };
+
+type LoginMutationResult = string; // Assuming login returns a token string
+
+type LoginScreenStep = 'select' | 'password';
+
+type UseLoginScreenReturn = {
+    isAuthenticated: boolean;
+    isLoadingUsers: boolean;
+    usersError: string | null;
+    publicUsers?: PublicUser[];
+    selectedUserId: string;
+    setSelectedUserId: (id: string) => void;
+    step: LoginScreenStep;
+    selectUser: (userId: string) => void;
+    continueToPassword: () => void;
+    backToSelect: () => void;
+    handleLoginSubmit: (vars: LoginMutationVars) => void;
+    mutationIsPending: boolean;
+    error: string | null;
+    resetError: () => void;
+};
 
 /**
  * Standardized logger for debugging and traceability.
@@ -12,8 +40,8 @@ import { userKeys } from '../../api/user/userQueryKeys.js';
  * @constant
  */
 const logger = {
-    info: (...args) => console.log('[useLoginScreen]', ...args),
-    error: (...args) => console.error('[useLoginScreen]', ...args),
+    info: (...args: unknown[]) => console.log('[useLoginScreen]', ...args),
+    error: (...args: unknown[]) => console.error('[useLoginScreen]', ...args),
 };
 
 /**
@@ -23,11 +51,10 @@ const logger = {
  *
  * @returns {object} All state and handlers for the auth screen
  */
-export const useLoginScreen = () => {
-    const [error, setError] = useState(null);
-    const [selectedUserId, setSelectedUserId] = useState('');
-    const [step, setStep] = useState('select');
-    const navigate = useNavigate();
+export const useLoginScreen = (): UseLoginScreenReturn => {
+    const [error, setError] = useState<string | null>(null);
+    const [selectedUserId, setSelectedUserId] = useState<string>('');
+    const [step, setStep] = useState<LoginScreenStep>('select');
     const { isAuthenticated, setToken } = useAuth();
 
     // Public users query - cache 24h (staleTime), cacheTime optional (default 5min)
@@ -36,37 +63,34 @@ export const useLoginScreen = () => {
         isPending: isLoadingUsers,
         isError: hasUsersError,
         error: usersFetchError,
-    } = useQuery({
-        queryKey: userKeys.public(), // Use public() for now (no filters)
-        queryFn: getPublicUsers,
-        staleTime: 24 * 60 * 60 * 1000, // 24 hours in ms
-        cacheTime: 25 * 60 * 60 * 1000, // 25 hours, so data isn't immediately evicted after staling (optional)
-    });
+    } = usePublicUsers();
 
     // Login mutation
-    const mutation = useMutation({
+    const mutation: UseMutationResult<LoginMutationResult, Error, LoginMutationVars> = useMutation<LoginMutationResult, Error, LoginMutationVars>({
         mutationFn: async ({ passcode }) => {
             logger.info('auth mutationFn called', { userId: Number(selectedUserId) });
-            return await login(Number(selectedUserId), passcode);
+            // Ensure login returns a string (token)
+            const result = await login(Number(selectedUserId), passcode);
+            if (typeof result !== 'string') throw new Error('Invalid login response');
+            return result;
         },
         onSuccess: async (token) => {
             logger.info('auth mutation onSuccess', { token: !!token });
             try {
                 await setToken(token);
-                navigate('/', { replace: true });
-            } catch (navError) {
+                // Removed navigation logic
+            } catch (navError: any) {
                 logger.error('navigation after auth failed', navError);
                 setError('Login succeeded but navigation failed.');
             }
         },
-        onError: (err) => {
+        onError: (err: Error) => {
             logger.error('auth mutation onError', err);
             setError(err?.message || 'Login failed');
         }
     });
 
-    // ...rest of hook remains the same...
-    const selectUser = useCallback((userId) => {
+    const selectUser = useCallback((userId: string) => {
         logger.info('selectUser called', { userId });
         setSelectedUserId(userId);
         setError(null);
@@ -89,7 +113,7 @@ export const useLoginScreen = () => {
     }, []);
 
     const handleLoginSubmit = useCallback(
-        ({ passcode }) => {
+        ({ passcode }: LoginMutationVars) => {
             setError(null);
             mutation.mutate({ passcode });
         },
@@ -97,11 +121,9 @@ export const useLoginScreen = () => {
     );
 
     const resetError = useCallback(() => setError(null), []);
-    const redirectElement = isAuthenticated ? <Navigate to="/" replace /> : null;
 
     return {
         isAuthenticated,
-        redirectElement,
         isLoadingUsers,
         usersError: hasUsersError ? usersFetchError?.message || 'Could not load user list.' : null,
         publicUsers,
