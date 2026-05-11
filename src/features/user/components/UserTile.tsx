@@ -15,12 +15,26 @@
 import React from 'react';
 import styles from '../styles/UserTile.module.css';
 
+interface UserTileUser {
+    userId: string | number;
+    name: string;
+    [key: string]: any;
+}
+
+interface UserTileProps {
+    user: UserTileUser;
+    selectedUserId: string;
+    onClick: (userId: string | number) => void;
+    onDoubleClick: (userId: string | number) => void;
+    onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>, userId: string | number) => void;
+}
+
 /**
  * logger for UserTile component
  */
 const logger = {
-    info: (...args) => console.log('[UserTile]', ...args),
-    error: (...args) => console.error('[UserTile]', ...args),
+    info: (...args: unknown[]) => console.log('[UserTile]', ...args),
+    error: (...args: unknown[]) => console.error('[UserTile]', ...args),
 };
 
 /**
@@ -28,7 +42,7 @@ const logger = {
  * @param {object} user - user object containing name.
  * @returns {string} Initials string or '?' if not available.
  */
-const getInitials = (user) => {
+const getInitials = (user: UserTileUser): string => {
     if (user && user.name) {
         const parts = user.name.trim().split(' ').filter(Boolean);
         if (parts.length === 1) return parts[0][0].toUpperCase();
@@ -43,7 +57,7 @@ const getInitials = (user) => {
  * @param {object} props.user - user object for initials.
  * @returns {JSX.Element}
  */
-const Avatar = ({ user }) => {
+const Avatar: React.FC<{ user: UserTileUser }> = ({ user }) => {
     const initials = getInitials(user);
     if (initials === '?') {
         // Fallback: minimal user icon SVG
@@ -75,13 +89,13 @@ const Avatar = ({ user }) => {
  * @param {object} props - All props.
  * @returns {JSX.Element}
  */
-export const UserTile = ({
-                             user,
-                             selectedUserId,
-                             onClick,
-                             onDoubleClick,
-                             onKeyDown,
-                         }) => {
+export const UserTile: React.FC<UserTileProps> = ({
+    user,
+    selectedUserId,
+    onClick,
+    onDoubleClick,
+    onKeyDown,
+}) => {
     const isSelected = String(user.userId) === String(selectedUserId);
     logger.info('render', { userId: user.userId, isSelected });
 

@@ -13,12 +13,18 @@
 import React from 'react';
 import styles from '../styles/UserGridArrowButton.module.css';
 
+interface UserGridArrowButtonProps {
+    left?: boolean;
+    onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
+    disabled?: boolean;
+}
+
 const logger = {
-    info: (...args) => console.log('[UserGridArrowButton]', ...args),
-    error: (...args) => console.error('[UserGridArrowButton]', ...args),
+    info: (...args: unknown[]) => console.log('[UserGridArrowButton]', ...args),
+    error: (...args: unknown[]) => console.error('[UserGridArrowButton]', ...args),
 };
 
-export const UserGridArrowButton = ({ left = false, onClick, disabled = false }) => {
+export const UserGridArrowButton: React.FC<UserGridArrowButtonProps> = ({ left = false, onClick, disabled = false }) => {
     logger.info('render', { left, disabled });
     return (
         <button

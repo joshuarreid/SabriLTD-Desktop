@@ -11,7 +11,7 @@ import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import styles from '../styles/LoginScreen.module.css';
 import {useLoginScreen} from "../hooks/useLoginScreen";
-import { UserGrid } from '../../features/user/components/UserGrid.jsx';
+import { UserGrid } from '../../features/user/components/UserGrid.tsx';
 import { LoginForm } from '../../features/auth/components/LoginForm.jsx';
 
 import BrandLogo from '../../assets/logos/Sabri-headerlogo1.png';

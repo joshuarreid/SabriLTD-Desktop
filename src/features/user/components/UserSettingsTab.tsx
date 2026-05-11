@@ -5,21 +5,25 @@ import { useCurrentUser } from "../hooks/useCurrentUser.ts";
 import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal.jsx";
 import EditUserProfileModal from "./EditUserProfileModal.tsx";
 
-/**
- * UserSettingsTab
- * Renders users as vertically stacked, centered cards in a responsive grid.
- * Clicking a card opens the edit modal.
- * Fetches and manages users automatically via useUserSettingsTab hook.
- *
- * @component
- * @returns {JSX.Element}
- */
+interface User {
+    userId?: number;
+    name: string;
+    email?: string;
+    role?: string;
+    avatar?: string;
+    [key: string]: any;
+}
+
+type ModalMode = 'edit' | 'add' | null;
+
+type EditModalError = string | null;
+
 const logger = {
-    info: (...args) => console.log("[UserSettingsTab]", ...args),
-    error: (...args) => console.error("[UserSettingsTab]", ...args),
+    info: (...args: unknown[]) => console.log("[UserSettingsTab]", ...args),
+    error: (...args: unknown[]) => console.error("[UserSettingsTab]", ...args),
 };
 
-const UserSettingsTab = () => {
+const UserSettingsTab: React.FC = () => {
     logger.info("UserSettingsTab rendered");
 
     const {
@@ -40,19 +44,19 @@ const UserSettingsTab = () => {
 
     const { user: currentUser } = useCurrentUser();
 
-    const [editModalError, setEditModalError] = useState(null);
-    const [modalMode, setModalMode] = useState(null); // 'edit' | 'add'
-    const [modalUser, setModalUser] = useState(null);
+    const [editModalError, setEditModalError] = useState<EditModalError>(null);
+    const [modalMode, setModalMode] = useState<ModalMode>(null); // 'edit' | 'add'
+    const [modalUser, setModalUser] = useState<User | null>(null);
     const [pendingClose, setPendingClose] = useState(false);
-    const closeTimeoutRef = useRef();
+    const closeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
     // Find the user being confirmed for deletion
     const removingUser = removingId
-        ? users.find((u) => u.userId === removingId)
+        ? users.find((u: User) => u.userId === removingId)
         : null;
 
     // Delete status for badge/confirmation
-    const [deleteStatus, setDeleteStatus] = useState("idle");
+    const [deleteStatus, setDeleteStatus] = useState<string>("idle");
 
     /**
      * Syncs deleteStatus state with the user delete mutation.
@@ -81,7 +85,7 @@ const UserSettingsTab = () => {
      * Opens the edit modal for a user.
      * @param {object} user
      */
-    const openEditModal = (user) => {
+    const openEditModal = (user: User) => {
         setModalUser(user);
         setModalMode("edit");
         setEditModalError(null);
@@ -103,13 +107,13 @@ const UserSettingsTab = () => {
      * @param {number} userId
      * @param {{ name: string, email: string }} payload
      */
-    const handleModalSave = (userId, payload) => {
+    const handleModalSave = (userId: number, payload: { name: string; email: string }) => {
         setEditModalError(null);
         setPendingClose(true);
         handleSaveEdit(
             userId,
             payload,
-            (error) => {
+            (error?: Error) => {
                 if (error) {
                     setEditModalError(error.message || "Failed to update.");
                     setPendingClose(false);
@@ -123,12 +127,12 @@ const UserSettingsTab = () => {
      * @param {null} ignoredUserId
      * @param {{ name: string, email: string }} payload
      */
-    const handleModalAdd = (_ignored, payload) => {
+    const handleModalAdd = (_ignored: null, payload: { name: string; email: string }) => {
         setEditModalError(null);
         setPendingClose(true);
         handleAddUser(
             payload,
-            (error) => {
+            (error?: Error) => {
                 if (error) {
                     setEditModalError(error.message || "Failed to create user.");
                     setPendingClose(false);
@@ -141,7 +145,7 @@ const UserSettingsTab = () => {
      * Handles delete action for a user.
      * @param {number} userId
      */
-    const handleDelete = (userId) => {
+    const handleDelete = (userId: number) => {
         handleRemoveUser(userId);
     };
 
@@ -187,13 +191,13 @@ const UserSettingsTab = () => {
                 </button>
             </div>
             <div className={styles.gridContainer}>
-                {(users ?? []).map((user) => (
+                {(users ?? []).map((user: User) => (
                     <div
                         key={user.userId}
                         className={styles.userCard}
                         tabIndex={0}
                         onClick={() => openEditModal(user)}
-                        onKeyPress={(e) => {
+                        onKeyPress={(e: React.KeyboardEvent<HTMLDivElement>) => {
                             if (e.key === "Enter" || e.key === " ") {
                                 e.preventDefault();
                                 openEditModal(user);
@@ -232,7 +236,7 @@ const UserSettingsTab = () => {
                         setPendingClose(false);
                     }}
                     error={editModalError}
-                    onDelete={(userId) => handleDelete(userId)}
+                    onDelete={(userId: number) => handleDelete(userId)}
                     currentUser={currentUser}
                 />
             )}
@@ -260,7 +264,7 @@ const UserSettingsTab = () => {
             <ConfirmationModal
                 open={!!removingUser}
                 onCancel={cancelRemoveUser}
-                onConfirm={() => confirmRemoveUser(removingUser.userId)}
+                onConfirm={() => removingUser && confirmRemoveUser(removingUser.userId)}
                 title="Are you sure?"
                 description={
                     removingUser
@@ -286,3 +290,4 @@ const UserSettingsTab = () => {
 };
 
 export default UserSettingsTab;
+

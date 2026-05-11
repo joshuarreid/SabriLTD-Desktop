@@ -16,37 +16,53 @@
  */
 import React from 'react';
 import styles from '../styles/UserGrid.module.css';
-import { UserTile } from './UserTile.jsx';
-import { UserGridArrowButton } from './UserGridArrowButton.jsx';
+import { UserTile } from './UserTile';
+import { UserGridArrowButton } from './UserGridArrowButton';
 
 const logger = {
-    info: (...args) => console.log('[UserGrid]', ...args),
-    error: (...args) => console.error('[UserGrid]', ...args),
+    info: (...args: unknown[]) => console.log('[UserGrid]', ...args),
+    error: (...args: unknown[]) => console.error('[UserGrid]', ...args),
 };
 
 const USERS_PER_PAGE = 4;
 
-export const UserGrid = ({
-                             users,
-                             selectedUserId,
-                             onSelectUser,
-                             onContinue,
-                             page,
-                             pageCount,
-                             setPage,
-                         }) => {
-    const handleTileClick = userId => {
+export interface UserGridUser {
+    userId: string | number;
+    name: string;
+    [key: string]: any;
+}
+
+export interface UserGridProps {
+    users: UserGridUser[];
+    selectedUserId: string;
+    onSelectUser: (userId: string) => void;
+    onContinue: () => void;
+    page: number;
+    pageCount: number;
+    setPage: (page: number) => void;
+}
+
+export const UserGrid: React.FC<UserGridProps> = ({
+    users,
+    selectedUserId,
+    onSelectUser,
+    onContinue,
+    page,
+    pageCount,
+    setPage,
+}) => {
+    const handleTileClick = (userId: string | number) => {
         logger.info('tile clicked', { userId });
         onSelectUser(String(userId));
     };
 
-    const handleTileDoubleClick = userId => {
+    const handleTileDoubleClick = (userId: string | number) => {
         logger.info('tile double-clicked', { userId });
         onSelectUser(String(userId));
         onContinue();
     };
 
-    const handleTileKeyDown = (e, userId) => {
+    const handleTileKeyDown = (e: React.KeyboardEvent, userId: string | number) => {
         const idStr = String(userId);
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -65,7 +81,7 @@ export const UserGrid = ({
 
     // Compute users on the current page, with padding (always 4 tiles)
     const pageUsers = users.slice(page * USERS_PER_PAGE, page * USERS_PER_PAGE + USERS_PER_PAGE);
-    const paddedUsers = [...pageUsers];
+    const paddedUsers: (UserGridUser | null)[] = [...pageUsers];
     while (paddedUsers.length < USERS_PER_PAGE) paddedUsers.push(null);
 
     return (
