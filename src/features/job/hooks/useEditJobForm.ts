@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllCompanies, createCompany } from "../../company/api/company";
 import { companyKeys } from "../../company/api/companyQueryKeys";
 import { jobKeys } from "../api/jobQueryKeys";
-import { userKeys } from "../../user/api/userQueryKeys";
 import { useCurrentUser } from "../../user/hooks/useCurrentUser";
 import { useJobClients, useUpdateJob } from "./useJobs";
 

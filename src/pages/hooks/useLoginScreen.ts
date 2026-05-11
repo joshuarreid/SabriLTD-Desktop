@@ -2,8 +2,7 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { login } from '../../features/auth/api/auth';
-import { getPublicUsers } from '../../features/user/api/user';
-import { userKeys } from '../../features/user/api/userQueryKeys';
+import { usePublicUsers } from '../../features/user/hooks/useUsers';
 
 // --- Types ---
 type PublicUser = {
@@ -64,12 +63,7 @@ export const useLoginScreen = (): UseLoginScreenReturn => {
         isPending: isLoadingUsers,
         isError: hasUsersError,
         error: usersFetchError,
-    } = useQuery<PublicUser[], Error>({
-        queryKey: userKeys.public(),
-        queryFn: getPublicUsers,
-        staleTime: 24 * 60 * 60 * 1000,
-        cacheTime: 25 * 60 * 60 * 1000,
-    });
+    } = usePublicUsers();
 
     // Login mutation
     const mutation: UseMutationResult<LoginMutationResult, Error, LoginMutationVars> = useMutation<LoginMutationResult, Error, LoginMutationVars>({
