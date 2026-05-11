@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useCurrentUser } from "./useCurrentUser";
-import { updateUser } from "../../../api/user/user";
-import { userKeys } from "../../../api/user/userQueryKeys";
+import { updateUser } from "../api/user";
+import { userKeys } from "../api/userQueryKeys";
 import type { ChangeEvent, FormEvent } from "react";
 
 export type User = {

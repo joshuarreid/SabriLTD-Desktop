@@ -1,7 +1,7 @@
 /**
  * Company module (API helpers)
  *
- * Mirrors the shape and behavior of user.js: exposes a singleton client
+ * Mirrors the shape and behavior of user.ts: exposes a singleton client
  * and named functions for each Company API endpoint used by the UI and hooks.
  *
  * All functions throw when the underlying request fails so callers can handle errors.

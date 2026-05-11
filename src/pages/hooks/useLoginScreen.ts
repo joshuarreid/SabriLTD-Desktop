@@ -2,8 +2,8 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, UseMutationResult } from '@tanstack/react-query';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { login } from '../../features/auth/api/auth';
-import { getPublicUsers } from '../../api/user/user';
-import { userKeys } from '../../api/user/userQueryKeys';
+import { getPublicUsers } from '../../features/user/api/user';
+import { userKeys } from '../../features/user/api/userQueryKeys';
 
 // --- Types ---
 type PublicUser = {

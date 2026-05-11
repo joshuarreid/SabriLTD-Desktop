@@ -1,4 +1,13 @@
-import UserApiClient from "./userApiClient.js";
+import UserApiClient from "./userApiClient";
+import {
+    PublicUser,
+    User,
+    UserCreateInput,
+    UserUpdateInput,
+    UserResponse,
+    UserListResponse,
+    PublicUserListResponse
+} from "./user.types";
 
 /**
  * Singleton instance of UserApiClient.
@@ -15,8 +24,8 @@ const apiClient = new UserApiClient();
  * @constant
  */
 const logger = {
-    info: (...args) => console.log('[user]', ...args),
-    error: (...args) => console.error('[user]', ...args),
+    info: (...args: unknown[]) => console.log('[user]', ...args),
+    error: (...args: unknown[]) => console.error('[user]', ...args),
 };
 
 /**
@@ -24,14 +33,14 @@ const logger = {
  *
  * @async
  * @function getPublicUsers
- * @returns {Promise<Array<{userId: number, name: string}>>} Array of public user objects
+ * @returns {Promise<PublicUserListResponse>} Array of public user objects
  * @throws {Error} If the request fails (network, 500, etc).
  */
-export async function getPublicUsers() {
+export async function getPublicUsers(): Promise<PublicUserListResponse> {
     logger.info('getPublicUsers called');
     try {
         const response = await apiClient.fetchPublicList();
-        return response?.data || [];
+        return response?.data as PublicUserListResponse || [];
     } catch (error) {
         logger.error('getPublicUsers failed', error);
         throw error;
@@ -43,14 +52,14 @@ export async function getPublicUsers() {
  *
  * @async
  * @function getMe
- * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} user object
+ * @returns {Promise<UserResponse>} user object
  * @throws {Error} If the request fails (network, 401, 500, etc).
  */
-export async function getMe() {
+export async function getMe(): Promise<UserResponse> {
     logger.info('getMe called');
     try {
         const response = await apiClient.fetchMe();
-        return response?.data || null;
+        return response?.data as UserResponse || null;
     } catch (error) {
         logger.error('getMe failed', error);
         throw error;
@@ -62,14 +71,14 @@ export async function getMe() {
  *
  * @async
  * @function getAllUsers
- * @returns {Promise<Array<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>>} user objects
+ * @returns {Promise<UserListResponse>} user objects
  * @throws {Error} If the request fails (network, 401, 500, etc).
  */
-export async function getAllUsers() {
+export async function getAllUsers(): Promise<UserListResponse> {
     logger.info('getAllUsers called');
     try {
         const response = await apiClient.fetchAllUsers();
-        return response?.data || [];
+        return response?.data as UserListResponse || [];
     } catch (error) {
         logger.error('getAllUsers failed', error);
         throw error;
@@ -82,14 +91,14 @@ export async function getAllUsers() {
  * @async
  * @function getUserById
  * @param {number} userId - The user ID to fetch
- * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} user object
+ * @returns {Promise<UserResponse>} user object
  * @throws {Error} If user is not found or request fails.
  */
-export async function getUserById(userId) {
+export async function getUserById(userId: number): Promise<UserResponse> {
     logger.info('getUserById called', { userId });
     try {
         const response = await apiClient.fetchUserById(userId);
-        return response?.data || null;
+        return response?.data as UserResponse || null;
     } catch (error) {
         logger.error('getUserById failed', error);
         throw error;
@@ -101,15 +110,15 @@ export async function getUserById(userId) {
  *
  * @async
  * @function createUser
- * @param {{name: string, email: string}} user - The user payload
- * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} New user object
+ * @param {UserCreateInput} user - The user payload
+ * @returns {Promise<UserResponse>} New user object
  * @throws {Error} If request fails, duplicate email, or validation error.
  */
-export async function createUser(user) {
+export async function createUser(user: UserCreateInput): Promise<UserResponse> {
     logger.info('createUser called', { name: user?.name });
     try {
         const response = await apiClient.createUser(user);
-        return response?.data || null;
+        return response?.data as UserResponse || null;
     } catch (error) {
         logger.error('createUser failed', error);
         throw error;
@@ -122,15 +131,15 @@ export async function createUser(user) {
  * @async
  * @function updateUser
  * @param {number} userId - The ID to update
- * @param {{name: string, email: string}} user - The inputfields to update
- * @returns {Promise<{userId: number, name: string, email: string, dateAdded: string, dateUpdated: string}>} Updated user
+ * @param {UserUpdateInput} user - The inputfields to update
+ * @returns {Promise<UserResponse>} Updated user
  * @throws {Error} If not found, validation fails, or request fails.
  */
-export async function updateUser(userId, user) {
+export async function updateUser(userId: number, user: UserUpdateInput): Promise<UserResponse> {
     logger.info('updateUser called', { userId });
     try {
         const response = await apiClient.updateUser(userId, user);
-        return response?.data || null;
+        return response?.data as UserResponse || null;
     } catch (error) {
         logger.error('updateUser failed', error);
         throw error;
@@ -146,7 +155,7 @@ export async function updateUser(userId, user) {
  * @returns {Promise<void>} Resolves on success or throws if failed
  * @throws {Error} If user not found or request fails.
  */
-export async function deleteUser(userId) {
+export async function deleteUser(userId: number): Promise<void> {
     logger.info('deleteUser called', { userId });
     try {
         await apiClient.deleteUser(userId);

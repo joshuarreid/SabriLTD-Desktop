@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { userKeys } from '../../../api/user/userQueryKeys';
-import { getMe } from '../../../api/user/user';
+import { userKeys } from '../api/userQueryKeys';
+import { getMe } from '../api/user';
 
 // Define a type for the user object (customize as needed)
 type CurrentUser = {

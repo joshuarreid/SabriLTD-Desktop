@@ -45,14 +45,14 @@ export const userKeys = {
      * @param {object} filters
      * @returns {Array}
      */
-    list: (filters = {}) => [...userKeys.lists(), { filters }],
+    list: (filters: Record<string, any> = {}) => [...userKeys.lists(), { filters }],
 
     /**
      * Key for a single user detail by id.
      * @param {number|string} userId
      * @returns {Array}
      */
-    detail: (userId) => [...userKeys.all, 'detail', userId],
+    detail: (userId: number | string) => [...userKeys.all, 'detail', userId],
 
     /**
      * Key for querying the current authenticated user ("me").
@@ -71,7 +71,7 @@ export const userKeys = {
      * @param {object} filters
      * @returns {Array}
      */
-    publicList: (filters = {}) => [...userKeys.all, 'public-list', { filters }],
+    publicList: (filters: Record<string, any> = {}) => [...userKeys.all, 'public-list', { filters }],
 
     /**
      * Key for the create user mutation.
@@ -84,12 +84,12 @@ export const userKeys = {
      * @param {number|string} userId
      * @returns {Array}
      */
-    update: (userId) => [...userKeys.detail(userId), 'update'],
+    update: (userId: number | string) => [...userKeys.detail(userId), 'update'],
 
     /**
      * Key for the delete user mutation.
      * @param {number|string} userId
      * @returns {Array}
      */
-    remove: (userId) => [...userKeys.detail(userId), 'remove'],
+    remove: (userId: number | string) => [...userKeys.detail(userId), 'remove'],
 };

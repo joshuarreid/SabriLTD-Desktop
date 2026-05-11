@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient, QueryClient } from "@tanstack/react-query";
-import { createUser, deleteUser, getAllUsers, getMe, updateUser } from "../../../api/user/user";
-import { userKeys } from "../../../api/user/userQueryKeys";
+import { createUser, deleteUser, getAllUsers, getMe, updateUser } from "../api/user";
+import { userKeys } from "../api/userQueryKeys";
 
 // --- Types ---
 export type User = {

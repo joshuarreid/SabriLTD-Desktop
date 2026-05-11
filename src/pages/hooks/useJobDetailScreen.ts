@@ -2,9 +2,9 @@ import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { searchItems } from "../../features/item/api/item";
 import { useCompanyById } from "../../features/company/hooks/useCompanies";
-import { getUserById } from "../../api/user/user.js";
+import { getUserById } from "../../features/user/api/user.ts";
 import { itemKeys } from "../../features/item/api/ItemQueryKeys";
-import { userKeys } from "../../api/user/userQueryKeys.js";
+import { userKeys } from "../../features/user/api/userQueryKeys.ts";
 import { useJobById } from "../../features/job/hooks/useJobs";
 
 /**
