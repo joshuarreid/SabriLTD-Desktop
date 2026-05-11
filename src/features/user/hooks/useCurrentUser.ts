@@ -1,6 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
-import { userKeys } from '../api/userQueryKeys';
-import { getMe } from '../api/user';
+import { useCurrentUserQuery } from './useUsers';
 
 // Define a type for the user object (customize as needed)
 type CurrentUser = {
@@ -37,20 +35,8 @@ const logger = {
  */
 export const useCurrentUser = (): UseCurrentUserResult => {
     logger.info('useCurrentUser called');
-    const {
-        data,
-        isLoading,
-        isError,
-        error,
-    } = useQuery<CurrentUser, Error>({
-        queryKey: userKeys.me(),
-        queryFn: getMe,
-        retry: 1,
-        staleTime: 60 * 1000, // 1 minute
-        onError: (err: Error) => {
-            logger.error('Failed to fetch current user via /me:', err);
-        },
-    });
+
+    const { data, isLoading, isError, error } = useCurrentUserQuery();
 
     logger.info('useCurrentUser query result', { data, isLoading, isError, error });
 

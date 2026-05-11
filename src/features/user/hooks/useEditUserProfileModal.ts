@@ -15,6 +15,7 @@
  */
 import { useState, useEffect } from "react";
 import type { ChangeEvent, FormEvent } from "react";
+import { useCreateUser, useUpdateUser } from "./useUsers";
 
 export type UserProfileDraft = { name: string; email: string };
 export type UserProfile = UserProfileDraft & { userId?: number };
@@ -42,6 +43,8 @@ export const useEditUserProfileModal = (
 ): UseEditUserProfileModalReturn => {
     const [draft, setDraft] = useState<UserProfileDraft>({ name: "", email: "" });
     const [formError, setFormError] = useState<string | null>(null);
+    const createUserMutation = useCreateUser();
+    const updateUserMutation = useUpdateUser();
 
     useEffect(() => {
         if (user) setDraft({ name: user.name || "", email: user.email || "" });
@@ -74,7 +77,23 @@ export const useEditUserProfileModal = (
             return;
         }
         logger.info("Saving user edit", { id: user && user.userId, ...draft });
-        onSave(user ? user.userId ?? null : null, { name: draft.name.trim(), email: draft.email.trim() });
+        if (user && user.userId) {
+            updateUserMutation.mutate(
+                { userId: user.userId, payload: { name: draft.name.trim(), email: draft.email.trim() } },
+                {
+                    onSuccess: () => onSave(user.userId, { name: draft.name.trim(), email: draft.email.trim() }),
+                    onError: (err: any) => setFormError(err?.message || "Failed to update user."),
+                }
+            );
+        } else {
+            createUserMutation.mutate(
+                { name: draft.name.trim(), email: draft.email.trim(), password: "" }, // password handling TBD
+                {
+                    onSuccess: (created: any) => onSave(created?.userId ?? null, { name: draft.name.trim(), email: draft.email.trim() }),
+                    onError: (err: any) => setFormError(err?.message || "Failed to create user."),
+                }
+            );
+        }
     };
 
     const resetDraft = () => {

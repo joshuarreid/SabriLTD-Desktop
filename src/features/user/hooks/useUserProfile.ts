@@ -1,8 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useUpdateUser } from "./useUsers";
 import { useCurrentUser } from "./useCurrentUser";
-import { updateUser } from "../api/user";
-import { userKeys } from "../api/userQueryKeys";
 import type { ChangeEvent, FormEvent } from "react";
 
 export type User = {
@@ -84,7 +82,8 @@ export const useUserProfile = (): UseUserProfileReturn => {
 
     // Used to run "profile sync" effect only after certain updates (not after EVERY user change)
     const initialLoad = useRef(true);
-    const queryClient = useQueryClient();
+    const updateUserMutation = useUpdateUser();
+    const isSaving = updateUserMutation.isPending;
 
     // 🟢 Only sync profile ONCE on mount, or if real new user auth occurs
     useEffect(() => {
@@ -109,34 +108,25 @@ export const useUserProfile = (): UseUserProfileReturn => {
 
     const hasChanges = isChanged(profile, user);
 
-    /**
-     * Calls updateUser and invalidates all cache for current user on success.
-     */
-    const { mutate: updateProfile, isPending: isSaving } = useMutation({
-        mutationFn: async (fields: ProfileDraft) => {
-            logger.info('updateProfile mutationFn called', { fields });
-            if (!user) throw new Error('No user to update');
-            return await updateUser(user.userId, fields);
-        },
-        onSuccess: async (data) => {
-            logger.info('Profile updated successfully', { data });
-            if (!user) return;
-            await Promise.all([
-                queryClient.invalidateQueries({ queryKey: userKeys.me() }),
-                queryClient.invalidateQueries({ queryKey: userKeys.detail(user.userId) }),
-                queryClient.invalidateQueries({ queryKey: userKeys.lists() }),
-                queryClient.invalidateQueries({ queryKey: userKeys.public() }),
-                queryClient.invalidateQueries({ queryKey: userKeys.publicList() }),
-            ]);
-            setFormError(null);
-            setSaveState('saved'); // Stay saved until user types again
-        },
-        onError: (err: any) => {
-            logger.error('Profile update failed', err);
-            setFormError(err?.message || 'Failed to update profile. Please try again.');
-            setSaveState('error');
-        }
-    });
+    const updateProfile = (fields: ProfileDraft) => {
+        logger.info('updateProfile called', { fields });
+        if (!user) throw new Error('No user to update');
+        updateUserMutation.mutate(
+            { userId: user.userId, payload: fields },
+            {
+                onSuccess: (data) => {
+                    logger.info('Profile updated successfully', { data });
+                    setFormError(null);
+                    setSaveState('saved');
+                },
+                onError: (err: any) => {
+                    logger.error('Profile update failed', err);
+                    setFormError(err?.message || 'Failed to update profile. Please try again.');
+                    setSaveState('error');
+                },
+            }
+        );
+    };
 
     const handleSubmit = useCallback((e: FormEvent) => {
         e.preventDefault();
