@@ -1,5 +1,5 @@
 /**
- * useInventoryDashboardScreen
+ * useHomeScreen
  * Hook for HomeScreen that:
  * - Fetches paginated item previews via useItemCardGrid (Meilisearch search).
  * - Eagerly caches full item details for all item on the current page using
@@ -32,23 +32,23 @@
 
 import { useState, useCallback } from "react";
 import { useQueries } from "@tanstack/react-query";
-import useItemCardGrid from "../features/item/hooks/useItemCardGrid";
+import useItemCardGrid from "../../features/item/hooks/useItemCardGrid.ts";
 import itemKeys from "../api/item/ItemQueryKeys";
 import { getItemDetails } from "../api/item/item";
 
 /**
- * Logger for useInventoryDashboardScreen.
+ * Logger for useHomeScreen.
  *
  * @constant
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[useInventoryDashboardScreen]", ...args),
-    error: (...args) => console.error("[useInventoryDashboardScreen]", ...args),
+    info: (...args) => console.log("[useHomeScreen]", ...args),
+    error: (...args) => console.error("[useHomeScreen]", ...args),
 };
 
-export const useInventoryDashboardScreen = () => {
-    logger.info("useInventoryDashboardScreen initialized");
+export const useHomeScreen = () => {
+    logger.info("useHomeScreen initialized");
 
     /**
      * Search string for the dashboard search bar.
@@ -151,4 +151,4 @@ export const useInventoryDashboardScreen = () => {
     };
 };
 
-export default useInventoryDashboardScreen;
+export default useHomeScreen;
