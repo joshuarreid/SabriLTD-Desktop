@@ -16,7 +16,7 @@ import { useUploadPhoto } from "../../features/item/hooks/useUploadPhoto.js";
 import UploadPhotoModal from "../../features/photo/components/UploadPhotoModal.tsx";
 import SaveStatus from "../../components/save/SaveStatus.jsx";
 import EditItemModal from "../../features/item/components/EditItemModal.tsx";
-import { useDeletePhotos } from "../../features/item/hooks/useDeletePhotos.js";
+import { useDeletePhotos } from "../../features/item/hooks/useDeletePhotos.ts";
 import { useQueryClient } from "@tanstack/react-query";
 import { photoKeys } from "../../features/photo/api/photoQueryKeys.ts";
 import ConfirmationModal from "../../components/confirmationmodal/ConfirmationModal.jsx";
