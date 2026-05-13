@@ -18,7 +18,7 @@
  */
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import useItemJobField from "../hooks/useItemJobField";
+import useItemJobField from "../hooks/useItemJobField.ts";
 import styles from "../styles/itemjobfield.module.css";
 import ItemJobPill from "./ItemJobPill";
 

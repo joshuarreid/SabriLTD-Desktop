@@ -13,7 +13,7 @@
  * @returns {JSX.Element}
  */
 import React from "react";
-import { useItemConditionField } from "../hooks/useItemConditionField";
+import { useItemConditionField } from "../hooks/useItemConditionField.ts";
 
 import styles from "../styles/itemconditionfield.module.css";
 import ItemConditionPill from "./ItemConditionPill.jsx";
