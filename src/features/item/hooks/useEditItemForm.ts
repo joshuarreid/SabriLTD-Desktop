@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentUser } from "../../user/hooks/useCurrentUser";
-import ItemApiClient from "../api/itemApiClient";
+import { useUpdateItem } from "./useItems";
 
 export interface EditItemValues {
     name: string;
@@ -42,14 +42,15 @@ const useEditItemForm = ({ item }: UseEditItemFormParams) => {
     const { user: currentUser, loading: currentUserLoading, error: currentUserError } = useCurrentUser();
     const [isEditMode, setIsEditMode] = useState(false);
     const [editValues, setEditValues] = useState<EditItemValues>(() => getInitialEditValuesFromItem(item));
-    const itemApiClient = new ItemApiClient();
 
-    // Sync edit values if item changes and in edit mode
-    // (optional, depending on your UI flow)
-    // useEffect(() => {
-    //     if (!item || !isEditMode) return;
-    //     setEditValues(getInitialEditValuesFromItem(item));
-    // }, [item, isEditMode]);
+    const updateItemMutation = useUpdateItem({
+        onSuccess: (savedItem) => {
+            logger.info("Item saved successfully", { itemId: item?.itemId });
+        },
+        onError: (err) => {
+            logger.error("Failed to save item", err);
+        },
+    });
 
     const toggleEditMode = useCallback(() => {
         setIsEditMode((prev) => {
@@ -65,21 +66,6 @@ const useEditItemForm = ({ item }: UseEditItemFormParams) => {
     }, []);
 
     // --- Save mutation logic ---
-    const saveItemMutation = useMutation({
-        mutationFn: async (payload: EditItemValues & { updatedBy: any }) => {
-            if (!item?.itemId) throw new Error("No itemId provided");
-            return itemApiClient.updateItem(item.itemId, payload);
-        },
-        onSuccess: (savedItem) => {
-            logger.info("Item saved successfully", { itemId: item?.itemId });
-            // Invalidate queries for this item and the item list
-            queryClient.invalidateQueries(); // Invalidate all queries (no itemKeys available)
-        },
-        onError: (err) => {
-            logger.error("Failed to save item", err);
-        },
-    });
-
     const saveItem = useCallback(() => {
         if (!item?.itemId) {
             logger.error("Cannot save item without a valid itemId");
@@ -94,8 +80,8 @@ const useEditItemForm = ({ item }: UseEditItemFormParams) => {
             updatedBy: currentUser.userId,
         };
         logger.info("Saving item", payload);
-        saveItemMutation.mutate(payload);
-    }, [item, editValues, saveItemMutation, currentUser]);
+        updateItemMutation.mutate({ itemId: item.itemId, item: payload });
+    }, [item, editValues, updateItemMutation, currentUser]);
 
     const hasChanges = useMemo(() => {
         if (!item) return false;
@@ -113,10 +99,10 @@ const useEditItemForm = ({ item }: UseEditItemFormParams) => {
         saveItem,
         hasChanges,
         saveItemState: {
-            isPending: saveItemMutation.isPending,
-            isError: saveItemMutation.isError,
-            error: saveItemMutation.error,
-            isSuccess: saveItemMutation.isSuccess,
+            isPending: updateItemMutation.isPending,
+            isError: updateItemMutation.isError,
+            error: updateItemMutation.error,
+            isSuccess: updateItemMutation.isSuccess,
         },
         currentUserState: {
             loading: currentUserLoading,

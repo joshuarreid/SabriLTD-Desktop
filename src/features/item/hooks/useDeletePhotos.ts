@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient, UseMutationResult } from "@tanstack/react-query";
-import { photoKeys } from "../../photo/api/photoQueryKeys.ts";
 import { useDeletePhoto } from "../../photo/hooks/usePhotos";
 
 /**

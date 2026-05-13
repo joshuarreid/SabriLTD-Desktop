@@ -1,9 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createItem } from "../api/item.ts";
-import { itemKeys } from "../api/ItemQueryKeys.ts";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCreateItem } from "./useItems";
 import { useCurrentUser } from "../../user/hooks/useCurrentUser.ts";
-import { photoKeys } from "../../photo/api/photoQueryKeys";
+
 
 interface Photo {
     photoId: number;
@@ -90,9 +89,7 @@ export const useEditItemModal = ({ photos = [], open, onClose }: UseEditItemModa
         isError: isSaveError,
         reset: resetMutation,
         error: mutationError,
-    } = useMutation({
-        mutationKey: itemKeys.create(),
-        mutationFn: createItem,
+    } = useCreateItem({
         onSuccess: (data, variables) => {
             const createdItemId =
                 data?.data?.itemId ??
@@ -104,12 +101,6 @@ export const useEditItemModal = ({ photos = [], open, onClose }: UseEditItemModa
                 photoCount: Array.isArray(variables?.photoIds) ? variables.photoIds.length : 0,
             });
 
-            queryClient.invalidateQueries({ queryKey: itemKeys.all });
-            queryClient.invalidateQueries({ queryKey: itemKeys.lists() });
-            queryClient.invalidateQueries({ queryKey: itemKeys.list() });
-            queryClient.invalidateQueries({ queryKey: itemKeys.search() });
-            queryClient.invalidateQueries({ queryKey: photoKeys.pendingList() });
-            queryClient.invalidateQueries({ queryKey: photoKeys.lists() });
 
             setSaveStatus("saved");
             handleCancel();

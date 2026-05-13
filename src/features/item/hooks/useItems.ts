@@ -23,8 +23,34 @@ export function useAllItems(params: Record<string, unknown> = {}) {
 export function useSearchItems(params: Record<string, unknown>) {
   return useQuery({
     queryKey: itemKeys.search(params),
-    queryFn: () => searchItems(params),
+    queryFn: async () => {
+      const response = await searchItems(params);
+
+      if (
+        response?.status !== "OK" &&
+        response?.status !== "success" &&
+        response?.status !== 200
+      ) {
+        throw new Error(
+          response?.errors?.length
+            ? response.errors.map((e: any) => e.message).join(", ")
+            : "Search failed"
+        );
+      }
+
+      const raw = response?.data;
+      const hits = Array.isArray(raw?.hits) ? raw.hits : [];
+      const hitsCount = typeof raw?.hitsCount === "number" ? raw.hitsCount : hits.length;
+      const totalHits = typeof raw?.totalHits === "number" ? raw.totalHits : hitsCount;
+      const page = typeof raw?.page === "number" && raw.page > 0 ? raw.page : 1;
+      const size = typeof raw?.size === "number" && raw.size > 0 ? raw.size : hits.length || 0;
+      const sort = typeof raw?.sort === "string" ? raw.sort : null;
+      const includeArchived = typeof raw?.includeArchived === "boolean" ? raw.includeArchived : null;
+
+      return { hits, hitsCount, totalHits, page, size, sort, includeArchived };
+    },
     enabled: !!params,
+    keepPreviousData: true,
   });
 }
 
@@ -84,4 +110,3 @@ export function useDeleteItem(options?: UseMutationOptions<void, unknown, string
     ...options,
   });
 }
-

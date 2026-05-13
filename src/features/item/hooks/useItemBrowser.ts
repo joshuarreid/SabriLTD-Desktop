@@ -21,11 +21,9 @@
  * @returns {object} View model for ItemBrowser rendering and interactions.
  */
 
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { itemKeys } from "../api/ItemQueryKeys.ts";
-import { searchItems } from "../api/item.ts";
-import { useItemSearchPagination } from "./useItemSearchPagination.js";
+import { useState, useCallback, useMemo, useRef, useEffect, ChangeEvent, KeyboardEvent } from "react";
+import { useSearchItems } from "./useItems";
+import { useItemSearchPagination } from "./useItemSearchPagination";
 
 /**
  * Logger for useItemBrowser.
@@ -54,76 +52,90 @@ const DEBOUNCE_MS = 300;
  * @param {string} order
  * @returns {string|null}
  */
-const buildSortExpression = (field, order) => {
+const buildSortExpression = (field: string, order: string): string | null => {
     if (!field) return null;
     return `${field}:${order || "asc"}`;
 };
 
+type ItemHit = Record<string, unknown>;
+
+interface ItemSearchParams {
+    query?: string;
+    filters?: string;
+    page?: number;
+    size?: number;
+    sort?: string;
+    includeArchived?: boolean;
+}
+
+interface ItemSearchResponse {
+    hits: ItemHit[];
+    hitsCount: number;
+    totalHits: number;
+    page: number;
+    size: number;
+    sort: string | null;
+    includeArchived: boolean | null;
+}
+
+interface UseItemBrowserOptions {
+    fixedFilters?: string | null;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    placeholder?: string;
+    includeArchived?: boolean;
+}
+
+interface UseItemBrowserReturn {
+    searchInput: string;
+    handleSearchChange: (e: ChangeEvent<HTMLInputElement>) => void;
+    handleSearchKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
+    placeholder: string;
+
+    items: ItemHit[];
+    isPending: boolean;
+    isFetching: boolean;
+    isError: boolean;
+    error: unknown;
+
+    page: number;
+    setPage: (page: number) => void;
+    pageSize: number;
+    setPageSize: (size: number) => void;
+    totalPages: number;
+    totalItems: number;
+    itemStart: number;
+    itemEnd: number;
+    hasPrevious: boolean;
+    hasNext: boolean;
+    handleNext: () => void;
+    handlePrevious: () => void;
+
+    refetch: () => void;
+}
+
 /**
- * normalizeItemSearchResponse
- * Ensures the client always receives a safe, API-shaped object.
+ * useItemBrowser
  *
- * @function normalizeItemSearchResponse
- * @param {any} raw
- * @returns {{
- *   hits: Array<object>,
- *   hitsCount: number,
- *   totalHits: number,
- *   page: number,
- *   size: number,
- *   sort: string|null,
- *   includeArchived: boolean|null,
- * }}
+ * @function useItemBrowser
+ * @param {object} [options]
+ * @param {string|null} [options.fixedFilters] - Meilisearch filter expression applied on every request.
+ * @param {number} [options.pageSize=25] - Results per page.
+ * @param {string} [options.sortField="name"] - Default sort field.
+ * @param {string} [options.sortOrder="asc"] - Default sort order.
+ * @param {string} [options.placeholder="Search inventory…"] - Passed through for UI.
+ * @param {boolean} [options.includeArchived=false] - Include archived item in search.
+ * @returns {object} View model for ItemBrowser rendering and interactions.
  */
-const normalizeItemSearchResponse = (raw) => {
-    const hits = Array.isArray(raw?.hits) ? raw.hits : [];
-
-    const hitsCount =
-        typeof raw?.hitsCount === "number"
-            ? raw.hitsCount
-            : hits.length;
-
-    const totalHits =
-        typeof raw?.totalHits === "number"
-            ? raw.totalHits
-            : hitsCount;
-
-    const page =
-        typeof raw?.page === "number" && raw.page > 0
-            ? raw.page
-            : 1;
-
-    const size =
-        typeof raw?.size === "number" && raw.size > 0
-            ? raw.size
-            : hits.length || 0;
-
-    const sort = typeof raw?.sort === "string" ? raw.sort : null;
-
-    const includeArchived =
-        typeof raw?.includeArchived === "boolean"
-            ? raw.includeArchived
-            : null;
-
-    return {
-        hits,
-        hitsCount,
-        totalHits,
-        page,
-        size,
-        sort,
-        includeArchived,
-    };
-};
-
 export const useItemBrowser = ({
-                                     fixedFilters = null,
-                                     pageSize: initialPageSize = 25,
-                                     sortField = "name",
-                                     sortOrder = "asc",
-                                     placeholder = "Search inventory…",
-                                     includeArchived = false,
-                                 } = {}) => {
+    fixedFilters = null,
+    pageSize: initialPageSize = 25,
+    sortField = "name",
+    sortOrder = "asc",
+    placeholder = "Search inventory…",
+    includeArchived = false,
+}: UseItemBrowserOptions = {}): UseItemBrowserReturn => {
     logger.info("useItemBrowser initialized", {
         fixedFilters,
         initialPageSize,
@@ -132,27 +144,16 @@ export const useItemBrowser = ({
         includeArchived,
     });
 
-    const [searchInput, setSearchInput] = useState("");
-    const [committedQuery, setCommittedQuery] = useState("");
+    const [searchInput, setSearchInput] = useState<string>("");
+    const [committedQuery, setCommittedQuery] = useState<string>("");
 
-    /**
-     * serverMeta
-     * Must be state so pagination can recompute when the API response changes.
-     *
-     * @type {[{totalHits:number|null,page:number|null,size:number|null}, Function]}
-     */
-    const [serverMeta, setServerMeta] = useState(() => ({
+    const [serverMeta, setServerMeta] = useState<{ totalHits: number | null; page: number | null; size: number | null }>(() => ({
         totalHits: null,
         page: null,
         size: null,
     }));
 
-    /**
-     * debounceRef
-     *
-     * @type {React.MutableRefObject<any>}
-     */
-    const debounceRef = useRef(null);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     /**
      * pagination
@@ -200,7 +201,7 @@ export const useItemBrowser = ({
      * @returns {void}
      */
     const handleSearchChange = useCallback(
-        (e) => {
+        (e: ChangeEvent<HTMLInputElement>) => {
             const next = e.target.value;
             setSearchInput(next);
 
@@ -223,7 +224,7 @@ export const useItemBrowser = ({
      * @returns {void}
      */
     const handleSearchKeyDown = useCallback(
-        (e) => {
+        (e: KeyboardEvent<HTMLInputElement>) => {
             if (e.key === "Enter") {
                 e.preventDefault();
 
@@ -256,14 +257,8 @@ export const useItemBrowser = ({
         [sortField, sortOrder],
     );
 
-    /**
-     * searchParams
-     * Must match ItemSearchRequest.
-     *
-     * @type {object}
-     */
-    const searchParams = useMemo(() => {
-        const params = {
+    const searchParams: ItemSearchParams = useMemo(() => {
+        const params: ItemSearchParams = {
             query: committedQuery || undefined,
             filters: fixedFilters || undefined,
             page: pagination.requestedPage,
@@ -298,49 +293,7 @@ export const useItemBrowser = ({
         isError,
         error,
         refetch,
-    } = useQuery({
-        queryKey: itemKeys.search(searchParams),
-        queryFn: async () => {
-            logger.info("searchItems queryFn called", {
-                query: searchParams.query,
-                hasFilters: Boolean(searchParams.filters),
-                page: searchParams.page,
-                size: searchParams.size,
-                sort: searchParams.sort,
-                includeArchived: searchParams.includeArchived ?? false,
-            });
-
-            const response = await searchItems(searchParams);
-
-            if (
-                response?.status !== "OK" &&
-                response?.status !== "success" &&
-                response?.status !== 200
-            ) {
-                logger.error("searchItems unexpected response status", response);
-                throw new Error(
-                    response?.errors?.length
-                        ? response.errors.map((e) => e.message).join(", ")
-                        : "Search failed",
-                );
-            }
-
-            const normalized = normalizeItemSearchResponse(response?.data);
-
-            logger.info("searchItems response normalized", {
-                requestedPage: pagination.requestedPage,
-                requestedSize: pagination.pageSize,
-                responsePage: normalized.page,
-                responseSize: normalized.size,
-                hitsCount: normalized.hitsCount,
-                totalHits: normalized.totalHits,
-                includeArchived: normalized.includeArchived,
-            });
-
-            return normalized;
-        },
-        keepPreviousData: true,
-    });
+    } = useSearchItems(searchParams as Record<string, unknown>);
 
     /**
      * Sync server meta from the latest response.
@@ -348,17 +301,22 @@ export const useItemBrowser = ({
     useEffect(() => {
         if (!searchResult) return;
 
+        const typed = searchResult as unknown as ItemSearchResponse;
+
         const nextMeta = {
-            totalHits: typeof searchResult.totalHits === "number" ? searchResult.totalHits : null,
-            page: typeof searchResult.page === "number" ? searchResult.page : null,
-            size: typeof searchResult.size === "number" ? searchResult.size : null,
+            totalHits: typeof typed.totalHits === "number" ? typed.totalHits : null,
+            page: typeof typed.page === "number" ? typed.page : null,
+            size: typeof typed.size === "number" ? typed.size : null,
         };
 
         logger.info("serverMeta updated from ItemSearchResponse", nextMeta);
         setServerMeta(nextMeta);
     }, [searchResult]);
 
-    const items = useMemo(() => searchResult?.hits ?? [], [searchResult?.hits]);
+    const items = useMemo<ItemHit[]>(() => {
+        const typed = searchResult as unknown as ItemSearchResponse | undefined;
+        return typed?.hits ?? [];
+    }, [searchResult]);
 
     return {
         // search input
@@ -374,7 +332,7 @@ export const useItemBrowser = ({
         isError,
         error,
 
-        // pagination (canonical)
+        // pagination
         page: pagination.page,
         setPage: pagination.setPage,
         pageSize: pagination.pageSize,

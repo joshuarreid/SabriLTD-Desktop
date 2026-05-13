@@ -30,7 +30,7 @@
 import React, { useCallback } from "react";
 import styles from "../styles/itembrowser.module.css";
 
-import { useItemBrowser } from "../hooks/useItemBrowser.js";
+import { useItemBrowser } from "../hooks/useItemBrowser.ts";
 import WideSearchBar from "../../../components/searchbar/WideSearchBar";
 import ItemCardGrid from "./ItemCardGrid";
 

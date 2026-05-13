@@ -15,6 +15,40 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+type PreferPageSource = "server" | "requested";
+
+export interface UseItemSearchPaginationOptions {
+    initialPage?: number;
+    initialPageSize?: number;
+    totalHits?: number | null;
+    serverPage?: number | null;
+    serverSize?: number | null;
+    preferPageSource?: PreferPageSource;
+}
+
+export interface UseItemSearchPaginationReturn {
+    page: number;
+    pageSize: number;
+
+    requestedPage: number;
+    setRequestedPage: (page: number) => void;
+
+    // Backwards-compatible aliases used across UI
+    setPage: (page: number) => void;
+    setPageSize: (size: number) => void;
+
+    totalPages: number;
+    totalItems: number;
+    hasPrevious: boolean;
+    hasNext: boolean;
+    itemStart: number;
+    itemEnd: number;
+
+    handleNext: () => void;
+    handlePrevious: () => void;
+    resetPagination: () => void;
+}
+
 /**
  * logger for useItemSearchPagination.
  *
@@ -35,7 +69,7 @@ const logger = {
  * @param {number} pageSize - Page size (results per page).
  * @returns {number} Total pages (min 1).
  */
-const computeTotalPages = (totalHits, pageSize) => {
+const computeTotalPages = (totalHits: number | null, pageSize: number): number => {
     if (typeof totalHits !== "number" || totalHits <= 0) return 1;
     if (typeof pageSize !== "number" || pageSize <= 0) return 1;
     return Math.max(1, Math.ceil(totalHits / pageSize));
@@ -50,7 +84,7 @@ const computeTotalPages = (totalHits, pageSize) => {
  * @param {number} totalPages
  * @returns {number}
  */
-const clampPage = (page, totalPages) => {
+const clampPage = (page: number, totalPages: number): number => {
     const safeTotalPages =
         typeof totalPages === "number" && totalPages > 0 ? totalPages : 1;
 
@@ -79,7 +113,7 @@ const clampPage = (page, totalPages) => {
  * @returns {{
  *   page: number,
  *   pageSize: number,
- *   requestedPage: number,
+ *   requestedPage: number,s
  *   setRequestedPage: Function,
  *   setPageSize: Function,
  *   totalPages: number,
@@ -94,15 +128,15 @@ const clampPage = (page, totalPages) => {
  * }}
  */
 export const useItemSearchPagination = ({
-                                            initialPage = 1,
-                                            initialPageSize = 25,
-                                            totalHits = null,
-                                            serverPage = null,
-                                            serverSize = null,
-                                            preferPageSource = "server",
-                                        } = {}) => {
-    const [requestedPage, setRequestedPage] = useState(initialPage);
-    const [pageSize, setPageSize] = useState(initialPageSize);
+    initialPage = 1,
+    initialPageSize = 25,
+    totalHits = null,
+    serverPage = null,
+    serverSize = null,
+    preferPageSource = "server",
+}: UseItemSearchPaginationOptions = {}): UseItemSearchPaginationReturn => {
+    const [requestedPage, setRequestedPage] = useState<number>(initialPage);
+    const [pageSize, setPageSize] = useState<number>(initialPageSize);
 
     const totalPages = useMemo(() => {
         const effectiveSize =
@@ -184,7 +218,7 @@ export const useItemSearchPagination = ({
     }, [page, pageSize, totalItems]);
 
     const handlePageChange = useCallback(
-        (nextPage) => {
+        (nextPage: number) => {
             if (typeof nextPage !== "number" || Number.isNaN(nextPage)) return;
 
             const clamped = clampPage(nextPage, totalPages);
@@ -282,3 +316,4 @@ export const useItemSearchPagination = ({
 };
 
 export default useItemSearchPagination;
+
