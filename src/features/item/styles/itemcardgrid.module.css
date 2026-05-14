@@ -1,7 +1,7 @@
 :root {
-    --item-card-gap-row: 16px; /* Reduced row gap for compact spacing */
-    --item-card-gap-col: 16px; /* Reduced column gap for compact spacing */
-    --item-card-min-width: 100px; /* Reduced the minimum width for smaller cards */
+    --item-card-gap-row: 8px; /* Smaller row gap for denser grid */
+    --item-card-gap-col: 8px; /* Smaller column gap for denser grid */
+    --item-card-min-width: 72px; /* Smaller minimum width for smaller cards */
 }
 
 /**
@@ -48,20 +48,23 @@
  */
 .cardWrapper {
     position: relative;
+    /* Shrink card padding and border radius for smaller cards */
+    padding: 2px;
+    border-radius: 8px;
 }
 
 .cardWrapperSelected {
     outline: 2px solid var(--color-secondary, #ffd600);
-    outline-offset: 3px;
-    border-radius: 12px;
+    outline-offset: 2px;
+    border-radius: 8px;
 }
 
 .selectedBadge {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    height: 22px;
-    width: 22px;
+    top: 4px;
+    right: 4px;
+    height: 16px;
+    width: 16px;
     border-radius: 999px;
     background: var(--color-secondary, #ffd600);
     color: #1a1a1a;
