@@ -18,6 +18,8 @@ interface CreateJobFormProps {
     };
 }
 
+type SelectOption = { value: string | number; label: string };
+
 const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
     onSubmit,
     error,
@@ -39,10 +41,10 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
     const [localError, setLocalError] = useState<string | null>(null);
 
     const { data: companiesData, isLoading: companiesLoading } = useAllCompanies();
-    const companyOptions = useMemo(() => {
+    const companyOptions = useMemo<SelectOption[]>(() => {
         if (!companiesData || !Array.isArray((companiesData as any).data)) return [];
         return (companiesData as any).data.map((company: any) => ({
-            value: String(company.id),
+            value: String(company.companyId),
             label: company.name,
         }));
     }, [companiesData]);
@@ -66,12 +68,12 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
     }, [autoFocus]);
 
     const companyChoices = useMemo(
-        () => (companyOptions || []).filter((o) => o.value !== "all"),
+        () => (companyOptions || []).filter((o: SelectOption) => o.value !== "all"),
         [companyOptions],
     );
 
     const statusChoices = useMemo(
-        () => (statusOptions || []).filter((o) => o.value !== "all"),
+        () => (statusOptions || []).filter((o: SelectOption) => o.value !== "all"),
         [statusOptions],
     );
 
@@ -138,7 +140,7 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
                     required
                 >
                     <option value="">{companiesLoading ? "Loading companies..." : "Select a company"}</option>
-                    {companyChoices.map((opt) => (
+                    {companyChoices.map((opt: SelectOption) => (
                         <option key={String(opt.value)} value={String(opt.value)}>
                             {opt.label}
                         </option>
@@ -172,7 +174,7 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
                     disabled={isSaving}
                 >
                     {statusChoices.length > 0 ? (
-                        statusChoices.map((opt) => (
+                        statusChoices.map((opt: SelectOption) => (
                             <option key={String(opt.value)} value={opt.value}>
                                 {opt.label}
                             </option>

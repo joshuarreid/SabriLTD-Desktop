@@ -63,14 +63,8 @@ const CreateModal: React.FC<CreateModalProps> = ({
         open={open}
         onClose={onClose}
         title={
-          <div className={styles.modalTitle} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
+          <div className={styles.modalTitle} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span>{title}</span>
-            {/* SaveStatus in top right */}
-            <div style={{ position: "absolute", top: 0, right: 0, zIndex: 2 }}>
-              {(saveState === "saved" || saveState === "saving") && (
-                <SaveStatus status={saveState} />
-              )}
-            </div>
             {showDelete && (
               <button
                 className={styles.trashButton}
@@ -85,9 +79,20 @@ const CreateModal: React.FC<CreateModalProps> = ({
           </div>
         }
         footer={
-          <div className={styles.modalFooter}>
-            <button className={styles.cancelButton} onClick={onCancel} type="button">Cancel</button>
-            <button className={styles.saveButton} onClick={handleCreate} type="button" disabled={isSaving}>Create</button>
+          <div className={styles.modalFooter} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button className={styles.cancelButton} onClick={onCancel} type="button" disabled={isSaving}>
+                Cancel
+              </button>
+              <button className={styles.saveButton} onClick={handleCreate} type="button" disabled={isSaving}>
+                Create
+              </button>
+            </div>
+
+            {/* Bottom-right save feedback (what users expect to see) */}
+            <div style={{ minWidth: 140, display: "flex", justifyContent: "flex-end" }}>
+              <SaveStatus status={saveState} />
+            </div>
           </div>
         }
       >

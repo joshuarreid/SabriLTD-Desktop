@@ -4,280 +4,227 @@ This project uses a **composable modal system** designed for a form-heavy CRUD a
 
 Core ideas:
 
-- **One generic modal shell** (layout + portal + accessibility + overlay/cancel behavior).
-- **Feature modals are thin wrappers** that compose the modal shell with a **feature-specific form**.
-- **Form components own form fields and validation** (React Hook Form, controlled inputs, etc.).
-- **Save UI is consistent everywhere** via a shared `SaveStatus` component and the shared `useSaveStatus` hook.
-- **Deletes are confirmed** with a shared confirmation modal pattern.
+- **One generic modal shell** (`Modal`) for portal + overlay + ESC + structure.
+- **Create/Edit modal wrappers** (`CreateModal`, `EditModal`) for consistent header/footer buttons.
+- **Feature modals are thin wrappers** (ex: `CreateJobModal`) that connect:
+  - API mutations
+  - standardized save lifecycle (`useSaveStatus`)
+  - close/reset behavior
+- **Form components own fields + validation** and expose a **programmatic submit** API.
+- **Save UI is consistent everywhere** via shared `SaveStatus`.
 
 ---
 
-## Folder layout (high level)
+## Folder layout
 
 - `src/components/modal/`
-  - `components/` – modal building blocks (generic `Modal`, `CreateModal`, `EditModal`, etc.)
-  - `hooks/` – generic modal hooks (open/close, ESC behavior, etc.)
-  - `styles/` – modal styles
+  - `components/` – `Modal`, `CreateModal`, `EditModal`
+  - `hooks/` – modal hooks (if needed)
+  - `styles/` – generic modal styles
 
 - `src/components/save/`
-  - `SaveStatus.jsx` – presentational status indicator (saving/saved/error)
-  - `useSaveStatus.ts` – **standardized save lifecycle** (timing + close-after-success)
+  - `SaveStatus.jsx` – UI-only status indicator (`saving` / `saved`)
+  - `useSaveStatus.ts` – standard save lifecycle (timing + delayed close)
 
-- `src/components/confirmationmodal/`
-  - `ConfirmationModal.jsx` – reusable confirm dialog for destructive actions
-
-Your feature code lives under `src/features/<feature>/...` (jobs, items, etc.). That’s where **feature-specific forms and modal wrappers** should live.
+- `src/features/<feature>/components/`
+  - feature-specific modal wrappers + forms (ex: `CreateJobModal.tsx`, `CreateJobForm.tsx`)
 
 ---
 
-## The "contract" for a form modal
+## The REQUIRED contract for a **Create Form Modal** (the “Create Job” pattern)
 
-A scalable modal pattern is easiest when every form modal follows the same contract:
+This is the pattern we want for **every create modal** going forward.
 
-- **Inputs**
-  - `open: boolean`
-  - `onClose: () => void`
-  - `onSubmit: (values) => Promise<void>` (create/update)
-  - For edit: `initialValues` or `entity` (job/item/etc.)
+### Inputs (props)
 
-- **Behavior**
-  - Clicking **Save** calls `onSubmit`.
-  - While saving, status becomes `saving`.
-  - On success, show `saved` animation for **500ms**, then close the modal.
-  - On failure, show `error` (and optionally render field errors / toast).
+**Modal wrapper** (feature-level, ex: `CreateJobModal.tsx`):
 
-- **Outputs**
-  - `onClose()` is called after success delay.
-  - Caller can refetch/optimistically update outside the modal.
+- `open: boolean`
+- `onClose: () => void`
+- `onCancel: () => void` (usually same as `onClose`)
+- options data needed by the form (ex: `statusOptions`, `companyOptions`, etc.)
 
----
+**Form component** (ex: `CreateJobForm.tsx`):
 
-## Standard save behavior: `useSaveStatus`
+- `onSubmit(values) => Promise<void> | void`
+- `isSaving?: boolean`
+- `initialValues?: Partial<Values>`
+- (optional) `error` string to display (server errors)
 
-`useSaveStatus` exists so every form modal behaves the same.
+### Behavior (must match)
 
-**Key points**
+1. Clicking **Create** in the modal triggers the form submit (programmatically).
+2. While saving:
+   - `useSaveStatus` state becomes `saving`
+   - the modal disables buttons (`isSaving`)
+   - `SaveStatus` shows a spinner **in the bottom-right of the modal footer**
+3. On success:
+   - state becomes `saved`
+   - `SaveStatus` shows “Saved” for **500ms**
+   - then the modal closes automatically (delayed close)
+4. Cancel closes immediately (no delay), and resets local save + error state.
 
-- `savedDelay` defaults to **500ms**.
-- `onSaved` is executed **after** the delay (perfect for closing the modal after the success animation is visible).
-- `runSave(fn)` wraps an async operation and sets status automatically.
+### Visual requirement
 
-Typical usage:
-
-- In the modal wrapper: `const { status, runSave } = useSaveStatus({ onSaved: onClose })`
-- In your form submit: `await runSave(() => mutation.mutateAsync(values))`
-- Render: `<SaveStatus status={status} />`
-
-> Recommendation: Keep `SaveStatus` presentational only. Put timing, transitions, and close logic in `useSaveStatus`.
+- The save animation is shown **inside the modal footer, bottom-right**.
+  - This is implemented in `src/components/modal/components/CreateModal.tsx`.
 
 ---
 
-## Create form modal pattern (with useCreateJob)
+## Standard save lifecycle: `useSaveStatus` (do this exactly)
 
-### Suggested files
+Use `useSaveStatus` in the **modal wrapper**, not in the form.
 
-Inside a feature (example `job`):
+- `runSave(fn)` wraps the async mutation and manages `saving → saved → idle`.
+- `onSaved` runs **after** `savedDelay` (this is what ensures users see the animation).
 
-- `src/features/job/components/JobCreateModal.tsx`
-- `src/features/job/components/JobForm.tsx`
+Required configuration for create modals:
 
-### Responsibilities
+- `savedDelay: 500`
+- `onSaved: onClose`
 
-- `JobCreateModal`
-  - owns modal open/close wiring
-  - calls create API via `useCreateJob`
-  - uses `useSaveStatus({ onSaved: onClose })` to keep behavior consistent
+---
 
-- `JobForm`
-  - renders fields
-  - validates
-  - calls `onSubmit(values)`
+## Reference implementation (this is the canonical template)
 
-### Example (integrated with useCreateJob)
+### 1) Feature modal wrapper (example: `CreateJobModal.tsx`)
+
+**Responsibilities**
+
+- Owns `useSaveStatus({ onSaved: onClose, savedDelay: 500 })`
+- Owns the mutation hook (ex: `useCreateJob()`)
+- Normalizes payload (IDs to numbers, trim strings, etc.)
+- Passes `isSaving` into the form to disable inputs
+- Uses `CreateModal` and passes:
+  - `onCreate` callback that triggers the child form’s `submit()` via ref
+  - `isSaving`
+  - `saveState` from `useSaveStatus`
+
+Skeleton:
 
 ```tsx
-import { useCreateJob } from "../../hooks/useJobs";
-import useSaveStatus from "../../../components/save/useSaveStatus";
-import SaveStatus from "../../../components/save/SaveStatus";
+import React, { useCallback, useRef, useState } from "react";
+import CreateModal from "src/components/modal/components/CreateModal";
+import useSaveStatus from "src/components/save/useSaveStatus";
 
-function JobCreateModal({ open, onClose }) {
-  const createJob = useCreateJob();
-  const { status, runSave } = useSaveStatus({ onSaved: onClose, savedDelay: 500 });
+export function CreateThingModal({ open, onClose, onCancel, ...rest }) {
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (values) => {
-    await runSave(() => createJob.mutateAsync(values));
-  };
+  const { status: saveStatus, isSaving, runSave, reset } = useSaveStatus({
+    onSaved: onClose,
+    savedDelay: 500,
+  });
+
+  const formRef = useRef<{ submit: () => void } | null>(null);
+
+  const closeAndReset = useCallback(() => {
+    onClose();
+    setError(null);
+    reset();
+  }, [onClose, reset]);
+
+  const handleCreate = useCallback(() => {
+    formRef.current?.submit?.();
+  }, []);
+
+  const handleSubmit = useCallback(async (values) => {
+    setError(null);
+    try {
+      await runSave(() => /* mutation */ Promise.resolve(values));
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to create");
+    }
+  }, [runSave]);
 
   return (
-    <CreateModal open={open} onClose={onClose} title="Create job">
-      <JobForm mode="create" onSubmit={handleSubmit} />
-      <SaveStatus status={status} />
+    <CreateModal
+      open={open}
+      onClose={closeAndReset}
+      onCancel={closeAndReset}
+      onCreate={handleCreate}
+      isSaving={isSaving}
+      saveState={saveStatus}
+      title={<h2>New Thing</h2>}
+    >
+      <CreateThingForm
+        ref={formRef}
+        onSubmit={handleSubmit}
+        isSaving={isSaving}
+        error={error}
+        {...rest}
+      />
     </CreateModal>
   );
 }
 ```
 
-Notes:
+### 2) Form contract (example: `CreateJobForm.tsx`)
 
-- `useCreateJob` handles cache invalidation and side effects as configured in your project.
-- If your `CreateModal` already renders a footer, prefer passing an `onCreate` handler into it and keep the form submit connected via `form` + `button type="submit"`.
-- Keep API concerns in the modal wrapper, not in the form fields component, unless you intentionally build a “smart form”.
+**Responsibilities**
 
----
+- Owns field state + validation
+- Calls `onSubmit(values)` when valid
+- Exposes an imperative `submit()` API using `forwardRef` + `useImperativeHandle`
+- Disables inputs while `isSaving` is true
 
-## Edit form modal pattern (with useUpdateJob)
-
-### Suggested files
-
-- `src/features/job/components/JobEditModal.tsx`
-- `src/features/job/components/JobForm.tsx` (same form component, different `mode`)
-
-### Responsibilities
-
-- `JobEditModal`
-  - receives `job` (or `jobId` + query)
-  - maps entity -> initial form values
-  - calls update API via `useUpdateJob`
-  - closes after successful save delay
-
-### Example (integrated with useUpdateJob)
+Required imperative API:
 
 ```tsx
-import { useUpdateJob } from "../../hooks/useJobs";
-import useSaveStatus from "../../../components/save/useSaveStatus";
-import SaveStatus from "../../../components/save/SaveStatus";
-
-function JobEditModal({ open, onClose, job }) {
-  const updateJob = useUpdateJob();
-  const { status, runSave } = useSaveStatus({ onSaved: onClose });
-
-  const handleSubmit = async (values) => {
-    await runSave(() => updateJob.mutateAsync({ jobId: job.id, job: values }));
-  };
-
-  return (
-    <EditModal open={open} onClose={onClose} title="Edit job">
-      <JobForm mode="edit" initialValues={job} onSubmit={handleSubmit} />
-      <SaveStatus status={status} />
-    </EditModal>
-  );
-}
+useImperativeHandle(ref, () => ({
+  submit: () => {
+    formRef.current?.dispatchEvent(
+      new Event("submit", { cancelable: true, bubbles: true })
+    );
+  },
+}));
 ```
 
-Notes:
+---
 
-- Prefer a form prop like `initialValues` and reset the form when the modal opens (depends on your form library).
-- If you fetch the job inside the modal, handle loading states and disable Save until the form is ready.
-- `useUpdateJob` handles cache invalidation and side effects as configured in your project.
+## CreateModal requirements (shared component)
+
+`src/components/modal/components/CreateModal.tsx` must:
+
+- Render **Cancel** and **Create** buttons in the footer
+- Disable both buttons while `isSaving`
+- Render `<SaveStatus status={saveState} />` in the **footer bottom-right**
+  - It should always be mounted; it returns `null` for `idle`
+
+This is what guarantees the animation is visible.
 
 ---
 
-## Delete confirmation modal pattern (with useDeleteJob and useDeleteStatus)
+## Checklist: when making a new create modal
 
-Deletes should use the same feedback and timing pattern as saves, but with `DeleteStatus` and `useDeleteStatus`.
-
-### Suggested files
-
-- `src/features/job/components/JobDeleteButton.tsx` (or `JobDeleteModal.tsx`)
-
-### Responsibilities
-
-- A small wrapper opens a `ConfirmationModal`
-- Confirm runs delete mutation via `useDeleteJob` and `useDeleteStatus`
-- On success, show the deleted animation for 0.5s, then close the modal and optionally show a toast
-
-### Example (integrated with useDeleteJob and useDeleteStatus)
-
-```tsx
-import { useDeleteJob } from "../../hooks/useJobs";
-import useDeleteStatus from "../../../components/delete/useDeleteStatus";
-import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal";
-
-function JobDeleteButton({ jobId, onDeleted }) {
-  const [open, setOpen] = useState(false);
-  const deleteJob = useDeleteJob();
-  const { status, runDelete } = useDeleteStatus({
-    onDeleted: () => {
-      setOpen(false);
-      onDeleted?.();
-    },
-    deletedDelay: 500,
-  });
-
-  const handleConfirm = async () => {
-    await runDelete(() => deleteJob.mutateAsync(jobId));
-  };
-
-  return (
-    <>
-      <button onClick={() => setOpen(true)}>Delete</button>
-      <ConfirmationModal
-        open={open}
-        title="Delete job?"
-        description="This can’t be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
-        onConfirm={handleConfirm}
-        onCancel={() => setOpen(false)}
-        deleteStatus={status}
-      />
-    </>
-  );
-}
-```
-
-**Notes:**
-- `deleteStatus` is passed to `ConfirmationModal`, which will show the correct badge and disable buttons as appropriate.
-- The modal closes after the deleted animation (0.5s by default).
-- You can use the same pattern for any destructive action.
+1. Create `Create<Thing>Modal.tsx` in `src/features/<thing>/components/`.
+2. Create `Create<Thing>Form.tsx` in the same folder.
+3. In the modal wrapper:
+   - use `useSaveStatus({ onSaved: onClose, savedDelay: 500 })`
+   - implement `closeAndReset()` that resets save + errors
+   - implement `handleCreate()` that calls `formRef.current.submit()`
+   - wrap the mutation call with `await runSave(() => mutateAsync(payload))`
+4. In the form:
+   - `forwardRef` + `useImperativeHandle` with `submit()`
+   - validate required fields
+   - disable inputs using `isSaving`
+5. UI requirement:
+   - confirm you see the spinner + saved checkmark **bottom-right** before the modal closes.
 
 ---
 
-## Where should logic live?
+## Common pitfalls (what to avoid)
 
-Keep the system scalable by putting logic in the right place:
+- **Modal closes immediately after success**
+  - Cause: calling `onClose()` directly after mutation.
+  - Fix: only close via `useSaveStatus({ onSaved: onClose })`.
 
-- **Modal shell (`Modal`)**
-  - portal, overlay, escape key, focus trapping (if implemented), sizing, basic layout
+- **SaveStatus not visible**
+  - Cause: rendering it in the wrong place (header/top-right) or behind layout.
+  - Fix: render it in `CreateModal` footer bottom-right.
 
-- **Modal wrapper (`JobCreateModal`, `JobEditModal`)**
-  - connects feature concerns (API calls/mutations)
-  - wires `open`/`onClose`
-  - standardizes save behavior via `useSaveStatus`
+- **Create button doesn’t submit**
+  - Cause: button is outside the `<form>`.
+  - Fix: use the imperative `submit()` API via `ref` exactly as above.
 
-- **Form component (`JobForm`)**
-  - fields and validation
-  - maps UI -> values and emits `onSubmit(values)`
-
-- **Shared UI (`SaveStatus`, `ConfirmationModal`)**
-  - UI only; keep them reusable and free of app-specific logic
-
----
-
-## Checklist for a new feature modal
-
-1. Create a form component for the entity (`<Entity>Form`).
-2. Create a create wrapper modal (`<Entity>CreateModal`) that:
-   - uses `useSaveStatus({ onSaved: onClose })`
-   - uses `runSave(() => api.create(values))`
-   - renders `<SaveStatus status={status} />`
-3. Create an edit wrapper modal (`<Entity>EditModal`) that:
-   - passes `initialValues`
-   - uses `runSave(() => api.update(id, values))`
-4. Use `ConfirmationModal` for delete.
-
----
-
-## Common pitfalls (and how to avoid them)
-
-- **Closing immediately after save**: users don’t see success feedback.
-  - Fix: always close via `useSaveStatus({ onSaved: onClose })`.
-
-- **Duplicated save logic**: each modal implements its own timers and states.
-  - Fix: use `useSaveStatus` everywhere.
-
-- **Putting API code inside field components**: makes reusing forms harder.
-  - Fix: keep API calls in modal wrappers.
-
-- **Form state not resetting when re-opening**: stale values appear.
-  - Fix: reset form on `open` change (depends on your form library).
+- **Stale form values when reopening**
+  - Fix: reset local state when `open` changes OR structure form state around `initialValues` with an effect.
