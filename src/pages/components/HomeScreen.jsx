@@ -14,7 +14,7 @@
 import React from "react";
 import ItemBrowser from "../../features/item/components/ItemBrowser.tsx";
 import { useViewItemModal } from "../../features/item/hooks/useViewItemModal.js";
-import ViewItemModal from "../../features/item/components/ViewItemModal.jsx";
+import ViewItemModal from "../../features/item/components/ViewItemModal.tsx";
 
 /**
  * Logger for HomeScreen.

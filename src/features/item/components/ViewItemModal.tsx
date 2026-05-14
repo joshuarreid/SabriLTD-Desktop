@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/viewitemmodal.module.css";
-import ItemConditionIcon from "./ItemConditionIcon";
+import ItemConditionIcon from "./ItemConditionIcon.tsx";
 import TagInfoPill from "../../tag/components/TagInfoPill";
 import PhotoPreview from "../../photo/components/PhotoPreview";
 import JobCarousel from "../../job/components/JobCarousel.tsx";
@@ -12,8 +12,8 @@ import JobCarousel from "../../job/components/JobCarousel.tsx";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[ViewItemModal]", ...args),
-    error: (...args) => console.error("[ViewItemModal]", ...args),
+    info: (...args: unknown[]) => console.log("[ViewItemModal]", ...args),
+    error: (...args: unknown[]) => console.error("[ViewItemModal]", ...args),
 };
 
 /**
@@ -22,7 +22,7 @@ const logger = {
  * @param {string} value
  * @returns {string}
  */
-const formatDisplayDate = (value) => {
+const formatDisplayDate = (value: string): string => {
     if (!value) return "";
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return value;
@@ -40,6 +40,27 @@ const formatDisplayDate = (value) => {
     return `${month} ${day} ${year} ${hours}:${minutes}${ampm}`;
 };
 
+export interface ViewItemModalProps {
+    open: boolean;
+    onClose: () => void;
+    isDetailsPending: boolean;
+    isDetailsError: boolean;
+    detailsError: any;
+    resolvedId: string | number;
+    resolvedName: string;
+    resolvedDescription: string;
+    resolvedCondition: string;
+    resolvedStorageDesc: string;
+    resolvedUpdatedBy: string;
+    resolvedDateAdded: string;
+    resolvedDateUpdated: string;
+    resolvedTags: string[];
+    resolvedJobs: any[];
+    resolvedComments: { id: string | number; commentText: string }[];
+    resolvedPhotos: any[];
+    resolvedBuilding: { name?: string; address?: string } | null;
+}
+
 /**
  * ViewItemModal
  * Read-only modal for displaying preview + full details of a selected item.
@@ -47,26 +68,26 @@ const formatDisplayDate = (value) => {
  *
  * @component
  */
-const ViewItemModal = ({
-                           open,
-                           onClose,
-                           isDetailsPending,
-                           isDetailsError,
-                           detailsError,
-                           resolvedId,
-                           resolvedName,
-                           resolvedDescription,
-                           resolvedCondition,
-                           resolvedStorageDesc,
-                           resolvedUpdatedBy,
-                           resolvedDateAdded,
-                           resolvedDateUpdated,
-                           resolvedTags,
-                           resolvedJobs,
-                           resolvedComments,
-                           resolvedPhotos,
-                           resolvedBuilding,
-                       }) => {
+const ViewItemModal: React.FC<ViewItemModalProps> = ({
+    open,
+    onClose,
+    isDetailsPending,
+    isDetailsError,
+    detailsError,
+    resolvedId,
+    resolvedName,
+    resolvedDescription,
+    resolvedCondition,
+    resolvedStorageDesc,
+    resolvedUpdatedBy,
+    resolvedDateAdded,
+    resolvedDateUpdated,
+    resolvedTags,
+    resolvedJobs,
+    resolvedComments,
+    resolvedPhotos,
+    resolvedBuilding,
+}) => {
     const navigate = useNavigate();
 
     /**
@@ -75,7 +96,7 @@ const ViewItemModal = ({
      * @param {React.MouseEvent<HTMLDivElement>} e
      * @returns {void}
      */
-    const handleOverlayClick = (e) => {
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
         e.stopPropagation();
         logger.info("Overlay clicked; closing ViewItemModal");
         onClose();
@@ -87,7 +108,7 @@ const ViewItemModal = ({
      * @param {React.MouseEvent<HTMLButtonElement>} e
      * @returns {void}
      */
-    const handleCloseClick = (e) => {
+    const handleCloseClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         logger.info("Close button clicked; closing ViewItemModal");
         onClose();
@@ -98,7 +119,7 @@ const ViewItemModal = ({
      * @function handleJobClick
      * @param {object} job
      */
-    const handleJobClick = (job) => {
+    const handleJobClick = (job: { jobId: string | number }) => {
         if (!job || !job.jobId) {
             logger.error("handleJobClick called with invalid job object", job);
             return;
@@ -311,3 +332,4 @@ const ViewItemModal = ({
 };
 
 export default ViewItemModal;
+

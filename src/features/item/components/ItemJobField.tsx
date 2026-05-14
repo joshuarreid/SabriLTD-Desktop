@@ -46,15 +46,19 @@ const pillMotion = {
  * ItemJobField
  * - Selected jobs remain visible always (not filtered by search).
  * - Search only affects the grid job list below.
+ *
+ * @component
+ * @param {ItemJobFieldProps} props
+ * @returns {JSX.Element}
  */
-export const ItemJobField = ({ value = [], onChange }) => {
-    const [search, setSearch] = useState("");
+export const ItemJobField: React.FC<ItemJobFieldProps> = ({ value = [], onChange }) => {
+    const [search, setSearch] = useState<string>("");
 
     // Fetch jobs via business logic hook
-    const { jobs, loading, error } = useItemJobField({ search });
+    const { jobs, loading, error }: { jobs: ItemJob[]; loading: boolean; error: string | null } = useItemJobField({ search });
 
     // Cache of all jobs for static selected label rendering, typed as jobId -> job shape.
-    const jobsCache = useRef(new Map());
+    const jobsCache = useRef<Map<number, ItemJob>>(new Map());
 
     useEffect(() => {
         jobs.forEach(job => {
@@ -68,7 +72,7 @@ export const ItemJobField = ({ value = [], onChange }) => {
      * Selected jobs (never filtered by search).
      * Uses jobsCache for labels (fallback to jobId if missing).
      */
-    const selectedJobs = useMemo(() => {
+    const selectedJobs: ItemJob[] = useMemo(() => {
         return value.map(
             id => jobsCache.current.get(id) || { jobId: id, name: `Job #${id}` }
         );
@@ -77,7 +81,7 @@ export const ItemJobField = ({ value = [], onChange }) => {
     /**
      * Jobs to show in grid, never includes selected jobs.
      */
-    const otherJobs = useMemo(() => {
+    const otherJobs: ItemJob[] = useMemo(() => {
         return jobs.filter(job => !value.includes(job.jobId));
     }, [jobs, value]);
 
@@ -85,7 +89,7 @@ export const ItemJobField = ({ value = [], onChange }) => {
      * Handles pill selection toggle.
      * @param {number} jobId
      */
-    const handleSelect = useCallback((jobId) => {
+    const handleSelect = useCallback((jobId: number) => {
         logger.info("Job pill toggled", jobId);
         if (value.includes(jobId)) {
             onChange(value.filter(id => id !== jobId));
@@ -186,3 +190,15 @@ export const ItemJobField = ({ value = [], onChange }) => {
 };
 
 export default ItemJobField;
+
+export interface ItemJob {
+    jobId: number;
+    name: string;
+}
+
+export interface ItemJobFieldProps {
+    /** Array of selected jobIds. */
+    value: number[];
+    /** Called with updated array of selected jobIds. */
+    onChange: (jobIds: number[]) => void;
+}

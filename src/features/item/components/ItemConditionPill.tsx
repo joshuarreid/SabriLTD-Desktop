@@ -15,7 +15,6 @@
  * @returns {JSX.Element}
  */
 import React from "react";
-import PropTypes from "prop-types";
 import styles from "../styles/itemconditionpill.module.css";
 
 /**
@@ -23,8 +22,8 @@ import styles from "../styles/itemconditionpill.module.css";
  * @constant
  */
 const logger = {
-    info: (...args) => console.log("[ItemConditionPill]", ...args),
-    error: (...args) => console.error("[ItemConditionPill]", ...args),
+    info: (...args: unknown[]) => console.log("[ItemConditionPill]", ...args),
+    error: (...args: unknown[]) => console.error("[ItemConditionPill]", ...args),
 };
 
 /**
@@ -32,7 +31,7 @@ const logger = {
  * @param {string} name
  * @returns {string}
  */
-const getConditionClass = (name) => {
+const getConditionClass = (name: string | undefined) => {
     const k = String(name || "").toLowerCase();
     if (k === "damaged") return styles.damaged;
     if (k === "needs repair") return styles.needsRepair;
@@ -42,19 +41,38 @@ const getConditionClass = (name) => {
     return styles.unknown;
 };
 
+export interface ItemConditionPillProps extends React.HTMLAttributes<HTMLSpanElement> {
+    /** Canonical API/display name, e.g. "Good", "Damaged". */
+    conditionName?: string;
+    /** Highlights the pill as selected (border/shadow, i.e. for input case). */
+    selected?: boolean;
+    /** Optional additional CSS classes. */
+    className?: string;
+    /** If provided, renders children instead of conditionName. */
+    children?: React.ReactNode;
+    /** Render as span or button. */
+    as?: "span" | "button";
+    /** Extra props to apply if rendering as a button. */
+    [key: string]: any;
+}
+
 /**
  * ItemConditionPill
  * Renders a pill-styled label for any condition value, styled using the canonical Sabri palette.
+ *
+ * @component
+ * @param {ItemConditionPillProps} props
+ * @returns {JSX.Element}
  */
 export const ItemConditionPill = React.memo(
     ({
-         conditionName,
+         conditionName = "",
          selected = false,
          className = "",
          children,
          as = "span",
          ...rest
-     }) => {
+     }: ItemConditionPillProps) => {
         logger.info("Rendered", { conditionName, selected });
 
         const Tag = as === "button" ? "button" : "span";
@@ -79,20 +97,5 @@ export const ItemConditionPill = React.memo(
     }
 );
 
-ItemConditionPill.propTypes = {
-    conditionName: PropTypes.string,
-    selected: PropTypes.bool,
-    className: PropTypes.string,
-    as: PropTypes.oneOf(["span", "button"]),
-    children: PropTypes.node,
-};
-
-ItemConditionPill.defaultProps = {
-    conditionName: "",
-    selected: false,
-    className: "",
-    as: "span",
-    children: undefined,
-};
 
 export default ItemConditionPill;

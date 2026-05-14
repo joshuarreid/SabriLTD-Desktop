@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { useViewItemModal } from "../../features/item/hooks/useViewItemModal.js";
-import ViewItemModal from "../../features/item/components/ViewItemModal.jsx";
+import ViewItemModal from "../../features/item/components/ViewItemModal.tsx";
 import useJobDetailScreen from "../hooks/useJobDetailScreen.ts";
 import useEditJobForm from "../../features/job/hooks/useEditJobForm.ts";
 import styles from "../styles/jobdetailscreen.module.css";

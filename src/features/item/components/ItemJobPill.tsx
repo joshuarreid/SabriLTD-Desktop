@@ -19,7 +19,26 @@ const logger = {
     error: (...args) => console.error("[ItemJobPill]", ...args),
 };
 
-export const ItemJobPill = ({ jobName, selected, removable, onClick }) => {
+export interface ItemJobPillProps {
+    /** Job name to display in the pill. */
+    jobName: string;
+    /** Whether the pill is selected. */
+    selected?: boolean;
+    /** Whether the pill is removable (shows '×' icon). */
+    removable?: boolean;
+    /** Click handler for the pill. */
+    onClick?: () => void;
+}
+
+/**
+ * ItemJobPill
+ * Single pill for job association, can be selected or removable.
+ *
+ * @component
+ * @param {ItemJobPillProps} props
+ * @returns {JSX.Element}
+ */
+export const ItemJobPill: React.FC<ItemJobPillProps> = ({ jobName, selected = false, removable = false, onClick }) => {
     logger.info("ItemJobPill rendered", { jobName, selected, removable });
     return (
         <button
@@ -36,8 +55,8 @@ export const ItemJobPill = ({ jobName, selected, removable, onClick }) => {
             {jobName}
             {removable ? (
                 <span className={styles.removeIcon} aria-label="Remove">
-          ×
-        </span>
+                    ×
+                </span>
             ) : null}
         </button>
     );
