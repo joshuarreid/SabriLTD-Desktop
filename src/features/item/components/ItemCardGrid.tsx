@@ -1,8 +1,7 @@
-import React, { useCallback, useMemo, useRef } from "react";
-import PropTypes from "prop-types";
+import React, { useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "../styles/itemcardgrid.module.css";
-import ItemInfoCard from "./ItemInfoCard.jsx";
+import ItemInfoCard from "./ItemInfoCard";
 
 /**
  * logger for ItemCardGrid.
@@ -11,24 +10,54 @@ import ItemInfoCard from "./ItemInfoCard.jsx";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[ItemCardGrid]", ...args),
-    error: (...args) => console.error("[ItemCardGrid]", ...args),
+    info: (...args: unknown[]) => console.log("[ItemCardGrid]", ...args),
+    error: (...args: unknown[]) => console.error("[ItemCardGrid]", ...args),
 };
+
+export interface ItemCardGridItem {
+    itemId?: number | string;
+    id?: number | string;
+    name?: string;
+    condition?: string;
+    conditionName?: string;
+    photoUrl?: string;
+    [key: string]: unknown;
+}
+
+export interface ItemCardGridProps {
+    items?: ItemCardGridItem[];
+    columns?: number;
+    rows?: number;
+    title?: string;
+    onItemClick?: (item: ItemCardGridItem) => void;
+    onItemDoubleClick?: (item: ItemCardGridItem) => void;
+    isItemSelected?: (itemId: number | string) => boolean;
+    isPending?: boolean;
+    isError?: boolean;
+    error?: any;
+    page?: number;
+    setPage?: (page: number) => void;
+    totalPages?: number;
+    totalItems?: number;
+    itemStart?: number;
+    itemEnd?: number;
+    hasPrevious?: boolean;
+    hasNext?: boolean;
+    handleNext?: () => void;
+    handlePrevious?: () => void;
+    pageSize?: number;
+    refetch?: () => void;
+}
 
 /**
  * getCanonicalItemId
  * Returns a stable item identifier across API shapes.
  *
- * Why:
- * - Meilisearch ItemPreview uses `id`
- * - Other endpoints may use `itemId`
- * - React list keys MUST be stable/unique to avoid stale rendering across pagination
- *
  * @function getCanonicalItemId
- * @param {object} item
+ * @param {ItemCardGridItem} item
  * @returns {number|string|null} Canonical id for the item or null if unavailable.
  */
-const getCanonicalItemId = (item) => {
+const getCanonicalItemId = (item: ItemCardGridItem): number | string | null => {
     const id = item?.id ?? item?.itemId;
     return id != null ? id : null;
 };
@@ -38,11 +67,11 @@ const getCanonicalItemId = (item) => {
  * Builds a stable React key for an item.
  *
  * @function getCanonicalItemKey
- * @param {object} item
+ * @param {ItemCardGridItem} item
  * @param {number} index
  * @returns {string}
  */
-const getCanonicalItemKey = (item, index) => {
+const getCanonicalItemKey = (item: ItemCardGridItem, index: number): string => {
     const id = getCanonicalItemId(item);
     return id != null ? `item-${String(id)}` : `item-index-${index}`;
 };
@@ -51,61 +80,35 @@ const getCanonicalItemKey = (item, index) => {
  * ItemCardGrid
  * Renders a responsive paginated grid of ItemInfoCard components.
  *
- * NOTE:
- * - Supports an optional "selectable" mode to visually mark selected cards.
- * - Supports single click and double click events without breaking existing usage.
- *
  * @component
- * @param {Object} props
- * @param {Array} props.items - Array of item objects to render (each with itemId or id).
- * @param {number} props.columns - Grid columns.
- * @param {number} props.rows - Grid rows shown per page.
- * @param {string} [props.title="Items"] - Title above the grid.
- * @param {(item:object)=>void} [props.onItemClick] - Optional click handler per card.
- * @param {(item:object)=>void} [props.onItemDoubleClick] - Optional double click handler per card.
- * @param {(itemId:number|string)=>boolean} [props.isItemSelected] - Returns true if an item is selected.
- * @param {boolean} [props.isPending] - Query loading state.
- * @param {boolean} [props.isError] - Query error state.
- * @param {any} [props.error] - Error object if any.
- * @param {number} [props.page] - Current page.
- * @param {Function} [props.setPage] - Setter for current page.
- * @param {number} [props.pageSize] - Page size.
- * @param {number} [props.totalPages] - Server totalPages.
- * @param {number} [props.totalItems] - Server total records.
- * @param {number} [props.itemStart] - Pager calculated from query meta.
- * @param {number} [props.itemEnd] - Pager calculated from query meta.
- * @param {boolean} [props.hasPrevious] - Has previous page flag.
- * @param {boolean} [props.hasNext] - Has next page flag.
- * @param {Function} [props.handleNext] - Next page handler.
- * @param {Function} [props.handlePrevious] - Previous page handler.
- * @param {Function} [props.refetch] - Query refetch handler.
+ * @param {ItemCardGridProps} props
  * @returns {JSX.Element}
  */
-const ItemCardGrid = ({
-                          items = [],
-                          columns = 6,
-                          rows = 3,
-                          title = "Items",
-                          onItemClick,
-                          onItemDoubleClick,
-                          isItemSelected,
-                          isPending,
-                          isError,
-                          error,
-                          page,
-                          setPage,
-                          totalPages,
-                          totalItems,
-                          itemStart,
-                          itemEnd,
-                          hasPrevious,
-                          hasNext,
-                          handleNext,
-                          handlePrevious,
-                          pageSize,
-                          refetch,
-                      }) => {
-    const gridTemplateColumns = `repeat(6, minmax(var(--item-card-min-width), 1fr))`;
+const ItemCardGrid: React.FC<ItemCardGridProps> = ({
+    items = [],
+    columns = 6,
+    rows = 3,
+    title = "Items",
+    onItemClick,
+    onItemDoubleClick,
+    isItemSelected,
+    isPending = false,
+    isError = false,
+    error = null,
+    page = 1,
+    setPage,
+    totalPages = 1,
+    totalItems = 0,
+    itemStart = 0,
+    itemEnd = 0,
+    hasPrevious = false,
+    hasNext = false,
+    handleNext,
+    handlePrevious,
+    pageSize = 0,
+    refetch,
+}) => {
+    const gridTemplateColumns = `repeat(${columns}, minmax(var(--item-card-min-width), 1fr))`;
 
     logger.info("ItemCardGrid render", {
         itemsCount: items.length,
@@ -125,7 +128,7 @@ const ItemCardGrid = ({
      *
      * @type {React.MutableRefObject<any>}
      */
-    const clickTimeoutRef = useRef(null);
+    const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     /**
      * clearPendingClick
@@ -146,11 +149,11 @@ const ItemCardGrid = ({
      * Schedules a single-click callback and cancels if double-click occurs.
      *
      * @function handleCardClick
-     * @param {object} item
+     * @param {ItemCardGridItem} item
      * @returns {void}
      */
     const handleCardClick = useCallback(
-        (item) => {
+        (item: ItemCardGridItem) => {
             if (!onItemClick) return;
 
             clearPendingClick();
@@ -171,11 +174,11 @@ const ItemCardGrid = ({
      * Immediately triggers the double-click callback (and cancels any pending single-click).
      *
      * @function handleCardDoubleClick
-     * @param {object} item
+     * @param {ItemCardGridItem} item
      * @returns {void}
      */
     const handleCardDoubleClick = useCallback(
-        (item) => {
+        (item: ItemCardGridItem) => {
             if (!onItemDoubleClick) return;
 
             clearPendingClick();
@@ -223,7 +226,7 @@ const ItemCardGrid = ({
                     }}
                 >
                     <AnimatePresence>
-                        {items.map((item, index) => {
+                        {(items as ItemCardGridItem[]).map((item: ItemCardGridItem, index: number) => {
                             const id = getCanonicalItemId(item);
                             const key = getCanonicalItemKey(item, index);
 
@@ -313,63 +316,5 @@ const ItemCardGrid = ({
     );
 };
 
-ItemCardGrid.propTypes = {
-    items: PropTypes.arrayOf(
-        PropTypes.shape({
-            itemId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-            id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-            name: PropTypes.string.isRequired,
-            condition: PropTypes.string,
-            conditionName: PropTypes.string,
-            photoUrl: PropTypes.string,
-        }),
-    ),
-    columns: PropTypes.number,
-    rows: PropTypes.number,
-    title: PropTypes.string,
-    onItemClick: PropTypes.func,
-    onItemDoubleClick: PropTypes.func,
-    isItemSelected: PropTypes.func,
-    isPending: PropTypes.bool,
-    isError: PropTypes.bool,
-    error: PropTypes.any,
-    page: PropTypes.number,
-    setPage: PropTypes.func,
-    totalPages: PropTypes.number,
-    totalItems: PropTypes.number,
-    itemStart: PropTypes.number,
-    itemEnd: PropTypes.number,
-    hasPrevious: PropTypes.bool,
-    hasNext: PropTypes.bool,
-    handleNext: PropTypes.func,
-    handlePrevious: PropTypes.func,
-    pageSize: PropTypes.number,
-    refetch: PropTypes.func,
-};
-
-ItemCardGrid.defaultProps = {
-    items: [],
-    columns: 6,
-    rows: 3,
-    title: "Items",
-    onItemClick: undefined,
-    onItemDoubleClick: undefined,
-    isItemSelected: undefined,
-    isPending: false,
-    isError: false,
-    error: null,
-    page: 1,
-    setPage: undefined,
-    totalPages: 1,
-    totalItems: 0,
-    itemStart: 0,
-    itemEnd: 0,
-    hasPrevious: false,
-    hasNext: false,
-    handleNext: undefined,
-    handlePrevious: undefined,
-    pageSize: 0,
-    refetch: undefined,
-};
-
 export default ItemCardGrid;
+

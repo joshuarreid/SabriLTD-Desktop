@@ -36,7 +36,10 @@ const STORAGE_PAGE_SIZE = 24;
 
 /**
  * ItemStorageField
- * @param {object} props - see above
+ * Controlled input for item storage location.
+ *
+ * @component
+ * @param {ItemStorageFieldProps} props
  * @returns {JSX.Element}
  */
 export const ItemStorageField = ({

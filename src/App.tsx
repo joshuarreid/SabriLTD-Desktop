@@ -5,13 +5,13 @@ import './App.css';
 import { queryClient } from "./config/queryClient.js";
 import LoginScreen from './pages/components/loginScreen';
 import { AuthProvider, useAuth } from './features/auth/hooks/useAuth';
-import ProtectedLayout from './layouts/ProtectedLayout.jsx';
-import UserProfileScreen from './pages/components/UserProfileScreen.jsx';
-import SettingsScreen from './pages/components/SettingsScreen.jsx';
-import JobScreen from "./pages/components/JobScreen.jsx";
-import HomeScreen from './pages/components/HomeScreen.jsx';
-import AddItemScreen from "./pages/components/AddItemScreen.jsx";
-import JobDetailScreen from "./pages/components/JobDetailScreen.jsx";
+import ProtectedLayout from './layouts/ProtectedLayout.tsx';
+import UserProfileScreen from './pages/components/UserProfileScreen.tsx';
+import SettingsScreen from './pages/components/SettingsScreen.tsx';
+import JobScreen from "./pages/components/JobScreen.tsx";
+import HomeScreen from './pages/components/HomeScreen.tsx';
+import AddItemScreen from "./pages/components/AddItemScreen.tsx";
+import JobDetailScreen from "./pages/components/JobDetailScreen.tsx";
 
 /**
  * ProtectedRoute

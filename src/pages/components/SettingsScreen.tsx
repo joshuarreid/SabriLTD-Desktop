@@ -17,7 +17,7 @@ const logger = {
 };
 
 /** @constant {Array<{label: string, key: string}>} */
-const TABS = [
+const TABS: Array<{ label: string; key: string }> = [
     { label: "Users", key: "users" },
     { label: "Storage Locations", key: "storage" },
     { label: "Tags", key: "tags" },
@@ -28,7 +28,7 @@ const TABS = [
  * Reads the tab key from the search params or falls back to the first tab.
  * @param {string} search
  */
-function getTabFromSearch(search) {
+function getTabFromSearch(search: string): string {
     const params = new URLSearchParams(search);
     const key = params.get("tab");
     if (TABS.some(tab => tab.key === key)) return key;
@@ -45,7 +45,7 @@ const SettingsScreen = () => {
     logger.info("SettingsScreen rendered");
     const location = useLocation();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState(() => getTabFromSearch(location.search));
+    const [activeTab, setActiveTab] = useState<string>(() => getTabFromSearch(location.search));
 
     // Keep activeTab in sync with the URL (if changed externally via nav or manual URL input)
     useEffect(() => {
@@ -59,7 +59,7 @@ const SettingsScreen = () => {
      * Updates both internal state and query param for consistency.
      * @param {string} tabKey
      */
-    const handleTabClick = (tabKey) => {
+    const handleTabClick = (tabKey: string) => {
         logger.info('Tab changed:', tabKey);
         // Only update if not already selected (prevents duplicate push)
         if (tabKey !== activeTab) {

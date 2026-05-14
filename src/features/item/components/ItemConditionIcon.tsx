@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 import {
     FaCirclePlus,
     FaCircleCheck,
@@ -16,8 +15,8 @@ import styles from "../styles/itemconditionicon.module.css";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[ItemConditionIcon]", ...args),
-    error: (...args) => console.error("[ItemConditionIcon]", ...args),
+    info: (...args: unknown[]) => console.log("[ItemConditionIcon]", ...args),
+    error: (...args: unknown[]) => console.error("[ItemConditionIcon]", ...args),
 };
 
 /**
@@ -28,7 +27,7 @@ const logger = {
  * @param {string} conditionName - Canonical item condition name.
  * @returns {{icon: JSX.Element, className: string, label: string}}
  */
-const getConditionIconConfig = (conditionName) => {
+const getConditionIconConfig = (conditionName: string | undefined | null): { icon: JSX.Element, className: string, label: string } => {
     switch ((conditionName || "").toLowerCase()) {
         case "new":
             return {
@@ -69,16 +68,22 @@ const getConditionIconConfig = (conditionName) => {
     }
 };
 
+export interface ItemConditionIconProps {
+    /**
+     * Canonical item condition name (e.g., "Good", "Damaged").
+     */
+    conditionName?: string | null;
+}
+
 /**
  * ItemConditionIcon
  * Renders a semantic condition symbol with greyed-out text label to the right.
  *
  * @component
- * @param {Object} props
- * @param {string} props.conditionName - Item condition name.
+ * @param {ItemConditionIconProps} props
  * @returns {JSX.Element}
  */
-const ItemConditionIcon = ({ conditionName }) => {
+const ItemConditionIcon: React.FC<ItemConditionIconProps> = ({ conditionName }) => {
     logger.info("Render", { conditionName });
 
     const { icon, className, label } = getConditionIconConfig(conditionName);
@@ -95,8 +100,5 @@ const ItemConditionIcon = ({ conditionName }) => {
     );
 };
 
-ItemConditionIcon.propTypes = {
-    conditionName: PropTypes.string,
-};
 
 export default ItemConditionIcon;

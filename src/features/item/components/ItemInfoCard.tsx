@@ -1,8 +1,7 @@
 import React from "react";
-import PropTypes from "prop-types";
 import styles from "../styles/iteminfocard.module.css";
-import ItemConditionPill from "./ItemConditionPill.jsx";
-import ItemConditionDot from "./ItemConditionIcon";
+import ItemConditionPill from "./ItemConditionPill.tsx";
+import ItemConditionDot from "./ItemConditionIcon.tsx";
 
 /**
  * Logger for ItemInfoCard.
@@ -11,9 +10,24 @@ import ItemConditionDot from "./ItemConditionIcon";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[ItemInfoCard]", ...args),
-    error: (...args) => console.error("[ItemInfoCard]", ...args),
+    info: (...args: unknown[]) => console.log("[ItemInfoCard]", ...args),
+    error: (...args: unknown[]) => console.error("[ItemInfoCard]", ...args),
 };
+
+export interface ItemInfoCardItem {
+    itemId: number | string;
+    name: string;
+    price?: string;
+    conditionName?: string | null;
+    photoUrl?: string | null;
+}
+
+export interface ItemInfoCardProps {
+    /** Normalized item preview data for display. */
+    item: ItemInfoCardItem;
+    /** Optional click handler invoked when the card is clicked. */
+    onClick?: () => void;
+}
 
 /**
  * ItemInfoCard
@@ -21,18 +35,10 @@ const logger = {
  * and condition indicator. Intended for use inside paginated grids or search results.
  *
  * @component
- * @param {Object} props
- * @param {{
- *   itemId: number,
- *   name: string,
- *   price?: string,
- *   conditionName?: string|null,
- *   photoUrl?: string|null
- * }} props.item - Normalized item preview data for display.
- * @param {Function} [props.onClick] - Optional click handler invoked when the card is clicked.
+ * @param {ItemInfoCardProps} props
  * @returns {JSX.Element}
  */
-const ItemInfoCard = ({ item, onClick }) => {
+const ItemInfoCard: React.FC<ItemInfoCardProps> = ({ item, onClick }) => {
     const { itemId, name, price, conditionName, photoUrl } = item;
 
     /**
@@ -76,24 +82,11 @@ const ItemInfoCard = ({ item, onClick }) => {
                 {price && (
                     <div className={styles.price}>${price}</div>
                 )}
-                <ItemConditionDot conditionName={conditionName} />
+                <ItemConditionDot conditionName={conditionName ?? undefined} />
             </div>
         </button>
     );
 };
 
-ItemInfoCard.propTypes = {
-    item: PropTypes.shape({
-        itemId: PropTypes.number.isRequired,
-        name: PropTypes.string.isRequired,
-        conditionName: PropTypes.string,
-        photoUrl: PropTypes.string,
-    }).isRequired,
-    onClick: PropTypes.func,
-};
-
-ItemInfoCard.defaultProps = {
-    onClick: undefined,
-};
 
 export default ItemInfoCard;

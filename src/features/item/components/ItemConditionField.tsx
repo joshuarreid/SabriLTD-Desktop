@@ -1,5 +1,5 @@
 /**
- * ItemConditionField.jsx
+ * ItemConditionField
  *
  * Fetches item conditions from the API and renders horizontal pill-style selectable buttons
  * within an input-styled box. Uses the shared ItemConditionPill for condition rendering.
@@ -7,16 +7,13 @@
  * Follows Bulletproof React conventions and pin UX standards.
  *
  * @component
- * @param {object} props
- * @param {number|null} props.value - The currently selected conditionId.
- * @param {Function} props.onChange - Called with the new conditionId when a condition is selected or deselected.
+ * @param {ItemConditionFieldProps} props
  * @returns {JSX.Element}
  */
 import React from "react";
 import { useItemConditionField } from "../hooks/useItemConditionField";
-
 import styles from "../styles/itemconditionfield.module.css";
-import ItemConditionPill from "./ItemConditionPill.jsx";
+import ItemConditionPill from "./ItemConditionPill";
 
 /**
  * Ordered canonical conditions for UX.
@@ -28,14 +25,28 @@ const ORDERED_CONDITIONS = ["Damaged", "Needs Repair", "Fair", "Good", "New"];
  * logger for ItemConditionField.
  */
 const logger = {
-    info: (...args) => console.log("[ItemConditionField]", ...args),
-    error: (...args) => console.error("[ItemConditionField]", ...args),
+    info: (...args: unknown[]) => console.log("[ItemConditionField]", ...args),
+    error: (...args: unknown[]) => console.error("[ItemConditionField]", ...args),
 };
 
+export interface ItemConditionFieldProps {
+    value: number | null;
+    onChange?: (conditionId: number | null) => void;
+}
+
 /**
- * Renders the ItemConditionField using shared pill styles.
+ * ItemConditionField
+ *
+ * Fetches item conditions from the API and renders horizontal pill-style selectable buttons
+ * within an input-styled box. Uses the shared ItemConditionPill for condition rendering.
+ * Pills are washed out until selected; clicking a selected pill will deselect it.
+ * Follows Bulletproof React conventions and pin UX standards.
+ *
+ * @component
+ * @param {ItemConditionFieldProps} props
+ * @returns {JSX.Element}
  */
-export const ItemConditionField = ({ value, onChange }) => {
+export const ItemConditionField: React.FC<ItemConditionFieldProps> = ({ value, onChange }) => {
     const { options, loading, error } = useItemConditionField();
 
     logger.info("ItemConditionField rendered", { value, options, loading, error });
@@ -54,7 +65,7 @@ export const ItemConditionField = ({ value, onChange }) => {
      *
      * @param {number} clickedId
      */
-    const handlePillClick = (clickedId) => {
+    const handlePillClick = (clickedId: number) => {
         logger.info("Pill clicked", clickedId);
         onChange?.(value === clickedId ? null : clickedId);
     };

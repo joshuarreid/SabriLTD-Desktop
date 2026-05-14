@@ -30,7 +30,7 @@
 import React, { useCallback } from "react";
 import styles from "../styles/itembrowser.module.css";
 
-import { useItemBrowser } from "../hooks/useItemBrowser.js";
+import { useItemBrowser } from "../hooks/useItemBrowser";
 import WideSearchBar from "../../../components/searchbar/WideSearchBar";
 import ItemCardGrid from "./ItemCardGrid";
 
@@ -41,23 +41,51 @@ import ItemCardGrid from "./ItemCardGrid";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[ItemBrowser]", ...args),
-    error: (...args) => console.error("[ItemBrowser]", ...args),
+    info: (...args: unknown[]) => console.log("[ItemBrowser]", ...args),
+    error: (...args: unknown[]) => console.error("[ItemBrowser]", ...args),
 };
 
-const ItemBrowser = ({
-                           mode = "browse",
-                           onItemClick,
-                           onItemOpenDetails,
-                           isItemSelected,
-                           fixedFilters,
-                           columns = 5,
-                           rows = 5,
-                           pageSize = 25,
-                           sortField = "name",
-                           sortOrder = "asc",
-                           placeholder = "Search inventory…",
-                       }) => {
+export interface Item {
+    itemId?: number | string;
+    id?: number | string;
+    name?: string;
+    [key: string]: unknown;
+}
+
+export interface ItemBrowserProps {
+    mode?: "browse" | "add";
+    onItemClick?: (item: Item) => void;
+    onItemOpenDetails?: (item: Item) => void;
+    isItemSelected?: (itemId: number | string) => boolean;
+    fixedFilters?: object;
+    columns?: number;
+    rows?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    placeholder?: string;
+}
+
+/**
+ * ItemBrowser
+ *
+ * @component
+ * @param {ItemBrowserProps} props
+ * @returns {JSX.Element}
+ */
+const ItemBrowser: React.FC<ItemBrowserProps> = ({
+    mode = "browse",
+    onItemClick,
+    onItemOpenDetails,
+    isItemSelected,
+    fixedFilters,
+    columns = 5,
+    rows = 5,
+    pageSize = 25,
+    sortField = "name",
+    sortOrder = "asc",
+    placeholder = "Search inventory…",
+}) => {
     logger.info("ItemBrowser rendered", { mode });
 
     const {
@@ -89,7 +117,7 @@ const ItemBrowser = ({
     });
 
     const handleSingleClick = useCallback(
-        (item) => {
+        (item: Item) => {
             if (!item) {
                 logger.error("handleSingleClick called without an item");
                 return;
@@ -123,7 +151,7 @@ const ItemBrowser = ({
     );
 
     const handleDoubleClick = useCallback(
-        (item) => {
+        (item: Item) => {
             if (!item) {
                 logger.error("handleDoubleClick called without an item");
                 return;
@@ -188,3 +216,4 @@ const ItemBrowser = ({
 };
 
 export default ItemBrowser;
+
