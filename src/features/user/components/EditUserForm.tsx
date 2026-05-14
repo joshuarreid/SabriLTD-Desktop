@@ -1,152 +1,91 @@
-import React, {
-    forwardRef,
-    useEffect,
-    useImperativeHandle,
-    useRef,
-    useState,
-} from "react";
-import styles from "../styles/edituserprofilemodal.module.css";
+import React, { forwardRef, useEffect, useMemo } from "react";
+import Form from "../../../components/form/Form";
+import { useForm } from "../../../components/form/useForm";
 
-export type EditUserValues = {
+type UserFormValues = {
     name: string;
     email: string;
 };
 
-export interface EditUserFormHandle {
+export type EditUserFormHandle = {
     submit: () => void;
+    reset?: () => void;
+};
+
+interface EditUserFormProps {
+    onSubmit: (values: UserFormValues) => void | Promise<void>;
+    error?: any;
+    isSaving?: boolean;
+    autoFocus?: boolean;
+    initialValues?: Partial<UserFormValues>;
 }
 
-export interface EditUserFormProps {
-    onSubmit: (values: EditUserValues) => void | Promise<void>;
-    isSaving?: boolean;
-    initialValues?: Partial<EditUserValues>;
-    error?: string | null;
-    autoFocus?: boolean;
-}
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const EditUserForm = forwardRef<EditUserFormHandle, EditUserFormProps>(
-    ({
-        onSubmit,
-        isSaving = false,
-        initialValues,
-        error,
-        autoFocus = true,
-    }, ref) => {
-        const formRef = useRef<HTMLFormElement>(null);
-        const nameInputRef = useRef<HTMLInputElement>(null);
+    ({ onSubmit, error, isSaving = false, autoFocus = false, initialValues }, ref) => {
+        const formInitialValues: UserFormValues = {
+            name: initialValues?.name || "",
+            email: initialValues?.email || "",
+        };
 
-        const [draft, setDraft] = useState<EditUserValues>({
-            name: initialValues?.name ?? "",
-            email: initialValues?.email ?? "",
-        });
-        const [localError, setLocalError] = useState<string | null>(null);
+        const validate = (values: UserFormValues) => {
+            const errors: Partial<Record<keyof UserFormValues, string>> = {};
 
-        useImperativeHandle(ref, () => ({
-            submit: () => {
-                formRef.current?.dispatchEvent(
-                    new Event("submit", { cancelable: true, bubbles: true })
-                );
+            if (!values.name.trim()) errors.name = "Name is required.";
+
+            const email = values.email.trim();
+            if (!email) errors.email = "Email is required.";
+            else if (!emailRegex.test(email)) errors.email = "Please enter a valid email.";
+
+            return errors;
+        };
+
+        const form = useForm<UserFormValues>({
+            initialValues: formInitialValues,
+            validate,
+            onSubmit: async (vals) => {
+                await onSubmit({
+                    name: String(vals.name || "").trim(),
+                    email: String(vals.email || "").trim(),
+                });
             },
-        }));
+        });
 
-        useEffect(() => {
-            setDraft({
-                name: initialValues?.name ?? "",
-                email: initialValues?.email ?? "",
-            });
-            setLocalError(null);
-        }, [initialValues?.name, initialValues?.email]);
+        React.useImperativeHandle(ref, () => form.imperativeHandle(), [form]);
 
         useEffect(() => {
             if (!autoFocus) return;
             setTimeout(() => {
-                try {
-                    nameInputRef.current?.focus?.();
-                } catch {
-                    // ignore
-                }
+                const el = document.getElementById("name");
+                (el as HTMLInputElement | null)?.focus?.();
             }, 0);
         }, [autoFocus]);
 
-        const updateDraft = (field: keyof EditUserValues, value: string) => {
-            setDraft((prev) => ({ ...prev, [field]: value }));
-        };
-
-        const buildValues = (): EditUserValues => ({
-            name: String(draft.name ?? "").trim(),
-            email: String(draft.email ?? "").trim(),
-        });
-
-        const looksLikeEmail = (value: string) => {
-            // light-weight client validation; backend must still validate
-            return /^\S+@\S+\.\S+$/.test(value);
-        };
-
-        const validate = (values: EditUserValues): string | null => {
-            if (!values.name) return "Name is required.";
-            if (!values.email) return "Email is required.";
-            if (!looksLikeEmail(values.email)) return "Please enter a valid email address.";
-            return null;
-        };
-
-        const handleSubmit = (e: React.FormEvent) => {
-            e.preventDefault();
-            setLocalError(null);
-
-            const values = buildValues();
-            const err = validate(values);
-            if (err) {
-                setLocalError(err);
-                return;
-            }
-
-            onSubmit(values);
-        };
-
-        return (
-            <form
-                ref={formRef}
-                className={styles.userForm}
-                onSubmit={handleSubmit}
-            >
-                <div className={styles.formGroup}>
-                    <label htmlFor="edit-user-name">Name</label>
-                    <input
-                        id="edit-user-name"
-                        ref={nameInputRef}
-                        name="name"
-                        type="text"
-                        value={draft.name}
-                        onChange={(e) => updateDraft("name", e.target.value)}
-                        autoComplete="off"
-                        className={styles.input}
-                        disabled={isSaving}
-                    />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label htmlFor="edit-user-email">Email</label>
-                    <input
-                        id="edit-user-email"
-                        name="email"
-                        type="email"
-                        value={draft.email}
-                        onChange={(e) => updateDraft("email", e.target.value)}
-                        autoComplete="off"
-                        className={styles.input}
-                        disabled={isSaving}
-                    />
-                </div>
-
-                {(localError || error) && (
-                    <div className={styles.errorMsg}>{localError || error}</div>
-                )}
-            </form>
+        const fields = useMemo(
+            () => [
+                {
+                    name: "name",
+                    label: "Name",
+                    required: true,
+                    autoFocus,
+                    placeholder: "Jane Doe",
+                    disabled: isSaving,
+                },
+                {
+                    name: "email",
+                    label: "Email",
+                    required: true,
+                    placeholder: "jane@example.com",
+                    disabled: isSaving,
+                },
+            ],
+            [autoFocus, isSaving]
         );
+
+        return <Form ref={ref} fields={fields} form={form} error={error} />;
     }
 );
-
-EditUserForm.displayName = "EditUserForm";
 
 export default EditUserForm;
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "../styles/usersettingstab.module.css";
-import { useUserSettingsTab } from "../hooks/useUserSettingsTab.ts";
-import { useCurrentUser } from "../hooks/useCurrentUser.ts";
+import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal.jsx";
-import EditUserProfileModal from "./EditUserProfileModal.tsx";
+import CreateUserModal from "./CreateUserModal";
 
 interface User {
     userId?: number;
@@ -223,40 +223,72 @@ const UserSettingsTab: React.FC = () => {
             </div>
             {/* Edit Modal */}
             {modalMode === "edit" && (
-                <EditUserProfileModal
-                    user={modalUser}
+                <CreateUserModal
                     open={!!modalUser}
-                    isSaving={editStatus === "saving"}
-                    saveState={editStatus}
-                    onSave={handleModalSave}
                     onClose={() => {
                         setModalUser(null);
                         setModalMode(null);
                         setEditModalError(null);
                         setPendingClose(false);
                     }}
+                    onCancel={() => {
+                        setModalUser(null);
+                        setModalMode(null);
+                        setEditModalError(null);
+                        setPendingClose(false);
+                    }}
+                    initialValues={modalUser}
+                    isSaving={editStatus === "saving"}
                     error={editModalError}
-                    onDelete={(userId: number) => handleDelete(userId)}
-                    currentUser={currentUser}
+                    onSubmit={async (values: any) => {
+                        setEditModalError(null);
+                        setPendingClose(true);
+                        handleSaveEdit(
+                            modalUser?.userId,
+                            values,
+                            (error?: Error) => {
+                                if (error) {
+                                    setEditModalError(error.message || "Failed to update.");
+                                    setPendingClose(false);
+                                }
+                            }
+                        );
+                    }}
                 />
             )}
 
             {/* Add Modal */}
             {modalMode === "add" && (
-                <EditUserProfileModal
-                    user={modalUser}
+                <CreateUserModal
                     open={!!modalUser}
-                    isSaving={addStatus === "saving"}
-                    saveState={addStatus}
-                    onSave={handleModalAdd}
                     onClose={() => {
                         setModalUser(null);
                         setModalMode(null);
                         setEditModalError(null);
                         setPendingClose(false);
                     }}
+                    onCancel={() => {
+                        setModalUser(null);
+                        setModalMode(null);
+                        setEditModalError(null);
+                        setPendingClose(false);
+                    }}
+                    initialValues={modalUser}
+                    isSaving={addStatus === "saving"}
                     error={editModalError}
-                    currentUser={currentUser}
+                    onSubmit={async (values: any) => {
+                        setEditModalError(null);
+                        setPendingClose(true);
+                        handleAddUser(
+                            values,
+                            (error?: Error) => {
+                                if (error) {
+                                    setEditModalError(error.message || "Failed to create user.");
+                                    setPendingClose(false);
+                                }
+                            }
+                        );
+                    }}
                 />
             )}
 
@@ -283,6 +315,7 @@ const UserSettingsTab: React.FC = () => {
                 confirmDisabled={
                     !!(removingUser && currentUser && removingUser.userId === currentUser.userId)
                 }
+                cancelClass={undefined}
                 deleteStatus={deleteStatus}
             />
         </div>
@@ -290,4 +323,3 @@ const UserSettingsTab: React.FC = () => {
 };
 
 export default UserSettingsTab;
-
