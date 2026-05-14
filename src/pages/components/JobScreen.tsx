@@ -12,8 +12,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/jobscreen.module.css";
-import JobBrowser from "../../features/job/components/JobBrowser.tsx";
-import useJobScreen from "../hooks/useJobScreen.ts";
+import JobBrowser from "../../features/job/components/JobBrowser";
+import useJobScreen from "../hooks/useJobScreen";
 
 
 /**
@@ -26,6 +26,11 @@ const logger = {
     info: (...args) => console.log("[JobScreen]", ...args),
     error: (...args) => console.error("[JobScreen]", ...args),
 };
+
+interface JobPreview {
+    jobId: number | string;
+    [key: string]: unknown;
+}
 
 const JobScreen = () => {
     logger.info("JobScreen rendered");
@@ -49,7 +54,7 @@ const JobScreen = () => {
      * @param {object} job - Job object from the grid.
      * @returns {void}
      */
-    const handleJobClick = (job) => {
+    const handleJobClick = (job: JobPreview) => {
         if (!job || !job.jobId) {
             logger.error("Tried to navigate to job with invalid job object", job);
             return;

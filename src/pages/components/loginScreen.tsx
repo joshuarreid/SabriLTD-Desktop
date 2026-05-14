@@ -10,9 +10,9 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import styles from '../styles/LoginScreen.module.css';
-import {useLoginScreen} from "../hooks/useLoginScreen";
-import { UserGrid } from '../../features/user/components/UserGrid.tsx';
-import { LoginForm } from '../../features/auth/components/LoginForm.jsx';
+import { useLoginScreen } from "../hooks/useLoginScreen";
+import { UserGrid } from '../../features/user/components/UserGrid';
+import { LoginForm } from '../../features/auth/components/LoginForm';
 
 import BrandLogo from '../../assets/logos/Sabri-headerlogo1.png';
 
@@ -25,6 +25,13 @@ const logger = {
     info: (...args: unknown[]) => console.log('[LoginScreen]', ...args),
     error: (...args: unknown[]) => console.error('[LoginScreen]', ...args),
 };
+
+interface PublicUser {
+    id: number | string;
+    name?: string;
+    username?: string;
+    [key: string]: unknown;
+}
 
 /**
  * LoginScreen presentational component.
@@ -64,7 +71,7 @@ export const LoginScreen = () => {
 
     // Get the user object for the selected userId, if available
     const currentUser = (publicUsers || []).find(
-        (u) => String(u.id) === String(selectedUserId)
+        (u: PublicUser) => String(u.id) === String(selectedUserId)
     );
 
     return (

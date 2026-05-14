@@ -12,9 +12,9 @@
  */
 
 import React from "react";
-import ItemBrowser from "../../features/item/components/ItemBrowser.tsx";
-import { useViewItemModal } from "../../features/item/hooks/useViewItemModal.js";
-import ViewItemModal from "../../features/item/components/ViewItemModal.tsx";
+import ItemBrowser from "../../features/item/components/ItemBrowser";
+import { useViewItemModal } from "../../features/item/hooks/useViewItemModal";
+import ViewItemModal from "../../features/item/components/ViewItemModal";
 
 /**
  * Logger for HomeScreen.
@@ -53,6 +53,17 @@ const HomeScreen = () => {
     } = useViewItemModal();
 
     /**
+     * ItemPreview
+     * Minimal preview shape used by HomeScreen.
+     */
+    interface ItemPreview {
+        itemId?: number | string;
+        id?: number | string;
+        name?: string;
+        [key: string]: unknown;
+    }
+
+    /**
      * handleItemClick
      * Called when an ItemInfoCard is clicked inside ItemBrowser.
      * Opens the view-item modal with the selected item preview data.
@@ -61,7 +72,7 @@ const HomeScreen = () => {
      * @param {object} item - Normalized item preview object from the search grid.
      * @returns {void}
      */
-    const handleItemClick = (item) => {
+    const handleItemClick = (item: ItemPreview) => {
         if (!item) {
             logger.error(
                 "handleItemClick called without an item in HomeScreen",

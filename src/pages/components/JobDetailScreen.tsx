@@ -1,12 +1,12 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { useViewItemModal } from "../../features/item/hooks/useViewItemModal.js";
-import ViewItemModal from "../../features/item/components/ViewItemModal.tsx";
-import useJobDetailScreen from "../hooks/useJobDetailScreen.ts";
-import useEditJobForm from "../../features/job/hooks/useEditJobForm.ts";
+import { useViewItemModal } from "../../features/item/hooks/useViewItemModal";
+import ViewItemModal from "../../features/item/components/ViewItemModal";
+import useJobDetailScreen from "../hooks/useJobDetailScreen";
+import useEditJobForm from "../../features/job/hooks/useEditJobForm";
 import styles from "../styles/jobdetailscreen.module.css";
-import EditJobForm from "../../features/job/components/EditJobForm.tsx";
-import JobItemGridBox from "../../features/job/components/JobItemGridBox.tsx";
+import EditJobForm from "../../features/job/components/EditJobForm";
+import JobItemGridBox from "../../features/job/components/JobItemGridBox";
 
 /**
  * Logger for JobDetailScreen.
@@ -27,7 +27,7 @@ const logger = {
  * @param {string} value
  * @returns {string}
  */
-const formatDisplayDate = (value) => {
+const formatDisplayDate = (value: string): string => {
     if (!value) return "";
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return value;
@@ -41,6 +41,13 @@ const formatDisplayDate = (value) => {
     if (hours === 0) hours = 12;
     return `${month} ${day} ${year} ${hours}:${minutes}${ampm}`;
 };
+
+interface ItemPreview {
+    itemId?: number | string;
+    id?: number | string;
+    name?: string;
+    [key: string]: unknown;
+}
 
 /**
  * JobDetailScreen
@@ -128,7 +135,7 @@ const JobDetailScreen = () => {
      * @param {object} item
      * @returns {void}
      */
-    const handleItemClick = (item) => {
+    const handleItemClick = (item: ItemPreview) => {
         if (!item) {
             logger.error("handleItemClick called without an item in JobDetailScreen");
             return;
@@ -220,3 +227,4 @@ const JobDetailScreen = () => {
 };
 
 export default JobDetailScreen;
+

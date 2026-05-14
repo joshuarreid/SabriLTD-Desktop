@@ -10,25 +10,57 @@
 
 import React, { useState, useCallback } from "react";
 import styles from "../styles/additemscreen.module.css";
-import PhotoInfoCard from "../../features/photo/components/photoInfoCard.tsx";
-import { usePendingPhotos } from "../hooks/useAddItemScreen.js";
-import { useUploadPhoto } from "../../features/item/hooks/useUploadPhoto.js";
-import UploadPhotoModal from "../../features/photo/components/UploadPhotoModal.tsx";
-import SaveStatus from "../../components/save/SaveStatus.jsx";
-import EditItemModal from "../../features/item/components/EditItemModal.tsx";
-import { useDeletePhotos } from "../../features/item/hooks/useDeletePhotos.ts";
-import { useQueryClient } from "@tanstack/react-query";
-import { photoKeys } from "../../features/photo/api/photoQueryKeys.ts";
-import ConfirmationModal from "../../components/confirmationmodal/ConfirmationModal.jsx";
+import PhotoInfoCard from "../../features/photo/components/photoInfoCard";
+import { usePendingPhotos } from "../hooks/useAddItemScreen";
+import { useUploadPhoto } from "../../features/item/hooks/useUploadPhoto";
+import UploadPhotoModal from "../../features/photo/components/UploadPhotoModal";
+import SaveStatus from "../../components/save/SaveStatus";
+import EditItemModal from "../../features/item/components/EditItemModal";
+import { useDeletePhotos } from "../../features/item/hooks/useDeletePhotos";
+import ConfirmationModal from "../../components/confirmationmodal/ConfirmationModal";
 
 /**
  * logger for AddItemScreen.
  * @constant
  */
 const logger = {
-    info: (...args) => console.log("[AddItemScreen]", ...args),
-    error: (...args) => console.error("[AddItemScreen]", ...args),
+    info: (...args: unknown[]) => console.log("[AddItemScreen]", ...args),
+    error: (...args: unknown[]) => console.error("[AddItemScreen]", ...args),
 };
+
+/**
+ * PendingPhoto
+ * Minimal shape used by AddItemScreen.
+ */
+interface PendingPhoto {
+    photoId: number;
+    url?: string;
+    [key: string]: unknown;
+}
+
+interface UploadPhotoMutation {
+    mutate: (
+        files: File[],
+        opts?: {
+            onSuccess?: () => void;
+            onError?: (err: unknown) => void;
+        },
+    ) => void;
+    isPending: boolean;
+    reset: () => void;
+    error?: unknown;
+}
+
+interface DeletePhotosMutation {
+    mutate: (
+        photoIds: number[],
+        opts?: {
+            onSuccess?: () => void;
+            onError?: (err: unknown) => void;
+        },
+    ) => void;
+    isPending: boolean;
+}
 
 /**
  * AddItemScreen - main add item interface with upload left, actions right.
@@ -38,19 +70,21 @@ const logger = {
 const AddItemScreen = () => {
     logger.info("AddItemScreen rendered");
 
-    const [uploadModalOpen, setUploadModalOpen] = useState(false);
-    const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
-    const [editItemModalOpen, setEditItemModalOpen] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-
-    const queryClient = useQueryClient();
+    const [uploadModalOpen, setUploadModalOpen] = useState<boolean>(false);
+    const [selectedPhotoIds, setSelectedPhotoIds] = useState<number[]>([]);
+    const [editItemModalOpen, setEditItemModalOpen] = useState<boolean>(false);
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
     const {
         pendingPhotos,
         isPending,
         isError,
         error,
+    }: {
+        pendingPhotos: PendingPhoto[];
+        isPending: boolean;
+        isError: boolean;
+        error: unknown;
     } = usePendingPhotos();
 
     const {
@@ -58,12 +92,12 @@ const AddItemScreen = () => {
         isPending: isUploading,
         reset: resetUploadPhoto,
         error: uploadError,
-    } = useUploadPhoto();
+    } = useUploadPhoto() as unknown as UploadPhotoMutation;
 
     const {
         mutate: deletePhotos,
         isPending: isDeleting,
-    } = useDeletePhotos();
+    } = useDeletePhotos() as unknown as DeletePhotosMutation;
 
     /**
      * Opens the upload modal.
@@ -90,7 +124,7 @@ const AddItemScreen = () => {
      * @param {File[]} files - Array of photo files to upload
      */
     const handleUploadPhotoFiles = useCallback(
-        (files) => {
+        (files: File[]) => {
             logger.info("handleUploadPhotoFiles called", Array.isArray(files) ? files.map(f => f?.name) : files);
             if (files && files.length > 0) {
                 uploadPhoto(files, {
@@ -98,7 +132,7 @@ const AddItemScreen = () => {
                         logger.info("Photo upload succeeded");
                         setUploadModalOpen(false);
                     },
-                    onError: (err) => {
+                    onError: (err: unknown) => {
                         logger.error("Photo upload failed:", err);
                     },
                 });
@@ -113,7 +147,7 @@ const AddItemScreen = () => {
      * @param {number} photoId
      */
     const handleTogglePhotoSelect = useCallback(
-        (photoId) => {
+        (photoId: number) => {
             setSelectedPhotoIds((prev) => {
                 if (prev.includes(photoId)) {
                     logger.info("Photo deselected", photoId);
@@ -184,7 +218,7 @@ const AddItemScreen = () => {
                 setSelectedPhotoIds([]);
                 setShowDeleteModal(false);
             },
-            onError: (err) => {
+            onError: (err: unknown) => {
                 logger.error("Failed to delete selected photos:", err);
                 setShowDeleteModal(false);
             },
@@ -254,13 +288,13 @@ const AddItemScreen = () => {
                     <div className={styles.loading}>Loading photos...</div>
                 ) : isError ? (
                     <div className={styles.error}>
-                        Error: {error?.message || "Failed to load photos."}
+                        Error: {(error as any)?.message || "Failed to load photos."}
                     </div>
                 ) : (
-                    (pendingPhotos ?? []).map((photo) => (
+                    (pendingPhotos ?? []).map((photo: PendingPhoto) => (
                         <PhotoInfoCard
                             key={photo.photoId}
-                            photo={photo}
+                            photo={photo as any}
                             selected={selectedPhotoIds.includes(photo.photoId)}
                             onClick={() => handleTogglePhotoSelect(photo.photoId)}
                         />
@@ -272,14 +306,19 @@ const AddItemScreen = () => {
                 onClose={handleCloseUploadModal}
                 onUpload={handleUploadPhotoFiles}
                 isUploading={isUploading}
-                error={uploadError?.message}
+                error={(uploadError as any)?.message}
             />
             {editItemModalOpen && selectedPhotoIds.length > 0 && (
                 <EditItemModal
                     photos={
                         selectedPhotoIds
-                            .map(id => (pendingPhotos ?? []).find(photo => photo.photoId === id))
-                            .filter(photo => !!photo)
+                            .map((id) => (pendingPhotos ?? []).find((p) => p.photoId === id))
+                            .filter((p): p is PendingPhoto => Boolean(p && p.photoId))
+                            .map((p) => ({
+                                photoId: p.photoId,
+                                url: String(p.url || ""),
+                            }))
+                            .filter((p) => Boolean(p.url))
                     }
                     open={editItemModalOpen}
                     onClose={handleCloseEditItemModal}
@@ -293,6 +332,8 @@ const AddItemScreen = () => {
                 description={`Are you sure you want to delete ${selectedPhotoIds.length} photo${selectedPhotoIds.length > 1 ? 's' : ''}? This action cannot be undone.`}
                 confirmText="Delete"
                 cancelText="Cancel"
+                confirmClass={undefined}
+                cancelClass={undefined}
                 isConfirmLoading={isDeleting}
                 confirmDisabled={isDeleting}
                 deleteStatus={isDeleting ? 'deleting' : 'idle'}
