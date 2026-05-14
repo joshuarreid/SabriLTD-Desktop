@@ -1,5 +1,5 @@
 /**
- * useEditUserProfileModal
+ * useEditUserModal
  * Encapsulates draft state, validation, and input logic for Add/Edit user Profile modals.
  *
  * @param {object|null} user - If editing: existing user object. If adding: `{ name: "", email: "" }`.
@@ -21,8 +21,8 @@ export type UserProfileDraft = { name: string; email: string };
 export type UserProfile = UserProfileDraft & { userId?: number };
 
 const logger = {
-    info: (...args: unknown[]) => console.log("[useEditUserProfileModal]", ...args),
-    error: (...args: unknown[]) => console.error("[useEditUserProfileModal]", ...args),
+    info: (...args: unknown[]) => console.log("[useEditUserModal]", ...args),
+    error: (...args: unknown[]) => console.error("[useEditUserModal]", ...args),
 };
 
 type UseEditUserProfileModalReturn = {
@@ -37,7 +37,7 @@ type UseEditUserProfileModalReturn = {
     resetDraft: () => void;
 };
 
-export const useEditUserProfileModal = (
+export const useEditUserModal = (
     user: UserProfile | null,
     isSaving: boolean
 ): UseEditUserProfileModalReturn => {

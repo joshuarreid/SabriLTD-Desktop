@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "../styles/edituserprofilemodal.module.css";
 import SaveStatus from "../../../components/save/SaveStatus.jsx";
-import { useEditUserProfileModal } from "../hooks/useEditUserProfileModal.ts";
+import { useEditUserModal } from "../hooks/useEditUserModal.ts";
 import { FaRegTrashCan } from "react-icons/fa6";
 
 export interface EditUserProfileModalProps {
@@ -56,7 +56,7 @@ const EditUserProfileModal: React.FC<EditUserProfileModalProps> = ({
         handleChange,
         handleSubmit,
         resetDraft
-    } = useEditUserProfileModal(user, isSaving);
+    } = useEditUserModal(user, isSaving);
 
     // Controls the confirmation modal for deletion (edit mode only)
     const [deleteConfirmOpen, setDeleteConfirmOpen] = React.useState<boolean>(false);

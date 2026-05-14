@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import React, { useMemo, forwardRef, useEffect } from "react";
 import { useAllCompanies } from "../../company/hooks/useCompanies";
-
+import { useForm } from "../../../components/form/useForm";
+import Form from "../../../components/form/Form";
 import styles from "../styles/createjobmodal.module.css";
 
 interface CreateJobFormProps {
@@ -18,6 +19,14 @@ interface CreateJobFormProps {
     };
 }
 
+type JobFormValues = {
+    name: string;
+    companyId: string;
+    client: string;
+    description: string;
+    status: string;
+};
+
 type SelectOption = { value: string | number; label: string };
 
 const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
@@ -28,18 +37,6 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
     isSaving = false,
     initialValues,
 }, ref) => {
-    const nameInputRef = useRef<HTMLInputElement>(null);
-    const formRef = useRef<HTMLFormElement>(null);
-
-    const [draft, setDraft] = useState({
-        name: initialValues?.name || "",
-        companyId: initialValues?.companyId || "",
-        client: initialValues?.client || "",
-        description: initialValues?.description || "",
-        status: initialValues?.status || "Active",
-    });
-    const [localError, setLocalError] = useState<string | null>(null);
-
     const { data: companiesData, isLoading: companiesLoading } = useAllCompanies();
     const companyOptions = useMemo<SelectOption[]>(() => {
         if (!companiesData || !Array.isArray((companiesData as any).data)) return [];
@@ -48,24 +45,6 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
             label: company.name,
         }));
     }, [companiesData]);
-
-    useImperativeHandle(ref, () => ({
-        submit: () => {
-            if (formRef.current) {
-                formRef.current.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-            }
-        },
-    }));
-
-    useEffect(() => {
-        if (autoFocus) {
-            setTimeout(() => {
-                try {
-                    nameInputRef.current?.focus?.();
-                } catch (e) {}
-            }, 0);
-        }
-    }, [autoFocus]);
 
     const companyChoices = useMemo(
         () => (companyOptions || []).filter((o: SelectOption) => o.value !== "all"),
@@ -77,136 +56,105 @@ const CreateJobForm = forwardRef<any, CreateJobFormProps>(({
         [statusOptions],
     );
 
-    const updateDraft = (field: string, value: string) => {
-        setDraft((prev) => ({ ...prev, [field]: value }));
+    // Initial values fallback
+    const formInitialValues: JobFormValues = {
+        name: initialValues?.name || "",
+        companyId: initialValues?.companyId ? String(initialValues.companyId) : "",
+        client: initialValues?.client || "",
+        description: initialValues?.description || "",
+        status: initialValues?.status || "Active",
     };
 
-    const buildPayload = () => {
-        return {
-            name: draft.name?.trim(),
-            companyId: draft.companyId,
-            client: draft.client?.trim(),
-            description: draft.description?.trim(),
-            status: draft.status || "Active",
-        };
+    // Validation logic
+    const validate = (values: JobFormValues) => {
+        const errors: Partial<Record<keyof JobFormValues, string>> = {};
+        if (!values.name.trim()) errors.name = "Job name is required.";
+        if (!values.companyId || values.companyId === "") errors.companyId = "Company is required.";
+        else if (isNaN(Number(values.companyId)) || Number(values.companyId) <= 0) errors.companyId = "Please select a valid company.";
+        return errors;
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e?.preventDefault?.();
-        setLocalError(null);
-        // Validate companyId
-        if (!draft.companyId || draft.companyId === "") {
-            setLocalError("Company is required.");
-            return;
+    // useForm hook
+    const form = useForm<JobFormValues>({
+        initialValues: formInitialValues,
+        validate,
+        onSubmit: (vals: JobFormValues) => {
+            onSubmit({
+                ...vals,
+                name: vals.name.trim(),
+                client: vals.client.trim(),
+                description: vals.description.trim(),
+                companyId: Number(vals.companyId),
+                status: vals.status || "Active",
+            });
+        },
+    });
+
+    // Expose imperative submit
+    React.useImperativeHandle(ref, () => form.imperativeHandle(), [form]);
+
+    // Autofocus logic
+    useEffect(() => {
+        if (autoFocus) {
+            setTimeout(() => {
+                const el = document.getElementById("name");
+                if (el) (el as HTMLInputElement).focus();
+            }, 0);
         }
-        const companyIdNum = Number(draft.companyId);
-        if (isNaN(companyIdNum) || companyIdNum <= 0) {
-            setLocalError("Please select a valid company.");
-            return;
-        }
-        onSubmit({
-            ...buildPayload(),
-            companyId: companyIdNum,
-        });
-    };
+    }, [autoFocus]);
+
+    // Field config
+    const fields = [
+        {
+            name: "name",
+            label: "Job Name",
+            required: true,
+            autoFocus: autoFocus,
+            placeholder: "Enter job name",
+            disabled: isSaving,
+        },
+        {
+            name: "companyId",
+            label: "Company",
+            type: "select",
+            required: true,
+            options: companiesLoading ? [{ value: "", label: "Loading companies..." }] : companyChoices,
+            disabled: companiesLoading || isSaving,
+        },
+        {
+            name: "client",
+            label: "Client",
+            placeholder: "Enter client name",
+            disabled: isSaving,
+        },
+        {
+            name: "status",
+            label: "Status",
+            type: "select",
+            options: statusChoices.length > 0 ? statusChoices : [
+                { value: "Active", label: "Active" },
+                { value: "Pending Storage", label: "Pending Storage" },
+                { value: "Closed", label: "Closed" },
+            ],
+            disabled: isSaving,
+        },
+        {
+            name: "description",
+            label: "Description",
+            type: "textarea",
+            placeholder: "Enter job description",
+            disabled: isSaving,
+        },
+    ];
 
     return (
-        <form ref={formRef} className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="create-job-name">
-                    Job Name
-                </label>
-                <input
-                    id="create-job-name"
-                    ref={nameInputRef}
-                    className={styles.input}
-                    value={draft.name}
-                    onChange={(e) => updateDraft("name", e.target.value)}
-                    placeholder="Enter job name"
-                    disabled={isSaving}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="create-job-company">
-                    Company <span style={{color: 'red'}}>*</span>
-                </label>
-                <select
-                    id="create-job-company"
-                    className={styles.select}
-                    value={String(draft.companyId)}
-                    onChange={(e) => updateDraft("companyId", e.target.value)}
-                    disabled={companiesLoading || isSaving}
-                    required
-                >
-                    <option value="">{companiesLoading ? "Loading companies..." : "Select a company"}</option>
-                    {companyChoices.map((opt: SelectOption) => (
-                        <option key={String(opt.value)} value={String(opt.value)}>
-                            {opt.label}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="create-job-client">
-                    Client
-                </label>
-                <input
-                    id="create-job-client"
-                    className={styles.input}
-                    value={draft.client}
-                    onChange={(e) => updateDraft("client", e.target.value)}
-                    placeholder="Enter client name"
-                    disabled={isSaving}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="create-job-status">
-                    Status
-                </label>
-                <select
-                    id="create-job-status"
-                    className={styles.select}
-                    value={draft.status}
-                    onChange={(e) => updateDraft("status", e.target.value)}
-                    disabled={isSaving}
-                >
-                    {statusChoices.length > 0 ? (
-                        statusChoices.map((opt: SelectOption) => (
-                            <option key={String(opt.value)} value={opt.value}>
-                                {opt.label}
-                            </option>
-                        ))
-                    ) : (
-                        <>
-                            <option value="Active">Active</option>
-                            <option value="Pending Storage">Pending Storage</option>
-                            <option value="Closed">Closed</option>
-                        </>
-                    )}
-                </select>
-            </div>
-
-            <div className={styles.formGroup}>
-                <label className={styles.label} htmlFor="create-job-description">
-                    Description
-                </label>
-                <textarea
-                    id="create-job-description"
-                    className={styles.textarea}
-                    value={draft.description}
-                    onChange={(e) => updateDraft("description", e.target.value)}
-                    placeholder="Enter job description"
-                    rows={4}
-                    disabled={isSaving}
-                />
-            </div>
-
-            {localError && <div className={styles.errorMsg}>{localError}</div>}
-            {error && <div className={styles.errorMsg}>{error}</div>}
-        </form>
+        <Form
+            ref={ref}
+            fields={fields}
+            form={form}
+            error={error}
+            className={styles.form}
+        />
     );
 });
 
