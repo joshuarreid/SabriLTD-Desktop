@@ -101,7 +101,7 @@ export default class CompanyApiClient extends ApiClient {
    * @throws {Error} If request fails or no token is available for authenticated endpoints
    */
   async fetchAllCompanies(params: Record<string, unknown> = {}): Promise<CompanyListResponse> {
-    logger.info("fetchAllCompanies called", { params });
+    logger.info("fetchAllCompanies called - full payload", params);
     try {
       // Ensure we have a token before making this authenticated request
       const token = await getTokenFromElectron();
@@ -118,9 +118,7 @@ export default class CompanyApiClient extends ApiClient {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      logger.info("fetchAllCompanies success", {
-        count: Array.isArray(response?.data) ? response.data.length : 0,
-      });
+      logger.info("fetchAllCompanies response", response);
       return response;
     } catch (error) {
       logger.error("fetchAllCompanies failed", error);
@@ -138,7 +136,7 @@ export default class CompanyApiClient extends ApiClient {
    * @throws {Error} If not found or request fails
    */
   async fetchCompanyById(companyId: number | string): Promise<CompanyResponse> {
-    logger.info("fetchCompanyById called", { companyId });
+    logger.info("fetchCompanyById called - full payload", { companyId });
     try {
       const token = await getTokenFromElectron();
       if (!token) {
@@ -148,7 +146,7 @@ export default class CompanyApiClient extends ApiClient {
       const response = await this.get(`/${companyId}`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      logger.info("fetchCompanyById success", { companyId: response?.data?.companyId });
+      logger.info("fetchCompanyById response", response);
       return response;
     } catch (error) {
       logger.error("fetchCompanyById failed", error);

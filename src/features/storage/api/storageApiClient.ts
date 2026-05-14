@@ -60,7 +60,7 @@ export default class StorageApiClient extends ApiClient {
      * @throws {Error} On request failure, duplicate, or validation error.
      */
     async createStorage(payload: Storage): Promise<StorageResponse> {
-        logger.info('createStorage called', { name: payload?.name });
+        logger.info('createStorage called - full payload', payload);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -72,7 +72,7 @@ export default class StorageApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('createStorage success', { storageId: response?.data?.storageId });
+            logger.info('createStorage response', response);
             return response as StorageResponse;
         } catch (error) {
             logger.error('createStorage failed', error);
@@ -88,7 +88,7 @@ export default class StorageApiClient extends ApiClient {
      * @throws {Error} On network or server error.
      */
     async fetchAllStorage(params: Partial<Storage> & { page?: number; size?: number } = {}): Promise<StorageListResponse> {
-        logger.info('fetchAllStorage called', params);
+        logger.info('fetchAllStorage called - full payload', params);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -100,10 +100,7 @@ export default class StorageApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info(
-                'fetchAllStorage success',
-                { count: Array.isArray(response?.data?.data) ? response.data.data.length : 0 }
-            );
+            logger.info('fetchAllStorage response', response);
             return response as StorageListResponse;
         } catch (error) {
             logger.error('fetchAllStorage failed', error);
@@ -119,7 +116,7 @@ export default class StorageApiClient extends ApiClient {
      * @throws {Error} If fetch fails or not found.
      */
     async fetchStorageById(storageId: number): Promise<StorageResponse> {
-        logger.info('fetchStorageById called', { storageId });
+        logger.info('fetchStorageById called - full payload', { storageId });
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -131,7 +128,7 @@ export default class StorageApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('fetchStorageById success', { storageId: response?.data?.storageId });
+            logger.info('fetchStorageById response', response);
             return response as StorageResponse;
         } catch (error) {
             logger.error('fetchStorageById failed', error);

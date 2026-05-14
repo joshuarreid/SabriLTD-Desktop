@@ -34,7 +34,7 @@ export default class JobApiClient extends ApiClient {
     }
 
     async createJob(payload: Job): Promise<any> {
-        logger.info("createJob called", { name: payload?.name });
+        logger.info("createJob called - full payload", payload);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -46,7 +46,7 @@ export default class JobApiClient extends ApiClient {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            logger.info("createJob success", { jobId: response?.data?.jobId });
+            logger.info("createJob response", response);
             return response;
         } catch (error) {
             logger.error("createJob failed", error);

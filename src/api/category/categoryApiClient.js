@@ -70,7 +70,7 @@ export default class CategoryApiClient extends ApiClient {
      * @throws {Error} If request fails or validation error.
      */
     async createCategory(payload) {
-        logger.info('createCategory called', { name: payload?.name });
+        logger.info('createCategory called - full payload', payload);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -82,7 +82,7 @@ export default class CategoryApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('createCategory success', { categoryId: response?.data?.categoryId });
+            logger.info('createCategory response', response);
             return response;
         } catch (error) {
             logger.error('createCategory failed', error);
@@ -98,7 +98,7 @@ export default class CategoryApiClient extends ApiClient {
      * @throws {Error} If request fails.
      */
     async fetchAllCategories(params = {}) {
-        logger.info('fetchAllCategories called', params);
+        logger.info('fetchAllCategories called - full payload', params);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -110,7 +110,7 @@ export default class CategoryApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('fetchAllCategories success', { count: Array.isArray(response?.data) ? response.data.length : 0 });
+            logger.info('fetchAllCategories response', response);
             return response;
         } catch (error) {
             logger.error('fetchAllCategories failed', error);
@@ -126,7 +126,7 @@ export default class CategoryApiClient extends ApiClient {
      * @throws {Error} If category not found or request fails.
      */
     async fetchCategoryById(categoryId) {
-        logger.info('fetchCategoryById called', { categoryId });
+        logger.info('fetchCategoryById called - full payload', { categoryId });
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -138,7 +138,7 @@ export default class CategoryApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('fetchCategoryById success', { categoryId: response?.data?.categoryId });
+            logger.info('fetchCategoryById response', response);
             return response;
         } catch (error) {
             logger.error('fetchCategoryById failed', error);

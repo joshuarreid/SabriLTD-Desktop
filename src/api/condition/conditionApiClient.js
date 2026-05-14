@@ -70,7 +70,7 @@ export default class ConditionApiClient extends ApiClient {
      * @throws {Error} If request fails, duplicate/invalid, or validation error.
      */
     async createCondition(payload) {
-        logger.info('createCondition called', { name: payload?.name });
+        logger.info('createCondition called - full payload', payload);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -82,7 +82,7 @@ export default class ConditionApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('createCondition success', { conditionId: response?.data?.conditionId });
+            logger.info('createCondition response', response);
             return response;
         } catch (error) {
             logger.error('createCondition failed', error);
@@ -97,7 +97,7 @@ export default class ConditionApiClient extends ApiClient {
      * @throws {Error} If request fails (network, 401, 500, etc).
      */
     async fetchAllConditions() {
-        logger.info('fetchAllConditions called');
+        logger.info('fetchAllConditions called - full payload', {});
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -109,7 +109,7 @@ export default class ConditionApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('fetchAllConditions success', { count: Array.isArray(response?.data) ? response.data.length : 0 });
+            logger.info('fetchAllConditions response', response);
             return response;
         } catch (error) {
             logger.error('fetchAllConditions failed', error);
@@ -125,7 +125,7 @@ export default class ConditionApiClient extends ApiClient {
      * @throws {Error} If condition does not exist or request fails.
      */
     async fetchConditionById(conditionId) {
-        logger.info('fetchConditionById called', { conditionId });
+        logger.info('fetchConditionById called - full payload', { conditionId });
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -137,7 +137,7 @@ export default class ConditionApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('fetchConditionById success', { conditionId: response?.data?.conditionId });
+            logger.info('fetchConditionById response', response);
             return response;
         } catch (error) {
             logger.error('fetchConditionById failed', error);

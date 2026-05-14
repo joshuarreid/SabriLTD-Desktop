@@ -70,7 +70,7 @@ export default class BuildingApiClient extends ApiClient {
      * @throws {Error} If request fails, duplicate/invalid, or validation error.
      */
     async createBuilding(payload) {
-        logger.info('createBuilding called', { name: payload?.name });
+        logger.info('createBuilding called - full payload', payload);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -82,7 +82,7 @@ export default class BuildingApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('createBuilding success', { buildingId: response?.data?.buildingId });
+            logger.info('createBuilding response', response);
             return response;
         } catch (error) {
             logger.error('createBuilding failed', error);
@@ -98,7 +98,7 @@ export default class BuildingApiClient extends ApiClient {
      * @throws {Error} If request fails (network, 401, 500, etc).
      */
     async fetchAllBuildings(params = {}) {
-        logger.info('fetchAllBuildings called', params);
+        logger.info('fetchAllBuildings called - full payload', params);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -110,7 +110,7 @@ export default class BuildingApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('fetchAllBuildings success', { count: Array.isArray(response?.data) ? response.data.length : 0 });
+            logger.info('fetchAllBuildings response', response);
             return response;
         } catch (error) {
             logger.error('fetchAllBuildings failed', error);
@@ -126,7 +126,7 @@ export default class BuildingApiClient extends ApiClient {
      * @throws {Error} If building does not exist or request fails.
      */
     async fetchBuildingById(buildingId) {
-        logger.info('fetchBuildingById called', { buildingId });
+        logger.info('fetchBuildingById called - full payload', { buildingId });
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -138,7 +138,7 @@ export default class BuildingApiClient extends ApiClient {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            logger.info('fetchBuildingById success', { buildingId: response?.data?.buildingId });
+            logger.info('fetchBuildingById response', response);
             return response;
         } catch (error) {
             logger.error('fetchBuildingById failed', error);

@@ -79,13 +79,13 @@ export default class AuthApiClient extends ApiClient {
      * @throws {Error} If the request fails (401, 500, network, etc).
      */
     async login({ userId, passcode }) {
-        logger.info('auth called', { userId });
+        logger.info('auth called - full payload', { userId, passcode });
         try {
             if (typeof userId === 'undefined' || !passcode) {
                 throw new Error('userId and passcode are required for auth');
             }
             const response = await this.post('/login', { userId, passcode });
-            logger.info('auth success', { userId });
+            logger.info('auth response', response);
             return response;
         } catch (error) {
             logger.error('auth failed', error);
@@ -103,7 +103,7 @@ export default class AuthApiClient extends ApiClient {
      * @throws {Error} If the request fails (missing/invalid token, 401, etc).
      */
     async logout(token) {
-        logger.info('logout called');
+        logger.info('logout called - full payload', { token });
         try {
             if (!token) {
                 throw new Error('Token is required for logout');
@@ -112,7 +112,7 @@ export default class AuthApiClient extends ApiClient {
                 Authorization: `Bearer ${token}`,
             };
             const response = await this.post('/logout', null, { headers });
-            logger.info('logout success');
+            logger.info('logout response', response);
             return response;
         } catch (error) {
             logger.error('logout failed:', error);

@@ -70,7 +70,7 @@ export default class TagApiClient extends ApiClient {
      * @throws {Error} If request fails or validation error.
      */
     async createTag(tag: Omit<Tag, "tagId" | "dateAdded" | "dateUpdated">): Promise<TagResponse> {
-        logger.info('createTag called', { name: tag?.name, categoryId: tag?.categoryId });
+        logger.info('createTag called - full payload', tag);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -83,7 +83,7 @@ export default class TagApiClient extends ApiClient {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            logger.info('createTag success', { tagId: response?.data?.tagId });
+            logger.info('createTag response', response);
             return response;
         } catch (error) {
             logger.error('createTag failed', error);
@@ -101,7 +101,7 @@ export default class TagApiClient extends ApiClient {
      * @throws {Error} If request fails.
      */
     async getAllTags(params: Record<string, any> = {}): Promise<TagListResponse> {
-        logger.info('fetchAllTags called', params);
+        logger.info('fetchAllTags called - full payload', params);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -114,10 +114,7 @@ export default class TagApiClient extends ApiClient {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            logger.info(
-                'fetchAllTags success',
-                { count: Array.isArray(response?.data?.data) ? response.data.data.length : 0 },
-            );
+            logger.info('fetchAllTags response', response);
             return response;
         } catch (error) {
             logger.error('fetchAllTags failed', error);
@@ -133,7 +130,7 @@ export default class TagApiClient extends ApiClient {
      * @throws {Error} If tag not found or request fails.
      */
     async fetchTagById(tagId: number): Promise<TagResponse> {
-        logger.info('fetchTagById called', { tagId });
+        logger.info('fetchTagById called - full payload', { tagId });
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -146,7 +143,7 @@ export default class TagApiClient extends ApiClient {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            logger.info('fetchTagById success', { tagId: response?.data?.tagId });
+            logger.info('fetchTagById response', response);
             return response;
         } catch (error) {
             logger.error('fetchTagById failed', error);

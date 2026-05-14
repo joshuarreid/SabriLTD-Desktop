@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "../styles/jobscreen.module.css";
 import JobBrowser from "../../features/job/components/JobBrowser";
 import useJobScreen from "../hooks/useJobScreen";
+import { type JobInfo } from "../../features/job/components/JobInfoCard";
 
 
 /**
@@ -23,14 +24,9 @@ import useJobScreen from "../hooks/useJobScreen";
  * @type {{info: Function, error: Function}}
  */
 const logger = {
-    info: (...args) => console.log("[JobScreen]", ...args),
-    error: (...args) => console.error("[JobScreen]", ...args),
+    info: (...args: any[]) => console.log("[JobScreen]", ...args),
+    error: (...args: any[]) => console.error("[JobScreen]", ...args),
 };
-
-interface JobPreview {
-    jobId: number | string;
-    [key: string]: unknown;
-}
 
 const JobScreen = () => {
     logger.info("JobScreen rendered");
@@ -40,9 +36,6 @@ const JobScreen = () => {
         openCreateJobModal,
         isCreateJobModalOpen,
         closeCreateJobModal,
-        createJobStatus,
-        createJobError,
-        handleCreateJob,
         // ...other destructured values...
     } = useJobScreen();
 
@@ -54,7 +47,7 @@ const JobScreen = () => {
      * @param {object} job - Job object from the grid.
      * @returns {void}
      */
-    const handleJobClick = (job: JobPreview) => {
+    const handleJobClick = (job: JobInfo) => {
         if (!job || !job.jobId) {
             logger.error("Tried to navigate to job with invalid job object", job);
             return;
@@ -75,9 +68,6 @@ const JobScreen = () => {
                 openCreateJobModal={openCreateJobModal}
                 isCreateJobModalOpen={isCreateJobModalOpen}
                 closeCreateJobModal={closeCreateJobModal}
-                createJobStatus={createJobStatus}
-                createJobError={createJobError}
-                handleCreateJob={handleCreateJob}
             />
         </div>
     );

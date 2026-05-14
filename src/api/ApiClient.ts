@@ -146,24 +146,20 @@ export default class ApiClient {
             config.headers['X-Transaction-ID'] = tx;
             config.headers['x-transaction-id'] = tx;
         }
-        logger.info('_onRequest', config.method?.toUpperCase(), config.url, '[X-Transaction-ID attached]');
+        logger.info('_onRequest', config.method?.toUpperCase(), config.url, 'payload:', config.data || config.params);
         return config;
     }
 
     /**
-     * Default response interceptor. Logs X-Transaction-ID returned by server for traceability.
+     * Default response interceptor.
+     * Logs the full response object.
      *
      * @protected
      * @param {import('axios').AxiosResponse} response
      * @returns {import('axios').AxiosResponse}
      */
     _onResponse(response) {
-        const respTx = response.headers && (response.headers['x-transaction-id'] || response.headers['X-Transaction-ID']);
-        if (respTx) {
-            logger.info('_onResponse', response.config?.url, 'status', response.status, 'X-Transaction-ID', respTx);
-        } else {
-            logger.info('_onResponse', response.config?.url, 'status', response.status);
-        }
+        logger.info('_onResponse', response.config?.method?.toUpperCase(), response.config?.url, 'response:', response);
         return response;
     }
 
@@ -314,207 +310,43 @@ export default class ApiClient {
             const response = await this.axios.request(config);
             const serverTx = response.headers && (response.headers['x-transaction-id'] || response.headers['X-Transaction-ID']);
             if (serverTx) {
-                logger.info('makeRequest completed', method?.toUpperCase(), url, 'serverTxId=', serverTx);
+                logger.info('makeRequest', 'Server transaction ID:', serverTx);
             }
             return rawResponse ? response : response.data;
-        } catch (err) {
-            const normalized = this._normalizeError(err);
-            logger.error('makeRequest failed', method?.toUpperCase(), url, { status: normalized.status });
-            throw normalized;
+        } catch (error) {
+            throw this._onError(error);
         }
     }
 
     /**
-     * HTTP GET helper that appends params to the endpoint using URLSearchParams if provided.
-     *
-     * @async
-     * @param {string} endpoint - endpoint returned by resourceEndpoint or absolute URL
-     * @param {Object} [params={}]
-     * @param {Object} [options={}] - additional makeRequest options
-     * @returns {Promise<any>}
+     * Thin HTTP helpers for convenience (get/post/put/patch/delete)
      */
-    async get(endpoint, params = {}, options = {}) {
-        let url = endpoint;
-        if (params && Object.keys(params).length > 0) {
-            const searchParams = new URLSearchParams();
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
-                    if (Array.isArray(value)) {
-                        value.forEach((v) => v !== undefined && v !== null && searchParams.append(key, String(v)));
-                    } else {
-                        searchParams.append(key, String(value));
-                    }
-                }
-            });
-            const qs = searchParams.toString();
-            if (qs) url += (String(url).includes('?') ? '&' : '?') + qs;
-        }
-        return this.makeRequest(url, { method: 'GET', ...options });
+    get(endpoint, params = {}, config = {}) {
+        return this.makeRequest(endpoint, { ...config, method: 'GET', params });
+    }
+    post(endpoint, data = {}, config = {}) {
+        return this.makeRequest(endpoint, { ...config, method: 'POST', data });
+    }
+    put(endpoint, data = {}, config = {}) {
+        return this.makeRequest(endpoint, { ...config, method: 'PUT', data });
+    }
+    patch(endpoint, data = {}, config = {}) {
+        return this.makeRequest(endpoint, { ...config, method: 'PATCH', data });
+    }
+    delete(endpoint, data = {}, config = {}) {
+        // Some APIs expect data in DELETE, some don't
+        return this.makeRequest(endpoint, { ...config, method: 'DELETE', data });
     }
 
     /**
-     * HTTP POST helper. Attaches body only when provided.
-     *
-     * @async
-     * @param {string} endpoint
-     * @param {any} data
-     * @param {Object} [options={}]
-     * @returns {Promise<any>}
-     */
-    async post(endpoint, data: any = null, options = {}) {
-        const config = { method: 'POST', ...options };
-        if (data !== null && data !== undefined) {
-            config.headers = { Accept: 'application/json', ...(options.headers || {}) };
-            config.body = data;
-        }
-        return this.makeRequest(endpoint, config);
-    }
-
-    /**
-     * HTTP POST helper for `multipart/form-data`.
-     * Used for file uploads (FormData).
-     *
-     * @async
+     * POST with multipart/form-data (for file uploads)
      * @param {string} endpoint
      * @param {FormData} formData
-     * @param {Object} [options={}]
+     * @param {Object} config
      * @returns {Promise<any>}
      */
-    async postMultipart(endpoint, formData, options = {}) {
-        const url = this._buildUrl(endpoint);
-        logger.info('postMultipart', url);
-
-        // Do not set Content-Type header; browser/axios sets it for FormData automatically
-        const headers = { ...(options.headers || {}) };
-        // Remove any Content-Type as axios will set boundary properly
-        Object.keys(headers).forEach(
-            (key) => /content-type/i.test(key) && delete headers[key]
-        );
-
-        const config = {
-            url,
-            method: 'post',
-            headers,
-            data: formData,
-            ...options,
-        };
-
-        try {
-            const response = await this.axios.request(config);
-            return response.data;
-        } catch (error) {
-            logger.error('postMultipart failed', error);
-            throw this._normalizeError(error);
-        }
-    }
-
-    /**
-     * HTTP PUT helper.
-     *
-     * @async
-     * @param {string} endpoint
-     * @param {any} data
-     * @param {Object} [options={}]
-     * @returns {Promise<any>}
-     */
-    async put(endpoint, data: any = null, options = {}) {
-        const config = { method: 'PUT', ...options };
-        if (data !== null && data !== undefined) {
-            config.headers = { Accept: 'application/json', ...(options.headers || {}) };
-            config.body = data;
-        }
-        return this.makeRequest(endpoint, config);
-    }
-
-    /**
-     * HTTP PATCH helper.
-     *
-     * @async
-     * @param {string} endpoint
-     * @param {any} data
-     * @param {Object} [options={}]
-     * @returns {Promise<any>}
-     */
-    async patch(endpoint, data: any = null, options = {}) {
-        const config = { method: 'PATCH', ...options };
-        if (data !== null && data !== undefined) {
-            config.headers = { Accept: 'application/json', ...(options.headers || {}) };
-            config.body = data;
-        }
-        return this.makeRequest(endpoint, config);
-    }
-
-    /**
-     * HTTP DELETE helper. Accepts optional params to be appended to URL.
-     *
-     * @async
-     * @param {string} endpoint
-     * @param {Object} [params={}]
-     * @param {Object} [options={}]
-     * @returns {Promise<any>}
-     */
-    async delete(endpoint, params = {}, options = {}) {
-        let url = endpoint;
-        if (params && Object.keys(params).length > 0) {
-            const searchParams = new URLSearchParams();
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
-                    if (Array.isArray(value)) {
-                        value.forEach((v) => v !== undefined && v !== null && searchParams.append(key, String(v)));
-                    } else {
-                        searchParams.append(key, String(value));
-                    }
-                }
-            });
-            const qs = searchParams.toString();
-            if (qs) url += (String(url).includes('?') ? '&' : '?') + qs;
-        }
-        return this.makeRequest(url, { method: 'DELETE', ...options });
-    }
-
-    /**
-     * Validate that a value is provided and optionally of a given type.
-     *
-     * @param {any} value - value to validate
-     * @param {string} paramName - name used in error messages
-     * @param {string|null} [type=null] - optional expected type: 'string'|'number'|'object'
-     * @throws {Error} when validation fails
-     */
-    validateRequired(value, paramName, type = null) {
-        if (value === null || value === undefined) {
-            throw new Error(`${paramName} is required`);
-        }
-        if (type === 'string') {
-            if (typeof value !== 'string' || value.trim() === '') {
-                throw new Error(`${paramName} cannot be empty`);
-            }
-        }
-        if (type === 'number') {
-            if (typeof value !== 'number' || Number.isNaN(value)) {
-                throw new Error(`${paramName} must be a valid number`);
-            }
-        }
-        if (type === 'object') {
-            if (typeof value !== 'object' || value === null) {
-                throw new Error(`${paramName} must be an object`);
-            }
-        }
-    }
-
-    /**
-     * Validate an identifier (numeric id). Accepts number or numeric-string.
-     *
-     * @param {any} id
-     * @param {string} [resourceName='Resource']
-     * @throws {Error} when id is missing or not numeric
-     */
-    validateId(id, resourceName = 'Resource') {
-        if (id === null || id === undefined) {
-            throw new Error(`${resourceName} id is required`);
-        }
-        const parsed = typeof id === 'string' && id.trim() !== '' ? Number(id) : id;
-        if (parsed === null || parsed === undefined || Number.isNaN(Number(parsed)) || !Number.isFinite(Number(parsed))) {
-            throw new Error(`${resourceName} id must be a valid number`);
-        }
+    postMultipart(endpoint, formData, config = {}) {
+        const headers = { ...(config.headers || {}), 'Content-Type': 'multipart/form-data' };
+        return this.makeRequest(endpoint, { ...config, method: 'POST', data: formData, headers });
     }
 }

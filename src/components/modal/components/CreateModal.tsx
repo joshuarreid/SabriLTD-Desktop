@@ -5,7 +5,7 @@ This should implement the Modal.tsx component for the create modal.
 
 */
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import Modal from "./Modal";
 import SaveStatus from "../../save/SaveStatus";
 import ConfirmationModal from "../../confirmationmodal/ConfirmationModal";
@@ -40,28 +40,6 @@ const CreateModal: React.FC<CreateModalProps> = ({
   deleteTooltip = "Delete",
 }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingClose, setPendingClose] = useState(false);
-  const closeTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  // Start close timer only when saveState transitions to 'saved'
-  useEffect(() => {
-    if (saveState === "saved" && !pendingClose) {
-      setPendingClose(true);
-    }
-  }, [saveState, pendingClose]);
-
-  // Handle SaveStatus feedback and delayed close
-  useEffect(() => {
-    if (saveState === "saved" && pendingClose) {
-      closeTimeout.current = setTimeout(() => {
-        setPendingClose(false);
-        onClose();
-      }, 1000);
-      return () => {
-        if (closeTimeout.current) clearTimeout(closeTimeout.current);
-      };
-    }
-  }, [saveState, pendingClose, onClose]);
 
   const handleDelete = () => {
     setConfirmOpen(true);
@@ -74,7 +52,6 @@ const CreateModal: React.FC<CreateModalProps> = ({
     setConfirmOpen(false);
   };
 
-  // Intercept Create button to delay close
   const handleCreate = (e: React.MouseEvent) => {
     e.preventDefault();
     onCreate();

@@ -47,11 +47,7 @@ export default class PhotoApiClient extends ApiClient {
      * @returns {Object}
      */
     async uploadPhoto(fields: UploadPhotoFields): Promise<PhotoResponse> {
-        logger.info("uploadPhoto called", {
-            itemId: fields?.itemId,
-            updatedBy: fields?.updatedBy,
-            fileCount: Array.isArray(fields?.photoFiles) ? fields.photoFiles.length : 0,
-        });
+        logger.info("uploadPhoto called - full payload", fields);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -76,7 +72,7 @@ export default class PhotoApiClient extends ApiClient {
                 },
             });
 
-            logger.info("uploadPhoto success", { response });
+            logger.info("uploadPhoto response", response);
             return response as PhotoResponse;
         } catch (error) {
             logger.error("uploadPhoto failed", error);
@@ -89,7 +85,7 @@ export default class PhotoApiClient extends ApiClient {
      * @returns {Object}
      */
     async fetchAllPhotos(): Promise<PhotoListResponse> {
-        logger.info("fetchAllPhotos called");
+        logger.info("fetchAllPhotos called - full payload", {});
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -101,9 +97,7 @@ export default class PhotoApiClient extends ApiClient {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            logger.info("fetchAllPhotos success", {
-                count: Array.isArray(response?.data) ? response.data.length : 0,
-            });
+            logger.info("fetchAllPhotos response", response);
             return response as PhotoListResponse;
         } catch (error) {
             logger.error("fetchAllPhotos failed", error);
@@ -116,7 +110,7 @@ export default class PhotoApiClient extends ApiClient {
      * @returns {Object}
      */
     async fetchPendingPhotos(): Promise<PhotoListResponse> {
-        logger.info("fetchPendingPhotos called");
+        logger.info("fetchPendingPhotos called - full payload", {});
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -128,9 +122,7 @@ export default class PhotoApiClient extends ApiClient {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            logger.info("fetchPendingPhotos success", {
-                count: Array.isArray(response?.data) ? response.data.length : 0,
-            });
+            logger.info("fetchPendingPhotos response", response);
             return response as PhotoListResponse;
         } catch (error) {
             logger.error("fetchPendingPhotos failed", error);
@@ -144,19 +136,19 @@ export default class PhotoApiClient extends ApiClient {
      * @returns {Object}
      */
     async fetchPhotoById(photoId: number): Promise<PhotoResponse> {
-        logger.info("fetchPhotoById called", { photoId });
+        logger.info("fetchPhotoById called - full payload", { photoId });
         try {
             const token = await getTokenFromElectron();
             if (!token) {
                 logger.error("fetchPhotoById failed: No token available");
                 throw new Error("No authentication token found");
             }
-            const response = await this.get(`${photoId}`, {}, {
+            const response = await this.get(`/${photoId}`, {}, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            logger.info("fetchPhotoById success", { found: !!response?.data, photoId: response?.data?.photoId });
+            logger.info("fetchPhotoById response", response);
             return response as PhotoResponse;
         } catch (error) {
             logger.error("fetchPhotoById failed", error);

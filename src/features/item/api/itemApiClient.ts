@@ -72,7 +72,7 @@ export default class ItemApiClient extends ApiClient {
      * @throws {Error} If creation fails.
      */
     async createItem(payload: Item): Promise<any> {
-        logger.info('createItem called', { name: payload?.name });
+        logger.info('createItem called - full payload', payload);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -82,7 +82,7 @@ export default class ItemApiClient extends ApiClient {
             const raw = await this.post('', payload, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            logger.info('createItem success', { itemId: raw?.data?.itemId });
+            logger.info('createItem response', raw);
             return raw;
         } catch (error) {
             logger.error('createItem failed', error);
@@ -100,7 +100,7 @@ export default class ItemApiClient extends ApiClient {
      * @throws {Error} If the request fails.
      */
     async fetchAllItems(params: Record<string, unknown> = {}): Promise<any> {
-        logger.info('fetchAllItems called', params);
+        logger.info('fetchAllItems called - full payload', params);
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -110,7 +110,7 @@ export default class ItemApiClient extends ApiClient {
             const raw = await this.get('', params, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-
+            logger.info('fetchAllItems response', raw);
             // Compose "meta" in the same format as jobs
             const meta = {
                 page: raw?.page ?? null,
@@ -123,7 +123,6 @@ export default class ItemApiClient extends ApiClient {
                 totalRelatedCount: raw?.totalRelatedCount ?? null,
             };
             const itemsArray = Array.isArray(raw?.data) ? raw.data : [];
-            logger.info('fetchAllItems success', { count: itemsArray.length, meta });
             return {
                 status: raw?.status,
                 data: itemsArray,
@@ -142,17 +141,17 @@ export default class ItemApiClient extends ApiClient {
      * - GET /api/items/{itemId}
      */
     async fetchItemById(itemId: string | number): Promise<any> {
-        logger.info('fetchItemById called', { itemId });
+        logger.info('fetchItemById called - full payload', { itemId });
         try {
             const token = await getTokenFromElectron();
             if (!token) {
                 logger.error('fetchItemById failed: No token available');
                 throw new Error('No authentication token found');
             }
-            const raw = await this.get(`${itemId}`, {}, {
+            const raw = await this.get(`/${itemId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            logger.info('fetchItemById success', { itemId: raw?.data?.itemId });
+            logger.info('fetchItemById response', raw);
             return raw;
         } catch (error) {
             logger.error('fetchItemById failed', error);

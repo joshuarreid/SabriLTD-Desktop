@@ -11,23 +11,24 @@ import {
     useJobFilters,
     DEFAULT_PAGE_SIZE,
     DEFAULT_SORT_KEY,
-} from "../../features/job/hooks/useJobFilters.ts";
-import { useJobSearch } from "../../features/job/hooks/useJobSearch.ts";
-import { useJobScreenPagination } from "../../features/job/hooks/useJobScreenPagination.ts";
-import { useCreateJobModal } from "../../features/job/hooks/useCreateJobModal.ts";
+} from "../../features/job/hooks/useJobFilters";
+import { useJobSearch } from "../../features/job/hooks/useJobSearch";
+import { useJobScreenPagination } from "../../features/job/hooks/useJobScreenPagination";
+import useModal from "../../components/modal/hooks/useModal";
 
 const logger = {
-    info: (...args) => console.log("[useJobScreen]", ...args),
-    error: (...args) => console.error("[useJobScreen]", ...args),
+    info: (...args: any[]) => console.log("[useJobScreen]", ...args),
+    error: (...args: any[]) => console.error("[useJobScreen]", ...args),
 };
 
 export const useJobScreen = () => {
     logger.info("useJobScreen render start");
 
     /**
-     * Create job modal orchestration (open/close/mutation).
+     * Create job modal (open/close only).
+     * CreateJobModal now owns mutation + save lifecycle (per docs/modal.md).
      */
-    const createJobModal = useCreateJobModal();
+    const createJobModal = useModal(false);
 
     // ---- existing useJobScreen code remains unchanged below ----
     // (your filters/pagination/search logic)
@@ -46,7 +47,6 @@ export const useJobScreen = () => {
     const [sortKey, setSortKey] = useState(DEFAULT_SORT_KEY);
     const [globalSearchQuery, setGlobalSearchQuery] = useState("");
     const [hasGlobalFilterApplied, setHasGlobalFilterApplied] = useState(false);
-    const [firstGlobalFilterKey, setFirstGlobalFilterKey] = useState(null);
 
     const [serverPage, setServerPage] = useState(1);
     const [serverPageSize, setServerPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -86,7 +86,7 @@ export const useJobScreen = () => {
         totalPagesFromServer: serverMeta?.totalPages ?? baseTotalPages,
     });
 
-    const handlePageChange = (nextPage) => {
+    const handlePageChange = (nextPage: number) => {
         logger.info("useJobScreen handlePageChange (from UI)", { nextPage });
         pagination.setPage(nextPage);
         setServerPage(nextPage);
@@ -114,7 +114,7 @@ export const useJobScreen = () => {
         setServerPage(prev);
     };
 
-    const handleSetPageSize = (nextSize) => {
+    const handleSetPageSize = (nextSize: number) => {
         logger.info("useJobScreen handleSetPageSize", { nextSize });
         pagination.setPageSize(nextSize);
         setServerPageSize(nextSize);
@@ -149,7 +149,6 @@ export const useJobScreen = () => {
         setGlobalSearchQuery("");
 
         setHasGlobalFilterApplied(false);
-        setFirstGlobalFilterKey(null);
         setBaseJobs(baseListJobs);
 
         pagination.resetPagination();
@@ -157,7 +156,7 @@ export const useJobScreen = () => {
         setServerPageSize(DEFAULT_PAGE_SIZE);
     };
 
-    const applyGlobalSearch = (query) => {
+    const applyGlobalSearch = (query: string) => {
         logger.info("useJobScreen applyGlobalSearch", { query });
 
         setFiltersState({
@@ -174,7 +173,6 @@ export const useJobScreen = () => {
         filters.setPageSize(DEFAULT_PAGE_SIZE);
 
         setHasGlobalFilterApplied(false);
-        setFirstGlobalFilterKey(null);
         setBaseJobs([]);
 
         setGlobalSearchQuery(query || "");
@@ -246,9 +244,6 @@ export const useJobScreen = () => {
         isCreateJobModalOpen: createJobModal.open,
         openCreateJobModal: createJobModal.openModal,
         closeCreateJobModal: createJobModal.closeModal,
-        createJobStatus: createJobModal.status,
-        createJobError: createJobModal.error,
-        handleCreateJob: createJobModal.handleCreateJob,
     };
 };
 

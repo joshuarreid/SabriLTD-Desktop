@@ -3,6 +3,12 @@
 export interface Job {
     jobId?: number;
     name: string;
+    companyId: number; // Backend expects this field (lowercase d)
+    client?: string;
+    description?: string;
+    status?: string;
+    updatedBy?: number;
+    comments?: any;
     [key: string]: any;
 }
 
@@ -21,4 +27,3 @@ export interface JobListResponse {
     transactionId?: string;
     errors?: any;
 }
-

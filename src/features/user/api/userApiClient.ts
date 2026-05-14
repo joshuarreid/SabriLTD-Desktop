@@ -80,10 +80,10 @@ export default class UserApiClient extends ApiClient {
      * @throws {Error} If the request fails (network, 500, etc).
      */
     async fetchPublicList(): Promise<{ data: PublicUserListResponse }> {
-        logger.info('fetchPublicList called');
+        logger.info('fetchPublicList called - full payload', {});
         try {
             const response = await this.get('/public-list');
-            logger.info('fetchPublicList success', { count: Array.isArray(response?.data) ? response.data.length : 0 });
+            logger.info('fetchPublicList response', response);
             return response;
         } catch (error) {
             logger.error('fetchPublicList failed', error);
@@ -101,7 +101,7 @@ export default class UserApiClient extends ApiClient {
      * @throws {Error} If the request fails (network, 401, 500, etc).
      */
     async fetchMe(): Promise<{ data: UserResponse }> {
-        logger.info('fetchMe called');
+        logger.info('fetchMe called - full payload', {});
         try {
             const token = await getTokenFromElectron();
             if (!token) {
@@ -111,6 +111,7 @@ export default class UserApiClient extends ApiClient {
             const response = await this.get('/me', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            logger.info('fetchMe response', response);
             return response;
         } catch (error) {
             logger.error('fetchMe failed', error);
@@ -125,13 +126,14 @@ export default class UserApiClient extends ApiClient {
      * @throws {Error} If the request fails (network, 401, 500, etc).
      */
     async fetchAllUsers(): Promise<{ data: UserListResponse }> {
-        logger.info('fetchAllUsers called');
+        logger.info('fetchAllUsers called - full payload', {});
         try {
             const token = await getTokenFromElectron();
             if (!token) throw new Error('No authentication token found');
             const response = await this.get('/', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            logger.info('fetchAllUsers response', response);
             return response;
         } catch (error) {
             logger.error('fetchAllUsers failed', error);
@@ -147,13 +149,14 @@ export default class UserApiClient extends ApiClient {
      * @throws {Error} If user does not exist or request fails.
      */
     async fetchUserById(userId: number): Promise<{ data: UserResponse }> {
-        logger.info('fetchUserById called', { userId });
+        logger.info('fetchUserById called - full payload', { userId });
         try {
             const token = await getTokenFromElectron();
             if (!token) throw new Error('No authentication token found');
             const response = await this.get(`/${userId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            logger.info('fetchUserById response', response);
             return response;
         } catch (error) {
             logger.error('fetchUserById failed', error);
@@ -176,6 +179,7 @@ export default class UserApiClient extends ApiClient {
             const response = await this.post('/', user, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            logger.info('createUser response', response);
             return response;
         } catch (error) {
             logger.error('createUser failed', error);
@@ -199,6 +203,7 @@ export default class UserApiClient extends ApiClient {
             const response = await this.put(`/${userId}`, user, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            logger.info('updateUser response', response);
             return response;
         } catch (error) {
             logger.error('updateUser failed', error);

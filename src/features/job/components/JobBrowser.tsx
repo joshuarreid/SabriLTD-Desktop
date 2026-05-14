@@ -28,9 +28,6 @@ interface JobSearchBoxProps {
     openCreateJobModal: () => void;
     isCreateJobModalOpen: boolean;
     closeCreateJobModal: () => void;
-    createJobStatus: string;
-    createJobError: string;
-    handleCreateJob: (payload: any) => void;
 }
 
 /**
@@ -50,9 +47,6 @@ const JobBrowser: React.FC<JobSearchBoxProps> = ({
     openCreateJobModal,
     isCreateJobModalOpen,
     closeCreateJobModal,
-    createJobStatus,
-    createJobError,
-    handleCreateJob,
 }) => {
     logger.info("JobBrowser rendered");
 
@@ -317,20 +311,13 @@ const JobBrowser: React.FC<JobSearchBoxProps> = ({
             {/* Create Job Modal */}
             <CreateJobModal
                 open={isCreateJobModalOpen}
-                isSaving={createJobStatus === "saving"}
-                saveState={createJobStatus}
                 onClose={() => {
                     logger.info("Create job modal closed");
                     closeCreateJobModal();
                 }}
-                onSave={(payload: any) => {
-                    logger.info("Create job modal save submitted");
-                    handleCreateJob(payload);
-                }}
-                error={createJobError}
-                companyOptions={companyOptions}
-                statusOptions={statusOptions}
                 onCancel={closeCreateJobModal}
+                statusOptions={statusOptions}
+                companyOptions={companyOptions}
             />
 
             {/* Pagination footer */}

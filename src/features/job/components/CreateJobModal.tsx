@@ -1,79 +1,119 @@
-import React, { useRef } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import CreateModal from "../../../components/modal/components/CreateModal";
 import CreateJobForm from "./CreateJobForm";
 import styles from "../styles/createjobmodal.module.css";
+import { useCreateJob } from "../hooks/useJobs";
+import useSaveStatus from "../../../components/save/useSaveStatus";
+import { useCurrentUser } from "../../user/hooks/useCurrentUser";
+
+type CreateJobValues = {
+    name: string;
+    companyId: string | number;
+    client: string;
+    description: string;
+    status: string;
+};
 
 interface CreateJobModalProps {
     open: boolean;
     onClose: () => void;
-    isSaving: boolean;
-    saveState: any;
-    onSave: (data: any) => void;
     onCancel: () => void;
-    error?: any;
-    companyOptions: any[];
     statusOptions: any[];
     autoFocus?: boolean;
-    initialValues?: any;
+    initialValues?: Partial<CreateJobValues>;
+    // allow pass-through props (companyOptions, etc.) without typing everything here
     [key: string]: any;
 }
 
-/**
- * Standardized logger for CreateJobModal.
- */
-const logger = {
-    info: (...args: any[]) => console.log("[CreateJobModal]", ...args),
-    error: (...args: any[]) => console.error("[CreateJobModal]", ...args),
-};
-
 const CreateJobModal: React.FC<CreateJobModalProps> = (props) => {
-    logger.info("Rendering CreateJobModal with props", props);
-    logger.info("companyOptions in CreateJobModal:", props.companyOptions);
-    logger.info("statusOptions in CreateJobModal:", props.statusOptions);
     const {
         open,
         onClose,
-        onSave,
         onCancel,
-        isSaving,
-        saveState = "idle",
-        error,
+        statusOptions,
         autoFocus,
         initialValues,
         ...rest
     } = props;
-    const normalizedError = error ?? null;
+
+    const { user: currentUser } = useCurrentUser();
+    const currentUserId = useMemo(
+        () => currentUser?.userId ?? currentUser?.id ?? null,
+        [currentUser],
+    );
+
+    const [error, setError] = useState<string | null>(null);
+
+    const { status: saveStatus, isSaving, runSave, reset: resetSaveStatus } = useSaveStatus({
+        onSaved: onClose,
+        savedDelay: 500,
+    });
+
+    const createJob = useCreateJob();
+
     const formRef = useRef<any>(null);
-    const handleCreate = () => {
+
+    const closeAndReset = useCallback(() => {
+        onClose();
+        setError(null);
+        resetSaveStatus();
+        try {
+            createJob.reset();
+        } catch {
+            // ignore
+        }
+    }, [onClose, resetSaveStatus, createJob]);
+
+    const handleCreate = useCallback(() => {
         if (formRef.current && typeof formRef.current.submit === "function") {
             formRef.current.submit();
         }
-    };
+    }, []);
+
+    const handleSubmit = useCallback(
+        async (values: CreateJobValues) => {
+            setError(null);
+
+            // Ensure companyId is a number and present
+            const normalized = {
+                ...values,
+                companyId: Number(values.companyId), // backend expects companyId
+                name: String(values.name || "").trim(),
+                client: String(values.client || "").trim(),
+                description: String(values.description || "").trim(),
+                status: values.status || "Active",
+                updatedBy: currentUserId,
+            };
+
+            try {
+                await runSave(() => createJob.mutateAsync(normalized as any));
+            } catch (err: any) {
+                setError(err?.message || "Failed to create job");
+            }
+        },
+        [createJob, runSave, currentUserId],
+    );
+
     return (
         <CreateModal
             open={open}
-            onClose={() => {
-                logger.info("Modal closed");
-                onClose();
-            }}
+            onClose={closeAndReset}
             onCreate={handleCreate}
-            onCancel={onCancel}
+            onCancel={closeAndReset}
             isSaving={isSaving}
-            saveState={saveState}
+            saveState={saveStatus}
             title={<h2 className={styles.modalTitle}>New Job</h2>}
         >
             <CreateJobForm
                 ref={formRef}
-                error={normalizedError}
+                error={error}
                 autoFocus={!!autoFocus}
-                initialValues={initialValues}
+                initialValues={initialValues as any}
+                onSubmit={handleSubmit}
+                statusOptions={statusOptions}
                 isSaving={isSaving}
-                saveState={saveState}
-                onSave={onSave}
-                onCancel={onCancel}
-                statusOptions={props.statusOptions}
-                {...Object.fromEntries(Object.entries(rest).filter(([key]) => key !== "statusOptions"))}
+                {...rest}
             />
         </CreateModal>
     );
