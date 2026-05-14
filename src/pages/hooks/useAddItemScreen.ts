@@ -11,16 +11,28 @@
  * }
  */
 import { useQuery } from "@tanstack/react-query";
-import { photoKeys } from "../../features/photo/api/photoQueryKeys.ts";
-import { getPendingPhotos } from "../../features/photo/api/photo.ts";
-
+import { photoKeys } from "../../features/photo/api/photoQueryKeys";
+import { getPendingPhotos } from "../../features/photo/api/photo";
 
 const logger = {
-    info: (...args) => console.log("[useAddItemScreen]", ...args),
-    error: (...args) => console.error("[useAddItemScreen]", ...args),
+    info: (...args: any[]) => console.log("[useAddItemScreen]", ...args),
+    error: (...args: any[]) => console.error("[useAddItemScreen]", ...args),
 };
 
-export const usePendingPhotos = () => {
+interface PendingPhoto {
+    // Define the shape of a pending photo if known, otherwise use 'any'
+    [key: string]: any;
+}
+
+interface UsePendingPhotosResult {
+    pendingPhotos: PendingPhoto[];
+    isPending: boolean;
+    isError: boolean;
+    error: Error | null;
+    onUploadPhoto: () => void;
+}
+
+export const usePendingPhotos = (): UsePendingPhotosResult => {
     logger.info("usePendingPhotos called");
 
     const {
@@ -47,7 +59,7 @@ export const usePendingPhotos = () => {
         pendingPhotos: data?.data ?? [],
         isPending,
         isError,
-        error,
+        error: error as Error | null,
         onUploadPhoto,
     };
 };
