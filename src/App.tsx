@@ -5,7 +5,7 @@ import './App.css';
 import { queryClient } from "./config/queryClient.js";
 import LoginScreen from './pages/components/loginScreen';
 import { AuthProvider, useAuth } from './features/auth/hooks/useAuth';
-import ProtectedLayout from './layouts/ProtectedLayout.jsx';
+import ProtectedLayout from './layouts/ProtectedLayout.tsx';
 import UserProfileScreen from './pages/components/UserProfileScreen.tsx';
 import SettingsScreen from './pages/components/SettingsScreen.tsx';
 import JobScreen from "./pages/components/JobScreen.tsx";
