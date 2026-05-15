@@ -86,6 +86,7 @@ const EditModal: React.FC<EditModalProps> = ({
       <Modal
         open={open}
         onClose={onClose}
+        hideCloseButton
         title={
           <div className={styles.modalTitle} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span>{title}</span>

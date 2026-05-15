@@ -4,6 +4,7 @@ import { useUserSettingsTab } from "../hooks/useUserSettingsTab";
 import { useCurrentUser } from "../hooks/useCurrentUser";
 import ConfirmationModal from "../../../components/confirmationmodal/ConfirmationModal.jsx";
 import CreateUserModal from "./CreateUserModal";
+import EditUserModal from "./EditUserModal";
 
 interface User {
     userId?: number;
@@ -31,9 +32,7 @@ const UserSettingsTab: React.FC = () => {
         isPending,
         isError,
         error,
-        handleSaveEdit,
         handleAddUser,
-        handleRemoveUser,
         confirmRemoveUser,
         cancelRemoveUser,
         editStatus,
@@ -48,7 +47,7 @@ const UserSettingsTab: React.FC = () => {
     const [modalMode, setModalMode] = useState<ModalMode>(null); // 'edit' | 'add'
     const [modalUser, setModalUser] = useState<User | null>(null);
     const [pendingClose, setPendingClose] = useState(false);
-    const closeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+    const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Find the user being confirmed for deletion
     const removingUser = removingId
@@ -103,53 +102,6 @@ const UserSettingsTab: React.FC = () => {
     };
 
     /**
-     * Handles a save action from the modal (edit).
-     * @param {number} userId
-     * @param {{ name: string, email: string }} payload
-     */
-    const handleModalSave = (userId: number, payload: { name: string; email: string }) => {
-        setEditModalError(null);
-        setPendingClose(true);
-        handleSaveEdit(
-            userId,
-            payload,
-            (error?: Error) => {
-                if (error) {
-                    setEditModalError(error.message || "Failed to update.");
-                    setPendingClose(false);
-                }
-            }
-        );
-    };
-
-    /**
-     * Handles save for add user modal.
-     * @param {null} ignoredUserId
-     * @param {{ name: string, email: string }} payload
-     */
-    const handleModalAdd = (_ignored: null, payload: { name: string; email: string }) => {
-        setEditModalError(null);
-        setPendingClose(true);
-        handleAddUser(
-            payload,
-            (error?: Error) => {
-                if (error) {
-                    setEditModalError(error.message || "Failed to create user.");
-                    setPendingClose(false);
-                }
-            }
-        );
-    };
-
-    /**
-     * Handles delete action for a user.
-     * @param {number} userId
-     */
-    const handleDelete = (userId: number) => {
-        handleRemoveUser(userId);
-    };
-
-    /**
      * Delayed close effect for modal; shows 'Saved' for ~1s before closing.
      * Distinguishes between add and edit flows.
      */
@@ -169,6 +121,27 @@ const UserSettingsTab: React.FC = () => {
             }
         };
     }, [pendingClose, editStatus, addStatus, modalMode]);
+
+    // Close edit modal after successful delete
+    useEffect(() => {
+        if (modalMode === "edit" && deleteStatus === "deleted") {
+            const timer = setTimeout(() => {
+                setModalUser(null);
+                setModalMode(null);
+                setEditModalError(null);
+                setPendingClose(false);
+                logger.info("Edit modal closed after delete");
+            }, 1000); // match animation delay
+            return () => clearTimeout(timer);
+        }
+    }, [modalMode, deleteStatus]);
+
+    // Handler to trigger user deletion from Edit modal
+    const handleDeleteUserFromEdit = () => {
+        if (modalUser?.userId != null) {
+            confirmRemoveUser(modalUser.userId);
+        }
+    };
 
     if (isPending) {
         return <div className={styles.loading}>Loading users...</div>;
@@ -197,7 +170,7 @@ const UserSettingsTab: React.FC = () => {
                         className={styles.userCard}
                         tabIndex={0}
                         onClick={() => openEditModal(user)}
-                        onKeyPress={(e: React.KeyboardEvent<HTMLDivElement>) => {
+                        onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
                             if (e.key === "Enter" || e.key === " ") {
                                 e.preventDefault();
                                 openEditModal(user);
@@ -221,10 +194,12 @@ const UserSettingsTab: React.FC = () => {
                     </div>
                 ))}
             </div>
+
             {/* Edit Modal */}
-            {modalMode === "edit" && (
-                <CreateUserModal
+            {modalMode === "edit" && modalUser?.userId != null && (
+                <EditUserModal
                     open={!!modalUser}
+                    userId={Number(modalUser.userId)}
                     onClose={() => {
                         setModalUser(null);
                         setModalMode(null);
@@ -238,22 +213,11 @@ const UserSettingsTab: React.FC = () => {
                         setPendingClose(false);
                     }}
                     initialValues={modalUser}
-                    isSaving={editStatus === "saving"}
-                    error={editModalError}
-                    onSubmit={async (values: any) => {
-                        setEditModalError(null);
-                        setPendingClose(true);
-                        handleSaveEdit(
-                            modalUser?.userId,
-                            values,
-                            (error?: Error) => {
-                                if (error) {
-                                    setEditModalError(error.message || "Failed to update.");
-                                    setPendingClose(false);
-                                }
-                            }
-                        );
-                    }}
+                    autoFocus
+                    onDelete={handleDeleteUserFromEdit}
+                    deleteStatus={deleteStatus}
+                    deletingText={"Deleting..."}
+                    deletedText={"Deleted"}
                 />
             )}
 
@@ -279,15 +243,12 @@ const UserSettingsTab: React.FC = () => {
                     onSubmit={async (values: any) => {
                         setEditModalError(null);
                         setPendingClose(true);
-                        handleAddUser(
-                            values,
-                            (error?: Error) => {
-                                if (error) {
-                                    setEditModalError(error.message || "Failed to create user.");
-                                    setPendingClose(false);
-                                }
+                        handleAddUser(values, (err: Error | null) => {
+                            if (err) {
+                                setEditModalError(err.message || "Failed to create user.");
+                                setPendingClose(false);
                             }
-                        );
+                        });
                     }}
                 />
             )}

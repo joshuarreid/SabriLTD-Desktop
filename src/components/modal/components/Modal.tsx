@@ -11,6 +11,7 @@ interface ModalProps {
   width?: string | number;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
+  hideCloseButton?: boolean;
 }
 
 const SIZE_WIDTH_MAP: Record<string, number> = {
@@ -30,6 +31,7 @@ const Modal: React.FC<ModalProps> = ({
   width,
   size = "md",
   className = "",
+  hideCloseButton = false,
 }) => {
   useEffect(() => {
     if (!open) return;
@@ -57,7 +59,9 @@ const Modal: React.FC<ModalProps> = ({
         {title && <div className={styles.modalHeader}>{title}</div>}
         <div className={styles.modalBody}>{children}</div>
         {footer && <div className={styles.modalFooter}>{footer}</div>}
-        <button className={styles.closeButton} onClick={onClose} aria-label="Close modal">×</button>
+        {!hideCloseButton && (
+          <button className={styles.closeButton} onClick={onClose} aria-label="Close modal">×</button>
+        )}
       </div>
     </div>,
     document.body

@@ -24,10 +24,13 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const EditUserForm = forwardRef<EditUserFormHandle, EditUserFormProps>(
     ({ onSubmit, error, isSaving = false, autoFocus = false, initialValues }, ref) => {
-        const formInitialValues: UserFormValues = {
-            name: initialValues?.name || "",
-            email: initialValues?.email || "",
-        };
+        const formInitialValues: UserFormValues = useMemo(
+            () => ({
+                name: initialValues?.name || "",
+                email: initialValues?.email || "",
+            }),
+            [initialValues?.name, initialValues?.email]
+        );
 
         const validate = (values: UserFormValues) => {
             const errors: Partial<Record<keyof UserFormValues, string>> = {};
@@ -45,6 +48,7 @@ const EditUserForm = forwardRef<EditUserFormHandle, EditUserFormProps>(
             initialValues: formInitialValues,
             validate,
             onSubmit: async (vals) => {
+                // Keep this component UI-only; normalize light input trimming here.
                 await onSubmit({
                     name: String(vals.name || "").trim(),
                     email: String(vals.email || "").trim(),
@@ -52,7 +56,11 @@ const EditUserForm = forwardRef<EditUserFormHandle, EditUserFormProps>(
             },
         });
 
-        React.useImperativeHandle(ref, () => form.imperativeHandle(), [form]);
+        // When the modal is reused for a different user (or reopened), sync new initialValues.
+        useEffect(() => {
+            form.setValues(formInitialValues);
+            form.setErrors({});
+        }, [formInitialValues]);
 
         useEffect(() => {
             if (!autoFocus) return;
@@ -83,9 +91,9 @@ const EditUserForm = forwardRef<EditUserFormHandle, EditUserFormProps>(
             [autoFocus, isSaving]
         );
 
+        // Forward the ref to the generic <Form />, which exposes submit/reset per form.md.
         return <Form ref={ref} fields={fields} form={form} error={error} />;
     }
 );
 
 export default EditUserForm;
-

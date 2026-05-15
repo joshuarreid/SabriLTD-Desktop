@@ -223,7 +223,7 @@ export default class UserApiClient extends ApiClient {
         try {
             const token = await getTokenFromElectron();
             if (!token) throw new Error('No authentication token found');
-            await this.delete(`/${userId}`, {
+            await this.delete(`/${userId}`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
         } catch (error) {
