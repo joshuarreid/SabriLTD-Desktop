@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useCreateUser, useCurrentUserQuery, useDeleteUser, useUpdateUser, useUsersList } from "./useUsers";
 
 // --- Types ---
@@ -19,7 +19,7 @@ type Status = 'idle' | 'saving' | 'saved' | 'error';
 
 type UseUserSettingsTabReturn = {
     users: User[];
-    me?: User;
+    me: User | undefined;
     isPending: boolean;
     isError: boolean;
     error: Error | null;
@@ -107,16 +107,16 @@ export const useUserSettingsTab = (): UseUserSettingsTabReturn => {
         );
     };
 
-    const handleRemoveUser = (userId: number) => setRemovingId(userId);
+    const handleRemoveUser = useCallback((userId: number) => setRemovingId(userId), []);
 
-    const confirmRemoveUser = (userId: number) => {
+    const confirmRemoveUser = useCallback((userId: number) => {
         logger.info('Confirm delete for user', userId);
         deleteUserMutation.mutate(userId, {
             onSuccess: () => setRemovingId(null)
         });
-    };
+    }, [deleteUserMutation]);
 
-    const cancelRemoveUser = () => setRemovingId(null);
+    const cancelRemoveUser = useCallback(() => setRemovingId(null), []);
 
     const cancelEditOrAdd = () => {
         setEditingId(null);
